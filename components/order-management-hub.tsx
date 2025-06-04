@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ import {
   MoreHorizontal,
   X,
   Filter,
+  Loader2,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -30,312 +31,464 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AdvancedFilterPanel, type AdvancedFilterValues } from "./advanced-filter-panel"
+import { PaginationControls } from "./pagination-controls"
 import { useToast } from "@/components/ui/use-toast"
-// import { OrderService } from "@/services/order-service" // Import the new OrderService
 
-// Updated to match the enterprise data model with all required columns
-const orders = [
+// Exact API response types based on the actual API structure
+interface ApiCustomer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  T1Number: string
+}
+
+interface ApiShippingAddress {
+  street: string
+  city: string
+  state: string
+  postal_code: string
+  country: string
+}
+
+interface ApiPaymentInfo {
+  method: string
+  status: string
+  transaction_id: string
+}
+
+interface ApiSLAInfo {
+  target_minutes: number
+  elapsed_minutes: number
+  status: string
+}
+
+interface ApiMetadata {
+  created_at: string
+  updated_at: string
+  priority: string
+  store_name: string
+}
+
+interface ApiProductDetails {
+  description: string
+  category: string
+  brand: string
+}
+
+interface ApiOrderItem {
+  id: string
+  product_id: string
+  product_name: string
+  product_sku: string
+  quantity: number
+  unit_price: number
+  total_price: number
+  product_details: ApiProductDetails
+}
+
+interface ApiOrder {
+  id: string
+  order_no: string
+  customer: ApiCustomer
+  order_date: string
+  channel: string
+  business_unit: string
+  order_type: string
+  total_amount: number
+  shipping_address: ApiShippingAddress
+  payment_info: ApiPaymentInfo
+  sla_info: ApiSLAInfo
+  metadata: ApiMetadata
+  items: ApiOrderItem[]
+  status: string
+}
+
+interface ApiPagination {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+interface ApiResponse {
+  data: ApiOrder[]
+  pagination: ApiPagination
+}
+
+// Standardized internal order format
+interface Order {
+  id: string
+  orderNo: string
+  customer: string
+  email: string
+  phoneNumber: string
+  channel: string
+  status: string
+  businessUnit: string
+  orderType: string
+  items: number
+  total: string
+  date: string
+  slaTargetMinutes: number
+  elapsedMinutes: number
+  slaStatus: string
+  storeName: string
+  sellingLocationId: string
+  priority: string
+  billingMethod: string
+  paymentStatus: string
+  fulfillmentLocationId: string
+  itemsList: string[]
+  orderDate: Date
+  returnStatus: string
+  onHold: boolean
+  confirmed: boolean
+  allowSubstitution: boolean
+  createdDate: string
+}
+
+// Pagination parameters interface
+interface PaginationParams {
+  page: number
+  pageSize: number
+}
+
+// Filter parameters interface
+interface FilterParams {
+  searchTerm?: string
+  status?: string
+  channel?: string
+  priority?: string
+  slaFilter?: "all" | "near-breach" | "breach"
+  advancedFilters?: AdvancedFilterValues
+}
+
+// Precise data mapping function based on actual API structure
+const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pagination: ApiPagination } => {
+  try {
+    console.log("🔄 Mapping API response to internal format...")
+    console.log("API Response structure:", {
+      dataLength: apiResponse.data?.length || 0,
+      pagination: apiResponse.pagination,
+      sampleOrder: apiResponse.data?.[0] || null,
+    })
+
+    if (!apiResponse.data || !Array.isArray(apiResponse.data)) {
+      console.log("⚠️ No valid orders array found in API response")
+      return {
+        orders: [],
+        pagination: apiResponse.pagination || {
+          page: 1,
+          pageSize: 10,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      }
+    }
+
+    const orders = apiResponse.data
+
+    console.log(`🔄 Processing ${orders.length} orders from API...`)
+
+    const mappedOrders = orders.map((apiOrder: ApiOrder, index: number) => {
+      console.log(`Processing order ${index + 1}:`, {
+        id: apiOrder.id,
+        order_no: apiOrder.order_no,
+        status: apiOrder.status,
+        itemCount: apiOrder.items?.length || 0,
+      })
+
+      // Calculate actual total from items since total_amount appears to be 0
+      const calculatedTotal = apiOrder.items?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0
+      const displayTotal = calculatedTotal > 0 ? calculatedTotal : apiOrder.total_amount
+
+      // Handle customer information (most fields are masked with "-")
+      const customerName = apiOrder.customer?.name !== "-" ? apiOrder.customer.name : "Grab Customer"
+      const customerEmail = apiOrder.customer?.email !== "-" ? apiOrder.customer.email : "customer@grab.com"
+      const customerPhone = apiOrder.customer?.phone !== "-" ? apiOrder.customer.phone : "N/A"
+
+      // Extract items information
+      const itemsList = apiOrder.items?.map((item) => item.product_name) || []
+      const itemCount = apiOrder.items?.length || 0
+
+      // Handle dates
+      const orderDate = new Date(apiOrder.order_date)
+      const createdDate = apiOrder.metadata?.created_at || apiOrder.order_date
+
+      // Calculate SLA status based on elapsed vs target minutes
+      let slaStatus = "COMPLIANT"
+      const remainingMinutes = apiOrder.sla_info.target_minutes - apiOrder.sla_info.elapsed_minutes
+
+      if (remainingMinutes <= 0) {
+        slaStatus = "BREACH"
+      } else if (remainingMinutes <= apiOrder.sla_info.target_minutes * 0.2) {
+        slaStatus = "NEAR_BREACH"
+      }
+
+      // Handle location information (most fields are masked)
+      const storeName = apiOrder.metadata?.store_name !== "-" ? apiOrder.metadata.store_name : apiOrder.business_unit
+      const sellingLocationId = storeName
+
+      // Handle priority (masked in API)
+      const priority = apiOrder.metadata?.priority !== "-" ? apiOrder.metadata.priority : "NORMAL"
+
+      // Handle payment information
+      const paymentMethod = apiOrder.payment_info?.method || "Online Payment"
+      const paymentStatus = apiOrder.payment_info?.status !== "-" ? apiOrder.payment_info.status : "UNKNOWN"
+
+      const mappedOrder: Order = {
+        id: apiOrder.id,
+        orderNo: apiOrder.order_no,
+        customer: customerName,
+        email: customerEmail,
+        phoneNumber: customerPhone,
+        channel: apiOrder.channel.toUpperCase(),
+        status: apiOrder.status.toUpperCase(),
+        businessUnit: apiOrder.business_unit,
+        orderType: apiOrder.order_type,
+        items: itemCount,
+        total: `฿${displayTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        date: orderDate.toLocaleString(),
+        slaTargetMinutes: apiOrder.sla_info.target_minutes,
+        elapsedMinutes: apiOrder.sla_info.elapsed_minutes,
+        slaStatus,
+        storeName,
+        sellingLocationId,
+        priority: priority.toUpperCase(),
+        billingMethod: paymentMethod,
+        paymentStatus: paymentStatus.toUpperCase(),
+        fulfillmentLocationId: apiOrder.business_unit,
+        itemsList,
+        orderDate,
+        returnStatus: "",
+        onHold: false,
+        confirmed: true,
+        allowSubstitution: false,
+        createdDate: new Date(createdDate).toLocaleString(),
+      }
+
+      console.log(`✅ Mapped order ${index + 1}:`, {
+        id: mappedOrder.id,
+        orderNo: mappedOrder.orderNo,
+        status: mappedOrder.status,
+        total: mappedOrder.total,
+        slaStatus: mappedOrder.slaStatus,
+      })
+
+      return mappedOrder
+    })
+
+    return { orders: mappedOrders, pagination: apiResponse.pagination }
+  } catch (error) {
+    console.error("❌ Error mapping API response:", error)
+    throw new Error(`Failed to map API response: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
+}
+
+// Enhanced API client with pagination support
+const fetchOrdersFromApi = async (
+  paginationParams: PaginationParams,
+  filterParams?: FilterParams,
+): Promise<{ orders: Order[]; pagination: ApiPagination }> => {
+  try {
+    console.log("🔄 Attempting to fetch orders from API endpoint...")
+    console.log("Pagination params:", paginationParams)
+    console.log("Filter params:", filterParams)
+
+    // Build query parameters
+    const queryParams = new URLSearchParams({
+      page: paginationParams.page.toString(),
+      pageSize: paginationParams.pageSize.toString(),
+    })
+
+    // Add filter parameters if provided
+    if (filterParams?.searchTerm) {
+      queryParams.set("search", filterParams.searchTerm)
+    }
+    if (filterParams?.status && filterParams.status !== "all-status") {
+      queryParams.set("status", filterParams.status)
+    }
+    if (filterParams?.channel && filterParams.channel !== "all-channels") {
+      queryParams.set("channel", filterParams.channel)
+    }
+
+    // Try server-side API route first (bypasses CORS)
+    const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    console.log("Proxy response status:", proxyResponse.status)
+
+    if (proxyResponse.ok) {
+      const proxyData = await proxyResponse.json()
+      console.log("Proxy response data structure:", {
+        success: proxyData.success,
+        hasData: !!proxyData.data,
+        dataType: typeof proxyData.data,
+      })
+
+      if (proxyData.success && proxyData.data) {
+        console.log("✅ Successfully fetched via server proxy")
+        return mapApiResponseToOrders(proxyData.data)
+      } else if (proxyData.fallback) {
+        console.log("⚠️ Server proxy indicated fallback needed:", proxyData.error)
+        throw new Error(proxyData.error || "Server proxy fallback")
+      }
+    }
+
+    // Fallback to direct client-side fetch
+    console.log("🔄 Trying direct client-side fetch as fallback...")
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+    const apiUrl = `https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1/merchant/orders?${queryParams.toString()}`
+    const directResponse = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!directResponse.ok) {
+      throw new Error(`Direct API error: ${directResponse.status} - ${directResponse.statusText}`)
+    }
+
+    const directData: ApiResponse = await directResponse.json()
+    console.log("✅ Direct fetch successful")
+
+    return mapApiResponseToOrders(directData)
+  } catch (error) {
+    console.error("❌ All fetch attempts failed:", error)
+
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        throw new Error("Request timeout - API took too long to respond (15s)")
+      } else if (error.message.includes("CORS") || error.message.includes("cors")) {
+        throw new Error("CORS error - API access blocked by browser security policy")
+      } else if (error.message.includes("Failed to fetch")) {
+        throw new Error("Network error - Unable to reach API endpoint. Check network connectivity.")
+      }
+    }
+
+    throw error
+  }
+}
+
+// Realistic fallback data based on actual API structure
+const fallbackOrders: Order[] = [
   {
-    id: "ORD-2025-0523-001",
-    orderNo: "CG-TOPS-2025052301-A789B0", // เปลี่ยนจาก "2552268XVPUQ6" เป็น pattern ที่สอดคล้องกับอันอื่นๆ
-    customer: "John Smith",
-    email: "john.smith@example.com",
-    phoneNumber: "0891234567",
-    channel: "SHOPEE",
-    status: "FULFILLED",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 3,
-    total: "฿1,052.00",
-    date: "Today, 10:23 AM",
-    slaTargetMinutes: 5,
-    elapsedMinutes: 7,
-    slaStatus: "COMPLIANT",
-    storeName: "Central World",
-    sellingLocationId: "Central World",
-    priority: "HIGH",
-    billingMethod: "COD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-CW-001",
-    itemsList: ["Fresh Milk", "Bread", "Eggs"],
-    orderDate: new Date(2025, 4, 23),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "02/20/2025 10:58 ICT",
-  },
-  {
-    id: "ORD-2025-0523-002",
-    orderNo: "CG-TOPS-2025052302-B123C4",
-    customer: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    phoneNumber: "0812345678",
-    channel: "LAZADA",
-    status: "SHIPPED",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 2,
-    total: "฿1,250.00",
-    date: "Today, 09:45 AM",
-    slaTargetMinutes: 60,
-    elapsedMinutes: 45,
-    slaStatus: "COMPLIANT",
-    storeName: "Central Warehouse",
-    sellingLocationId: "Sukhumvit",
-    priority: "NORMAL",
-    billingMethod: "CARD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "CW-BKK-001",
-    itemsList: ["Organic Vegetables", "Chicken Breast"],
-    orderDate: new Date(2025, 4, 23),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: true,
-    createdDate: "02/19/2025 09:45 ICT",
-  },
-  {
-    id: "ORD-2025-0522-001",
-    orderNo: "CG-TOPS-2025052201-D456E7",
-    customer: "Michael Wong",
-    email: "m.wong@example.com",
-    phoneNumber: "0823456789",
-    channel: "SHOPEE",
-    status: "DELIVERED",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 5,
-    total: "฿3,450.00",
-    date: "Yesterday, 15:30 PM",
-    slaTargetMinutes: 60,
-    elapsedMinutes: 55,
-    slaStatus: "COMPLIANT",
-    storeName: "Tops Sukhumvit",
-    sellingLocationId: "Tops Sukhumvit",
-    priority: "NORMAL",
-    billingMethod: "COD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-SKV-001",
-    itemsList: ["Rice", "Cooking Oil", "Soy Sauce", "Noodles", "Fish Sauce"],
-    orderDate: new Date(2025, 4, 22),
-    returnStatus: "NONE",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "02/18/2025 15:30 ICT",
-  },
-  {
-    id: "ORD-2025-0522-002",
-    orderNo: "CG-CENTRAL-2025052202-F789G0",
-    customer: "Lisa Chen",
-    email: "lisa.chen@example.com",
-    phoneNumber: "0834567890",
-    channel: "TIKTOK",
-    status: "PROCESSING",
-    businessUnit: "CENTRAL",
-    orderType: "STD-HD",
-    items: 1,
-    total: "฿750.00",
-    date: "Yesterday, 14:22 PM",
-    slaTargetMinutes: 120,
-    elapsedMinutes: 60,
-    slaStatus: "COMPLIANT",
-    storeName: "Central Warehouse",
-    sellingLocationId: "Central Warehouse",
-    priority: "NORMAL",
-    billingMethod: "BANK_TRANSFER",
-    paymentStatus: "PENDING",
-    fulfillmentLocationId: "CW-BKK-001",
-    itemsList: ["Designer Handbag"],
-    orderDate: new Date(2025, 4, 22),
-    returnStatus: "",
-    onHold: true,
-    confirmed: false,
-    allowSubstitution: true,
-    createdDate: "02/18/2025 14:22 ICT",
-  },
-  {
-    id: "ORD-2025-0522-003",
-    orderNo: "CG-TOPS-2025052203-H012I3",
-    customer: "David Miller",
-    email: "d.miller@example.com",
-    phoneNumber: "0845678901",
+    id: "TRV2-123456789-C7ECJUN1MF2WLE2",
+    orderNo: "GF-5173",
+    customer: "Grab Customer",
+    email: "customer@grab.com",
+    phoneNumber: "N/A",
     channel: "GRAB",
-    status: "PROCESSING",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 2,
-    total: "฿320.00",
-    date: "Yesterday, 13:15 PM",
-    slaTargetMinutes: 5,
-    elapsedMinutes: 6,
+    status: "CANCELLED",
+    businessUnit: "CFG",
+    orderType: "STANDARD",
+    items: 1,
+    total: "฿72.00",
+    date: "2025-05-26T07:29:57.000Z",
+    slaTargetMinutes: 300,
+    elapsedMinutes: 790626,
     slaStatus: "BREACH",
-    storeName: "Tops Pattaya",
-    sellingLocationId: "Tops Pattaya",
-    priority: "HIGH",
-    billingMethod: "COD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-PTY-001",
-    itemsList: ["Bottled Water", "Snacks"],
-    orderDate: new Date(2025, 4, 22),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "02/18/2025 13:15 ICT",
-  },
-  {
-    id: "ORD-2025-0522-004",
-    orderNo: "CG-TOPS-2025052204-J345K6",
-    customer: "Emma Wilson",
-    email: "emma.w@example.com",
-    phoneNumber: "0856789012",
-    channel: "SHOPIFY",
-    status: "CREATED",
-    businessUnit: "TOPS",
-    orderType: "STD-HD",
-    items: 4,
-    total: "฿1,890.00",
-    date: "Yesterday, 11:05 AM",
-    slaTargetMinutes: 120,
-    elapsedMinutes: 30,
-    slaStatus: "COMPLIANT",
-    storeName: "Unassigned",
-    sellingLocationId: "Unassigned",
+    storeName: "CFG",
+    sellingLocationId: "CFG",
     priority: "NORMAL",
-    billingMethod: "CARD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "",
-    itemsList: ["Shampoo", "Conditioner", "Body Wash", "Lotion"],
-    orderDate: new Date(2025, 4, 22),
+    billingMethod: "Online Payment",
+    paymentStatus: "UNKNOWN",
+    fulfillmentLocationId: "CFG",
+    itemsList: ["หอมใหญ่ออสเตรเลีย"],
+    orderDate: new Date("2025-05-26T07:29:57.000Z"),
     returnStatus: "",
     onHold: false,
     confirmed: true,
     allowSubstitution: false,
-    createdDate: "02/18/2025 11:05 ICT",
+    createdDate: "2025-05-26T07:29:57.000Z",
   },
   {
-    id: "ORD-2025-0523-003",
-    orderNo: "CG-TOPS-2025052303-C456D7",
-    customer: "Alice Brown",
-    email: "alice.brown@example.com",
-    phoneNumber: "0867890123",
+    id: "XMS1-123456789-C7ETGCBVAKXVCX",
+    orderNo: "GF-2455",
+    customer: "Grab Customer",
+    email: "customer@grab.com",
+    phoneNumber: "N/A",
     channel: "GRAB",
-    status: "PROCESSING",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 2,
-    total: "฿450.00",
-    date: "Today, 11:30 AM",
-    slaTargetMinutes: 5,
-    elapsedMinutes: 4,
-    slaStatus: "COMPLIANT",
-    storeName: "Tops Silom",
-    sellingLocationId: "Tops Silom",
-    priority: "HIGH",
-    billingMethod: "COD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-SLM-001",
-    itemsList: ["Coffee", "Sandwich"],
-    orderDate: new Date(2025, 4, 23),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "02/20/2025 11:30 ICT",
-  },
-  {
-    id: "ORD-2025-0523-004",
-    orderNo: "CG-TOPS-2025052304-E789F0",
-    customer: "Robert Wilson",
-    email: "robert.w@example.com",
-    phoneNumber: "0878901234",
-    channel: "LAZADA",
-    status: "PROCESSING",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
+    status: "DELIVERED",
+    businessUnit: "CFG",
+    orderType: "STANDARD",
     items: 1,
-    total: "฿280.00",
-    date: "Today, 12:15 PM",
-    slaTargetMinutes: 60,
-    elapsedMinutes: 50,
-    slaStatus: "COMPLIANT",
-    storeName: "Tops Thonglor",
-    sellingLocationId: "Tops Thonglor",
+    total: "฿17.00",
+    date: "2025-06-04T09:53:52.000Z",
+    slaTargetMinutes: 300,
+    elapsedMinutes: 4391,
+    slaStatus: "BREACH",
+    storeName: "CFG",
+    sellingLocationId: "CFG",
     priority: "NORMAL",
-    billingMethod: "CARD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-TGL-001",
-    itemsList: ["Protein Shake"],
-    orderDate: new Date(2025, 4, 23),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: true,
-    createdDate: "02/20/2025 12:15 ICT",
-  },
-  {
-    id: "ORD-2025-0523-005",
-    orderNo: "CG-CENTRAL-2025052305-G012H3",
-    customer: "Jennifer Lee",
-    email: "jennifer.lee@example.com",
-    phoneNumber: "0889012345",
-    channel: "SHOPEE",
-    status: "PROCESSING",
-    businessUnit: "CENTRAL",
-    orderType: "STD-HD",
-    items: 3,
-    total: "฿1,200.00",
-    date: "Today, 13:45 PM",
-    slaTargetMinutes: 120,
-    elapsedMinutes: 100,
-    slaStatus: "COMPLIANT",
-    storeName: "Central Ladprao",
-    sellingLocationId: "Central Ladprao",
-    priority: "NORMAL",
-    billingMethod: "BANK_TRANSFER",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "CTL-LDP-001",
-    itemsList: ["Dress", "Shoes", "Handbag"],
-    orderDate: new Date(2025, 4, 23),
+    billingMethod: "Online Payment",
+    paymentStatus: "UNKNOWN",
+    fulfillmentLocationId: "CFG",
+    itemsList: ["เชาว์คัทสึโอะไก่และปลาโอ 40ก"],
+    orderDate: new Date("2025-06-04T09:53:52.000Z"),
     returnStatus: "",
     onHold: false,
     confirmed: true,
     allowSubstitution: false,
-    createdDate: "02/20/2025 13:45 ICT",
+    createdDate: "2025-06-04T09:53:52.000Z",
   },
   {
-    id: "ORD-2025-0523-006",
-    orderNo: "CG-TOPS-2025052306-I345J6",
-    customer: "Mark Thompson",
-    email: "mark.t@example.com",
-    phoneNumber: "0890123456",
-    channel: "TIKTOK",
-    status: "CREATED",
-    businessUnit: "TOPS",
-    orderType: "HGH-HD-STD",
-    items: 4,
-    total: "฿680.00",
-    date: "Today, 14:20 PM",
-    slaTargetMinutes: 5,
-    elapsedMinutes: 4,
-    slaStatus: "COMPLIANT",
-    storeName: "Tops Asoke",
-    sellingLocationId: "Tops Asoke",
-    priority: "HIGH",
-    billingMethod: "COD",
-    paymentStatus: "PAID",
-    fulfillmentLocationId: "TOPS-ASK-001",
-    itemsList: ["Fruits", "Vegetables", "Meat", "Dairy"],
-    orderDate: new Date(2025, 4, 23),
+    id: "123456789-C7EFA24KEPDHN6",
+    orderNo: "GF-2738",
+    customer: "Grab Customer",
+    email: "customer@grab.com",
+    phoneNumber: "N/A",
+    channel: "GRAB",
+    status: "CANCELLED",
+    businessUnit: "CFG",
+    orderType: "STANDARD",
+    items: 3,
+    total: "฿411.00",
+    date: "2025-05-29T08:12:29.000Z",
+    slaTargetMinutes: 300,
+    elapsedMinutes: 528874,
+    slaStatus: "BREACH",
+    storeName: "CFG",
+    sellingLocationId: "CFG",
+    priority: "NORMAL",
+    billingMethod: "Online Payment",
+    paymentStatus: "UNKNOWN",
+    fulfillmentLocationId: "CFG",
+    itemsList: ["มายช้อยส์สตรอเบอร์รี่ 250ก", "GI กระเทียมมัดจุก500ก", "หอมใหญ่ออสเตรเลีย"],
+    orderDate: new Date("2025-05-29T08:12:29.000Z"),
     returnStatus: "",
     onHold: false,
     confirmed: true,
-    allowSubstitution: true,
-    createdDate: "02/20/2025 14:20 ICT",
+    allowSubstitution: false,
+    createdDate: "2025-05-29T08:12:29.000Z",
   },
 ]
+
+const fallbackPagination: ApiPagination = {
+  page: 1,
+  pageSize: 10,
+  total: 3,
+  totalPages: 1,
+  hasNext: false,
+  hasPrev: false,
+}
 
 function getStatusIcon(status: string) {
   switch (status) {
@@ -349,6 +502,8 @@ function getStatusIcon(status: string) {
       return <CheckCircle className="h-4 w-4 text-success" />
     case "FULFILLED":
       return <CheckCircle className="h-4 w-4 text-success" />
+    case "CANCELLED":
+      return <X className="h-4 w-4 text-destructive" />
     default:
       return <ShoppingBag className="h-4 w-4 text-dark-gray" />
   }
@@ -380,22 +535,10 @@ function getChannelBadge(channel: string) {
           TIKTOK
         </Badge>
       )
-    case "SHOPIFY":
-      return (
-        <Badge variant="outline" className="bg-[#f3e6fc] text-[#9333ea] border-[#e0c5f5] font-mono text-sm">
-          SHOPIFY
-        </Badge>
-      )
-    case "INSTORE":
-      return (
-        <Badge variant="outline" className="bg-[#e6f7f7] text-[#0d9488] border-[#c5e8e5] font-mono text-sm">
-          INSTORE
-        </Badge>
-      )
     default:
       return (
         <Badge variant="outline" className="font-mono text-sm">
-          OTHER
+          {channel}
         </Badge>
       )
   }
@@ -419,7 +562,7 @@ function getSLABadge(targetMinutes: number, elapsedMinutes: number, status: stri
         <span className="text-red-500 font-mono text-sm font-medium">{Math.abs(remainingMinutes)}m BREACH</span>
       </div>
     )
-  } else if (remainingMinutes < targetMinutes * 0.2) {
+  } else if (remainingMinutes < targetMinutes * 0.2 || status === "NEAR_BREACH") {
     return (
       <div className="flex items-center">
         <Clock className="h-3 w-3 text-amber-500 mr-1" />
@@ -461,22 +604,8 @@ function getPriorityBadge(priority: string) {
   }
 }
 
-function getOrderTypeBadge(orderType: string) {
-  switch (orderType) {
-    case "HGH-HD-STD":
-      return <Badge className="bg-info text-white border-0 font-mono text-sm">HGH-HD-STD</Badge>
-    case "STD-HD":
-      return <Badge className="bg-warning text-white border-0 font-mono text-sm">STD-HD</Badge>
-    default:
-      return (
-        <Badge variant="outline" className="font-mono text-sm">
-          {orderType}
-        </Badge>
-      )
-  }
-}
-
 export function OrderManagementHub() {
+  // Filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all-status")
   const [channelFilter, setChannelFilter] = useState("all-channels")
@@ -498,53 +627,171 @@ export function OrderManagementHub() {
     fulfillmentLocationId: "",
     items: "",
   })
-  const router = useRouter()
 
-  const { toast } = useToast()
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+  const [pagination, setPagination] = useState<ApiPagination>(fallbackPagination)
+
+  // Data states
+  const [ordersData, setOrdersData] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [dataSource, setDataSource] = useState<"api" | "fallback">("fallback")
+
+  // SLA states
   const [slaAlerts, setSlaAlerts] = useState<string[]>([])
-  const [lastAlertCheck, setLastAlertCheck] = useState<number>(Date.now())
-
-  // เพิ่ม state สำหรับเก็บผลลัพธ์การคำนวณ SLA
   const [slaStats, setSlaStats] = useState({
-    criticalOrders: [] as typeof orders,
-    breachedOrders: [] as typeof orders,
-    nearBreachOrders: [] as typeof orders,
+    criticalOrders: [] as Order[],
+    breachedOrders: [] as Order[],
+    nearBreachOrders: [] as Order[],
   })
 
-  const [ordersData, setOrdersData] = useState<typeof orders>(orders) // State to hold orders data from service
+  const router = useRouter()
+  const { toast } = useToast()
 
-  // Fetch orders data from service on component mount
-  // useEffect(() => {
-  //   const fetchOrders = async () => {
-  //     const data = await OrderService.getOrders()
-  //     setOrdersData(data)
-  //   }
+  // Debounced search to avoid too many API calls
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
 
-  //   fetchOrders()
-  // }, [])
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
 
-  // แก้ไขฟังก์ชัน checkSLAAlerts ให้ไม่มีการเรียกใช้ setState ภายในฟังก์ชัน
-  const checkSLAAlerts = (orders: typeof orders) => {
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Fetch orders function with pagination and filters
+  const fetchOrders = useCallback(
+    async (page: number = currentPage, size: number = pageSize, resetPage = false) => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        console.log("🔄 Starting order fetch process...")
+
+        const actualPage = resetPage ? 1 : page
+
+        const paginationParams: PaginationParams = {
+          page: actualPage,
+          pageSize: size,
+        }
+
+        const filterParams: FilterParams = {
+          searchTerm: debouncedSearchTerm,
+          status: statusFilter,
+          channel: channelFilter,
+          priority: priorityFilter,
+          slaFilter,
+          advancedFilters,
+        }
+
+        const { orders, pagination: apiPagination } = await fetchOrdersFromApi(paginationParams, filterParams)
+
+        if (orders.length === 0 && apiPagination.total === 0) {
+          console.log("⚠️ API returned empty data, using fallback")
+          setOrdersData(fallbackOrders)
+          setPagination(fallbackPagination)
+          setDataSource("fallback")
+          setError("API returned no data. Using demo data.")
+        } else {
+          console.log(
+            `✅ Successfully loaded ${orders.length} orders from API (Page ${apiPagination.page}/${apiPagination.totalPages})`,
+          )
+          setOrdersData(orders)
+          setPagination(apiPagination)
+          setDataSource("api")
+
+          if (resetPage) {
+            setCurrentPage(1)
+          } else {
+            setCurrentPage(actualPage)
+          }
+        }
+
+        const { criticalOrders, breachedOrders, nearBreachOrders, newAlerts } = checkSLAAlerts(
+          orders.length > 0 ? orders : fallbackOrders,
+        )
+        setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
+
+        if (newAlerts.length > 0) {
+          setSlaAlerts(newAlerts)
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch orders:", error)
+
+        let errorMessage = "Unknown error occurred"
+        if (error instanceof Error) {
+          errorMessage = error.message
+        }
+
+        setError(`API Connection Failed: ${errorMessage}`)
+        setDataSource("fallback")
+
+        // Use fallback data if API fails
+        console.log("🔄 Using fallback demo data...")
+        setOrdersData(fallbackOrders)
+        setPagination(fallbackPagination)
+        setCurrentPage(1)
+
+        const { criticalOrders, breachedOrders, nearBreachOrders } = checkSLAAlerts(fallbackOrders)
+        setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
+
+        toast({
+          title: "API Connection Failed",
+          description: "Unable to connect to external API. Using demo data for demonstration.",
+          variant: "destructive",
+          duration: 8000,
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [
+      currentPage,
+      pageSize,
+      debouncedSearchTerm,
+      statusFilter,
+      channelFilter,
+      priorityFilter,
+      slaFilter,
+      advancedFilters,
+      toast,
+    ],
+  )
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchOrders(1, pageSize, true)
+  }, [pageSize])
+
+  // Fetch when filters change (reset to page 1)
+  useEffect(() => {
+    if (debouncedSearchTerm !== searchTerm) return // Wait for debounced search
+    fetchOrders(1, pageSize, true)
+  }, [debouncedSearchTerm, statusFilter, channelFilter, priorityFilter, slaFilter, advancedFilters])
+
+  // SLA alerts check function
+  const checkSLAAlerts = (orders: Order[]) => {
     const criticalOrders = orders.filter((order) => {
-      // ไม่ตรวจสอบ order ที่เสร็จสิ้นแล้ว
-      if (order.status === "DELIVERED" || order.status === "FULFILLED") {
+      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
 
       const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      const criticalThreshold = order.slaTargetMinutes * 0.2 // 20% ของเวลา SLA
+      const criticalThreshold = order.slaTargetMinutes * 0.2
 
-      // ถือว่าเป็น critical ถ้าเหลือเวลาน้อยกว่า 20% หรือเกินแล้ว
-      return remainingMinutes <= criticalThreshold
+      return remainingMinutes <= criticalThreshold || order.slaStatus === "NEAR_BREACH" || order.slaStatus === "BREACH"
     })
 
-    // แยกประเภท order ที่เกิน SLA แล้ว และที่ใกล้เกิน SLA
     const breachedOrders = criticalOrders.filter(
       (order) => order.slaTargetMinutes - order.elapsedMinutes <= 0 || order.slaStatus === "BREACH",
     )
 
     const nearBreachOrders = criticalOrders.filter(
-      (order) => order.slaTargetMinutes - order.elapsedMinutes > 0 && order.slaStatus !== "BREACH",
+      (order) =>
+        order.slaTargetMinutes - order.elapsedMinutes > 0 &&
+        (order.slaStatus === "NEAR_BREACH" || order.slaStatus !== "BREACH"),
     )
 
     const newAlerts = criticalOrders.map((order) => {
@@ -559,191 +806,34 @@ export function OrderManagementHub() {
     return { criticalOrders, breachedOrders, nearBreachOrders, newAlerts }
   }
 
-  // ตรวจสอบ SLA alerts และอัพเดท state
-  useEffect(() => {
-    const updateSLAStats = () => {
-      const { criticalOrders, breachedOrders, nearBreachOrders, newAlerts } = checkSLAAlerts(ordersData)
-
-      setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
-
-      // ตรวจสอบว่ามี alert ใหม่หรือไม่
-      const hasNewAlerts = newAlerts.some((alert) => !slaAlerts.includes(alert))
-
-      if (hasNewAlerts && newAlerts.length > 0) {
-        setSlaAlerts(newAlerts)
-
-        // แสดง toast notification สำหรับ alert ใหม่
-        const newAlertsOnly = newAlerts.filter((alert) => !slaAlerts.includes(alert))
-
-        if (newAlertsOnly.length > 0) {
-          toast({
-            title: `⚠️ SLA Alert (${criticalOrders.length} orders)`,
-            description:
-              newAlertsOnly.length === 1 ? newAlertsOnly[0] : `${newAlertsOnly.length} orders need immediate attention`,
-            variant: breachedOrders.length > 0 ? "destructive" : "default",
-            duration: 8000,
-          })
-        }
-      } else if (newAlerts.length === 0 && slaAlerts.length > 0) {
-        // ถ้าไม่มี alert แล้ว ให้ clear
-        setSlaAlerts([])
-      }
-    }
-
-    // อัพเดทครั้งแรกเมื่อ component mount
-    updateSLAStats()
-
-    const interval = setInterval(() => {
-      updateSLAStats()
-    }, 30000) // ตรวจสอบทุก 30 วินาที
-
-    return () => clearInterval(interval)
-  }, [ordersData, slaAlerts, toast])
-
-  const filteredOrders = ordersData.filter((order) => {
-    // SLA filter
-    if (slaFilter === "near-breach") {
-      // ไม่รวม order ที่เสร็จสิ้นแล้ว
-      if (order.status === "DELIVERED" || order.status === "FULFILLED") {
-        return false
-      }
-
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      const criticalThreshold = order.slaTargetMinutes * 0.2 // 20% ของเวลา SLA
-
-      // แสดงเฉพาะ order ที่ใกล้เกิน SLA แต่ยังไม่เกิน
-      return remainingMinutes <= criticalThreshold && remainingMinutes > 0 && order.slaStatus !== "BREACH"
-    } else if (slaFilter === "breach") {
-      // ไม่รวม order ที่เสร็จสิ้นแล้ว
-      if (order.status === "DELIVERED" || order.status === "FULFILLED") {
-        return false
-      }
-
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-
-      // แสดงเฉพาะ order ที่เกิน SLA แล้ว
-      return remainingMinutes <= 0 || order.slaStatus === "BREACH"
-    }
-
-    // Basic search filter
-    const matchesSearch =
-      searchTerm === "" ||
-      order.orderNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.phoneNumber.includes(searchTerm) ||
-      order.items.toString().includes(searchTerm) ||
-      order.businessUnit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.total.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // Basic dropdown filters
-    const matchesStatus = statusFilter === "all-status" || order.status.toLowerCase() === statusFilter.toLowerCase()
-    const matchesChannel =
-      channelFilter === "all-channels" || order.channel.toLowerCase() === channelFilter.toLowerCase()
-    const matchesPriority =
-      priorityFilter === "all-priority" || order.priority.toLowerCase() === priorityFilter.toLowerCase()
-
-    // Advanced filters
-    const matchesOrderNumber =
-      advancedFilters.orderNumber === "" ||
-      order.orderNo.toLowerCase().includes(advancedFilters.orderNumber.toLowerCase())
-
-    const matchesCustomerName =
-      advancedFilters.customerName === "" ||
-      order.customer.toLowerCase().includes(advancedFilters.customerName.toLowerCase())
-
-    const matchesPhoneNumber =
-      advancedFilters.phoneNumber === "" ||
-      order.phoneNumber.toLowerCase().includes(advancedFilters.phoneNumber.toLowerCase())
-
-    const matchesEmail =
-      advancedFilters.email === "" || order.email.toLowerCase().includes(advancedFilters.email.toLowerCase())
-
-    const matchesOrderDateFrom = !advancedFilters.orderDateFrom || order.orderDate >= advancedFilters.orderDateFrom
-
-    const matchesOrderDateTo = !advancedFilters.orderDateTo || order.orderDate <= advancedFilters.orderDateTo
-
-    const matchesAdvancedStatus =
-      advancedFilters.orderStatus === "all-status" ||
-      order.status.toLowerCase() === advancedFilters.orderStatus.toLowerCase()
-
-    const matchesExceedSLA =
-      !advancedFilters.exceedSLA ||
-      (order.slaStatus === "BREACH" && order.status !== "FULFILLED" && order.status !== "DELIVERED")
-
-    const matchesAdvancedChannel =
-      advancedFilters.sellingChannel === "all-channels" ||
-      order.channel.toLowerCase() === advancedFilters.sellingChannel.toLowerCase()
-
-    const matchesPaymentStatus =
-      advancedFilters.paymentStatus === "all-payment" ||
-      order.paymentStatus.toLowerCase() === advancedFilters.paymentStatus.toLowerCase()
-
-    const matchesFulfillmentLocationId =
-      advancedFilters.fulfillmentLocationId === "" ||
-      order.fulfillmentLocationId.toLowerCase().includes(advancedFilters.fulfillmentLocationId.toLowerCase())
-
-    const matchesItems =
-      advancedFilters.items === "" ||
-      order.itemsList.some((item) => item.toLowerCase().includes(advancedFilters.items.toLowerCase()))
-
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesChannel &&
-      matchesPriority &&
-      matchesOrderNumber &&
-      matchesCustomerName &&
-      matchesPhoneNumber &&
-      matchesEmail &&
-      matchesOrderDateFrom &&
-      matchesOrderDateTo &&
-      matchesAdvancedStatus &&
-      matchesExceedSLA &&
-      matchesAdvancedChannel &&
-      matchesPaymentStatus &&
-      matchesFulfillmentLocationId &&
-      matchesItems
-    )
-  })
-
-  const refreshData = () => {
-    // Fetch fresh data from the service
-    // OrderService.getOrders().then((data) => {
-    //   setOrdersData(data)
-    //   const { criticalOrders, breachedOrders, nearBreachOrders, newAlerts } = checkSLAAlerts(data)
-    //   setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
-
-    //   if (newAlerts.length > 0) {
-    //     setSlaAlerts(newAlerts)
-    //   } else if (slaAlerts.length > 0) {
-    //     setSlaAlerts([])
-    //   }
-    // })
-
-    // In a real application, this would fetch fresh data from the API
-    const { criticalOrders, breachedOrders, nearBreachOrders, newAlerts } = checkSLAAlerts(ordersData)
-    setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
-
-    if (newAlerts.length > 0) {
-      setSlaAlerts(newAlerts)
-    } else if (slaAlerts.length > 0) {
-      setSlaAlerts([])
-    }
-
-    alert("Refreshing data... In a real application, this would fetch the latest orders.")
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    fetchOrders(page, pageSize)
   }
 
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize)
+    setCurrentPage(1)
+    fetchOrders(1, newPageSize, true)
+  }
+
+  // Refresh data handler
+  const refreshData = async () => {
+    await fetchOrders(currentPage, pageSize)
+    toast({
+      title: "Data refreshed",
+      description: dataSource === "api" ? "Order data updated from API." : "Using demo data.",
+    })
+  }
+
+  // Advanced filters handlers
   const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
     setAdvancedFilters(filters)
-
-    // Update basic filters to match advanced filters
     setStatusFilter(filters.orderStatus)
     setChannelFilter(filters.sellingChannel)
 
-    // Calculate active filters for display
     const newActiveFilters: string[] = []
-
     if (filters.orderNumber) newActiveFilters.push(`Order #: ${filters.orderNumber}`)
     if (filters.customerName) newActiveFilters.push(`Customer: ${filters.customerName}`)
     if (filters.phoneNumber) newActiveFilters.push(`Phone: ${filters.phoneNumber}`)
@@ -779,14 +869,13 @@ export function OrderManagementHub() {
     setStatusFilter("all-status")
     setChannelFilter("all-channels")
     setPriorityFilter("all-priority")
-    setSlaFilter("all") // รีเซ็ต SLA filter
+    setSlaFilter("all")
     setActiveFilters([])
   }
 
   const removeFilter = (filter: string) => {
     setActiveFilters(activeFilters.filter((f) => f !== filter))
 
-    // Reset the corresponding filter in the advanced filters
     if (filter.startsWith("Order #:")) {
       setAdvancedFilters((prev) => ({ ...prev, orderNumber: "" }))
     } else if (filter.startsWith("Customer:")) {
@@ -816,7 +905,26 @@ export function OrderManagementHub() {
     }
   }
 
-  const renderOrderTable = (ordersToShow: typeof orders) => (
+  // Client-side filtering for SLA filters (since API doesn't support these)
+  const filteredOrders = ordersData.filter((order) => {
+    if (slaFilter === "near-breach") {
+      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+        return false
+      }
+      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
+      const criticalThreshold = order.slaTargetMinutes * 0.2
+      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.slaStatus === "NEAR_BREACH"
+    } else if (slaFilter === "breach") {
+      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+        return false
+      }
+      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
+      return remainingMinutes <= 0 || order.slaStatus === "BREACH"
+    }
+    return true
+  })
+
+  const renderOrderTable = (ordersToShow: Order[]) => (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader className="bg-light-gray">
@@ -843,14 +951,14 @@ export function OrderManagementHub() {
             <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
               PAYMENT STATUS
             </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">CONFIRMED</TableHead>
+            <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">CONFIRMED</TableHead>
             <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
               SELLING CHANNEL
             </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+            <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
               ALLOW SUBSTITUTION
             </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
+            <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
               CREATED DATE
             </TableHead>
             <TableHead className="text-right min-w-[100px] text-sm font-semibold font-heading text-deep-navy">
@@ -859,7 +967,27 @@ export function OrderManagementHub() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {ordersToShow.length > 0 ? (
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={13} className="text-center py-8">
+                <div className="flex justify-center items-center">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Loading orders...</span>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : error ? (
+            <TableRow>
+              <TableCell colSpan={13} className="text-center py-4">
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-destructive">{error}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Data source: {dataSource === "api" ? "External API" : "Demo Data"}
+                  </span>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : ordersToShow.length > 0 ? (
             ordersToShow.map((order) => (
               <TableRow key={order.id} className="hover:bg-light-gray/50 border-b border-medium-gray">
                 <TableCell className="font-mono text-sm text-deep-navy whitespace-nowrap leading-relaxed">
@@ -872,7 +1000,6 @@ export function OrderManagementHub() {
                     </button>
                   </div>
                 </TableCell>
-                {/* ตัดข้อมูลลูกค้าออก (ชื่อ, อีเมล, เบอร์โทร) */}
                 <TableCell className="text-readable text-deep-navy leading-relaxed">{order.total}</TableCell>
                 <TableCell className="text-readable text-deep-navy leading-relaxed">
                   {order.sellingLocationId}
@@ -902,7 +1029,9 @@ export function OrderManagementHub() {
                     className={`font-mono text-sm ${
                       order.paymentStatus === "PAID"
                         ? "bg-[#e6f7ef] text-success border-[#c2e8d7]"
-                        : "bg-[#fef3e6] text-warning border-[#f5e0c5]"
+                        : order.paymentStatus === "UNKNOWN"
+                          ? "bg-[#f1f1f1] text-dark-gray border-[#e0e0e0]"
+                          : "bg-[#fef3e6] text-warning border-[#f5e0c5]"
                     }`}
                   >
                     {order.paymentStatus}
@@ -971,6 +1100,14 @@ export function OrderManagementHub() {
     <Card className="shadow-enterprise border-medium-gray">
       <CardHeader className="border-b border-medium-gray pb-6">
         <div className="flex flex-col gap-4">
+          {/* Data source indicator */}
+          {dataSource === "fallback" && (
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Using demo data - External API not accessible</span>
+            </div>
+          )}
+
           {/* Search and filters row */}
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search input */}
@@ -978,14 +1115,14 @@ export function OrderManagementHub() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-dark-gray" />
               <Input
                 type="search"
-                placeholder="Search by order number, customer name, email, or phone..."
+                placeholder="Search by order number, customer name, email, phone, or product..."
                 className="pl-8 w-full border-medium-gray text-deep-navy"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            {/* Filters section - wrapped in scrollable container */}
+            {/* Filters section */}
             <div className="flex gap-2 overflow-x-auto pb-2 max-w-full">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px] border-medium-gray">
@@ -998,6 +1135,7 @@ export function OrderManagementHub() {
                   <SelectItem value="shipped">Shipped</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
                   <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={channelFilter} onValueChange={setChannelFilter}>
@@ -1047,7 +1185,6 @@ export function OrderManagementHub() {
                   )}
                 </Button>
 
-                {/* SLA Alert button as a filter */}
                 {slaAlerts.length > 0 && (
                   <Button
                     variant={slaFilter === "breach" ? "default" : "outline"}
@@ -1089,8 +1226,9 @@ export function OrderManagementHub() {
                 className="border-medium-gray text-steel-gray hover:text-deep-navy hover:bg-light-gray"
                 title="Refresh Data"
                 onClick={refreshData}
+                disabled={isLoading}
               >
-                <RefreshCw className="h-4 w-4" />
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -1124,7 +1262,23 @@ export function OrderManagementHub() {
           )}
         </div>
       </CardHeader>
-      <CardContent className="p-6">{renderOrderTable(filteredOrders)}</CardContent>
+
+      <CardContent className="p-6">
+        {renderOrderTable(filteredOrders)}
+
+        {/* Pagination Controls */}
+        {!isLoading && !error && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={pagination.totalPages}
+            pageSize={pageSize}
+            totalItems={pagination.total}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={isLoading}
+          />
+        )}
+      </CardContent>
     </Card>
   )
 }

@@ -50,12 +50,12 @@ Fetch orders with optional filtering, pagination, and sorting.
 
 #### Status Values
 
-- `PENDING` - Order placed but not yet processed << submit
-- `PROCESSING` - Order is being prepared << collected
-- `SHIPPED` - Order has been shipped << Skip
-- `DELIVERED` - Order has been delivered 
-- `CANCELLED` - Order was cancelled << same
-- `RETURNED` - Order was returned << skip
+- `PENDING` - Order placed but not yet processed
+- `PROCESSING` - Order is being prepared
+- `SHIPPED` - Order has been shipped
+- `DELIVERED` - Order has been delivered
+- `CANCELLED` - Order was cancelled
+- `RETURNED` - Order was returned
 
 #### Sort Fields
 
@@ -89,7 +89,7 @@ curl -X GET "https://your-domain.com/api/orders?status=PENDING&page=1&pageSize=1
       "order_date": "2024-01-15T10:30:00Z",
       "status": "PENDING",
       "channel": "ONLINE",
-      "business_unit": "RETAIL", <<<< CFG
+      "business_unit": "RETAIL",
       "order_type": "STANDARD",
       "items": [
         {
