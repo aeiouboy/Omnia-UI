@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
 import {
   Search,
   RefreshCw,
@@ -19,6 +21,7 @@ import {
   X,
   Filter,
   Loader2,
+  AlertCircle,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -33,9 +36,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AdvancedFilterPanel, type AdvancedFilterValues } from "./advanced-filter-panel"
 import { PaginationControls } from "./pagination-controls"
 import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Exact API response types based on the actual API structure
-interface ApiCustomer {
+export interface ApiCustomer {
   id: string
   name: string
   email: string
@@ -43,7 +47,7 @@ interface ApiCustomer {
   T1Number: string
 }
 
-interface ApiShippingAddress {
+export interface ApiShippingAddress {
   street: string
   city: string
   state: string
@@ -51,32 +55,32 @@ interface ApiShippingAddress {
   country: string
 }
 
-interface ApiPaymentInfo {
+export interface ApiPaymentInfo {
   method: string
   status: string
   transaction_id: string
 }
 
-interface ApiSLAInfo {
+export interface ApiSLAInfo {
   target_minutes: number
   elapsed_minutes: number
   status: string
 }
 
-interface ApiMetadata {
+export interface ApiMetadata {
   created_at: string
   updated_at: string
   priority: string
   store_name: string
 }
 
-interface ApiProductDetails {
+export interface ApiProductDetails {
   description: string
   category: string
   brand: string
 }
 
-interface ApiOrderItem {
+export interface ApiOrderItem {
   id: string
   product_id: string
   product_name: string
@@ -119,35 +123,23 @@ interface ApiResponse {
 }
 
 // Standardized internal order format
-interface Order {
+// Refactored Order interface to match API payload
+export interface Order {
   id: string
-  orderNo: string
-  customer: string
-  email: string
-  phoneNumber: string
+  order_no: string
+  customer: ApiCustomer
+  order_date: string
   channel: string
+  business_unit: string
+  order_type: string
+  total_amount: number
+  shipping_address: ApiShippingAddress
+  payment_info: ApiPaymentInfo
+  sla_info: ApiSLAInfo
+  metadata: ApiMetadata
+  items: ApiOrderItem[]
   status: string
-  businessUnit: string
-  orderType: string
-  items: number
-  total: string
-  date: string
-  slaTargetMinutes: number
-  elapsedMinutes: number
-  slaStatus: string
-  storeName: string
-  sellingLocationId: string
-  priority: string
-  billingMethod: string
-  paymentStatus: string
-  fulfillmentLocationId: string
-  itemsList: string[]
-  orderDate: Date
-  returnStatus: string
-  onHold: boolean
-  confirmed: boolean
-  allowSubstitution: boolean
-  createdDate: string
+  // Optionally add derived fields for UI only if needed
 }
 
 // Pagination parameters interface
@@ -195,93 +187,8 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
 
     console.log(`🔄 Processing ${orders.length} orders from API...`)
 
-    const mappedOrders = orders.map((apiOrder: ApiOrder, index: number) => {
-      console.log(`Processing order ${index + 1}:`, {
-        id: apiOrder.id,
-        order_no: apiOrder.order_no,
-        status: apiOrder.status,
-        itemCount: apiOrder.items?.length || 0,
-      })
-
-      // Calculate actual total from items since total_amount appears to be 0
-      const calculatedTotal = apiOrder.items?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0
-      const displayTotal = calculatedTotal > 0 ? calculatedTotal : apiOrder.total_amount
-
-      // Handle customer information (most fields are masked with "-")
-      const customerName = apiOrder.customer?.name !== "-" ? apiOrder.customer.name : "Grab Customer"
-      const customerEmail = apiOrder.customer?.email !== "-" ? apiOrder.customer.email : "customer@grab.com"
-      const customerPhone = apiOrder.customer?.phone !== "-" ? apiOrder.customer.phone : "N/A"
-
-      // Extract items information
-      const itemsList = apiOrder.items?.map((item) => item.product_name) || []
-      const itemCount = apiOrder.items?.length || 0
-
-      // Handle dates
-      const orderDate = new Date(apiOrder.order_date)
-      const createdDate = apiOrder.metadata?.created_at || apiOrder.order_date
-
-      // Calculate SLA status based on elapsed vs target minutes
-      let slaStatus = "COMPLIANT"
-      const remainingMinutes = apiOrder.sla_info.target_minutes - apiOrder.sla_info.elapsed_minutes
-
-      if (remainingMinutes <= 0) {
-        slaStatus = "BREACH"
-      } else if (remainingMinutes <= apiOrder.sla_info.target_minutes * 0.2) {
-        slaStatus = "NEAR_BREACH"
-      }
-
-      // Handle location information (most fields are masked)
-      const storeName = apiOrder.metadata?.store_name !== "-" ? apiOrder.metadata.store_name : apiOrder.business_unit
-      const sellingLocationId = storeName
-
-      // Handle priority (masked in API)
-      const priority = apiOrder.metadata?.priority !== "-" ? apiOrder.metadata.priority : "NORMAL"
-
-      // Handle payment information
-      const paymentMethod = apiOrder.payment_info?.method || "Online Payment"
-      const paymentStatus = apiOrder.payment_info?.status !== "-" ? apiOrder.payment_info.status : "UNKNOWN"
-
-      const mappedOrder: Order = {
-        id: apiOrder.id,
-        orderNo: apiOrder.order_no,
-        customer: customerName,
-        email: customerEmail,
-        phoneNumber: customerPhone,
-        channel: apiOrder.channel.toUpperCase(),
-        status: apiOrder.status.toUpperCase(),
-        businessUnit: apiOrder.business_unit,
-        orderType: apiOrder.order_type,
-        items: itemCount,
-        total: `฿${displayTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        date: orderDate.toLocaleString(),
-        slaTargetMinutes: apiOrder.sla_info.target_minutes,
-        elapsedMinutes: apiOrder.sla_info.elapsed_minutes,
-        slaStatus,
-        storeName,
-        sellingLocationId,
-        priority: priority.toUpperCase(),
-        billingMethod: paymentMethod,
-        paymentStatus: paymentStatus.toUpperCase(),
-        fulfillmentLocationId: apiOrder.business_unit,
-        itemsList,
-        orderDate,
-        returnStatus: "",
-        onHold: false,
-        confirmed: true,
-        allowSubstitution: false,
-        createdDate: new Date(createdDate).toLocaleString(),
-      }
-
-      console.log(`✅ Mapped order ${index + 1}:`, {
-        id: mappedOrder.id,
-        orderNo: mappedOrder.orderNo,
-        status: mappedOrder.status,
-        total: mappedOrder.total,
-        slaStatus: mappedOrder.slaStatus,
-      })
-
-      return mappedOrder
-    })
+    // Directly return the API structure for each order
+    const mappedOrders = orders.map((apiOrder: ApiOrder) => ({ ...apiOrder }))
 
     return { orders: mappedOrders, pagination: apiResponse.pagination }
   } catch (error) {
@@ -387,230 +294,26 @@ const fetchOrdersFromApi = async (
   }
 }
 
-// Realistic fallback data based on actual API structure
-const fallbackOrders: Order[] = [
-  {
-    id: "TRV2-123456789-C7ECJUN1MF2WLE2",
-    orderNo: "GF-5173",
-    customer: "Grab Customer",
-    email: "customer@grab.com",
-    phoneNumber: "N/A",
-    channel: "GRAB",
-    status: "CANCELLED",
-    businessUnit: "CFG",
-    orderType: "STANDARD",
-    items: 1,
-    total: "฿72.00",
-    date: "2025-05-26T07:29:57.000Z",
-    slaTargetMinutes: 300,
-    elapsedMinutes: 790626,
-    slaStatus: "BREACH",
-    storeName: "CFG",
-    sellingLocationId: "CFG",
-    priority: "NORMAL",
-    billingMethod: "Online Payment",
-    paymentStatus: "UNKNOWN",
-    fulfillmentLocationId: "CFG",
-    itemsList: ["หอมใหญ่ออสเตรเลีย"],
-    orderDate: new Date("2025-05-26T07:29:57.000Z"),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "2025-05-26T07:29:57.000Z",
-  },
-  {
-    id: "XMS1-123456789-C7ETGCBVAKXVCX",
-    orderNo: "GF-2455",
-    customer: "Grab Customer",
-    email: "customer@grab.com",
-    phoneNumber: "N/A",
-    channel: "GRAB",
-    status: "DELIVERED",
-    businessUnit: "CFG",
-    orderType: "STANDARD",
-    items: 1,
-    total: "฿17.00",
-    date: "2025-06-04T09:53:52.000Z",
-    slaTargetMinutes: 300,
-    elapsedMinutes: 4391,
-    slaStatus: "BREACH",
-    storeName: "CFG",
-    sellingLocationId: "CFG",
-    priority: "NORMAL",
-    billingMethod: "Online Payment",
-    paymentStatus: "UNKNOWN",
-    fulfillmentLocationId: "CFG",
-    itemsList: ["เชาว์คัทสึโอะไก่และปลาโอ 40ก"],
-    orderDate: new Date("2025-06-04T09:53:52.000Z"),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "2025-06-04T09:53:52.000Z",
-  },
-  {
-    id: "123456789-C7EFA24KEPDHN6",
-    orderNo: "GF-2738",
-    customer: "Grab Customer",
-    email: "customer@grab.com",
-    phoneNumber: "N/A",
-    channel: "GRAB",
-    status: "CANCELLED",
-    businessUnit: "CFG",
-    orderType: "STANDARD",
-    items: 3,
-    total: "฿411.00",
-    date: "2025-05-29T08:12:29.000Z",
-    slaTargetMinutes: 300,
-    elapsedMinutes: 528874,
-    slaStatus: "BREACH",
-    storeName: "CFG",
-    sellingLocationId: "CFG",
-    priority: "NORMAL",
-    billingMethod: "Online Payment",
-    paymentStatus: "UNKNOWN",
-    fulfillmentLocationId: "CFG",
-    itemsList: ["มายช้อยส์สตรอเบอร์รี่ 250ก", "GI กระเทียมมัดจุก500ก", "หอมใหญ่ออสเตรเลีย"],
-    orderDate: new Date("2025-05-29T08:12:29.000Z"),
-    returnStatus: "",
-    onHold: false,
-    confirmed: true,
-    allowSubstitution: false,
-    createdDate: "2025-05-29T08:12:29.000Z",
-  },
-]
-
-const fallbackPagination: ApiPagination = {
-  page: 1,
-  pageSize: 10,
-  total: 3,
-  totalPages: 1,
-  hasNext: false,
-  hasPrev: false,
-}
-
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "CREATED":
-      return <ShoppingBag className="h-4 w-4 text-dark-gray" />
-    case "PROCESSING":
-      return <Package className="h-4 w-4 text-info" />
-    case "SHIPPED":
-      return <Truck className="h-4 w-4 text-corporate-blue" />
-    case "DELIVERED":
-      return <CheckCircle className="h-4 w-4 text-success" />
-    case "FULFILLED":
-      return <CheckCircle className="h-4 w-4 text-success" />
-    case "CANCELLED":
-      return <X className="h-4 w-4 text-destructive" />
-    default:
-      return <ShoppingBag className="h-4 w-4 text-dark-gray" />
-  }
-}
-
-function getChannelBadge(channel: string) {
-  switch (channel) {
-    case "GRAB":
-      return (
-        <Badge variant="outline" className="bg-[#e6f7ef] text-success border-[#c2e8d7] font-mono text-sm">
-          GRAB
-        </Badge>
-      )
-    case "LAZADA":
-      return (
-        <Badge variant="outline" className="bg-[#e6f1fc] text-info border-[#c2d8f0] font-mono text-sm">
-          LAZADA
-        </Badge>
-      )
-    case "SHOPEE":
-      return (
-        <Badge variant="outline" className="bg-[#fef3e6] text-warning border-[#f5e0c5] font-mono text-sm">
-          SHOPEE
-        </Badge>
-      )
-    case "TIKTOK":
-      return (
-        <Badge variant="outline" className="bg-[#f1f1f1] text-dark-gray border-[#e0e0e0] font-mono text-sm">
-          TIKTOK
-        </Badge>
-      )
-    default:
-      return (
-        <Badge variant="outline" className="font-mono text-sm">
-          {channel}
-        </Badge>
-      )
-  }
-}
-
-function getSLABadge(targetMinutes: number, elapsedMinutes: number, status: string) {
-  if (status === "DELIVERED" || status === "FULFILLED") {
-    return (
-      <Badge variant="outline" className="bg-[#e6f7ef] text-success border-[#c2e8d7] font-mono text-sm">
-        COMPLETE
-      </Badge>
-    )
-  }
-
-  const remainingMinutes = targetMinutes - elapsedMinutes
-
-  if (status === "BREACH" || remainingMinutes < 0) {
-    return (
-      <div className="flex items-center">
-        <AlertTriangle className="h-3 w-3 text-red-500 mr-1" />
-        <span className="text-red-500 font-mono text-sm font-medium">{Math.abs(remainingMinutes)}m BREACH</span>
-      </div>
-    )
-  } else if (remainingMinutes < targetMinutes * 0.2 || status === "NEAR_BREACH") {
-    return (
-      <div className="flex items-center">
-        <Clock className="h-3 w-3 text-amber-500 mr-1" />
-        <span className="text-amber-500 font-mono text-sm font-medium">{remainingMinutes}m LEFT</span>
-      </div>
-    )
-  } else {
-    return (
-      <div className="flex items-center">
-        <Clock className="h-3 w-3 text-blue-500 mr-1" />
-        <span className="text-blue-500 font-mono text-sm font-medium">{remainingMinutes}m LEFT</span>
-      </div>
-    )
-  }
-}
-
-function getPriorityBadge(priority: string) {
-  switch (priority) {
-    case "HIGH":
-      return <Badge className="bg-critical text-white border-0 font-mono text-sm">HIGH</Badge>
-    case "NORMAL":
-      return (
-        <Badge variant="outline" className="font-mono text-sm">
-          NORMAL
-        </Badge>
-      )
-    case "LOW":
-      return (
-        <Badge variant="secondary" className="font-mono text-sm">
-          LOW
-        </Badge>
-      )
-    default:
-      return (
-        <Badge variant="outline" className="font-mono text-sm">
-          NORMAL
-        </Badge>
-      )
-  }
-}
-
 export function OrderManagementHub() {
+  // Track client mount to avoid hydration mismatch
+  const [isMounted, setIsMounted] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+  useEffect(() => {
+    setIsMounted(true);
+    // Set to the current local time when mounted
+    setLastUpdated(new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    }));
+  }, []);
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all-status")
   const [channelFilter, setChannelFilter] = useState("all-channels")
   const [priorityFilter, setPriorityFilter] = useState("all-priority")
-  const [slaFilter, setSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
+  const [activeSlaFilter, setActiveSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterValues>({
@@ -630,227 +333,114 @@ export function OrderManagementHub() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
+  // Set default page size to 25
   const [pageSize, setPageSize] = useState(25)
-  const [pagination, setPagination] = useState<ApiPagination>(fallbackPagination)
+  const [pagination, setPagination] = useState<ApiPagination>({
+  page: 1,
+  pageSize: 25,
+  total: 0,
+  totalPages: 0,
+  hasNext: false,
+  hasPrev: false,
+})
+
+  // SLA Filter Handler
+  const handleSlaFilterChange = (filterValue: "all" | "near-breach" | "breach") => {
+    setActiveSlaFilter(filterValue);
+    setCurrentPage(1); // Reset to first page when SLA filter changes
+  };
+
+  // Order Detail Click Handler
+  const handleOrderRowClick = (order: Order) => {
+    const fullOrderData = ordersData.find(o => o.id === order.id); // Ensure we pass the full original order object
+    if (fullOrderData) {
+      setSelectedOrderForDetail(fullOrderData);
+      setIsDetailViewOpen(true);
+    }
+  };
 
   // Data states
   const [ordersData, setOrdersData] = useState<Order[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+
+  // Order Detail View states
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<Order | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [dataSource, setDataSource] = useState<"api" | "fallback">("fallback")
 
-  // SLA states
-  const [slaAlerts, setSlaAlerts] = useState<string[]>([])
-  const [slaStats, setSlaStats] = useState({
-    criticalOrders: [] as Order[],
-    breachedOrders: [] as Order[],
-    nearBreachOrders: [] as Order[],
-  })
+  // Fetch orders from API
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // Merge all filter values for API request
+      const mergedFilters = {
+        searchTerm,
+        status: statusFilter,
+        channel: channelFilter,
+        priority: priorityFilter,
+        slaFilter: activeSlaFilter,
+        // Advanced filters (flattened for API compatibility)
+        orderNumber: advancedFilters.orderNumber,
+        customerName: advancedFilters.customerName,
+        phoneNumber: advancedFilters.phoneNumber,
+        email: advancedFilters.email,
+        orderDateFrom: advancedFilters.orderDateFrom,
+        orderDateTo: advancedFilters.orderDateTo,
+        orderStatus: advancedFilters.orderStatus,
+        exceedSLA: advancedFilters.exceedSLA,
+        sellingChannel: advancedFilters.sellingChannel,
+        paymentStatus: advancedFilters.paymentStatus,
+        fulfillmentLocationId: advancedFilters.fulfillmentLocationId,
+        items: advancedFilters.items,
+      };
+      const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
+        { page: currentPage, pageSize },
+        mergedFilters
+      )
+      setOrdersData(orders)
+      setPagination(apiPagination)
+      setLastUpdated(new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }));
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch orders')
+      setOrdersData([])
+      setPagination({
+        page: 1,
+        pageSize,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, priorityFilter, activeSlaFilter, advancedFilters])
 
-  const router = useRouter()
-  const { toast } = useToast()
-
-  // Debounced search to avoid too many API calls
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
-
+  // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
-    }, 500)
+    fetchOrders()
+  }, [fetchOrders])
 
-    return () => clearTimeout(timer)
-  }, [searchTerm])
-
-  // Fetch orders function with pagination and filters
-  const fetchOrders = useCallback(
-    async (page: number = currentPage, size: number = pageSize, resetPage = false) => {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        console.log("🔄 Starting order fetch process...")
-
-        const actualPage = resetPage ? 1 : page
-
-        const paginationParams: PaginationParams = {
-          page: actualPage,
-          pageSize: size,
-        }
-
-        const filterParams: FilterParams = {
-          searchTerm: debouncedSearchTerm,
-          status: statusFilter,
-          channel: channelFilter,
-          priority: priorityFilter,
-          slaFilter,
-          advancedFilters,
-        }
-
-        const { orders, pagination: apiPagination } = await fetchOrdersFromApi(paginationParams, filterParams)
-
-        if (orders.length === 0 && apiPagination.total === 0) {
-          console.log("⚠️ API returned empty data, using fallback")
-          setOrdersData(fallbackOrders)
-          setPagination(fallbackPagination)
-          setDataSource("fallback")
-          setError("API returned no data. Using demo data.")
-        } else {
-          console.log(
-            `✅ Successfully loaded ${orders.length} orders from API (Page ${apiPagination.page}/${apiPagination.totalPages})`,
-          )
-          setOrdersData(orders)
-          setPagination(apiPagination)
-          setDataSource("api")
-
-          if (resetPage) {
-            setCurrentPage(1)
-          } else {
-            setCurrentPage(actualPage)
-          }
-        }
-
-        const { criticalOrders, breachedOrders, nearBreachOrders, newAlerts } = checkSLAAlerts(
-          orders.length > 0 ? orders : fallbackOrders,
-        )
-        setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
-
-        if (newAlerts.length > 0) {
-          setSlaAlerts(newAlerts)
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch orders:", error)
-
-        let errorMessage = "Unknown error occurred"
-        if (error instanceof Error) {
-          errorMessage = error.message
-        }
-
-        setError(`API Connection Failed: ${errorMessage}`)
-        setDataSource("fallback")
-
-        // Use fallback data if API fails
-        console.log("🔄 Using fallback demo data...")
-        setOrdersData(fallbackOrders)
-        setPagination(fallbackPagination)
-        setCurrentPage(1)
-
-        const { criticalOrders, breachedOrders, nearBreachOrders } = checkSLAAlerts(fallbackOrders)
-        setSlaStats({ criticalOrders, breachedOrders, nearBreachOrders })
-
-        toast({
-          title: "API Connection Failed",
-          description: "Unable to connect to external API. Using demo data for demonstration.",
-          variant: "destructive",
-          duration: 8000,
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [
-      currentPage,
-      pageSize,
-      debouncedSearchTerm,
-      statusFilter,
-      channelFilter,
-      priorityFilter,
-      slaFilter,
-      advancedFilters,
-      toast,
-    ],
-  )
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchOrders(1, pageSize, true)
-  }, [pageSize])
-
-  // Fetch when filters change (reset to page 1)
-  useEffect(() => {
-    if (debouncedSearchTerm !== searchTerm) return // Wait for debounced search
-    fetchOrders(1, pageSize, true)
-  }, [debouncedSearchTerm, statusFilter, channelFilter, priorityFilter, slaFilter, advancedFilters])
-
-  // SLA alerts check function
-  const checkSLAAlerts = (orders: Order[]) => {
-    const criticalOrders = orders.filter((order) => {
-      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
-        return false
-      }
-
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      const criticalThreshold = order.slaTargetMinutes * 0.2
-
-      return remainingMinutes <= criticalThreshold || order.slaStatus === "NEAR_BREACH" || order.slaStatus === "BREACH"
-    })
-
-    const breachedOrders = criticalOrders.filter(
-      (order) => order.slaTargetMinutes - order.elapsedMinutes <= 0 || order.slaStatus === "BREACH",
-    )
-
-    const nearBreachOrders = criticalOrders.filter(
-      (order) =>
-        order.slaTargetMinutes - order.elapsedMinutes > 0 &&
-        (order.slaStatus === "NEAR_BREACH" || order.slaStatus !== "BREACH"),
-    )
-
-    const newAlerts = criticalOrders.map((order) => {
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      if (remainingMinutes <= 0) {
-        return `🚨 Order ${order.orderNo} has exceeded SLA by ${Math.abs(remainingMinutes)} minutes!`
-      } else {
-        return `⚠️ Order ${order.orderNo} will exceed SLA in ${remainingMinutes} minutes!`
-      }
-    })
-
-    return { criticalOrders, breachedOrders, nearBreachOrders, newAlerts }
+  // Refresh handler
+  const refreshData = () => {
+    fetchOrders()
   }
 
-  // Pagination handlers
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    fetchOrders(page, pageSize)
+  // Remove individual filter
+  const removeFilter = (filter: string) => {
+    setActiveFilters((prev) => prev.filter((f) => f !== filter))
+    // Optionally reset related filter state here
   }
 
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize)
-    setCurrentPage(1)
-    fetchOrders(1, newPageSize, true)
-  }
-
-  // Refresh data handler
-  const refreshData = async () => {
-    await fetchOrders(currentPage, pageSize)
-    toast({
-      title: "Data refreshed",
-      description: dataSource === "api" ? "Order data updated from API." : "Using demo data.",
-    })
-  }
-
-  // Advanced filters handlers
-  const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
-    setAdvancedFilters(filters)
-    setStatusFilter(filters.orderStatus)
-    setChannelFilter(filters.sellingChannel)
-
-    const newActiveFilters: string[] = []
-    if (filters.orderNumber) newActiveFilters.push(`Order #: ${filters.orderNumber}`)
-    if (filters.customerName) newActiveFilters.push(`Customer: ${filters.customerName}`)
-    if (filters.phoneNumber) newActiveFilters.push(`Phone: ${filters.phoneNumber}`)
-    if (filters.email) newActiveFilters.push(`Email: ${filters.email}`)
-    if (filters.orderDateFrom) newActiveFilters.push(`From: ${filters.orderDateFrom.toLocaleDateString()}`)
-    if (filters.orderDateTo) newActiveFilters.push(`To: ${filters.orderDateTo.toLocaleDateString()}`)
-    if (filters.orderStatus !== "all-status") newActiveFilters.push(`Status: ${filters.orderStatus}`)
-    if (filters.exceedSLA) newActiveFilters.push("SLA Breached")
-    if (filters.sellingChannel !== "all-channels") newActiveFilters.push(`Channel: ${filters.sellingChannel}`)
-    if (filters.paymentStatus !== "all-payment") newActiveFilters.push(`Payment: ${filters.paymentStatus}`)
-    if (filters.fulfillmentLocationId) newActiveFilters.push(`Location: ${filters.fulfillmentLocationId}`)
-    if (filters.items) newActiveFilters.push(`Items: ${filters.items}`)
-
-    setActiveFilters(newActiveFilters)
-    setShowAdvancedFilters(false)
-  }
-
+  // Advanced filter handlers
   const handleResetAdvancedFilters = () => {
     setAdvancedFilters({
       orderNumber: "",
@@ -866,347 +456,186 @@ export function OrderManagementHub() {
       fulfillmentLocationId: "",
       items: "",
     })
-    setStatusFilter("all-status")
-    setChannelFilter("all-channels")
-    setPriorityFilter("all-priority")
-    setSlaFilter("all")
     setActiveFilters([])
   }
 
-  const removeFilter = (filter: string) => {
-    setActiveFilters(activeFilters.filter((f) => f !== filter))
+  const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
+    setAdvancedFilters(filters)
+    // Optionally update activeFilters summary here
+    setCurrentPage(1)
+  }
 
-    if (filter.startsWith("Order #:")) {
-      setAdvancedFilters((prev) => ({ ...prev, orderNumber: "" }))
-    } else if (filter.startsWith("Customer:")) {
-      setAdvancedFilters((prev) => ({ ...prev, customerName: "" }))
-    } else if (filter.startsWith("Phone:")) {
-      setAdvancedFilters((prev) => ({ ...prev, phoneNumber: "" }))
-    } else if (filter.startsWith("Email:")) {
-      setAdvancedFilters((prev) => ({ ...prev, email: "" }))
-    } else if (filter.startsWith("From:")) {
-      setAdvancedFilters((prev) => ({ ...prev, orderDateFrom: undefined }))
-    } else if (filter.startsWith("To:")) {
-      setAdvancedFilters((prev) => ({ ...prev, orderDateTo: undefined }))
-    } else if (filter.startsWith("Status:")) {
-      setAdvancedFilters((prev) => ({ ...prev, orderStatus: "all-status" }))
-      setStatusFilter("all-status")
-    } else if (filter === "SLA Breached") {
-      setAdvancedFilters((prev) => ({ ...prev, exceedSLA: false }))
-    } else if (filter.startsWith("Channel:")) {
-      setAdvancedFilters((prev) => ({ ...prev, sellingChannel: "all-channels" }))
-      setChannelFilter("all-channels")
-    } else if (filter.startsWith("Payment:")) {
-      setAdvancedFilters((prev) => ({ ...prev, paymentStatus: "all-payment" }))
-    } else if (filter.startsWith("Location:")) {
-      setAdvancedFilters((prev) => ({ ...prev, fulfillmentLocationId: "" }))
-    } else if (filter.startsWith("Items:")) {
-      setAdvancedFilters((prev) => ({ ...prev, items: "" }))
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }
+
+  // Mapping function to flatten nested Order payloads to legacy flat structure for table
+  function mapOrderToTableRow(order: any) {
+    return {
+      id: order.id,
+      orderNo: order.order_no,
+      total_amount: order.total_amount,
+      sellingLocationId: order.metadata?.store_name ?? "",
+      status: order.status,
+      slaStatus: order.sla_info?.status ?? "",
+      returnStatus: order.return_status ?? "",
+      onHold: order.on_hold ?? false,
+      paymentStatus: order.payment_info?.status ?? "",
+      confirmed: order.confirmed ?? false,
+      channel: order.channel,
+      allowSubstitution: order.allow_substitution ?? false,
+      createdDate: order.metadata?.created_at ?? "",
     }
   }
 
-  // Client-side filtering for SLA filters (since API doesn't support these)
+  // Compute SLA stats and alerts for quick filter buttons
+  const slaStats = useMemo(() => {
+    const nearBreachOrders = ordersData.filter(order => {
+      if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
+      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes;
+      const criticalThreshold = order.sla_info.target_minutes * 0.2;
+      return ((remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH");
+    });
+    const breachedOrders = ordersData.filter(order => {
+      if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
+      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes;
+      return (remainingMinutes <= 0 || order.sla_info.status === "BREACH");
+    })
+    return {
+      all: ordersData.length,
+      nearBreach: nearBreachOrders.length,
+      breach: breachedOrders.length,
+    }
+  }, [ordersData]);
+
+  // slaAlerts is just the breached orders for button enablement
+  const slaAlerts = slaStats.breach > 0; // True if there are any breached orders
+
+  // Filter and map orders for table
   const filteredOrders = ordersData.filter((order) => {
-    if (slaFilter === "near-breach") {
+    if (activeSlaFilter === "near-breach") {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      const criticalThreshold = order.slaTargetMinutes * 0.2
-      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.slaStatus === "NEAR_BREACH"
-    } else if (slaFilter === "breach") {
+      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+      const criticalThreshold = order.sla_info.target_minutes * 0.2
+      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
+    } else if (activeSlaFilter === "breach") {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
-      const remainingMinutes = order.slaTargetMinutes - order.elapsedMinutes
-      return remainingMinutes <= 0 || order.slaStatus === "BREACH"
+      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+      return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
     }
     return true
   })
 
-  const renderOrderTable = (ordersToShow: Order[]) => (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader className="bg-light-gray">
-          <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
-            <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-              ORDER NUMBER
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-              ORDER TOTAL
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-              SELLING LOCATION ID
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-              ORDER STATUS
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-              SLA STATUS
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-              RETURN STATUS
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">ON HOLD</TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-              PAYMENT STATUS
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">CONFIRMED</TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-              SELLING CHANNEL
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-              ALLOW SUBSTITUTION
-            </TableHead>
-            <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-              CREATED DATE
-            </TableHead>
-            <TableHead className="text-right min-w-[100px] text-sm font-semibold font-heading text-deep-navy">
-              ACTIONS
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={13} className="text-center py-8">
-                <div className="flex justify-center items-center">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span>Loading orders...</span>
-                </div>
-              </TableCell>
+  const mappedOrders = filteredOrders.map(mapOrderToTableRow)
+
+  // Local function to render the order table
+  function renderOrderTable(ordersToShow: any[]) {
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader className="bg-light-gray">
+            <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
+              <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
+                ORDER NUMBER (ID)
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                SHORT ORDER
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                ORDER TOTAL (THB)
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
+                SELLING LOCATION ID
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                ORDER STATUS
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                SLA STATUS
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                RETURN STATUS
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">ON HOLD</TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                PAYMENT STATUS
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">CONFIRMED</TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                SELLING CHANNEL
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
+                ALLOW SUBSTITUTION
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
+                CREATED DATE
+              </TableHead>
+              <TableHead className="text-right min-w-[100px] text-sm font-semibold font-heading text-deep-navy">
+                ACTIONS
+              </TableHead>
             </TableRow>
-          ) : error ? (
-            <TableRow>
-              <TableCell colSpan={13} className="text-center py-4">
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-destructive">{error}</span>
-                  <span className="text-sm text-muted-foreground">
-                    Data source: {dataSource === "api" ? "External API" : "Demo Data"}
-                  </span>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : ordersToShow.length > 0 ? (
-            ordersToShow.map((order) => (
-              <TableRow key={order.id} className="hover:bg-light-gray/50 border-b border-medium-gray">
-                <TableCell className="font-mono text-sm text-deep-navy whitespace-nowrap leading-relaxed">
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => router.push(`/orders/${order.id}`)}
-                      className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
-                    >
-                      {order.orderNo}
-                    </button>
-                  </div>
-                </TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">{order.total}</TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">
-                  {order.sellingLocationId}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    {getStatusIcon(order.status)}
-                    <span className="ml-2 text-readable text-deep-navy leading-relaxed">{order.status}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{getSLABadge(order.slaTargetMinutes, order.elapsedMinutes, order.slaStatus)}</TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">
-                  {order.returnStatus ? order.returnStatus : "NONE"}
-                </TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">
-                  {order.onHold ? (
-                    <Badge variant="outline" className="bg-[#fef3e6] text-warning border-[#f5e0c5] font-mono text-sm">
-                      YES
-                    </Badge>
-                  ) : (
-                    ""
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={`font-mono text-sm ${
-                      order.paymentStatus === "PAID"
-                        ? "bg-[#e6f7ef] text-success border-[#c2e8d7]"
-                        : order.paymentStatus === "UNKNOWN"
-                          ? "bg-[#f1f1f1] text-dark-gray border-[#e0e0e0]"
-                          : "bg-[#fef3e6] text-warning border-[#f5e0c5]"
-                    }`}
-                  >
-                    {order.paymentStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">
-                  {order.confirmed ? <CheckCircle className="h-4 w-4 text-success" /> : ""}
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{getChannelBadge(order.channel)}</span>
-                </TableCell>
-                <TableCell className="text-readable text-deep-navy leading-relaxed">
-                  {order.allowSubstitution ? "Yes" : "No"}
-                </TableCell>
-                <TableCell className="text-readable text-deep-navy font-mono text-sm leading-relaxed">
-                  {order.createdDate}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4 text-steel-gray" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="border-medium-gray">
-                      <DropdownMenuLabel className="text-deep-navy font-heading">Actions</DropdownMenuLabel>
-                      <DropdownMenuItem
-                        className="text-body text-deep-navy cursor-pointer"
-                        onClick={() => router.push(`/orders/${order.id}`)}
-                      >
-                        View details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-body text-deep-navy cursor-pointer">
-                        Process order
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-body text-deep-navy cursor-pointer">
-                        Print invoice
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-body text-deep-navy cursor-pointer">
-                        Print shipping label
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-body text-deep-navy cursor-pointer">
-                        Cancel order
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          </TableHeader>
+          <TableBody>
+            {ordersToShow.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={13} className="text-center py-8">
+                  No orders found.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={13} className="text-center py-4 text-muted-foreground">
-                No orders found matching your criteria
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  )
-
+            ) : (
+              ordersToShow.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell onClick={() => handleOrderRowClick(order)} className="cursor-pointer text-blue-600 hover:text-blue-800">
+                    <Link href={`/orders/${order.id}`} className="hover:underline">
+                      {order.id}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{order.orderNo}</TableCell>
+                  <TableCell>{order.total_amount}</TableCell>
+                  <TableCell>{order.sellingLocationId}</TableCell>
+                  <TableCell><OrderStatusBadge status={order.status} /></TableCell>
+                  <TableCell>
+                    <SLABadge
+                      targetMinutes={order.slaStatus?.target_minutes ?? 0}
+                      elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
+                      status={order.status}
+                    />
+                  </TableCell>
+                  <TableCell><ReturnStatusBadge status={order.returnStatus} /></TableCell>
+                  <TableCell><OnHoldBadge onHold={order.onHold} /></TableCell>
+                  <TableCell><PaymentStatusBadge status={order.paymentStatus} /></TableCell>
+                  <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
+                  <TableCell><ChannelBadge channel={order.channel} /></TableCell>
+                  <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
+                  <TableCell>{order.createdDate}</TableCell>
+                  <TableCell>{/* Actions/Buttons can go here */}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
   return (
-    <Card className="shadow-enterprise border-medium-gray">
-      <CardHeader className="border-b border-medium-gray pb-6">
-        <div className="flex flex-col gap-4">
-          {/* Data source indicator */}
-          {dataSource === "fallback" && (
-            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-2 rounded-md">
-              <AlertTriangle className="h-4 w-4" />
-              <span>Using demo data - External API not accessible</span>
-            </div>
-          )}
-
-          {/* Search and filters row */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search input */}
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-dark-gray" />
-              <Input
-                type="search"
-                placeholder="Search by order number, customer name, email, phone, or product..."
-                className="pl-8 w-full border-medium-gray text-deep-navy"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {/* Filters section */}
-            <div className="flex gap-2 overflow-x-auto pb-2 max-w-full">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] border-medium-gray">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-status">All Status</SelectItem>
-                  <SelectItem value="created">Created</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={channelFilter} onValueChange={setChannelFilter}>
-                <SelectTrigger className="w-[120px] border-medium-gray">
-                  <SelectValue placeholder="Channel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-channels">All Channels</SelectItem>
-                  <SelectItem value="grab">Grab</SelectItem>
-                  <SelectItem value="lazada">Lazada</SelectItem>
-                  <SelectItem value="shopee">Shopee</SelectItem>
-                  <SelectItem value="tiktok">TikTok</SelectItem>
-                  <SelectItem value="shopify">Shopify</SelectItem>
-                  <SelectItem value="instore">In-store</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[120px] border-medium-gray">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-priority">All Priority</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* SLA Quick Filters */}
-              <div className="flex gap-1 flex-shrink-0">
-                <Button
-                  variant={slaFilter === "near-breach" ? "default" : "outline"}
-                  size="sm"
-                  className={`border-medium-gray ${
-                    slaFilter === "near-breach"
-                      ? "bg-amber-500 text-white hover:bg-amber-600"
-                      : "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                  }`}
-                  onClick={() => setSlaFilter(slaFilter === "near-breach" ? "all" : "near-breach")}
-                >
-                  <Clock className="h-4 w-4 mr-1" />
-                  Near SLA
-                  {slaStats.nearBreachOrders.length > 0 && (
-                    <Badge variant="outline" className="ml-1 bg-white text-amber-600 border-amber-300">
-                      {slaStats.nearBreachOrders.length}
-                    </Badge>
-                  )}
-                </Button>
-
-                {slaAlerts.length > 0 && (
-                  <Button
-                    variant={slaFilter === "breach" ? "default" : "outline"}
-                    size="sm"
-                    className={`border-medium-gray ${
-                      slaFilter === "breach"
-                        ? "bg-red-500 text-white hover:bg-red-600"
-                        : "text-red-600 hover:text-red-700 hover:bg-red-50"
-                    }`}
-                    onClick={() => setSlaFilter(slaFilter === "breach" ? "all" : "breach")}
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    SLA Breach
-                    {slaStats.breachedOrders.length > 0 && (
-                      <Badge variant="outline" className="ml-1 bg-white text-red-600 border-red-300">
-                        {slaStats.breachedOrders.length}
-                      </Badge>
-                    )}
-                  </Button>
-                )}
-              </div>
-
+    <>
+      <Card className="w-full max-w-none">
+        <CardHeader className="border-b border-medium-gray bg-white p-6">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-bold text-deep-navy font-heading">
+              Order Management Hub
+            </CardTitle>
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="icon"
@@ -1214,7 +643,7 @@ export function OrderManagementHub() {
                   showAdvancedFilters
                     ? "bg-light-gray text-deep-navy"
                     : "text-steel-gray hover:text-deep-navy hover:bg-light-gray"
-                }`}
+                } transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none shadow-sm hover:shadow-md`}
                 title="Advanced Filters"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               >
@@ -1223,7 +652,7 @@ export function OrderManagementHub() {
               <Button
                 variant="outline"
                 size="icon"
-                className="border-medium-gray text-steel-gray hover:text-deep-navy hover:bg-light-gray"
+                className="border-medium-gray text-steel-gray hover:text-deep-navy hover:bg-light-gray transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none shadow-sm hover:shadow-md"
                 title="Refresh Data"
                 onClick={refreshData}
                 disabled={isLoading}
@@ -1232,16 +661,37 @@ export function OrderManagementHub() {
               </Button>
             </div>
           </div>
+          {/* Quick filters section */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant={activeSlaFilter === "all" ? "default" : "outline"} onClick={() => handleSlaFilterChange("all")} className="text-xs px-2 py-1 h-auto">All ({slaStats.all})</Button>
+            <Button variant={activeSlaFilter === "near-breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("near-breach")} className="text-xs px-2 py-1 h-auto bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200">Near Breach ({slaStats.nearBreach})</Button>
+            <Button variant={activeSlaFilter === "breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("breach")} className="text-xs px-2 py-1 h-auto bg-red-100 text-red-700 border-red-300 hover:bg-red-200">Breach ({slaStats.breach})</Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6">
+          {/* Advanced filters panel */}
+          {showAdvancedFilters && (
+            <div className="mb-6">
+              <AdvancedFilterPanel
+                isOpen={showAdvancedFilters}
+                onClose={() => setShowAdvancedFilters(false)}
+                onApplyFilters={handleApplyAdvancedFilters}
+                onResetFilters={handleResetAdvancedFilters}
+                initialValues={advancedFilters}
+              />
+            </div>
+          )}
 
           {/* Active filters row */}
-          {activeFilters.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+          {isMounted && activeFilters.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
               {activeFilters.map((filter) => (
-                <Badge key={filter} variant="outline" className="bg-light-gray text-deep-navy font-mono text-sm">
+                <Badge key={filter} variant="outline" className="bg-light-gray text-deep-navy font-mono text-sm transition-colors duration-150 shadow-sm hover:shadow-md hover:bg-enterprise-light/70 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none">
                   {filter}
                   <button
                     onClick={() => removeFilter(filter)}
-                    className="ml-2 text-destructive hover:text-destructive/80"
+                    className="ml-2 text-destructive hover:text-destructive/80 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-destructive/60 focus-visible:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -1250,35 +700,41 @@ export function OrderManagementHub() {
             </div>
           )}
 
-          {/* Advanced filters panel */}
-          {showAdvancedFilters && (
-            <AdvancedFilterPanel
-              isOpen={showAdvancedFilters}
-              onClose={() => setShowAdvancedFilters(false)}
-              onApplyFilters={handleApplyAdvancedFilters}
-              onResetFilters={handleResetAdvancedFilters}
-              initialValues={advancedFilters}
-            />
+          {/* Loading State */}
+          {isMounted && isLoading && (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-corporate-blue" />
+              <p className="ml-2 text-steel-gray">Loading orders...</p>
+            </div>
           )}
-        </div>
-      </CardHeader>
 
-      <CardContent className="p-6">
-        {renderOrderTable(filteredOrders)}
+          {/* Error State */}
+          {isMounted && !isLoading && error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        {/* Pagination Controls */}
-        {!isLoading && !error && (
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={pagination.totalPages}
-            pageSize={pageSize}
-            totalItems={pagination.total}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            isLoading={isLoading}
-          />
-        )}
-      </CardContent>
-    </Card>
-  )
+          {/* Render table and pagination */}
+          {isMounted && !isLoading && !error && mappedOrders && pagination && (
+            <div>
+              {renderOrderTable(mappedOrders)}
+              <div className="mt-4">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  pageSize={pageSize}
+                  totalItems={pagination.total}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
+  );
 }
