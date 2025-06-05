@@ -157,8 +157,8 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-500" />
           <AlertDescription className="text-red-700">
-            <strong>SLA Breach:</strong> This order has exceeded the {order.sla.targetMinutes}-minute processing target
-            by {order.sla.elapsedMinutes - order.sla.targetMinutes} minutes. Reason: {order.sla.breachReason}
+            <strong>SLA Breach:</strong> This order has exceeded the {order.sla_info.target_minutes}-minute processing target
+            by {order.sla_info.elapsed_minutes - order.sla_info.target_minutes} minutes.
           </AlertDescription>
         </Alert>
       )}
@@ -184,7 +184,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-enterprise-text-light">Priority</p>
-                <div className="mt-1">{getPriorityBadge(order?.priority)}</div>
+                <div className="mt-1">{getPriorityBadge(order?.metadata?.priority || 'N/A')}</div>
               </div>
             </div>
           </CardContent>
@@ -206,7 +206,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-enterprise-text-light">Total Amount</p>
-                <p className="text-lg font-semibold mt-1">฿{order?.billing.total.toFixed(2)}</p>
+                <p className="text-lg font-semibold mt-1">฿{order?.total_amount?.toFixed(2) || '0.00'}</p>
               </div>
               <DollarSign className="h-5 w-5 text-green-500" />
             </div>
@@ -257,14 +257,8 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-enterprise-text-light">Membership</p>
-                  {order?.customer.membershipLevel === "GOLD" ? (
-                    <Badge className="bg-amber-500 text-white">The 1 Exclusive</Badge>
-                  ) : order?.customer.membershipLevel === "SILVER" ? (
-                    <Badge className="bg-slate-500 text-white">The 1 Plus</Badge>
-                  ) : (
-                    <Badge className="bg-blue-500 text-white">The 1</Badge>
-                  )}
+                  <p className="text-sm text-enterprise-text-light">T1 Number</p>
+                  <p className="font-mono text-sm">{order?.customer?.T1Number || 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -288,8 +282,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Store</p>
-                  <p className="font-medium">{order?.store_name}</p>
-                  <p className="text-xs text-enterprise-text-light">{order?.store_code}</p>
+                  <p className="font-medium">{order?.metadata?.store_name || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Order Type</p>
@@ -297,7 +290,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Order Date</p>
-                  <p className="text-sm">{new Date(order?.order_date).toLocaleString()}</p>
+                  <p className="text-sm">{order?.order_date ? new Date(order.order_date).toLocaleString() : 'N/A'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -342,31 +335,20 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-enterprise-text-light">Payment Method</p>
-                  <Badge variant="outline">{order?.billing?.method || 'N/A'}</Badge>
+                  <Badge variant="outline">{order?.payment_info?.method || 'N/A'}</Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-enterprise-text-light">Payment Status</p>
+                  <Badge variant="outline">{order?.payment_info?.status || 'N/A'}</Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-enterprise-text-light">Transaction ID</p>
+                  <p className="font-mono text-sm">{order?.payment_info?.transaction_id || 'N/A'}</p>
                 </div>
                 <Separator />
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Subtotal</span>
-                    <span className="text-sm">฿{order?.billing?.subtotal?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Tax</span>
-                    <span className="text-sm">฿{order?.billing?.tax?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Delivery Fee</span>
-                    <span className="text-sm">฿{order?.billing.deliveryFee.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Discount</span>
-                    <span className="text-sm">-฿{order?.billing.discount.toFixed(2)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-semibold">
-                    <span>Total</span>
-                    <span>฿{order?.billing?.total?.toFixed(2) || '0.00'}</span>
-                  </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Total</span>
+                  <span>฿{order?.total_amount?.toFixed(2) || '0.00'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -443,15 +425,18 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                               <p className="font-medium text-medium-gray">Unit Price</p>
                               <p className="text-deep-navy">฿{(item.unit_price || 0).toFixed(2)}</p>
                             </div>
-                            {/* item.product_details would go here if we had its type and knew its content */}
-                            {/* Example: 
-                            {item.product_details?.description && (
-                              <div>
-                                <p className="font-medium text-medium-gray">Description</p>
-                                <p className="text-deep-navy">{item.product_details.description}</p>
-                              </div>
-                            )}
-                            */}
+                            <div>
+                              <p className="font-medium text-medium-gray">Description</p>
+                              <p className="text-deep-navy">{item.product_details?.description || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-medium-gray">Category</p>
+                              <p className="text-deep-navy">{item.product_details?.category || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-medium-gray">Brand</p>
+                              <p className="text-deep-navy">{item.product_details?.brand || 'N/A'}</p>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -544,7 +529,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {order?.delivery ? (
+              {false ? ( // No delivery info in API payload
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
@@ -596,7 +581,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {order?.timeline && order.timeline.length > 0 ? (
+              {false ? ( // No timeline info in API payload
                 <div className="space-y-4">
                   {order.timeline.map((event: any, index: any) => (
                     <div key={index} className="flex items-start gap-4">
@@ -634,7 +619,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {order?.notes && order.notes.length > 0 ? (
+              {false ? ( // No notes info in API payload
                 <div className="space-y-4">
                   {order.notes.map((note: any) => (
                     <div key={note.id} className="border-l-4 border-blue-200 pl-4 py-2">

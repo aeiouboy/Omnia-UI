@@ -312,10 +312,8 @@ export function OrderManagementHub() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all-status")
   const [channelFilter, setChannelFilter] = useState("all-channels")
-  const [priorityFilter, setPriorityFilter] = useState("all-priority")
   const [activeSlaFilter, setActiveSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterValues>({
     orderNumber: "",
     customerName: "",
@@ -380,7 +378,6 @@ export function OrderManagementHub() {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
-        priority: priorityFilter,
         slaFilter: activeSlaFilter,
         // Advanced filters (flattened for API compatibility)
         orderNumber: advancedFilters.orderNumber,
@@ -422,7 +419,7 @@ export function OrderManagementHub() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, priorityFilter, activeSlaFilter, advancedFilters])
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
 
   // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
@@ -436,9 +433,39 @@ export function OrderManagementHub() {
 
   // Remove individual filter
   const removeFilter = (filter: string) => {
-    setActiveFilters((prev) => prev.filter((f) => f !== filter))
-    // Optionally reset related filter state here
+    if (filter.startsWith('Search:')) {
+      setSearchTerm('')
+    } else if (filter.startsWith('Status:')) {
+      setStatusFilter('all-status')
+    } else if (filter.startsWith('Channel:')) {
+      setChannelFilter('all-channels')
+    }
   }
+
+  // Generate active filters for display
+  const generateActiveFilters = useMemo(() => {
+    const filters: string[] = []
+    
+    if (searchTerm) filters.push(`Search: ${searchTerm}`)
+    if (statusFilter !== 'all-status') filters.push(`Status: ${statusFilter}`)
+    if (channelFilter !== 'all-channels') filters.push(`Channel: ${channelFilter}`)
+    if (activeSlaFilter !== 'all') filters.push(`SLA: ${activeSlaFilter}`)
+    
+    // Advanced filters
+    if (advancedFilters.orderNumber) filters.push(`Order: ${advancedFilters.orderNumber}`)
+    if (advancedFilters.customerName) filters.push(`Customer: ${advancedFilters.customerName}`)
+    if (advancedFilters.phoneNumber) filters.push(`Phone: ${advancedFilters.phoneNumber}`)
+    if (advancedFilters.email) filters.push(`Email: ${advancedFilters.email}`)
+    if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
+      const dateRange = `${advancedFilters.orderDateFrom || 'Start'} - ${advancedFilters.orderDateTo || 'End'}`
+      filters.push(`Date: ${dateRange}`)
+    }
+    if (advancedFilters.exceedSLA) filters.push('SLA Exceeded')
+    if (advancedFilters.fulfillmentLocationId) filters.push(`Location: ${advancedFilters.fulfillmentLocationId}`)
+    if (advancedFilters.items) filters.push(`Items: ${advancedFilters.items}`)
+    
+    return filters
+  }, [searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
 
   // Advanced filter handlers
   const handleResetAdvancedFilters = () => {
@@ -456,7 +483,10 @@ export function OrderManagementHub() {
       fulfillmentLocationId: "",
       items: "",
     })
-    setActiveFilters([])
+    setSearchTerm("")
+    setStatusFilter("all-status")
+    setChannelFilter("all-channels")
+    setActiveSlaFilter("all")
   }
 
   const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
@@ -519,10 +549,121 @@ export function OrderManagementHub() {
 
   // Filter and map orders for table
   const filteredOrders = ordersData.filter((order) => {
+    // Search term filter (searches across multiple fields)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch = 
+        order.id?.toLowerCase().includes(searchLower) ||
+        order.order_no?.toLowerCase().includes(searchLower) ||
+        order.customer?.name?.toLowerCase().includes(searchLower) ||
+        order.customer?.email?.toLowerCase().includes(searchLower) ||
+        order.customer?.phone?.toLowerCase().includes(searchLower) ||
+        order.channel?.toLowerCase().includes(searchLower) ||
+        order.status?.toLowerCase().includes(searchLower)
+      
+      if (!matchesSearch) return false
+    }
+
+    // Status filter
+    if (statusFilter && statusFilter !== "all-status") {
+      if (order.status?.toUpperCase() !== statusFilter.toUpperCase()) {
+        return false
+      }
+    }
+
+    // Channel filter
+    if (channelFilter && channelFilter !== "all-channels") {
+      if (order.channel?.toUpperCase() !== channelFilter.toUpperCase()) {
+        return false
+      }
+    }
+
+
+    // Advanced filters
+    if (advancedFilters.orderNumber) {
+      const orderNumberLower = advancedFilters.orderNumber.toLowerCase()
+      const matchesOrderNumber = 
+        order.id?.toLowerCase().includes(orderNumberLower) ||
+        order.order_no?.toLowerCase().includes(orderNumberLower)
+      if (!matchesOrderNumber) return false
+    }
+
+    if (advancedFilters.customerName) {
+      const customerNameLower = advancedFilters.customerName.toLowerCase()
+      if (!order.customer?.name?.toLowerCase().includes(customerNameLower)) {
+        return false
+      }
+    }
+
+    if (advancedFilters.phoneNumber) {
+      if (!order.customer?.phone?.includes(advancedFilters.phoneNumber)) {
+        return false
+      }
+    }
+
+    if (advancedFilters.email) {
+      const emailLower = advancedFilters.email.toLowerCase()
+      if (!order.customer?.email?.toLowerCase().includes(emailLower)) {
+        return false
+      }
+    }
+
+    if (advancedFilters.orderStatus && advancedFilters.orderStatus !== "all-status") {
+      if (order.status?.toUpperCase() !== advancedFilters.orderStatus.toUpperCase()) {
+        return false
+      }
+    }
+
+    if (advancedFilters.sellingChannel && advancedFilters.sellingChannel !== "all-channels") {
+      if (order.channel?.toUpperCase() !== advancedFilters.sellingChannel.toUpperCase()) {
+        return false
+      }
+    }
+
+    if (advancedFilters.paymentStatus && advancedFilters.paymentStatus !== "all-payment") {
+      if (order.payment_info?.status?.toUpperCase() !== advancedFilters.paymentStatus.toUpperCase()) {
+        return false
+      }
+    }
+
+    if (advancedFilters.fulfillmentLocationId) {
+      const locationLower = advancedFilters.fulfillmentLocationId.toLowerCase()
+      if (!order.metadata?.store_name?.toLowerCase().includes(locationLower)) {
+        return false
+      }
+    }
+
+    if (advancedFilters.items) {
+      const itemsLower = advancedFilters.items.toLowerCase()
+      const matchesItems = order.items?.some(item => 
+        item.product_name?.toLowerCase().includes(itemsLower) ||
+        item.product_sku?.toLowerCase().includes(itemsLower)
+      )
+      if (!matchesItems) return false
+    }
+
+    // Date range filter
+    if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
+      const orderDate = new Date(order.order_date || order.metadata?.created_at)
+      
+      if (advancedFilters.orderDateFrom) {
+        const fromDate = new Date(advancedFilters.orderDateFrom)
+        if (orderDate < fromDate) return false
+      }
+      
+      if (advancedFilters.orderDateTo) {
+        const toDate = new Date(advancedFilters.orderDateTo)
+        toDate.setHours(23, 59, 59, 999) // Include the entire day
+        if (orderDate > toDate) return false
+      }
+    }
+
+    // SLA filter
     if (activeSlaFilter === "near-breach") {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
+      if (!order.sla_info) return false
       const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
       const criticalThreshold = order.sla_info.target_minutes * 0.2
       return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
@@ -530,9 +671,18 @@ export function OrderManagementHub() {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
+      if (!order.sla_info) return false
       const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
       return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
     }
+
+    // SLA exceed filter from advanced filters
+    if (advancedFilters.exceedSLA) {
+      if (!order.sla_info) return false
+      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+      if (remainingMinutes > 0 && order.sla_info.status !== "BREACH") return false
+    }
+
     return true
   })
 
@@ -580,21 +730,18 @@ export function OrderManagementHub() {
               <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
                 CREATED DATE
               </TableHead>
-              <TableHead className="text-right min-w-[100px] text-sm font-semibold font-heading text-deep-navy">
-                ACTIONS
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {ordersToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center py-8">
+                <TableCell colSpan={12} className="text-center py-8">
                   No orders found.
                 </TableCell>
               </TableRow>
             ) : (
               ordersToShow.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
                   <TableCell onClick={() => handleOrderRowClick(order)} className="cursor-pointer text-blue-600 hover:text-blue-800">
                     <Link href={`/orders/${order.id}`} className="hover:underline">
                       {order.id}
@@ -618,7 +765,6 @@ export function OrderManagementHub() {
                   <TableCell><ChannelBadge channel={order.channel} /></TableCell>
                   <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
                   <TableCell>{order.createdDate}</TableCell>
-                  <TableCell>{/* Actions/Buttons can go here */}</TableCell>
                 </TableRow>
               ))
             )}
@@ -667,6 +813,48 @@ export function OrderManagementHub() {
             <Button variant={activeSlaFilter === "near-breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("near-breach")} className="text-xs px-2 py-1 h-auto bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200">Near Breach ({slaStats.nearBreach})</Button>
             <Button variant={activeSlaFilter === "breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("breach")} className="text-xs px-2 py-1 h-auto bg-red-100 text-red-700 border-red-300 hover:bg-red-200">Breach ({slaStats.breach})</Button>
           </div>
+
+          {/* Basic filters row */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex items-center space-x-2">
+              <Input
+                placeholder="Search orders, customers, emails..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all-status">All Status</SelectItem>
+                <SelectItem value="CREATED">Created</SelectItem>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="FULFILLED">Fulfilled</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Channels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all-channels">All Channels</SelectItem>
+                <SelectItem value="GRAB">Grab</SelectItem>
+                <SelectItem value="LAZADA">Lazada</SelectItem>
+                <SelectItem value="SHOPEE">Shopee</SelectItem>
+                <SelectItem value="TIKTOK">TikTok</SelectItem>
+                <SelectItem value="SHOPIFY">Shopify</SelectItem>
+                <SelectItem value="INSTORE">In-Store</SelectItem>
+                <SelectItem value="FOODPANDA">FoodPanda</SelectItem>
+                <SelectItem value="LINEMAN">LineMan</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
 
         <CardContent className="p-6">
@@ -684,9 +872,9 @@ export function OrderManagementHub() {
           )}
 
           {/* Active filters row */}
-          {isMounted && activeFilters.length > 0 && (
+          {isMounted && generateActiveFilters.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-2">
-              {activeFilters.map((filter) => (
+              {generateActiveFilters.map((filter) => (
                 <Badge key={filter} variant="outline" className="bg-light-gray text-deep-navy font-mono text-sm transition-colors duration-150 shadow-sm hover:shadow-md hover:bg-enterprise-light/70 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none">
                   {filter}
                   <button
