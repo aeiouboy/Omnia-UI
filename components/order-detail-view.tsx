@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -28,7 +29,9 @@ import {
   Calendar,
   DollarSign,
   ShoppingBag,
-  X
+  X,
+  Copy,
+  Check
 } from "lucide-react";
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -44,15 +47,38 @@ interface OrderDetailViewProps {
 
 export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("overview")
   const [itemSearchTerm, setItemSearchTerm] = useState("")
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
+  const [copiedOrderId, setCopiedOrderId] = useState(false)
 
   const toggleItemExpansion = (sku: string) => {
     setExpandedItems((prev) => ({
       ...prev,
       [sku]: !prev[sku],
     }))
+  }
+
+  const copyOrderIdToClipboard = async () => {
+    if (order?.id) {
+      try {
+        await navigator.clipboard.writeText(order.id)
+        setCopiedOrderId(true)
+        toast({
+          title: "Copied to clipboard",
+          description: `Order ID ${order.id} copied successfully`,
+          variant: "default",
+        })
+        setTimeout(() => setCopiedOrderId(false), 2000)
+      } catch (err) {
+        toast({
+          title: "Copy failed",
+          description: "Failed to copy order ID to clipboard",
+          variant: "destructive",
+        })
+      }
+    }
   }
 
   const filteredItems = order?.items
@@ -221,7 +247,22 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-enterprise-text-light">Order Number (ID)</p>
-                  <p className="font-mono text-sm">{order?.id}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-mono text-sm">{order?.id}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={copyOrderIdToClipboard}
+                      className="h-6 px-2"
+                      title="Copy Order ID to clipboard"
+                    >
+                      {copiedOrderId ? (
+                        <Check className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Short Order</p>

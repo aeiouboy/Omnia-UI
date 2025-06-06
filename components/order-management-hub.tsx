@@ -313,6 +313,11 @@ export function OrderManagementHub() {
       }));
     };
     updateTimestamp();
+
+    // Cleanup function to restore body scroll when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, []);
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
@@ -360,6 +365,8 @@ export function OrderManagementHub() {
     if (fullOrderData) {
       setSelectedOrderForDetail(fullOrderData);
       setIsDetailViewOpen(true);
+      // Disable body scroll when modal opens
+      document.body.style.overflow = 'hidden';
     }
   };
 
@@ -367,6 +374,8 @@ export function OrderManagementHub() {
   const handleCloseDetailView = () => {
     setIsDetailViewOpen(false);
     setSelectedOrderForDetail(null);
+    // Re-enable body scroll when modal closes
+    document.body.style.overflow = 'unset';
   };
 
   // Data states
@@ -441,6 +450,22 @@ export function OrderManagementHub() {
   useEffect(() => {
     fetchOrders()
   }, [fetchOrders])
+
+  // Handle escape key to close order detail modal
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isDetailViewOpen) {
+        handleCloseDetailView()
+      }
+    }
+
+    if (isDetailViewOpen) {
+      document.addEventListener('keydown', handleEscapeKey)
+      return () => {
+        document.removeEventListener('keydown', handleEscapeKey)
+      }
+    }
+  }, [isDetailViewOpen])
 
   // Refresh handler
   const refreshData = () => {
@@ -1018,8 +1043,14 @@ export function OrderManagementHub() {
       
       {/* Order Detail View Modal/Overlay */}
       {isDetailViewOpen && selectedOrderForDetail && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-auto">
+        <div 
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={handleCloseDetailView}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <OrderDetailView
               order={selectedOrderForDetail}
               onClose={handleCloseDetailView}
