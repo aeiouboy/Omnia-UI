@@ -603,4 +603,3 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
     </div>
   );
 }
-
