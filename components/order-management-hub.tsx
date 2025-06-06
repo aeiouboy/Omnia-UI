@@ -782,7 +782,7 @@ export function OrderManagementHub() {
                     </button>
                   </TableCell>
                   <TableCell>{order.orderNo}</TableCell>
-                  <TableCell>{order.total_amount}</TableCell>
+                  <TableCell>฿{order.total_amount?.toLocaleString() || '0'}</TableCell>
                   <TableCell>{order.sellingLocationId}</TableCell>
                   <TableCell><OrderStatusBadge status={order.status} /></TableCell>
                   <TableCell>
