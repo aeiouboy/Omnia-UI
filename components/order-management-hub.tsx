@@ -299,15 +299,20 @@ export function OrderManagementHub() {
   // Track client mount to avoid hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>("");
+  
   useEffect(() => {
     setIsMounted(true);
-    // Set to the current local time when mounted
-    setLastUpdated(new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false
-    }));
+    // Set initial timestamp only after client mount
+    const updateTimestamp = () => {
+      const now = new Date();
+      setLastUpdated(now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }));
+    };
+    updateTimestamp();
   }, []);
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
@@ -406,12 +411,16 @@ export function OrderManagementHub() {
       )
       setOrdersData(orders)
       setPagination(apiPagination)
-      setLastUpdated(new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      }));
+      
+      // Only update timestamp on client side
+      if (typeof window !== 'undefined') {
+        setLastUpdated(new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false
+        }));
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch orders')
       setOrdersData([])
@@ -538,13 +547,27 @@ export function OrderManagementHub() {
 
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
+    // Handle potential seconds-to-minutes conversion for SLA data
+    let slaInfo = order.sla_info;
+    if (slaInfo) {
+      const targetValue = slaInfo.target_minutes;
+      const elapsedValue = slaInfo.elapsed_minutes;
+      if (targetValue > 1000 || elapsedValue > 1000) {
+        slaInfo = {
+          ...slaInfo,
+          target_minutes: targetValue > 1000 ? Math.round(targetValue / 60) : targetValue,
+          elapsed_minutes: elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue,
+        };
+      }
+    }
+    
     return {
       id: order.id,
       orderNo: order.order_no,
       total_amount: order.total_amount,
       sellingLocationId: order.metadata?.store_name ?? "",
       status: order.status,
-      slaStatus: order.sla_info?.status ?? "",
+      slaStatus: slaInfo ?? "",
       returnStatus: order.return_status ?? "",
       onHold: order.on_hold ?? false,
       paymentStatus: order.payment_info?.status ?? "",
@@ -559,13 +582,27 @@ export function OrderManagementHub() {
   const slaStats = useMemo(() => {
     const nearBreachOrders = ordersData.filter(order => {
       if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
-      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes;
-      const criticalThreshold = order.sla_info.target_minutes * 0.2;
+      
+      // Handle potential seconds-to-minutes conversion
+      const targetValue = order.sla_info.target_minutes;
+      const elapsedValue = order.sla_info.elapsed_minutes;
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue;
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue;
+      
+      const remainingMinutes = targetMinutes - elapsedMinutes;
+      const criticalThreshold = targetMinutes * 0.2;
       return ((remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH");
     });
     const breachedOrders = ordersData.filter(order => {
       if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
-      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes;
+      
+      // Handle potential seconds-to-minutes conversion
+      const targetValue = order.sla_info.target_minutes;
+      const elapsedValue = order.sla_info.elapsed_minutes;
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue;
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue;
+      
+      const remainingMinutes = targetMinutes - elapsedMinutes;
       return (remainingMinutes <= 0 || order.sla_info.status === "BREACH");
     })
     return {
@@ -695,22 +732,43 @@ export function OrderManagementHub() {
         return false
       }
       if (!order.sla_info) return false
-      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
-      const criticalThreshold = order.sla_info.target_minutes * 0.2
+      
+      // Handle potential seconds-to-minutes conversion
+      const targetValue = order.sla_info.target_minutes
+      const elapsedValue = order.sla_info.elapsed_minutes
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      
+      const remainingMinutes = targetMinutes - elapsedMinutes
+      const criticalThreshold = targetMinutes * 0.2
       return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
     } else if (activeSlaFilter === "breach") {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
       if (!order.sla_info) return false
-      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+      
+      // Handle potential seconds-to-minutes conversion
+      const targetValue = order.sla_info.target_minutes
+      const elapsedValue = order.sla_info.elapsed_minutes
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      
+      const remainingMinutes = targetMinutes - elapsedMinutes
       return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
     }
 
     // SLA exceed filter from advanced filters
     if (advancedFilters.exceedSLA) {
       if (!order.sla_info) return false
-      const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+      
+      // Handle potential seconds-to-minutes conversion
+      const targetValue = order.sla_info.target_minutes
+      const elapsedValue = order.sla_info.elapsed_minutes
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      
+      const remainingMinutes = targetMinutes - elapsedMinutes
       if (remainingMinutes > 0 && order.sla_info.status !== "BREACH") return false
     }
 

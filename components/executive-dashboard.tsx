@@ -141,17 +141,21 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
 
     console.log("🔄 Fetching last 7 days orders from API for dashboard...")
     
-    // Calculate date range for last 7 days
+    // Calculate date range for last 7 days - using UTC to ensure consistency
     const endDate = new Date()
+    endDate.setUTCHours(23, 59, 59, 999) // End of today in UTC
     const startDate = new Date()
     startDate.setDate(endDate.getDate() - 7)
+    startDate.setUTCHours(0, 0, 0, 0) // Start of 7 days ago in UTC
     
     const dateFrom = startDate.toISOString().split('T')[0]
     const dateTo = endDate.toISOString().split('T')[0]
     
     // Try server-side API route with date filtering
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000) // Further reduced timeout
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+    }, 15000) // Increased timeout to 15 seconds
 
     const queryParams = new URLSearchParams({
       pageSize: "200", // Smaller page size for last 7 days
@@ -159,38 +163,50 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
       dateTo
     })
 
-    const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: controller.signal,
-    })
+    try {
+      const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+      })
 
-    clearTimeout(timeoutId)
+      clearTimeout(timeoutId)
 
-    if (proxyResponse.ok) {
-      const proxyData = await proxyResponse.json()
-      if (proxyData.success && proxyData.data) {
-        console.log("✅ Successfully fetched last 7 days data via server proxy")
-        const orders = proxyData.data.data || []
-        
-        // Additional client-side filtering to ensure we only get last 7 days
-        const filteredOrders = orders.filter((order: ApiOrder) => {
-          const orderDate = new Date(order.order_date || order.metadata?.created_at)
-          return orderDate >= startDate && orderDate <= endDate
-        })
-        
-        // Cache the result
-        ordersCache = { data: filteredOrders, timestamp: now }
-        return filteredOrders
+      if (proxyResponse.ok) {
+        const proxyData = await proxyResponse.json()
+        if (proxyData.success && proxyData.data) {
+          console.log("✅ Successfully fetched last 7 days data via server proxy")
+          const orders = proxyData.data.data || []
+          
+          // Additional client-side filtering to ensure we only get last 7 days
+          const filteredOrders = orders.filter((order: ApiOrder) => {
+            const orderDate = new Date(order.order_date || order.metadata?.created_at)
+            return orderDate >= startDate && orderDate <= endDate
+          })
+          
+          // Cache the result
+          ordersCache = { data: filteredOrders, timestamp: now }
+          return filteredOrders
+        }
       }
-    }
 
-    throw new Error("Proxy fetch failed")
+      console.warn("⚠️ Proxy response not successful, returning empty data")
+      return []
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      
+      if (fetchError.name === 'AbortError') {
+        console.warn("⏰ Dashboard API request timed out after 15 seconds")
+        return []
+      }
+      
+      console.error("❌ Dashboard API fetch failed:", fetchError)
+      return []
+    }
   } catch (error) {
-    console.error("❌ Dashboard API fetch failed:", error)
-    // Return empty array to trigger fallback to mock data
+    console.error("❌ Dashboard API general error:", error)
     return []
   }
 }
@@ -201,6 +217,7 @@ export function ExecutiveDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEscalating, setIsEscalating] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [kpiData, setKpiData] = useState({
     ordersProcessing: { value: 0, change: 0 },
     slaBreaches: { value: 0, change: 0 },
@@ -222,6 +239,7 @@ export function ExecutiveDashboard() {
   const [revenueByCategory, setRevenueByCategory] = useState<any[]>([])
 
   useEffect(() => {
+    setIsMounted(true)
     loadData()
   }, [])
 
@@ -374,20 +392,27 @@ export function ExecutiveDashboard() {
       const breachedOrders = orders.filter(order => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
-        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+        
+        // Handle potential seconds-to-minutes conversion
+        const targetValue = order.sla_info.target_minutes
+        const elapsedValue = order.sla_info.elapsed_minutes
+        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        
+        const remainingMinutes = targetMinutes - elapsedMinutes
         return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
       })
       
       return {
-        count: breachedOrders.length || 1,
-        change: 5,
+        count: breachedOrders.length,
+        change: 0,
         breaches: breachedOrders,
       }
     } catch (err) {
       console.warn("Error fetching SLA breaches:", err)
       return {
-        count: 1,
-        change: 5,
+        count: 0,
+        change: 0,
         breaches: [],
       }
     }
@@ -397,7 +422,10 @@ export function ExecutiveDashboard() {
     try {
       const orders = await fetchOrdersFromApi()
       
+      console.log("🔍 Channel Volume Debug - Total orders:", orders.length)
+      
       if (!orders || orders.length === 0) {
+        console.log("⚠️ No orders found for channel volume")
         return [
           { channel: "GRAB", orders: 0 },
           { channel: "LAZADA", orders: 0 },
@@ -406,7 +434,7 @@ export function ExecutiveDashboard() {
         ]
       }
 
-      // Count orders by channel
+      // Count orders by channel with detailed logging
       const channelCounts = {
         GRAB: 0,
         LAZADA: 0,
@@ -414,19 +442,74 @@ export function ExecutiveDashboard() {
         TIKTOK: 0,
       }
 
-      orders.forEach((order) => {
-        const channel = order.channel?.toUpperCase() // Normalize to uppercase
-        if (channelCounts[channel] !== undefined) {
-          channelCounts[channel]++
+      // Channel mapping to handle different variations
+      const channelMapping = {
+        'GRAB': 'GRAB',
+        'GRABMART': 'GRAB',
+        'GRAB_MART': 'GRAB',
+        'GRAB-MART': 'GRAB',
+        'LAZADA': 'LAZADA',
+        'SHOPEE': 'SHOPEE',
+        'TIKTOK': 'TIKTOK',
+        'TIKTOK_SHOP': 'TIKTOK',
+        'TIKTOK-SHOP': 'TIKTOK',
+      }
+
+      // Debug: Log all unique channels found and detailed analysis
+      const allChannels = new Set()
+      const channelAnalysis = {}
+      
+      orders.forEach((order, index) => {
+        const originalChannel = order.channel
+        const normalizedChannel = order.channel?.toUpperCase()?.trim()
+        
+        // Track all variations
+        if (originalChannel) {
+          channelAnalysis[originalChannel] = (channelAnalysis[originalChannel] || 0) + 1
+        }
+        
+        allChannels.add(`"${originalChannel}" -> "${normalizedChannel}"`)
+        
+        // Log first 10 orders for more detailed debugging
+        if (index < 10) {
+          console.log(`🔍 Order ${index + 1}:`, {
+            id: order.id,
+            channel_raw: originalChannel,
+            channel_normalized: normalizedChannel,
+            channel_type: typeof originalChannel,
+            channel_length: originalChannel?.length,
+            has_channel: !!originalChannel
+          })
+        }
+        
+        // Count with better debugging using channel mapping
+        if (normalizedChannel) {
+          const mappedChannel = channelMapping[normalizedChannel]
+          if (mappedChannel && channelCounts.hasOwnProperty(mappedChannel)) {
+            channelCounts[mappedChannel]++
+            console.log(`✅ Mapped "${normalizedChannel}" -> "${mappedChannel}" - new count: ${channelCounts[mappedChannel]}`)
+          } else {
+            console.log(`⚠️ Unknown channel found: "${normalizedChannel}" (original: "${originalChannel}", type: ${typeof originalChannel})`)
+          }
+        } else {
+          console.log(`❌ Order ${index + 1} has null/undefined channel:`, order.channel)
         }
       })
 
-      return [
+      console.log("🔍 Raw channel analysis (all variations):", channelAnalysis)
+      console.log("🔍 All channel transformations:", Array.from(allChannels))
+      console.log("🔍 Final channel counts:", channelCounts)
+      console.log("🔍 Expected channels:", Object.keys(channelCounts))
+
+      const result = [
         { channel: "GRAB", orders: channelCounts.GRAB },
         { channel: "LAZADA", orders: channelCounts.LAZADA },
         { channel: "SHOPEE", orders: channelCounts.SHOPEE },
         { channel: "TIKTOK", orders: channelCounts.TIKTOK },
       ]
+      
+      console.log("🔍 Channel volume result:", result)
+      return result
     } catch (err) {
       console.warn("Error in fetchChannelVolume:", err)
       return [
@@ -444,7 +527,14 @@ export function ExecutiveDashboard() {
       const breachedOrders = orders.filter(order => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
-        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+        
+        // Handle potential seconds-to-minutes conversion
+        const targetValue = order.sla_info.target_minutes
+        const elapsedValue = order.sla_info.elapsed_minutes
+        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        
+        const remainingMinutes = targetMinutes - elapsedMinutes
         return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
       })
 
@@ -452,15 +542,29 @@ export function ExecutiveDashboard() {
         return [] // Return empty array instead of mock data
       }
 
-      return breachedOrders.slice(0, 1).map((order) => ({
-        id: order.id,
-        order_number: order.id,
-        customer_name: order.customer?.name || "Customer",
-        channel: order.channel || "UNKNOWN",
-        location: order.metadata?.store_name || "Unknown Location",
-        target_minutes: order.sla_info?.target_minutes || 5,
-        elapsed_minutes: order.sla_info?.elapsed_minutes || 6,
-      }))
+      return breachedOrders.slice(0, 1).map((order) => {
+        const targetValue = order.sla_info?.target_minutes || 5
+        const elapsedValue = order.sla_info?.elapsed_minutes || 6
+        
+        // Apply seconds-to-minutes conversion
+        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        
+        console.log(`🔍 SLA Breach Debug for order ${order.id}:`)
+        console.log(`  - target_minutes (raw): ${targetValue} -> converted: ${targetMinutes}`)
+        console.log(`  - elapsed_minutes (raw): ${elapsedValue} -> converted: ${elapsedMinutes}`)
+        console.log(`  - conversion applied: ${targetValue > 1000 || elapsedValue > 1000}`)
+        
+        return {
+          id: order.id,
+          order_number: order.id,
+          customer_name: order.customer?.name || "Customer",
+          channel: order.channel || "UNKNOWN",
+          location: order.metadata?.store_name || "Unknown Location",
+          target_minutes: targetMinutes,
+          elapsed_minutes: elapsedMinutes,
+        }
+      })
     } catch (err) {
       console.warn("Error in fetchOrderAlerts:", err)
       return [] // Return empty array instead of mock data
@@ -470,26 +574,64 @@ export function ExecutiveDashboard() {
   const fetchApproachingSla = async () => {
     try {
       const orders = await fetchOrdersFromApi()
+      console.log(`🔍 SLA Debug - Processing ${orders.length} orders for approaching SLA check`)
+      
+      // Log first order's SLA info to understand the data structure
+      if (orders.length > 0 && orders[0].sla_info) {
+        console.log(`🔍 Sample SLA Info from first order:`, {
+          target_minutes: orders[0].sla_info.target_minutes,
+          elapsed_minutes: orders[0].sla_info.elapsed_minutes,
+          status: orders[0].sla_info.status,
+          sla_info_keys: Object.keys(orders[0].sla_info)
+        })
+      }
+      
       const approaching = orders.filter((order) => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
         if (order.sla_info.status === "BREACH") return false
         
-        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
-        const criticalThreshold = order.sla_info.target_minutes * 0.2
+        // Check if the API might be returning seconds instead of minutes
+        const targetValue = order.sla_info.target_minutes
+        const elapsedValue = order.sla_info.elapsed_minutes
+        
+        // If values are very large, they might be in seconds - convert to minutes
+        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        
+        const remainingMinutes = targetMinutes - elapsedMinutes
+        const criticalThreshold = targetMinutes * 0.2
         return remainingMinutes <= criticalThreshold && remainingMinutes > 0
       })
+
+      console.log(`🔍 Found ${approaching.length} orders approaching SLA deadline`)
 
       if (approaching.length === 0) {
         return [] // Return empty array instead of mock data
       }
 
-      return approaching.slice(0, 4).map((order) => ({
-        id: order.id,
-        order_number: order.order_no || `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id}`,
-        channel: order.channel,
-        remaining: Math.max(1, Math.round(order.sla_info.target_minutes - order.sla_info.elapsed_minutes)),
-      }))
+      return approaching.slice(0, 4).map((order) => {
+        const targetValue = order.sla_info.target_minutes
+        const elapsedValue = order.sla_info.elapsed_minutes
+        
+        // Handle potential seconds-to-minutes conversion
+        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        const remainingMinutes = Math.max(1, Math.round(targetMinutes - elapsedMinutes))
+        
+        console.log(`🔍 SLA Approaching Debug for order ${order.id}:`)
+        console.log(`  - target_minutes (raw): ${targetValue} -> converted: ${targetMinutes}`)
+        console.log(`  - elapsed_minutes (raw): ${elapsedValue} -> converted: ${elapsedMinutes}`)
+        console.log(`  - calculated remaining: ${remainingMinutes} minutes`)
+        console.log(`  - conversion applied: ${targetValue > 1000 || elapsedValue > 1000}`)
+        
+        return {
+          id: order.id,
+          order_number: order.order_no || order.id,
+          channel: order.channel,
+          remaining: remainingMinutes,
+        }
+      })
     } catch (err) {
       console.warn("Error fetching approaching SLA orders:", err)
       return [] // Return empty array instead of mock data
@@ -521,7 +663,11 @@ export function ExecutiveDashboard() {
       activeOrders.forEach((order) => {
         const channel = order.channel?.toUpperCase() // Normalize to uppercase
         if (channelTimes[channel] && order.sla_info?.elapsed_minutes) {
-          channelTimes[channel].total += order.sla_info.elapsed_minutes
+          // Handle potential seconds-to-minutes conversion
+          const elapsedValue = order.sla_info.elapsed_minutes
+          const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+          
+          channelTimes[channel].total += elapsedMinutes
           channelTimes[channel].count++
         }
       })
@@ -573,12 +719,20 @@ export function ExecutiveDashboard() {
           const channel = order.channel?.toUpperCase() // Normalize to uppercase
           if (channelCompliance[channel]) {
             channelCompliance[channel].total++
-            if (
-              order.sla_info?.status === "COMPLIANT" ||
-              order.status === "DELIVERED" ||
-              order.status === "FULFILLED" ||
-              (order.sla_info && order.sla_info.elapsed_minutes <= order.sla_info.target_minutes)
-            ) {
+            
+            // Handle potential seconds-to-minutes conversion for SLA compliance check
+            let isCompliant = false
+            if (order.sla_info?.status === "COMPLIANT" || order.status === "DELIVERED" || order.status === "FULFILLED") {
+              isCompliant = true
+            } else if (order.sla_info) {
+              const targetValue = order.sla_info.target_minutes
+              const elapsedValue = order.sla_info.elapsed_minutes
+              const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+              const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+              isCompliant = elapsedMinutes <= targetMinutes
+            }
+            
+            if (isCompliant) {
               channelCompliance[channel].compliant++
             }
           }
@@ -648,12 +802,12 @@ export function ExecutiveDashboard() {
 
       return recentOrders.map((order) => ({
         order_number: order.id, // Full Order ID
-        order_no: order.order_no || `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id.slice(-4)}`, // Short formatted order number
+        order_no: order.order_no || order.id, // Use order ID directly to avoid dynamic generation
         customer: order.customer?.name || "Customer",
         channel: order.channel,
         status: order.status || "CREATED",
-        total: `฿${order.total_amount || 0}`,
-        date: new Date(order.order_date || order.metadata?.created_at).toLocaleDateString("en-US"),
+        total: `฿${(order.total_amount || 0).toLocaleString()}`,
+        date: order.order_date ? new Date(order.order_date).toISOString().split('T')[0] : "N/A",
       }))
     } catch (err) {
       console.warn("Error fetching recent orders:", err)
@@ -710,15 +864,14 @@ export function ExecutiveDashboard() {
     try {
       const orders = await fetchOrdersFromApi()
 
-      if (!orders || orders.length === 0) {
-        // Still return 7-day structure but with zeros
+      // Create consistent 7-day structure using UTC dates
+      const createDailyStructure = () => {
         const dailyData = {}
         const today = new Date()
-
-        // Create last 7 days structure with zeros
+        
         for (let i = 6; i >= 0; i--) {
           const date = new Date(today)
-          date.setDate(date.getDate() - i)
+          date.setUTCDate(date.getUTCDate() - i)
           const dateKey = date.toISOString().split("T")[0]
           dailyData[dateKey] = { 
             date: dateKey, 
@@ -729,60 +882,42 @@ export function ExecutiveDashboard() {
             total: 0 
           }
         }
-
-        return Object.values(dailyData).map((day: any) => ({
-          ...day,
-          date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
-        }))
+        return dailyData
       }
 
-      // Group by day - last 7 days
-      const dailyData = {}
-      const today = new Date()
+      const dailyData = createDailyStructure()
 
-      // Create last 7 days structure
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        const dateKey = date.toISOString().split("T")[0]
-        dailyData[dateKey] = { 
-          date: dateKey, 
-          GRAB: 0, 
-          LAZADA: 0, 
-          SHOPEE: 0, 
-          TIKTOK: 0, 
-          total: 0 
-        }
-      }
-
-      // Populate with real data from last 7 days
-      orders.forEach((order) => {
-        const orderDate = new Date(order.order_date || order.metadata?.created_at)
-        const dateKey = orderDate.toISOString().split("T")[0]
-        
-        // Only include if it's within our 7-day window
-        if (dailyData[dateKey]) {
-          const channel = (order.channel || "UNKNOWN").toUpperCase() // Normalize to uppercase
-          if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
-            dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+      if (orders && orders.length > 0) {
+        // Populate with real data from last 7 days
+        orders.forEach((order) => {
+          const orderDate = new Date(order.order_date || order.metadata?.created_at)
+          const dateKey = orderDate.toISOString().split("T")[0]
+          
+          // Only include if it's within our 7-day window
+          if (dailyData[dateKey]) {
+            const channel = (order.channel || "UNKNOWN").toUpperCase()
+            if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
+              dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+            }
+            dailyData[dateKey].total += order.total_amount || 0
           }
-          dailyData[dateKey].total += order.total_amount || 0
-        }
-      })
+        })
+      }
 
+      // Use consistent date formatting
       return Object.values(dailyData).map((day: any) => ({
         ...day,
-        date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
+        date: day.date.slice(5).replace('-', '/'), // Convert YYYY-MM-DD to MM/DD format consistently
       }))
     } catch (err) {
       console.warn("Error in fetchDailyOrders:", err)
-      // Return 7-day structure with zeros on error
+      // Return consistent empty structure on error
       const dailyData = {}
       const today = new Date()
 
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today)
-        date.setDate(date.getDate() - i)
+        date.setUTCDate(date.getUTCDate() - i)
         const dateKey = date.toISOString().split("T")[0]
         dailyData[dateKey] = { 
           date: dateKey, 
@@ -796,7 +931,7 @@ export function ExecutiveDashboard() {
 
       return Object.values(dailyData).map((day: any) => ({
         ...day,
-        date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
+        date: day.date.slice(5).replace('-', '/'),
       }))
     }
   }
@@ -829,12 +964,19 @@ export function ExecutiveDashboard() {
           channelData[channel].revenue += order.total_amount || 0
           channelData[channel].total++
 
-          if (
-            order.sla_info?.status === "COMPLIANT" ||
-            order.status === "DELIVERED" ||
-            order.status === "FULFILLED" ||
-            (order.sla_info && order.sla_info.elapsed_minutes <= order.sla_info.target_minutes)
-          ) {
+          // Handle potential seconds-to-minutes conversion for SLA compliance check
+          let isCompliant = false
+          if (order.sla_info?.status === "COMPLIANT" || order.status === "DELIVERED" || order.status === "FULFILLED") {
+            isCompliant = true
+          } else if (order.sla_info) {
+            const targetValue = order.sla_info.target_minutes
+            const elapsedValue = order.sla_info.elapsed_minutes
+            const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+            const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+            isCompliant = elapsedMinutes <= targetMinutes
+          }
+          
+          if (isCompliant) {
             channelData[channel].sla_compliance++
           }
         }
@@ -859,19 +1001,49 @@ export function ExecutiveDashboard() {
 
   const fetchTopProducts = async () => {
     try {
+      console.log("🔍 Top Products Debug - Using external API directly...")
+      
+      // Use the same fetchOrdersFromApi function to get data from external API
+      // This ensures consistency with other dashboard widgets
       const orders = await fetchOrdersFromApi()
+      
+      console.log("🔍 External API - Total orders for top products:", orders.length)
 
       if (!orders || orders.length === 0) {
+        console.log("⚠️ No orders found from external API")
         return []
       }
 
       // Aggregate products from order items
       const productMap = {}
+      let totalItemsProcessed = 0
+      let ordersWithItems = 0
       
-      orders.forEach((order) => {
+      orders.forEach((order, orderIndex) => {
         if (order.items && Array.isArray(order.items)) {
-          order.items.forEach((item) => {
+          ordersWithItems++
+          
+          if (orderIndex < 3) {
+            console.log(`🔍 Order ${orderIndex + 1} (${order.id}) has ${order.items.length} items`)
+          }
+          
+          order.items.forEach((item, itemIndex) => {
+            totalItemsProcessed++
             const productKey = item.product_sku || item.product_id
+            
+            if (orderIndex < 2 && itemIndex < 2) { // Log first few items for debugging
+              console.log(`🔍 External API Item ${itemIndex + 1} in Order ${orderIndex + 1}:`, {
+                product_id: item.product_id,
+                product_name: item.product_name,
+                product_sku: item.product_sku,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                total_price: item.total_price,
+                productKey,
+                calculated_total: (item.unit_price || 0) * (item.quantity || 0)
+              })
+            }
+            
             if (productKey) {
               if (!productMap[productKey]) {
                 productMap[productKey] = {
@@ -882,19 +1054,52 @@ export function ExecutiveDashboard() {
                 }
               }
               
-              productMap[productKey].units += item.quantity || 1
-              productMap[productKey].revenue += item.total_price || (item.unit_price * item.quantity) || 0
+              const quantity = item.quantity || 1
+              const unitPrice = item.unit_price || 0
+              const revenue = item.total_price || (unitPrice * quantity) || 0
+              
+              productMap[productKey].units += quantity
+              productMap[productKey].revenue += revenue
+              
+              if (orderIndex < 2 && itemIndex < 2) {
+                console.log(`✅ Added to product ${productKey}: +${quantity} units, +฿${revenue} revenue`)
+              }
+            } else {
+              if (orderIndex < 3) {
+                console.log(`⚠️ Item missing product key:`, {
+                  product_id: item.product_id,
+                  product_sku: item.product_sku,
+                  product_name: item.product_name
+                })
+              }
             }
           })
+        } else {
+          if (orderIndex < 3) {
+            console.log(`❌ Order ${orderIndex + 1} (${order.id}) has no items or items is not array:`, {
+              items: order.items,
+              itemsType: typeof order.items,
+              isArray: Array.isArray(order.items)
+            })
+          }
         }
+      })
+
+      console.log("🔍 External API Top Products Summary:", {
+        ordersWithItems,
+        totalItemsProcessed,
+        uniqueProducts: Object.keys(productMap).length
       })
 
       // Convert to array and sort by revenue
       const result = Object.values(productMap)
       result.sort((a: any, b: any) => b.revenue - a.revenue)
 
+      console.log("🔍 External API Top 5 products by revenue:", result.slice(0, 5))
+
       // If no real data, return empty array
       if (result.length === 0) {
+        console.log("⚠️ No products found after processing external API")
         return []
       }
 
@@ -1065,7 +1270,7 @@ export function ExecutiveDashboard() {
   }
 
   const calculateRevenue = (orders: any[]) => {
-    if (!orders || orders.length === 0) return 2.8
+    if (!orders || orders.length === 0) return 0
 
     const total = orders.reduce((sum, order) => {
       return sum + (order.total_amount || 0)
@@ -1082,7 +1287,13 @@ export function ExecutiveDashboard() {
     if (processingOrders.length === 0) return 0
 
     const totalMinutes = processingOrders.reduce((sum, order) => {
-      return sum + (order.sla_info?.elapsed_minutes || 0)
+      if (order.sla_info?.elapsed_minutes) {
+        // Handle potential seconds-to-minutes conversion
+        const elapsedValue = order.sla_info.elapsed_minutes
+        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        return sum + elapsedMinutes
+      }
+      return sum
     }, 0)
 
     return Math.round((totalMinutes / processingOrders.length) * 10) / 10
@@ -1142,7 +1353,7 @@ export function ExecutiveDashboard() {
 
   const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
 
-  if (isLoading) {
+  if (isLoading || !isMounted) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
