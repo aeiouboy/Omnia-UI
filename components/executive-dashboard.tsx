@@ -399,10 +399,10 @@ export function ExecutiveDashboard() {
       
       if (!orders || orders.length === 0) {
         return [
-          { channel: "GRAB", orders: 1247 },
-          { channel: "LAZADA", orders: 892 },
-          { channel: "SHOPEE", orders: 756 },
-          { channel: "TIKTOK", orders: 456 },
+          { channel: "GRAB", orders: 0 },
+          { channel: "LAZADA", orders: 0 },
+          { channel: "SHOPEE", orders: 0 },
+          { channel: "TIKTOK", orders: 0 },
         ]
       }
 
@@ -430,10 +430,10 @@ export function ExecutiveDashboard() {
     } catch (err) {
       console.warn("Error in fetchChannelVolume:", err)
       return [
-        { channel: "GRAB", orders: 1247 },
-        { channel: "LAZADA", orders: 892 },
-        { channel: "SHOPEE", orders: 756 },
-        { channel: "TIKTOK", orders: 456 },
+        { channel: "GRAB", orders: 0 },
+        { channel: "LAZADA", orders: 0 },
+        { channel: "SHOPEE", orders: 0 },
+        { channel: "TIKTOK", orders: 0 },
       ]
     }
   }
@@ -503,10 +503,10 @@ export function ExecutiveDashboard() {
 
       if (!activeOrders || activeOrders.length === 0) {
         return [
-          { channel: "GRAB", minutes: 4.2 },
-          { channel: "LAZADA", minutes: 12.3 },
-          { channel: "SHOPEE", minutes: 14.1 },
-          { channel: "TIKTOK", minutes: 18.2 },
+          { channel: "GRAB", minutes: 0 },
+          { channel: "LAZADA", minutes: 0 },
+          { channel: "SHOPEE", minutes: 0 },
+          { channel: "TIKTOK", minutes: 0 },
         ]
       }
 
@@ -529,28 +529,28 @@ export function ExecutiveDashboard() {
       return [
         {
           channel: "GRAB",
-          minutes: channelTimes.GRAB.count > 0 ? channelTimes.GRAB.total / channelTimes.GRAB.count : 4.2,
+          minutes: channelTimes.GRAB.count > 0 ? channelTimes.GRAB.total / channelTimes.GRAB.count : 0,
         },
         {
           channel: "LAZADA",
-          minutes: channelTimes.LAZADA.count > 0 ? channelTimes.LAZADA.total / channelTimes.LAZADA.count : 12.3,
+          minutes: channelTimes.LAZADA.count > 0 ? channelTimes.LAZADA.total / channelTimes.LAZADA.count : 0,
         },
         {
           channel: "SHOPEE",
-          minutes: channelTimes.SHOPEE.count > 0 ? channelTimes.SHOPEE.total / channelTimes.SHOPEE.count : 14.1,
+          minutes: channelTimes.SHOPEE.count > 0 ? channelTimes.SHOPEE.total / channelTimes.SHOPEE.count : 0,
         },
         {
           channel: "TIKTOK",
-          minutes: channelTimes.TIKTOK.count > 0 ? channelTimes.TIKTOK.total / channelTimes.TIKTOK.count : 18.2,
+          minutes: channelTimes.TIKTOK.count > 0 ? channelTimes.TIKTOK.total / channelTimes.TIKTOK.count : 0,
         },
       ]
     } catch (err) {
       console.warn("Error in fetchProcessingTimes:", err)
       return [
-        { channel: "GRAB", minutes: 4.2 },
-        { channel: "LAZADA", minutes: 12.3 },
-        { channel: "SHOPEE", minutes: 14.1 },
-        { channel: "TIKTOK", minutes: 18.2 },
+        { channel: "GRAB", minutes: 0 },
+        { channel: "LAZADA", minutes: 0 },
+        { channel: "SHOPEE", minutes: 0 },
+        { channel: "TIKTOK", minutes: 0 },
       ]
     }
   }
@@ -643,48 +643,7 @@ export function ExecutiveDashboard() {
       const recentOrders = sortedOrders.slice(0, 50)
 
       if (!recentOrders || recentOrders.length === 0) {
-        return [
-          {
-            order_number: "CG-TOPS-2023052601-A1234",
-            customer: "Alice Johnson",
-            channel: "GRAB",
-            status: "DELIVERED",
-            total: "฿350",
-            date: "2023-05-26",
-          },
-          {
-            order_number: "CG-TOPS-2023052602-B5678",
-            customer: "Bob Williams",
-            channel: "LAZADA",
-            status: "SHIPPED",
-            total: "฿500",
-            date: "2023-05-26",
-          },
-          {
-            order_number: "CG-TOPS-2023052603-C9012",
-            customer: "Charlie Brown",
-            channel: "SHOPEE",
-            status: "PROCESSING",
-            total: "฿200",
-            date: "2023-05-26",
-          },
-          {
-            order_number: "CG-TOPS-2023052604-D3456",
-            customer: "Diana Miller",
-            channel: "TIKTOK",
-            status: "CREATED",
-            total: "฿400",
-            date: "2023-05-26",
-          },
-          {
-            order_number: "CG-TOPS-2023052605-E7890",
-            customer: "Eve Davis",
-            channel: "GRAB",
-            status: "FULFILLED",
-            total: "฿600",
-            date: "2023-05-26",
-          },
-        ]
+        return []
       }
 
       return recentOrders.map((order) => ({
@@ -698,48 +657,7 @@ export function ExecutiveDashboard() {
       }))
     } catch (err) {
       console.warn("Error fetching recent orders:", err)
-      return [
-        {
-          order_number: "CG-TOPS-2023052601-A1234",
-          customer: "Alice Johnson",
-          channel: "GRAB",
-          status: "DELIVERED",
-          total: "฿350",
-          date: "2023-05-26",
-        },
-        {
-          order_number: "CG-TOPS-2023052602-B5678",
-          customer: "Bob Williams",
-          channel: "LAZADA",
-          status: "SHIPPED",
-          total: "฿500",
-          date: "2023-05-26",
-        },
-        {
-          order_number: "CG-TOPS-2023052603-C9012",
-          customer: "Charlie Brown",
-          channel: "SHOPEE",
-          status: "PROCESSING",
-          total: "฿200",
-          date: "2023-05-26",
-        },
-        {
-          order_number: "CG-TOPS-2023052604-D3456",
-          customer: "Diana Miller",
-          channel: "TIKTOK",
-          status: "CREATED",
-          total: "฿400",
-          date: "2023-05-26",
-        },
-        {
-          order_number: "CG-TOPS-2023052605-E7890",
-          customer: "Eve Davis",
-          channel: "GRAB",
-          status: "FULFILLED",
-          total: "฿600",
-          date: "2023-05-26",
-        },
-      ]
+      return []
     }
   }
 
@@ -748,11 +666,7 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
       
       if (!orders || orders.length === 0) {
-        return [
-          { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
-          { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
-          { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
-        ]
+        return []
       }
 
       // Group by store/branch
@@ -780,23 +694,15 @@ export function ExecutiveDashboard() {
         rate: data.total > 0 ? (data.fulfilled / data.total) * 100 : 0,
       })).sort((a, b) => b.rate - a.rate).slice(0, 3)
 
-      // If no real data, return mock data
+      // If no real data, return empty array
       if (result.length === 0) {
-        return [
-          { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
-          { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
-          { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
-        ]
+        return []
       }
 
       return result
     } catch (err) {
       console.warn("Error fetching fulfillment by branch:", err)
-      return [
-        { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
-        { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
-        { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
-      ]
+      return []
     }
   }
 
@@ -805,15 +711,29 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
 
       if (!orders || orders.length === 0) {
-        return [
-          { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
-          { date: "05/20", GRAB: 132, LAZADA: 89, SHOPEE: 70, TIKTOK: 45, total: 1350000 },
-          { date: "05/21", GRAB: 145, LAZADA: 95, SHOPEE: 80, TIKTOK: 50, total: 1500000 },
-          { date: "05/22", GRAB: 160, LAZADA: 105, SHOPEE: 90, TIKTOK: 55, total: 1650000 },
-          { date: "05/23", GRAB: 178, LAZADA: 115, SHOPEE: 100, TIKTOK: 60, total: 1800000 },
-          { date: "05/24", GRAB: 195, LAZADA: 125, SHOPEE: 110, TIKTOK: 65, total: 1950000 },
-          { date: "05/25", GRAB: 210, LAZADA: 135, SHOPEE: 120, TIKTOK: 70, total: 2100000 },
-        ]
+        // Still return 7-day structure but with zeros
+        const dailyData = {}
+        const today = new Date()
+
+        // Create last 7 days structure with zeros
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(today)
+          date.setDate(date.getDate() - i)
+          const dateKey = date.toISOString().split("T")[0]
+          dailyData[dateKey] = { 
+            date: dateKey, 
+            GRAB: 0, 
+            LAZADA: 0, 
+            SHOPEE: 0, 
+            TIKTOK: 0, 
+            total: 0 
+          }
+        }
+
+        return Object.values(dailyData).map((day: any) => ({
+          ...day,
+          date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
+        }))
       }
 
       // Group by day - last 7 days
@@ -856,15 +776,28 @@ export function ExecutiveDashboard() {
       }))
     } catch (err) {
       console.warn("Error in fetchDailyOrders:", err)
-      return [
-        { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
-        { date: "05/20", GRAB: 132, LAZADA: 89, SHOPEE: 70, TIKTOK: 45, total: 1350000 },
-        { date: "05/21", GRAB: 145, LAZADA: 95, SHOPEE: 80, TIKTOK: 50, total: 1500000 },
-        { date: "05/22", GRAB: 160, LAZADA: 105, SHOPEE: 90, TIKTOK: 55, total: 1650000 },
-        { date: "05/23", GRAB: 178, LAZADA: 115, SHOPEE: 100, TIKTOK: 60, total: 1800000 },
-        { date: "05/24", GRAB: 195, LAZADA: 125, SHOPEE: 110, TIKTOK: 65, total: 1950000 },
-        { date: "05/25", GRAB: 210, LAZADA: 135, SHOPEE: 120, TIKTOK: 70, total: 2100000 },
-      ]
+      // Return 7-day structure with zeros on error
+      const dailyData = {}
+      const today = new Date()
+
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
+        const dateKey = date.toISOString().split("T")[0]
+        dailyData[dateKey] = { 
+          date: dateKey, 
+          GRAB: 0, 
+          LAZADA: 0, 
+          SHOPEE: 0, 
+          TIKTOK: 0, 
+          total: 0 
+        }
+      }
+
+      return Object.values(dailyData).map((day: any) => ({
+        ...day,
+        date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
+      }))
     }
   }
 
@@ -874,10 +807,10 @@ export function ExecutiveDashboard() {
 
       if (!orders || orders.length === 0) {
         return [
-          { channel: "GRAB", orders: 1247, revenue: 1250000, sla_rate: 94.2 },
-          { channel: "LAZADA", orders: 892, revenue: 980000, sla_rate: 87.6 },
-          { channel: "SHOPEE", orders: 756, revenue: 820000, sla_rate: 96.1 },
-          { channel: "TIKTOK", orders: 456, revenue: 520000, sla_rate: 92.3 },
+          { channel: "GRAB", orders: 0, revenue: 0, sla_rate: 0 },
+          { channel: "LAZADA", orders: 0, revenue: 0, sla_rate: 0 },
+          { channel: "SHOPEE", orders: 0, revenue: 0, sla_rate: 0 },
+          { channel: "TIKTOK", orders: 0, revenue: 0, sla_rate: 0 },
         ]
       }
 
@@ -916,10 +849,10 @@ export function ExecutiveDashboard() {
     } catch (err) {
       console.warn("Error fetching channel performance:", err)
       return [
-        { channel: "GRAB", orders: 1247, revenue: 1250000, sla_rate: 94.2 },
-        { channel: "LAZADA", orders: 892, revenue: 980000, sla_rate: 87.6 },
-        { channel: "SHOPEE", orders: 756, revenue: 820000, sla_rate: 96.1 },
-        { channel: "TIKTOK", orders: 456, revenue: 520000, sla_rate: 92.3 },
+        { channel: "GRAB", orders: 0, revenue: 0, sla_rate: 0 },
+        { channel: "LAZADA", orders: 0, revenue: 0, sla_rate: 0 },
+        { channel: "SHOPEE", orders: 0, revenue: 0, sla_rate: 0 },
+        { channel: "TIKTOK", orders: 0, revenue: 0, sla_rate: 0 },
       ]
     }
   }
@@ -929,13 +862,7 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
 
       if (!orders || orders.length === 0) {
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
+        return []
       }
 
       // Aggregate products from order items
@@ -966,27 +893,15 @@ export function ExecutiveDashboard() {
       const result = Object.values(productMap)
       result.sort((a: any, b: any) => b.revenue - a.revenue)
 
-      // If no real data, return mock data
+      // If no real data, return empty array
       if (result.length === 0) {
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
+        return []
       }
 
       return result.slice(0, 5)
     } catch (err) {
       console.warn("Error in fetchTopProducts:", err)
-      return [
-        { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-        { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-        { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-        { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-        { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-      ]
+      return []
     }
   }
 
@@ -995,13 +910,7 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
 
       if (!orders || orders.length === 0) {
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
+        return []
       }
 
       // Aggregate revenue by category from order items
@@ -1029,27 +938,15 @@ export function ExecutiveDashboard() {
       const result = Object.values(categoryMap)
       result.sort((a: any, b: any) => b.value - a.value)
 
-      // If no real data, return mock data
+      // If no real data, return empty array
       if (result.length === 0) {
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
+        return []
       }
 
       return result.slice(0, 5)
     } catch (err) {
       console.warn("Error in fetchRevenueByCategory:", err)
-      return [
-        { name: "Electronics", value: 3500000 },
-        { name: "Groceries", value: 2800000 },
-        { name: "Fashion", value: 1950000 },
-        { name: "Home & Living", value: 1200000 },
-        { name: "Beauty", value: 950000 },
-      ]
+      return []
     }
   }
 
@@ -1076,19 +973,19 @@ export function ExecutiveDashboard() {
       ] = await Promise.all([
         fetchOrdersProcessing().catch((err) => {
           console.error("Error fetching orders processing:", err)
-          return { count: 1247, change: 12.5, orders: [] }
+          return { count: 0, change: 0, orders: [] }
         }),
         fetchSlaBreaches().catch((err) => {
           console.error("Error fetching SLA breaches:", err)
-          return { count: 1, change: 5, breaches: [] }
+          return { count: 0, change: 0, breaches: [] }
         }),
         fetchChannelVolume().catch((err) => {
           console.error("Error fetching channel volume:", err)
           return [
-            { channel: "GRAB", orders: 1247 },
-            { channel: "LAZADA", orders: 892 },
-            { channel: "SHOPEE", orders: 756 },
-            { channel: "TIKTOK", orders: 456 },
+            { channel: "GRAB", orders: 0 },
+            { channel: "LAZADA", orders: 0 },
+            { channel: "SHOPEE", orders: 0 },
+            { channel: "TIKTOK", orders: 0 },
           ]
         }),
         fetchOrderAlerts().catch((err) => {
@@ -1795,7 +1692,7 @@ export function ExecutiveDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {fulfillmentByBranch.map((branch, index) => (
+                  {fulfillmentByBranch.length > 0 ? fulfillmentByBranch.map((branch, index) => (
                     <div key={index}>
                       <div className="flex justify-between mb-1">
                         <span>{branch.branch}</span>
@@ -1812,7 +1709,12 @@ export function ExecutiveDashboard() {
                         <span>{branch.total} total</span>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No fulfillment data available</p>
+                      <p className="text-xs mt-1">Data will appear when orders are processed</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1902,14 +1804,25 @@ export function ExecutiveDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {topProducts.map((product, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.sku}</TableCell>
-                        <TableCell className="text-right">{product.units.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">฿{product.revenue.toLocaleString()}</TableCell>
+                    {topProducts.length > 0 ? (
+                      topProducts.map((product, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{product.sku}</TableCell>
+                          <TableCell className="text-right">{product.units.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">฿{product.revenue.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <div>
+                            <p>No product data available</p>
+                            <p className="text-xs mt-1">Data will appear when orders contain product information</p>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -1920,28 +1833,37 @@ export function ExecutiveDashboard() {
                 <CardTitle>Revenue by Category</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={revenueByCategory}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {revenueByCategory.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                {revenueByCategory.length > 0 ? (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={revenueByCategory}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {revenueByCategory.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <p>No category data available</p>
+                      <p className="text-xs mt-1">Data will appear when orders contain product categories</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
