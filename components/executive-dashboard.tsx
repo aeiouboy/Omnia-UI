@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { TeamsWebhookService } from "@/lib/teams-webhook"
+import { useToast } from "@/components/ui/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
+import { ChannelBadge, OrderStatusBadge } from "./order-badges"
 import {
   AlertTriangle,
   BarChart2,
@@ -21,7 +24,6 @@ import {
   Filter,
   Download,
 } from "lucide-react"
-import { supabase } from "@/lib/supabase"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   LineChart,
@@ -39,10 +41,166 @@ import {
   Cell,
 } from "recharts"
 
+// API response types matching OrderManagementHub
+interface ApiCustomer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  T1Number: string
+}
+
+interface ApiShippingAddress {
+  street: string
+  city: string
+  state: string
+  postal_code: string
+  country: string
+}
+
+interface ApiPaymentInfo {
+  method: string
+  status: string
+  transaction_id: string
+}
+
+interface ApiSLAInfo {
+  target_minutes: number
+  elapsed_minutes: number
+  status: string
+}
+
+interface ApiMetadata {
+  created_at: string
+  updated_at: string
+  priority: string
+  store_name: string
+}
+
+interface ApiProductDetails {
+  description: string
+  category: string
+  brand: string
+}
+
+interface ApiOrderItem {
+  id: string
+  product_id: string
+  product_name: string
+  product_sku: string
+  quantity: number
+  unit_price: number
+  total_price: number
+  product_details: ApiProductDetails
+}
+
+interface ApiOrder {
+  id: string
+  order_no: string
+  customer: ApiCustomer
+  order_date: string
+  channel: string
+  business_unit: string
+  order_type: string
+  total_amount: number
+  shipping_address: ApiShippingAddress
+  payment_info: ApiPaymentInfo
+  sla_info: ApiSLAInfo
+  metadata: ApiMetadata
+  items: ApiOrderItem[]
+  status: string
+}
+
+interface ApiPagination {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+interface ApiResponse {
+  data: ApiOrder[]
+  pagination: ApiPagination
+}
+
+// Cache for API data
+let ordersCache: { data: ApiOrder[], timestamp: number } | null = null
+const CACHE_DURATION = 30000 // 30 seconds
+
+// Optimized API client function with caching - Last 7 days only
+const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
+  try {
+    // Check cache first
+    const now = Date.now()
+    if (ordersCache && (now - ordersCache.timestamp) < CACHE_DURATION) {
+      console.log("📦 Using cached orders data (last 7 days)")
+      return ordersCache.data
+    }
+
+    console.log("🔄 Fetching last 7 days orders from API for dashboard...")
+    
+    // Calculate date range for last 7 days
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(endDate.getDate() - 7)
+    
+    const dateFrom = startDate.toISOString().split('T')[0]
+    const dateTo = endDate.toISOString().split('T')[0]
+    
+    // Try server-side API route with date filtering
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // Further reduced timeout
+
+    const queryParams = new URLSearchParams({
+      pageSize: "200", // Smaller page size for last 7 days
+      dateFrom,
+      dateTo
+    })
+
+    const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (proxyResponse.ok) {
+      const proxyData = await proxyResponse.json()
+      if (proxyData.success && proxyData.data) {
+        console.log("✅ Successfully fetched last 7 days data via server proxy")
+        const orders = proxyData.data.data || []
+        
+        // Additional client-side filtering to ensure we only get last 7 days
+        const filteredOrders = orders.filter((order: ApiOrder) => {
+          const orderDate = new Date(order.order_date || order.metadata?.created_at)
+          return orderDate >= startDate && orderDate <= endDate
+        })
+        
+        // Cache the result
+        ordersCache = { data: filteredOrders, timestamp: now }
+        return filteredOrders
+      }
+    }
+
+    throw new Error("Proxy fetch failed")
+  } catch (error) {
+    console.error("❌ Dashboard API fetch failed:", error)
+    // Return empty array to trigger fallback to mock data
+    return []
+  }
+}
+
 export function ExecutiveDashboard() {
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("overview")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEscalating, setIsEscalating] = useState(false)
   const [kpiData, setKpiData] = useState({
     ordersProcessing: { value: 0, change: 0 },
     slaBreaches: { value: 0, change: 0 },
@@ -67,38 +225,144 @@ export function ExecutiveDashboard() {
     loadData()
   }, [])
 
-  const fetchOrdersProcessing = async () => {
+  const handleEscalation = async () => {
+    if (isEscalating) return
+    
+    setIsEscalating(true)
+    
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      // Get the first SLA breach order, or approaching SLA order if no breaches
+      const alertOrder = orderAlerts[0] || approachingSla[0]
+      
+      if (!alertOrder) {
+        toast({
+          title: "No alerts to escalate",
+          description: "There are no SLA alerts to escalate at this time.",
+          variant: "default",
+        })
+        return
+      }
 
-      if (sampleError) {
-        console.warn("Could not fetch sample order:", sampleError)
-        return {
-          count: 1247, // Fallback to mock data
-          change: 12.5,
-          orders: [],
+      // Determine if it's a breach or approaching breach
+      const isBreach = orderAlerts.length > 0
+      const alertType = isBreach ? "SLA_BREACH" : "SLA_WARNING"
+      const severity = isBreach ? "HIGH" : "MEDIUM"
+      
+      // Handle different data structures for breach vs approaching
+      const orderNumber = alertOrder.order_number || alertOrder.id
+      const location = alertOrder.location || "Unknown Location"
+      const channel = alertOrder.channel || "UNKNOWN"
+      const customerName = alertOrder.customer_name || "Customer"
+      
+      let description = ""
+      let additionalInfo: any = {
+        customerName,
+        channel,
+        status: "PROCESSING",
+        location,
+      }
+
+      if (isBreach) {
+        description = `SLA breach detected for order ${orderNumber}. Target: ${alertOrder.target_minutes}min, Elapsed: ${alertOrder.elapsed_minutes}min`
+        additionalInfo = {
+          ...additionalInfo,
+          targetMinutes: `${alertOrder.target_minutes} minutes`,
+          elapsedMinutes: `${alertOrder.elapsed_minutes} minutes`,
+          currentDelay: `${alertOrder.elapsed_minutes - alertOrder.target_minutes} minutes over target`,
+          processingTime: `${alertOrder.elapsed_minutes} minutes`,
+        }
+      } else {
+        description = `SLA warning for order ${orderNumber}. Only ${alertOrder.remaining} minutes remaining.`
+        additionalInfo = {
+          ...additionalInfo,
+          remainingMinutes: `${alertOrder.remaining} minutes`,
+          alertLevel: "Approaching SLA deadline",
         }
       }
 
-      // Determine which status column to use
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
+      await TeamsWebhookService.sendEscalation({
+        orderNumber,
+        alertType,
+        branch: location,
+        severity,
+        description,
+        additionalInfo
+      })
 
-      // Use the correct column name in the query
-      const { data: orders, error } = await supabase.from("orders").select("*").eq(statusColumn, "PROCESSING")
+      toast({
+        title: "Escalation sent successfully",
+        description: `${isBreach ? 'SLA breach' : 'SLA warning'} alert for order ${orderNumber} has been escalated to MS Teams.`,
+        variant: "default",
+      })
+    } catch (error) {
+      console.error("Escalation failed:", error)
+      toast({
+        title: "Escalation failed",
+        description: error instanceof Error ? error.message : "Failed to send escalation to MS Teams.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsEscalating(false)
+    }
+  }
 
-      if (error) throw error
+  const handleTestEscalation = async () => {
+    if (isEscalating) return
+    
+    setIsEscalating(true)
+    
+    try {
+      await TeamsWebhookService.sendEscalation({
+        orderNumber: "TEST-ORDER-001",
+        alertType: "SLA_BREACH",
+        branch: "Test Branch",
+        severity: "HIGH",
+        description: "This is a test escalation from the Executive Dashboard to verify webhook functionality.",
+        additionalInfo: {
+          customerName: "Test Customer",
+          channel: "GRAB",
+          targetMinutes: "5 minutes",
+          elapsedMinutes: "8 minutes",
+          currentDelay: "3 minutes over target",
+          status: "PROCESSING",
+          processingTime: "8 minutes",
+          location: "Test Location",
+          testMode: "true"
+        }
+      })
 
+      toast({
+        title: "Test escalation sent successfully",
+        description: "Test webhook message has been sent to MS Teams.",
+        variant: "default",
+      })
+    } catch (error) {
+      console.error("Test escalation failed:", error)
+      toast({
+        title: "Test escalation failed",
+        description: error instanceof Error ? error.message : "Failed to send test escalation to MS Teams.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsEscalating(false)
+    }
+  }
+
+  const fetchOrdersProcessing = async () => {
+    try {
+      const orders = await fetchOrdersFromApi()
+      const processingOrders = orders.filter(order => order.status === "PROCESSING")
+      
       return {
-        count: orders?.length || 1247,
-        change: 12.5,
-        orders: orders || [],
+        count: processingOrders.length,
+        change: 0,
+        orders: processingOrders,
       }
     } catch (err) {
       console.warn("Error fetching processing orders:", err)
       return {
-        count: 1247, // Fallback to mock data
-        change: 12.5,
+        count: 0,
+        change: 0,
         orders: [],
       }
     }
@@ -106,35 +370,18 @@ export function ExecutiveDashboard() {
 
   const fetchSlaBreaches = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
-
-      if (sampleError) {
-        console.warn("Could not fetch sample order:", sampleError)
-        return {
-          count: 1,
-          change: 5,
-          breaches: [],
-        }
-      }
-
-      // Determine which status column to use
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const slaStatusColumn = sampleOrder.hasOwnProperty("sla_status") ? "sla_status" : "sla_breach_status"
-
-      // Use the correct column names in the query
-      const { data: breaches, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq(slaStatusColumn, "BREACH")
-        .not(statusColumn, "in", '("DELIVERED","FULFILLED")')
-
-      if (error) throw error
-
+      const orders = await fetchOrdersFromApi()
+      const breachedOrders = orders.filter(order => {
+        if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
+        if (!order.sla_info) return false
+        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+        return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+      })
+      
       return {
-        count: breaches?.length || 1,
+        count: breachedOrders.length || 1,
         change: 5,
-        breaches: breaches || [],
+        breaches: breachedOrders,
       }
     } catch (err) {
       console.warn("Error fetching SLA breaches:", err)
@@ -148,23 +395,9 @@ export function ExecutiveDashboard() {
 
   const fetchChannelVolume = async () => {
     try {
-      // First check if channel column exists
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
-
-      if (sampleError || !sampleOrder || !sampleOrder.hasOwnProperty("channel")) {
-        console.warn("Channel column not found, using mock data")
-        return [
-          { channel: "GRAB", orders: 1247 },
-          { channel: "LAZADA", orders: 892 },
-          { channel: "SHOPEE", orders: 756 },
-          { channel: "TIKTOK", orders: 456 },
-        ]
-      }
-
-      const { data: orders, error } = await supabase.from("orders").select("channel")
-
-      if (error) {
-        console.warn("Error fetching channel volume:", error)
+      const orders = await fetchOrdersFromApi()
+      
+      if (!orders || orders.length === 0) {
         return [
           { channel: "GRAB", orders: 1247 },
           { channel: "LAZADA", orders: 892 },
@@ -181,28 +414,18 @@ export function ExecutiveDashboard() {
         TIKTOK: 0,
       }
 
-      orders?.forEach((order) => {
-        const channel = order.channel
+      orders.forEach((order) => {
+        const channel = order.channel?.toUpperCase() // Normalize to uppercase
         if (channelCounts[channel] !== undefined) {
           channelCounts[channel]++
         }
       })
 
-      // If no real data, use mock data
-      if (!orders || orders.length === 0) {
-        return [
-          { channel: "GRAB", orders: 1247 },
-          { channel: "LAZADA", orders: 892 },
-          { channel: "SHOPEE", orders: 756 },
-          { channel: "TIKTOK", orders: 456 },
-        ]
-      }
-
       return [
-        { channel: "GRAB", orders: channelCounts.GRAB || 1247 },
-        { channel: "LAZADA", orders: channelCounts.LAZADA || 892 },
-        { channel: "SHOPEE", orders: channelCounts.SHOPEE || 756 },
-        { channel: "TIKTOK", orders: channelCounts.TIKTOK || 456 },
+        { channel: "GRAB", orders: channelCounts.GRAB },
+        { channel: "LAZADA", orders: channelCounts.LAZADA },
+        { channel: "SHOPEE", orders: channelCounts.SHOPEE },
+        { channel: "TIKTOK", orders: channelCounts.TIKTOK },
       ]
     } catch (err) {
       console.warn("Error in fetchChannelVolume:", err)
@@ -217,212 +440,68 @@ export function ExecutiveDashboard() {
 
   const fetchOrderAlerts = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      const orders = await fetchOrdersFromApi()
+      const breachedOrders = orders.filter(order => {
+        if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
+        if (!order.sla_info) return false
+        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+        return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+      })
 
-      if (sampleError || !sampleOrder) {
-        console.warn("Could not fetch sample order for alerts:", sampleError)
-        return [
-          {
-            id: "H01213",
-            order_number: "CG-TOPS-2025052203-H01213",
-            customer_name: "David Miller",
-            channel: "GRAB",
-            location: "Tops Pattaya",
-            target_minutes: 5,
-            elapsed_minutes: 6,
-          },
-        ]
+      if (!breachedOrders || breachedOrders.length === 0) {
+        return [] // Return empty array instead of mock data
       }
 
-      // Determine which columns are available
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const slaStatusColumn = sampleOrder.hasOwnProperty("sla_status") ? "sla_status" : "sla_breach_status"
-
-      // Check if required columns exist
-      if (!sampleOrder.hasOwnProperty(slaStatusColumn) || !sampleOrder.hasOwnProperty(statusColumn)) {
-        console.warn("Required columns missing for order alerts, using mock data")
-        return [
-          {
-            id: "H01213",
-            order_number: "CG-TOPS-2025052203-H01213",
-            customer_name: "David Miller",
-            channel: "GRAB",
-            location: "Tops Pattaya",
-            target_minutes: 5,
-            elapsed_minutes: 6,
-          },
-        ]
-      }
-
-      const { data: breaches, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq(slaStatusColumn, "BREACH")
-        .not(statusColumn, "in", '("DELIVERED","FULFILLED")')
-        .limit(1)
-
-      if (error) {
-        console.warn("Error querying order alerts:", error)
-        return [
-          {
-            id: "H01213",
-            order_number: "CG-TOPS-2025052203-H01213",
-            customer_name: "David Miller",
-            channel: "GRAB",
-            location: "Tops Pattaya",
-            target_minutes: 5,
-            elapsed_minutes: 6,
-          },
-        ]
-      }
-
-      // If no real data, use mock data
-      if (!breaches || breaches.length === 0) {
-        return [
-          {
-            id: "H01213",
-            order_number: "CG-TOPS-2025052203-H01213",
-            customer_name: "David Miller",
-            channel: "GRAB",
-            location: "Tops Pattaya",
-            target_minutes: 5,
-            elapsed_minutes: 6,
-          },
-        ]
-      }
-
-      return breaches.map((breach) => ({
-        id: breach.id,
-        order_number:
-          breach.order_number ||
-          breach.order_no ||
-          `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${breach.id}`,
-        customer_name: breach.customer || breach.customer_name || "Customer",
-        channel: breach.channel || "UNKNOWN",
-        location: breach.store_name || "Unknown Location",
-        target_minutes: breach.sla_target_minutes || 5,
-        elapsed_minutes: breach.elapsed_minutes || 6,
+      return breachedOrders.slice(0, 1).map((order) => ({
+        id: order.id,
+        order_number: order.id,
+        customer_name: order.customer?.name || "Customer",
+        channel: order.channel || "UNKNOWN",
+        location: order.metadata?.store_name || "Unknown Location",
+        target_minutes: order.sla_info?.target_minutes || 5,
+        elapsed_minutes: order.sla_info?.elapsed_minutes || 6,
       }))
     } catch (err) {
       console.warn("Error in fetchOrderAlerts:", err)
-      return [
-        {
-          id: "H01213",
-          order_number: "CG-TOPS-2025052203-H01213",
-          customer_name: "David Miller",
-          channel: "GRAB",
-          location: "Tops Pattaya",
-          target_minutes: 5,
-          elapsed_minutes: 6,
-        },
-      ]
+      return [] // Return empty array instead of mock data
     }
   }
 
   const fetchApproachingSla = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
-
-      if (sampleError) {
-        console.warn("Could not fetch sample order:", sampleError)
-        return [
-          { id: "C45907", order_number: "CG-TOPS-2025052303-C45907", channel: "GRAB", remaining: 1 },
-          { id: "E78PF0", order_number: "CG-TOPS-2025052304-E78PF0", channel: "LAZADA", remaining: 10 },
-          { id: "G012H3", order_number: "CG-CENTRAL-2025052305-G012H3", channel: "SHOPEE", remaining: 20 },
-          { id: "H455JR", order_number: "CG-TOPS-2025052306-H455JR", channel: "TIKTOK", remaining: 1 },
-        ]
-      }
-
-      // Determine which status column to use
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const slaStatusColumn = sampleOrder.hasOwnProperty("sla_status") ? "sla_status" : "sla_breach_status"
-
-      // Use the correct column names in the query
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select("*")
-        .not(statusColumn, "in", '("DELIVERED","FULFILLED")')
-        .neq(slaStatusColumn, "BREACH")
-
-      if (error) throw error
-
-      // Filter for orders within 20% of SLA threshold
-      const approaching = (orders || []).filter((order) => {
-        const remainingMinutes = order.sla_target_minutes - order.elapsed_minutes
-        const criticalThreshold = order.sla_target_minutes * 0.2
+      const orders = await fetchOrdersFromApi()
+      const approaching = orders.filter((order) => {
+        if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
+        if (!order.sla_info) return false
+        if (order.sla_info.status === "BREACH") return false
+        
+        const remainingMinutes = order.sla_info.target_minutes - order.sla_info.elapsed_minutes
+        const criticalThreshold = order.sla_info.target_minutes * 0.2
         return remainingMinutes <= criticalThreshold && remainingMinutes > 0
       })
 
-      // If no real data, use mock data
       if (approaching.length === 0) {
-        return [
-          { id: "C45907", order_number: "CG-TOPS-2025052303-C45907", channel: "GRAB", remaining: 1 },
-          { id: "E78PF0", order_number: "CG-TOPS-2025052304-E78PF0", channel: "LAZADA", remaining: 10 },
-          { id: "G012H3", order_number: "CG-CENTRAL-2025052305-G012H3", channel: "SHOPEE", remaining: 20 },
-          { id: "H455JR", order_number: "CG-TOPS-2025052306-H455JR", channel: "TIKTOK", remaining: 1 },
-        ]
+        return [] // Return empty array instead of mock data
       }
 
       return approaching.slice(0, 4).map((order) => ({
         id: order.id,
-        order_number:
-          order.order_number ||
-          order.order_no ||
-          `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id}`,
+        order_number: order.order_no || `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id}`,
         channel: order.channel,
-        remaining: Math.max(1, Math.round(order.sla_target_minutes - order.elapsed_minutes)),
+        remaining: Math.max(1, Math.round(order.sla_info.target_minutes - order.sla_info.elapsed_minutes)),
       }))
     } catch (err) {
       console.warn("Error fetching approaching SLA orders:", err)
-      return [
-        { id: "C45907", order_number: "CG-TOPS-2025052303-C45907", channel: "GRAB", remaining: 1 },
-        { id: "E78PF0", order_number: "CG-TOPS-2025052304-E78PF0", channel: "LAZADA", remaining: 10 },
-        { id: "G012H3", order_number: "CG-CENTRAL-2025052305-G012H3", channel: "SHOPEE", remaining: 20 },
-        { id: "H455JR", order_number: "CG-TOPS-2025052306-H455JR", channel: "TIKTOK", remaining: 1 },
-      ]
+      return [] // Return empty array instead of mock data
     }
   }
 
   const fetchProcessingTimes = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      const orders = await fetchOrdersFromApi()
+      const activeOrders = orders.filter(order => order.status !== "DELIVERED" && order.status !== "FULFILLED")
 
-      if (sampleError || !sampleOrder) {
-        console.warn("Could not fetch sample order for processing times:", sampleError)
-        return [
-          { channel: "GRAB", minutes: 4.2 },
-          { channel: "LAZADA", minutes: 12.3 },
-          { channel: "SHOPEE", minutes: 14.1 },
-          { channel: "TIKTOK", minutes: 18.2 },
-        ]
-      }
-
-      // Determine which columns are available
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const hasChannel = sampleOrder.hasOwnProperty("channel")
-      const hasElapsedMinutes = sampleOrder.hasOwnProperty("elapsed_minutes")
-
-      if (!hasChannel || !hasElapsedMinutes) {
-        console.warn("Required columns missing for processing times, using mock data")
-        return [
-          { channel: "GRAB", minutes: 4.2 },
-          { channel: "LAZADA", minutes: 12.3 },
-          { channel: "SHOPEE", minutes: 14.1 },
-          { channel: "TIKTOK", minutes: 18.2 },
-        ]
-      }
-
-      // Use the correct column names in the query
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select("channel, elapsed_minutes")
-        .not(statusColumn, "in", '("DELIVERED","FULFILLED")')
-
-      if (error) {
-        console.warn("Error querying processing times:", error)
+      if (!activeOrders || activeOrders.length === 0) {
         return [
           { channel: "GRAB", minutes: 4.2 },
           { channel: "LAZADA", minutes: 12.3 },
@@ -439,23 +518,13 @@ export function ExecutiveDashboard() {
         TIKTOK: { total: 0, count: 0 },
       }
 
-      orders?.forEach((order) => {
-        const channel = order.channel
-        if (channelTimes[channel]) {
-          channelTimes[channel].total += order.elapsed_minutes || 0
+      activeOrders.forEach((order) => {
+        const channel = order.channel?.toUpperCase() // Normalize to uppercase
+        if (channelTimes[channel] && order.sla_info?.elapsed_minutes) {
+          channelTimes[channel].total += order.sla_info.elapsed_minutes
           channelTimes[channel].count++
         }
       })
-
-      // If no real data, use mock data
-      if (!orders || orders.length === 0) {
-        return [
-          { channel: "GRAB", minutes: 4.2 },
-          { channel: "LAZADA", minutes: 12.3 },
-          { channel: "SHOPEE", minutes: 14.1 },
-          { channel: "TIKTOK", minutes: 18.2 },
-        ]
-      }
 
       return [
         {
@@ -488,98 +557,92 @@ export function ExecutiveDashboard() {
 
   const fetchSlaCompliance = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      const orders = await fetchOrdersFromApi()
 
-      if (sampleError) {
-        console.warn("Could not fetch sample order:", sampleError)
-        return [
-          { channel: "GRAB", compliance: 94.2 },
-          { channel: "LAZADA", compliance: 87.6 },
-          { channel: "SHOPEE", compliance: 96.1 },
-        ]
-      }
-
-      // Determine which status column to use
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const slaStatusColumn = sampleOrder.hasOwnProperty("sla_status") ? "sla_status" : "sla_breach_status"
-
-      const { data: orders, error } = await supabase.from("orders").select("*")
-
-      if (error) throw error
-
-      // Group by channel and calculate compliance
+      // Always return all 4 channels - the widget should always show these channels
       const channelCompliance = {
         GRAB: { compliant: 0, total: 0 },
         LAZADA: { compliant: 0, total: 0 },
         SHOPEE: { compliant: 0, total: 0 },
+        TIKTOK: { compliant: 0, total: 0 },
       }
 
-      orders?.forEach((order) => {
-        const channel = order.channel
-        if (channelCompliance[channel]) {
-          channelCompliance[channel].total++
-          if (
-            order[slaStatusColumn] === "COMPLIANT" ||
-            order[statusColumn] === "DELIVERED" ||
-            order[statusColumn] === "FULFILLED" ||
-            order.elapsed_minutes <= order.sla_target_minutes
-          ) {
-            channelCompliance[channel].compliant++
+      // If we have orders, calculate real compliance
+      if (orders && orders.length > 0) {
+        orders.forEach((order) => {
+          const channel = order.channel?.toUpperCase() // Normalize to uppercase
+          if (channelCompliance[channel]) {
+            channelCompliance[channel].total++
+            if (
+              order.sla_info?.status === "COMPLIANT" ||
+              order.status === "DELIVERED" ||
+              order.status === "FULFILLED" ||
+              (order.sla_info && order.sla_info.elapsed_minutes <= order.sla_info.target_minutes)
+            ) {
+              channelCompliance[channel].compliant++
+            }
           }
-        }
-      })
-
-      // If no real data, use mock data
-      if (orders?.length === 0) {
-        return [
-          { channel: "GRAB", compliance: 94.2 },
-          { channel: "LAZADA", compliance: 87.6 },
-          { channel: "SHOPEE", compliance: 96.1 },
-        ]
+        })
       }
 
       return [
         {
           channel: "GRAB",
-          compliance:
-            channelCompliance.GRAB.total > 0
-              ? (channelCompliance.GRAB.compliant / channelCompliance.GRAB.total) * 100
-              : 94.2,
+          compliance: channelCompliance.GRAB.total > 0
+            ? (channelCompliance.GRAB.compliant / channelCompliance.GRAB.total) * 100
+            : null,
+          total: channelCompliance.GRAB.total,
+          compliant: channelCompliance.GRAB.compliant,
         },
         {
           channel: "LAZADA",
-          compliance:
-            channelCompliance.LAZADA.total > 0
-              ? (channelCompliance.LAZADA.compliant / channelCompliance.LAZADA.total) * 100
-              : 87.6,
+          compliance: channelCompliance.LAZADA.total > 0
+            ? (channelCompliance.LAZADA.compliant / channelCompliance.LAZADA.total) * 100
+            : null,
+          total: channelCompliance.LAZADA.total,
+          compliant: channelCompliance.LAZADA.compliant,
         },
         {
           channel: "SHOPEE",
-          compliance:
-            channelCompliance.SHOPEE.total > 0
-              ? (channelCompliance.SHOPEE.compliant / channelCompliance.SHOPEE.total) * 100
-              : 96.1,
+          compliance: channelCompliance.SHOPEE.total > 0
+            ? (channelCompliance.SHOPEE.compliant / channelCompliance.SHOPEE.total) * 100
+            : null,
+          total: channelCompliance.SHOPEE.total,
+          compliant: channelCompliance.SHOPEE.compliant,
+        },
+        {
+          channel: "TIKTOK",
+          compliance: channelCompliance.TIKTOK.total > 0
+            ? (channelCompliance.TIKTOK.compliant / channelCompliance.TIKTOK.total) * 100
+            : null,
+          total: channelCompliance.TIKTOK.total,
+          compliant: channelCompliance.TIKTOK.compliant,
         },
       ]
     } catch (err) {
       console.warn("Error fetching SLA compliance:", err)
+      // Return empty data structure - widget will show "No data" state
       return [
-        { channel: "GRAB", compliance: 94.2 },
-        { channel: "LAZADA", compliance: 87.6 },
-        { channel: "SHOPEE", compliance: 96.1 },
+        { channel: "GRAB", compliance: null, total: 0, compliant: 0 },
+        { channel: "LAZADA", compliance: null, total: 0, compliant: 0 },
+        { channel: "SHOPEE", compliance: null, total: 0, compliant: 0 },
+        { channel: "TIKTOK", compliance: null, total: 0, compliant: 0 },
       ]
     }
   }
 
   const fetchRecentOrders = async () => {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("*").limit(5)
+      const orders = await fetchOrdersFromApi()
+      // Sort by date descending and show up to 50 orders for better visibility
+      const sortedOrders = orders.sort((a, b) => {
+        const dateA = new Date(a.order_date || a.metadata?.created_at).getTime()
+        const dateB = new Date(b.order_date || b.metadata?.created_at).getTime()
+        return dateB - dateA // Most recent first
+      })
+      const recentOrders = sortedOrders.slice(0, 50)
 
-      if (error) throw error
-
-      // If no real data, use mock data
-      if (!orders || orders.length === 0) {
+      if (!recentOrders || recentOrders.length === 0) {
         return [
           {
             order_number: "CG-TOPS-2023052601-A1234",
@@ -624,14 +687,14 @@ export function ExecutiveDashboard() {
         ]
       }
 
-      return orders.map((order) => ({
-        order_number:
-          order.order_number || `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id}`,
-        customer: order.customer_name || "Customer",
+      return recentOrders.map((order) => ({
+        order_number: order.id, // Full Order ID
+        order_no: order.order_no || `CG-TOPS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${order.id.slice(-4)}`, // Short formatted order number
+        customer: order.customer?.name || "Customer",
         channel: order.channel,
         status: order.status || "CREATED",
-        total: order.total || "฿0",
-        date: new Date(order.created_at).toLocaleDateString("en-US"),
+        total: `฿${order.total_amount || 0}`,
+        date: new Date(order.order_date || order.metadata?.created_at).toLocaleDateString("en-US"),
       }))
     } catch (err) {
       console.warn("Error fetching recent orders:", err)
@@ -681,89 +744,66 @@ export function ExecutiveDashboard() {
   }
 
   const fetchFulfillmentByBranch = async () => {
-    return [
-      { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
-      { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
-      { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
-    ]
+    try {
+      const orders = await fetchOrdersFromApi()
+      
+      if (!orders || orders.length === 0) {
+        return [
+          { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
+          { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
+          { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
+        ]
+      }
+
+      // Group by store/branch
+      const branchData = {}
+      
+      orders.forEach((order) => {
+        const branchName = order.metadata?.store_name || "Unknown Store"
+        
+        if (!branchData[branchName]) {
+          branchData[branchName] = { total: 0, fulfilled: 0 }
+        }
+        
+        branchData[branchName].total++
+        
+        if (order.status === "DELIVERED" || order.status === "FULFILLED") {
+          branchData[branchName].fulfilled++
+        }
+      })
+
+      // Convert to array and calculate rates
+      const result = Object.entries(branchData).map(([branch, data]: [string, any]) => ({
+        branch,
+        total: data.total,
+        fulfilled: data.fulfilled,
+        rate: data.total > 0 ? (data.fulfilled / data.total) * 100 : 0,
+      })).sort((a, b) => b.rate - a.rate).slice(0, 3)
+
+      // If no real data, return mock data
+      if (result.length === 0) {
+        return [
+          { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
+          { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
+          { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
+        ]
+      }
+
+      return result
+    } catch (err) {
+      console.warn("Error fetching fulfillment by branch:", err)
+      return [
+        { branch: "Tops Pattaya", rate: 98.2, fulfilled: 491, total: 500 },
+        { branch: "Central Festival", rate: 96.5, fulfilled: 482, total: 500 },
+        { branch: "Terminal 21", rate: 94.8, fulfilled: 474, total: 500 },
+      ]
+    }
   }
 
   const fetchDailyOrders = async () => {
     try {
-      // First check what columns are available in the orders table
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      const orders = await fetchOrdersFromApi()
 
-      if (sampleError || !sampleOrder) {
-        console.warn("Could not fetch sample order for daily orders:", sampleError)
-        return [
-          { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
-          { date: "05/20", GRAB: 132, LAZADA: 89, SHOPEE: 70, TIKTOK: 45, total: 1350000 },
-          { date: "05/21", GRAB: 145, LAZADA: 95, SHOPEE: 80, TIKTOK: 50, total: 1500000 },
-          { date: "05/22", GRAB: 160, LAZADA: 105, SHOPEE: 90, TIKTOK: 55, total: 1650000 },
-          { date: "05/23", GRAB: 178, LAZADA: 115, SHOPEE: 100, TIKTOK: 60, total: 1800000 },
-          { date: "05/24", GRAB: 195, LAZADA: 125, SHOPEE: 110, TIKTOK: 65, total: 1950000 },
-          { date: "05/25", GRAB: 210, LAZADA: 135, SHOPEE: 120, TIKTOK: 70, total: 2100000 },
-        ]
-      }
-
-      // Determine which columns are available
-      const hasChannel = sampleOrder.hasOwnProperty("channel")
-      const hasTotal = sampleOrder.hasOwnProperty("total")
-      const hasCreatedAt = sampleOrder.hasOwnProperty("created_at")
-
-      if (!hasChannel || !hasTotal || !hasCreatedAt) {
-        console.warn("Required columns missing for daily orders, using mock data")
-        return [
-          { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
-          { date: "05/20", GRAB: 132, LAZADA: 89, SHOPEE: 70, TIKTOK: 45, total: 1350000 },
-          { date: "05/21", GRAB: 145, LAZADA: 95, SHOPEE: 80, TIKTOK: 50, total: 1500000 },
-          { date: "05/22", GRAB: 160, LAZADA: 105, SHOPEE: 90, TIKTOK: 55, total: 1650000 },
-          { date: "05/23", GRAB: 178, LAZADA: 115, SHOPEE: 100, TIKTOK: 60, total: 1800000 },
-          { date: "05/24", GRAB: 195, LAZADA: 125, SHOPEE: 110, TIKTOK: 65, total: 1950000 },
-          { date: "05/25", GRAB: 210, LAZADA: 135, SHOPEE: 120, TIKTOK: 70, total: 2100000 },
-        ]
-      }
-
-      const { data: orders, error } = await supabase.from("orders").select("created_at, total, channel")
-
-      if (error) {
-        console.warn("Error fetching orders for daily trends:", error)
-        return [
-          { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
-          { date: "05/20", GRAB: 132, LAZADA: 89, SHOPEE: 70, TIKTOK: 45, total: 1350000 },
-          { date: "05/21", GRAB: 145, LAZADA: 95, SHOPEE: 80, TIKTOK: 50, total: 1500000 },
-          { date: "05/22", GRAB: 160, LAZADA: 105, SHOPEE: 90, TIKTOK: 55, total: 1650000 },
-          { date: "05/23", GRAB: 178, LAZADA: 115, SHOPEE: 100, TIKTOK: 60, total: 1800000 },
-          { date: "05/24", GRAB: 195, LAZADA: 125, SHOPEE: 110, TIKTOK: 65, total: 1950000 },
-          { date: "05/25", GRAB: 210, LAZADA: 135, SHOPEE: 120, TIKTOK: 70, total: 2100000 },
-        ]
-      }
-
-      // Group by day
-      const dailyData = {}
-      const today = new Date()
-
-      // Create last 7 days
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        const dateKey = date.toISOString().split("T")[0]
-        dailyData[dateKey] = { date: dateKey, GRAB: 0, LAZADA: 0, SHOPEE: 0, TIKTOK: 0, total: 0 }
-      }
-
-      // Populate with real data
-      orders?.forEach((order) => {
-        const dateKey = new Date(order.created_at).toISOString().split("T")[0]
-        if (dailyData[dateKey]) {
-          const channel = order.channel || "UNKNOWN"
-          if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
-            dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
-          }
-          dailyData[dateKey].total += extractNumericValue(order.total)
-        }
-      })
-
-      // If no real data, use mock data
       if (!orders || orders.length === 0) {
         return [
           { date: "05/19", GRAB: 120, LAZADA: 80, SHOPEE: 65, TIKTOK: 40, total: 1200000 },
@@ -776,7 +816,41 @@ export function ExecutiveDashboard() {
         ]
       }
 
-      return Object.values(dailyData).map((day) => ({
+      // Group by day - last 7 days
+      const dailyData = {}
+      const today = new Date()
+
+      // Create last 7 days structure
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
+        const dateKey = date.toISOString().split("T")[0]
+        dailyData[dateKey] = { 
+          date: dateKey, 
+          GRAB: 0, 
+          LAZADA: 0, 
+          SHOPEE: 0, 
+          TIKTOK: 0, 
+          total: 0 
+        }
+      }
+
+      // Populate with real data from last 7 days
+      orders.forEach((order) => {
+        const orderDate = new Date(order.order_date || order.metadata?.created_at)
+        const dateKey = orderDate.toISOString().split("T")[0]
+        
+        // Only include if it's within our 7-day window
+        if (dailyData[dateKey]) {
+          const channel = (order.channel || "UNKNOWN").toUpperCase() // Normalize to uppercase
+          if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
+            dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+          }
+          dailyData[dateKey].total += order.total_amount || 0
+        }
+      })
+
+      return Object.values(dailyData).map((day: any) => ({
         ...day,
         date: new Date(day.date).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" }),
       }))
@@ -796,11 +870,9 @@ export function ExecutiveDashboard() {
 
   const fetchChannelPerformance = async () => {
     try {
-      // First check if we can get any orders to determine column names
-      const { data: sampleOrder, error: sampleError } = await supabase.from("orders").select("*").limit(1).single()
+      const orders = await fetchOrdersFromApi()
 
-      if (sampleOrder) {
-        console.warn("Could not fetch sample order:", sampleOrder)
+      if (!orders || orders.length === 0) {
         return [
           { channel: "GRAB", orders: 1247, revenue: 1250000, sla_rate: 94.2 },
           { channel: "LAZADA", orders: 892, revenue: 980000, sla_rate: 87.6 },
@@ -808,14 +880,6 @@ export function ExecutiveDashboard() {
           { channel: "TIKTOK", orders: 456, revenue: 520000, sla_rate: 92.3 },
         ]
       }
-
-      // Determine which status column to use
-      const statusColumn = sampleOrder.hasOwnProperty("status") ? "status" : "order_status"
-      const slaStatusColumn = sampleOrder.hasOwnProperty("sla_status") ? "sla_status" : "sla_breach_status"
-
-      const { data: orders, error } = await supabase.from("orders").select("*")
-
-      if (error) throw error
 
       // Group by channel
       const channelData = {
@@ -825,43 +889,30 @@ export function ExecutiveDashboard() {
         TIKTOK: { orders: 0, revenue: 0, sla_compliance: 0, total: 0 },
       }
 
-      orders?.forEach((order) => {
-        const channel = order.channel
+      orders.forEach((order) => {
+        const channel = order.channel?.toUpperCase() // Normalize to uppercase
         if (channelData[channel]) {
           channelData[channel].orders++
-          channelData[channel].revenue += extractNumericValue(order.total)
+          channelData[channel].revenue += order.total_amount || 0
           channelData[channel].total++
 
           if (
-            order[slaStatusColumn] === "COMPLIANT" ||
-            order[statusColumn] === "DELIVERED" ||
-            order[statusColumn] === "FULFILLED" ||
-            order.elapsed_minutes <= order.sla_target_minutes
+            order.sla_info?.status === "COMPLIANT" ||
+            order.status === "DELIVERED" ||
+            order.status === "FULFILLED" ||
+            (order.sla_info && order.sla_info.elapsed_minutes <= order.sla_info.target_minutes)
           ) {
             channelData[channel].sla_compliance++
           }
         }
       })
 
-      // Calculate rates and format
-      const result = Object.entries(channelData).map(([channel, data]: [string, any]) => ({
+      return Object.entries(channelData).map(([channel, data]: [string, any]) => ({
         channel,
         orders: data.orders,
         revenue: data.revenue,
         sla_rate: data.total > 0 ? (data.sla_compliance / data.total) * 100 : 0,
       }))
-
-      // If no real data, use mock data
-      if (orders?.length === 0) {
-        return [
-          { channel: "GRAB", orders: 1247, revenue: 1250000, sla_rate: 94.2 },
-          { channel: "LAZADA", orders: 892, revenue: 980000, sla_rate: 87.6 },
-          { channel: "SHOPEE", orders: 756, revenue: 820000, sla_rate: 96.1 },
-          { channel: "TIKTOK", orders: 456, revenue: 520000, sla_rate: 92.3 },
-        ]
-      }
-
-      return result
     } catch (err) {
       console.warn("Error fetching channel performance:", err)
       return [
@@ -875,16 +926,9 @@ export function ExecutiveDashboard() {
 
   const fetchTopProducts = async () => {
     try {
-      // Check if products table exists
-      const { data: sampleProduct, error: productTableError } = await supabase
-        .from("products")
-        .select("*")
-        .limit(1)
-        .single()
+      const orders = await fetchOrdersFromApi()
 
-      // If products table doesn't exist or is empty, return mock data
-      if (productTableError || !sampleProduct) {
-        console.warn("Products table not found or empty, using mock data")
+      if (!orders || orders.length === 0) {
         return [
           { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
           { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
@@ -894,105 +938,36 @@ export function ExecutiveDashboard() {
         ]
       }
 
-      // Check if order_items table exists and what columns are available
-      const { data: sampleOrderItem, error: orderItemsTableError } = await supabase
-        .from("order_items")
-        .select("*")
-        .limit(1)
-        .single()
-
-      // If order_items table doesn't exist or is empty, return mock data
-      if (orderItemsTableError || !sampleOrderItem) {
-        console.warn("Order items table not found or empty, using mock data")
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
-      }
-
-      // Check if required columns exist in order_items
-      const hasProductId = sampleOrderItem.hasOwnProperty("product_id")
-      const hasQuantity = sampleOrderItem.hasOwnProperty("quantity")
-      const hasTotalPrice = sampleOrderItem.hasOwnProperty("total_price")
-      const hasPrice = sampleOrderItem.hasOwnProperty("price")
-
-      // Check if required columns exist in products
-      const hasProductName = sampleProduct.hasOwnProperty("name")
-      const hasProductSku = sampleProduct.hasOwnProperty("sku")
-
-      if (!hasProductId || !hasQuantity || (!hasTotalPrice && !hasPrice) || !hasProductName || !hasProductSku) {
-        console.warn("Required columns missing in order_items or products table, using mock data")
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
-      }
-
-      // Determine which price column to use
-      const priceColumn = hasTotalPrice ? "total_price" : "price"
-
-      // Try to get real data
-      const { data: orderItems, error: itemsError } = await supabase
-        .from("order_items")
-        .select(`product_id, quantity, ${priceColumn}`)
-
-      if (itemsError) {
-        console.warn("Error fetching order items:", itemsError)
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
-      }
-
-      const { data: products, error: productsError } = await supabase.from("products").select("id, name, sku")
-
-      if (productsError) {
-        console.warn("Error fetching products:", productsError)
-        return [
-          { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
-          { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
-          { name: "Men's Cotton T-Shirt", sku: "PRD-1234", units: 750, revenue: 262500 },
-          { name: "Smartphone", sku: "PRD-8901", units: 320, revenue: 4800000 },
-          { name: "Running Shoes", sku: "PRD-4567", units: 280, revenue: 546000 },
-        ]
-      }
-
-      // Create product map
+      // Aggregate products from order items
       const productMap = {}
-      products?.forEach((product) => {
-        productMap[product.id] = {
-          name: product.name,
-          sku: product.sku,
-          units: 0,
-          revenue: 0,
+      
+      orders.forEach((order) => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item) => {
+            const productKey = item.product_sku || item.product_id
+            if (productKey) {
+              if (!productMap[productKey]) {
+                productMap[productKey] = {
+                  name: item.product_name || 'Unknown Product',
+                  sku: item.product_sku || productKey,
+                  units: 0,
+                  revenue: 0,
+                }
+              }
+              
+              productMap[productKey].units += item.quantity || 1
+              productMap[productKey].revenue += item.total_price || (item.unit_price * item.quantity) || 0
+            }
+          })
         }
       })
 
-      // Aggregate order items
-      orderItems?.forEach((item) => {
-        if (productMap[item.product_id]) {
-          productMap[item.product_id].units += item.quantity || 1
-          // Use the appropriate price column
-          const itemPrice = item[priceColumn] || 0
-          productMap[item.product_id].revenue += itemPrice
-        }
-      })
-
-      // Convert to array and sort
+      // Convert to array and sort by revenue
       const result = Object.values(productMap)
       result.sort((a: any, b: any) => b.revenue - a.revenue)
 
-      // If no data or empty result, return mock data
-      if (!result || result.length === 0) {
+      // If no real data, return mock data
+      if (result.length === 0) {
         return [
           { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
           { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
@@ -1005,7 +980,6 @@ export function ExecutiveDashboard() {
       return result.slice(0, 5)
     } catch (err) {
       console.warn("Error in fetchTopProducts:", err)
-      // Return mock data on error
       return [
         { name: "Premium Jasmine Rice 5kg", sku: "PRD-3456", units: 1250, revenue: 187500 },
         { name: "Organic Bananas", sku: "PRD-5678", units: 980, revenue: 49000 },
@@ -1018,12 +992,9 @@ export function ExecutiveDashboard() {
 
   const fetchRevenueByCategory = async () => {
     try {
-      // Check if categories table exists
-      const { error: tableCheckError } = await supabase.from("categories").select("id").limit(1).single()
+      const orders = await fetchOrdersFromApi()
 
-      // If table doesn't exist, return mock data
-      if (tableCheckError) {
-        console.warn("Categories table not found, using mock data")
+      if (!orders || orders.length === 0) {
         return [
           { name: "Electronics", value: 3500000 },
           { name: "Groceries", value: 2800000 },
@@ -1033,91 +1004,33 @@ export function ExecutiveDashboard() {
         ]
       }
 
-      // Check if products table exists and what columns are available
-      const { data: sampleProduct, error: sampleProductError } = await supabase
-        .from("products")
-        .select("*")
-        .limit(1)
-        .single()
-
-      if (sampleProductError || !sampleProduct) {
-        console.warn("Products table not found or empty, using mock data")
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
-      }
-
-      // Check if required columns exist
-      const hasCategoryId = sampleProduct.hasOwnProperty("category_id")
-      const hasPrice = sampleProduct.hasOwnProperty("price")
-      const hasStockQuantity = sampleProduct.hasOwnProperty("stock_quantity")
-
-      if (!hasCategoryId || !hasPrice || !hasStockQuantity) {
-        console.warn("Required columns missing in products table, using mock data")
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
-      }
-
-      // Try to get real data
-      const { data: products, error: productsError } = await supabase
-        .from("products")
-        .select("category_id, price, stock_quantity")
-
-      if (productsError) {
-        console.warn("Error fetching products:", productsError)
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
-      }
-
-      const { data: categories, error: categoriesError } = await supabase.from("categories").select("id, name")
-
-      if (categoriesError) {
-        console.warn("Error fetching categories:", categoriesError)
-        return [
-          { name: "Electronics", value: 3500000 },
-          { name: "Groceries", value: 2800000 },
-          { name: "Fashion", value: 1950000 },
-          { name: "Home & Living", value: 1200000 },
-          { name: "Beauty", value: 950000 },
-        ]
-      }
-
-      // Create category map
+      // Aggregate revenue by category from order items
       const categoryMap = {}
-      categories?.forEach((category) => {
-        categoryMap[category.id] = {
-          name: category.name,
-          value: 0,
+      
+      orders.forEach((order) => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item) => {
+            const category = item.product_details?.category || 'Other'
+            
+            if (!categoryMap[category]) {
+              categoryMap[category] = {
+                name: category,
+                value: 0,
+              }
+            }
+            
+            const itemRevenue = item.total_price || (item.unit_price * item.quantity) || 0
+            categoryMap[category].value += itemRevenue
+          })
         }
       })
 
-      // Aggregate product values
-      products?.forEach((product) => {
-        if (categoryMap[product.category_id]) {
-          categoryMap[product.category_id].value += (product.price || 0) * (product.stock_quantity || 0)
-        }
-      })
-
-      // Convert to array and sort
+      // Convert to array and sort by value
       const result = Object.values(categoryMap)
       result.sort((a: any, b: any) => b.value - a.value)
 
-      // If no data or empty result, return mock data
-      if (!result || result.length === 0) {
+      // If no real data, return mock data
+      if (result.length === 0) {
         return [
           { name: "Electronics", value: 3500000 },
           { name: "Groceries", value: 2800000 },
@@ -1130,7 +1043,6 @@ export function ExecutiveDashboard() {
       return result.slice(0, 5)
     } catch (err) {
       console.warn("Error in fetchRevenueByCategory:", err)
-      // Return mock data on error
       return [
         { name: "Electronics", value: 3500000 },
         { name: "Groceries", value: 2800000 },
@@ -1221,14 +1133,18 @@ export function ExecutiveDashboard() {
         }),
       ])
 
-      // Set KPI data
+      // Set KPI data - all based on real data now
+      const allOrders = await fetchOrdersFromApi()
+      const fulfillmentRate = calculateFulfillmentRate(allOrders)
+      const activeOrdersCount = calculateActiveOrders(allOrders)
+      
       setKpiData({
-        ordersProcessing: { value: ordersData.count, change: ordersData.change },
-        slaBreaches: { value: breachesData.count, change: breachesData.change },
-        revenueToday: { value: calculateRevenue(ordersData.orders), change: 18.2 },
-        avgProcessingTime: { value: calculateAvgProcessingTime(ordersData.orders), change: -0.3 },
-        activeOrders: { value: ordersData.count + 7192, change: 21 },
-        fulfillmentRate: { value: 96.4, change: 1.2 },
+        ordersProcessing: { value: ordersData.count, change: 0 }, // Real count, change calculation would need historical data
+        slaBreaches: { value: breachesData.count, change: 0 }, // Real count, change calculation would need historical data  
+        revenueToday: { value: calculateRevenue(allOrders), change: 0 }, // Real revenue, change calculation would need historical data
+        avgProcessingTime: { value: calculateAvgProcessingTime(ordersData.orders), change: 0 }, // Real avg time, change calculation would need historical data
+        activeOrders: { value: activeOrdersCount, change: 0 }, // Real active orders count
+        fulfillmentRate: { value: fulfillmentRate, change: 0 }, // Real fulfillment rate
       })
 
       // Set other data
@@ -1255,23 +1171,46 @@ export function ExecutiveDashboard() {
     if (!orders || orders.length === 0) return 2.8
 
     const total = orders.reduce((sum, order) => {
-      const amount = extractNumericValue(order.total)
-      return sum + amount
+      return sum + (order.total_amount || 0)
     }, 0)
 
     return Math.round((total / 1000000) * 10) / 10 // Convert to millions with 1 decimal place
   }
 
   const calculateAvgProcessingTime = (orders: any[]) => {
-    if (!orders || orders.length === 0) return 3.2
+    if (!orders || orders.length === 0) return 0
 
     const processingOrders = orders.filter((order) => order.status !== "DELIVERED" && order.status !== "FULFILLED")
 
-    if (processingOrders.length === 0) return 3.2
+    if (processingOrders.length === 0) return 0
 
-    const totalMinutes = processingOrders.reduce((sum, order) => sum + order.elapsed_minutes, 0)
+    const totalMinutes = processingOrders.reduce((sum, order) => {
+      return sum + (order.sla_info?.elapsed_minutes || 0)
+    }, 0)
 
     return Math.round((totalMinutes / processingOrders.length) * 10) / 10
+  }
+
+  const calculateFulfillmentRate = (orders: any[]) => {
+    if (!orders || orders.length === 0) return 0
+
+    const fulfilledOrders = orders.filter(order => 
+      order.status === "DELIVERED" || order.status === "FULFILLED"
+    )
+
+    return Math.round((fulfilledOrders.length / orders.length) * 100 * 10) / 10
+  }
+
+  const calculateActiveOrders = (orders: any[]) => {
+    if (!orders || orders.length === 0) return 0
+
+    const activeOrders = orders.filter(order => 
+      order.status !== "DELIVERED" && 
+      order.status !== "FULFILLED" && 
+      order.status !== "CANCELLED"
+    )
+
+    return activeOrders.length
   }
 
   const extractNumericValue = (priceString: string | number): number => {
@@ -1303,36 +1242,6 @@ export function ExecutiveDashboard() {
     return "bg-red-500"
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "FULFILLED":
-      case "DELIVERED":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{status}</Badge>
-      case "SHIPPED":
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{status}</Badge>
-      case "PROCESSING":
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{status}</Badge>
-      case "CREATED":
-        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">{status}</Badge>
-      default:
-        return <Badge>{status}</Badge>
-    }
-  }
-
-  const getChannelBadge = (channel: string) => {
-    switch (channel) {
-      case "GRAB":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{channel}</Badge>
-      case "LAZADA":
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{channel}</Badge>
-      case "SHOPEE":
-        return <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">{channel}</Badge>
-      case "TIKTOK":
-        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">{channel}</Badge>
-      default:
-        return <Badge>{channel}</Badge>
-    }
-  }
 
   const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
 
@@ -1380,9 +1289,12 @@ export function ExecutiveDashboard() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Executive Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Real-time operational insights across all business units</p>
+          <p className="text-sm text-muted-foreground">Last 7 days operational insights across all business units</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-muted-foreground">
+            Last 7 Days
+          </div>
           <Button variant="outline" size="sm">
             All Business Units
           </Button>
@@ -1402,7 +1314,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">{kpiData.ordersProcessing.value.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Orders Processing</div>
+            <div className="text-xs text-muted-foreground">Orders Processing (7d)</div>
           </CardContent>
         </Card>
 
@@ -1418,7 +1330,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">{kpiData.slaBreaches.value}</div>
-            <div className="text-xs text-muted-foreground">SLA Breaches</div>
+            <div className="text-xs text-muted-foreground">SLA Breaches (7d)</div>
           </CardContent>
         </Card>
 
@@ -1433,7 +1345,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">฿{kpiData.revenueToday.value}M</div>
-            <div className="text-xs text-muted-foreground">Revenue Today</div>
+            <div className="text-xs text-muted-foreground">Revenue (7d)</div>
           </CardContent>
         </Card>
 
@@ -1449,7 +1361,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">{kpiData.avgProcessingTime.value} min</div>
-            <div className="text-xs text-muted-foreground">Avg Processing Time</div>
+            <div className="text-xs text-muted-foreground">Avg Processing Time (7d)</div>
           </CardContent>
         </Card>
 
@@ -1464,7 +1376,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">{kpiData.activeOrders.value.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Active Orders</div>
+            <div className="text-xs text-muted-foreground">Active Orders (7d)</div>
           </CardContent>
         </Card>
 
@@ -1479,7 +1391,7 @@ export function ExecutiveDashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold">{kpiData.fulfillmentRate.value}%</div>
-            <div className="text-xs text-muted-foreground">Fulfillment Rate</div>
+            <div className="text-xs text-muted-foreground">Fulfillment Rate (7d)</div>
           </CardContent>
         </Card>
       </div>
@@ -1505,14 +1417,14 @@ export function ExecutiveDashboard() {
                     </div>
                     <div>
                       <h3 className="text-base font-semibold">Order Volume by Channel</h3>
-                      <p className="text-xs text-muted-foreground">Total orders per channel</p>
+                      <p className="text-xs text-muted-foreground">Last 7 days orders per channel</p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-4">
                   {channelVolume.map((item, index) => {
-                    const maxOrders = Math.max(...channelVolume.map((c) => c.orders))
-                    const percentage = (item.orders / maxOrders) * 100
+                    const maxOrders = Math.max(...channelVolume.map((c) => c.orders || 0))
+                    const percentage = maxOrders > 0 ? ((item.orders || 0) / maxOrders) * 100 : 0
                     const channelColors = {
                       0: { bg: "bg-green-500", light: "bg-green-100", icon: "🟢" },
                       1: { bg: "bg-blue-500", light: "bg-blue-100", icon: "🔵" },
@@ -1539,9 +1451,9 @@ export function ExecutiveDashboard() {
                           <div className={`h-8 ${color.light} rounded-full overflow-hidden`}>
                             <div
                               className={`h-full ${color.bg} rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
-                              style={{ width: `${percentage}%` }}
+                              style={{ width: `${isNaN(percentage) ? 0 : percentage}%` }}
                             >
-                              <span className="text-xs text-white font-medium">{percentage.toFixed(0)}%</span>
+                              <span className="text-xs text-white font-medium">{(isNaN(percentage) ? 0 : percentage).toFixed(0)}%</span>
                             </div>
                           </div>
                         </div>
@@ -1551,7 +1463,7 @@ export function ExecutiveDashboard() {
                 </div>
                 <div className="mt-6 pt-4 border-t">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Orders</span>
+                    <span className="text-muted-foreground">Total Orders (7d)</span>
                     <span className="font-semibold">
                       {channelVolume.reduce((sum, item) => sum + item.orders, 0).toLocaleString()}
                     </span>
@@ -1573,13 +1485,21 @@ export function ExecutiveDashboard() {
                   </span>
                 </div>
 
-                {orderAlerts.length > 0 && (
+                {(orderAlerts.length > 0 || approachingSla.length > 0) && (
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
                       <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
-                      <span className="text-xs font-bold text-red-800 bg-red-100 px-2 py-1 rounded">SLA BREACH</span>
-                      <Button variant="destructive" size="sm" className="ml-auto text-xs h-6">
-                        Escalate
+                      <span className="text-xs font-bold text-red-800 bg-red-100 px-2 py-1 rounded">
+                        {orderAlerts.length > 0 ? "SLA BREACH" : "SLA WARNING"}
+                      </span>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        className="ml-auto text-xs h-6"
+                        onClick={handleEscalation}
+                        disabled={isEscalating}
+                      >
+                        {isEscalating ? "Escalating..." : "Escalate"}
                       </Button>
                     </div>
                     {orderAlerts.map((alert, index) => (
@@ -1615,15 +1535,15 @@ export function ExecutiveDashboard() {
                   </div>
                 )}
 
-                {approachingSla.length > 0 && (
-                  <div>
-                    <div className="flex items-center mb-2">
-                      <Clock className="h-4 w-4 mr-2 text-yellow-500" />
-                      <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
-                        APPROACHING SLA ({approachingSla.length})
-                      </span>
-                    </div>
-                    <div className="border-l-2 border-yellow-500 pl-3 py-1 ml-1">
+                <div>
+                  <div className="flex items-center mb-2">
+                    <Clock className="h-4 w-4 mr-2 text-yellow-500" />
+                    <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
+                      APPROACHING SLA ({approachingSla.length})
+                    </span>
+                  </div>
+                  <div className="border-l-2 border-yellow-500 pl-3 py-1 ml-1">
+                    {approachingSla.length > 0 ? (
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="text-muted-foreground">
@@ -1642,6 +1562,34 @@ export function ExecutiveDashboard() {
                           ))}
                         </tbody>
                       </table>
+                    ) : (
+                      <div className="text-xs text-muted-foreground py-2">
+                        No orders approaching SLA deadline
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Test Escalation Button - Always visible for testing */}
+                {(orderAlerts.length === 0 && approachingSla.length === 0) && (
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <AlertTriangle className="h-4 w-4 mr-2 text-gray-500" />
+                      <span className="text-xs font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                        TEST ESCALATION
+                      </span>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="ml-auto text-xs h-6"
+                        onClick={handleTestEscalation}
+                        disabled={isEscalating}
+                      >
+                        {isEscalating ? "Testing..." : "Test Escalation"}
+                      </Button>
+                    </div>
+                    <div className="text-xs text-gray-500 pl-3">
+                      No active alerts. Click to test webhook functionality.
                     </div>
                   </div>
                 )}
@@ -1722,14 +1670,33 @@ export function ExecutiveDashboard() {
                   {slaCompliance.map((item, index) => (
                     <div key={index}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span>{item.channel.charAt(0) + item.channel.slice(1).toLowerCase()} Orders</span>
-                        <span>{item.compliance.toFixed(1)}%</span>
+                        <span>{item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}</span>
+                        <div className="text-right">
+                          {item.compliance !== null ? (
+                            <>
+                              <span className="font-medium">{item.compliance.toFixed(1)}%</span>
+                              <div className="text-xs text-muted-foreground">
+                                {item.compliant}/{item.total} orders
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No data</span>
+                          )}
+                        </div>
                       </div>
-                      <Progress
-                        value={item.compliance}
-                        className="h-2 bg-gray-100"
-                        indicatorClassName={getProgressColor(item.compliance)}
-                      />
+                      {item.compliance !== null ? (
+                        <Progress
+                          value={item.compliance}
+                          className="h-2 bg-gray-100"
+                          indicatorClassName={getProgressColor(item.compliance)}
+                        />
+                      ) : (
+                        <div className="h-2 bg-gray-100 rounded-full">
+                          <div className="h-full bg-gray-300 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-gray-500">No orders</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1740,7 +1707,7 @@ export function ExecutiveDashboard() {
 
         <TabsContent value="orders" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Recent Orders</h3>
+            <h3 className="text-lg font-medium">Recent Orders (Last 7 Days)</h3>
             <div className="flex space-x-2">
               <Button variant="outline" size="sm">
                 <Search className="h-4 w-4 mr-2" />
@@ -1762,6 +1729,7 @@ export function ExecutiveDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Order ID</TableHead>
                     <TableHead>Order Number</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Channel</TableHead>
@@ -1774,17 +1742,18 @@ export function ExecutiveDashboard() {
                   {recentOrders.length > 0 ? (
                     recentOrders.map((order, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{order.order_number}</TableCell>
+                        <TableCell className="font-medium font-mono text-xs">{order.order_number}</TableCell>
+                        <TableCell className="font-medium">{order.order_no}</TableCell>
                         <TableCell>{order.customer}</TableCell>
-                        <TableCell>{getChannelBadge(order.channel)}</TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell><ChannelBadge channel={order.channel} /></TableCell>
+                        <TableCell><OrderStatusBadge status={order.status} /></TableCell>
                         <TableCell>{order.total}</TableCell>
                         <TableCell>{order.date}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
                         No orders found
                       </TableCell>
                     </TableRow>
@@ -1796,7 +1765,7 @@ export function ExecutiveDashboard() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Daily Order Volume</CardTitle>
+              <CardTitle>Daily Order Volume (Last 7 Days)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
@@ -1882,7 +1851,7 @@ export function ExecutiveDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col items-center">
                   <div className="text-2xl font-bold text-green-600">{kpiData.fulfillmentRate.value}%</div>
-                  <div className="text-sm text-muted-foreground">Overall Fulfillment Rate</div>
+                  <div className="text-sm text-muted-foreground">Overall Fulfillment Rate (7d)</div>
                   <div className={`text-xs mt-1 ${getChangeClass(kpiData.fulfillmentRate.change)} flex items-center`}>
                     {getChangeIcon(kpiData.fulfillmentRate.change)}
                     {kpiData.fulfillmentRate.change > 0 ? "+" : ""}
@@ -1892,7 +1861,7 @@ export function ExecutiveDashboard() {
 
                 <div className="flex flex-col items-center">
                   <div className="text-2xl font-bold text-blue-600">{kpiData.avgProcessingTime.value} min</div>
-                  <div className="text-sm text-muted-foreground">Avg Processing Time</div>
+                  <div className="text-sm text-muted-foreground">Avg Processing Time (7d)</div>
                   <div
                     className={`text-xs mt-1 ${getChangeClass(kpiData.avgProcessingTime.change, true)} flex items-center`}
                   >
@@ -1904,7 +1873,7 @@ export function ExecutiveDashboard() {
 
                 <div className="flex flex-col items-center">
                   <div className="text-2xl font-bold text-yellow-600">{kpiData.slaBreaches.value}</div>
-                  <div className="text-sm text-muted-foreground">SLA Breaches</div>
+                  <div className="text-sm text-muted-foreground">SLA Breaches (7d)</div>
                   <div className={`text-xs mt-1 ${getChangeClass(kpiData.slaBreaches.change, true)} flex items-center`}>
                     {getChangeIcon(kpiData.slaBreaches.change)}
                     {kpiData.slaBreaches.change > 0 ? "+" : ""}

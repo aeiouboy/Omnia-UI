@@ -27,73 +27,20 @@ import {
   MessageSquare,
   Calendar,
   DollarSign,
-  ShoppingBag
+  ShoppingBag,
+  X
 } from "lucide-react";
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, ApiMetadata, ApiOrderItem } from "./order-management-hub" // Assuming Order and its sub-types are exported
+import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
 
 interface OrderDetailViewProps {
   order: Order | null;
   onClose: () => void;
 }
 
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "CREATED":
-      return <ShoppingBag className="h-4 w-4 text-dark-gray" />
-    case "PROCESSING":
-      return <Package className="h-4 w-4 text-info" />
-    case "SHIPPED":
-      return <Truck className="h-4 w-4 text-corporate-blue" />
-    case "DELIVERED":
-      return <CheckCircle className="h-4 w-4 text-success" />
-    default:
-      return <Package className="h-4 w-4 text-gray-500" />
-  }
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "CREATED":
-      return <Badge variant="outline">CREATED</Badge>
-    case "PROCESSING":
-      return <Badge className="bg-info text-white">PROCESSING</Badge>
-    case "SHIPPED":
-      return <Badge className="bg-corporate-blue text-white">SHIPPED</Badge>
-    case "DELIVERED":
-      return <Badge className="bg-success text-white">DELIVERED</Badge>
-    default:
-      return <Badge variant="outline">{status}</Badge>
-  }
-}
-
-function getPriorityBadge(priority: string) {
-  switch (priority) {
-    case "HIGH":
-      return <Badge className="bg-red-500">High Priority</Badge>
-    case "MEDIUM":
-      return <Badge className="bg-yellow-500">Medium Priority</Badge>
-    case "LOW":
-      return <Badge variant="outline">Low Priority</Badge>
-    default:
-      return <Badge variant="outline">{priority}</Badge>
-  }
-}
-
-function getChannelBadge(channel: string) {
-  switch (channel) {
-    case "GRAB":
-      return <Badge className="bg-green-500">Grab</Badge>
-    case "LAZADA":
-      return <Badge className="bg-blue-500">Lazada</Badge>
-    case "SHOPEE":
-      return <Badge className="bg-orange-500">Shopee</Badge>
-    default:
-      return <Badge variant="outline">{channel}</Badge>
-  }
-}
 
 export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
   const router = useRouter()
@@ -127,7 +74,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Orders
           </Button>
@@ -148,6 +95,9 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
           <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
             <RefreshCw className="h-4 w-4 mr-2" />
             Process Order
+          </Button>
+          <Button variant="outline" size="sm" onClick={onClose} className="ml-2">
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -170,10 +120,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-enterprise-text-light">Status</p>
-                <div className="flex items-center">
-                  {getStatusIcon(order?.status || '')}
-                  <span className="ml-2 text-body text-deep-navy">{order?.status}</span>
-                </div>
+                <div className="mt-1"><OrderStatusBadge status={order?.status || 'N/A'} /></div>
               </div>
             </div>
           </CardContent>
@@ -184,7 +131,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-enterprise-text-light">Priority</p>
-                <div className="mt-1">{getPriorityBadge(order?.metadata?.priority || 'N/A')}</div>
+                <div className="mt-1"><PriorityBadge priority={order?.metadata?.priority || 'N/A'} /></div>
               </div>
             </div>
           </CardContent>
@@ -195,7 +142,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-enterprise-text-light">Channel</p>
-                <div className="mt-1">{getChannelBadge(order?.channel)}</div>
+                <div className="mt-1"><ChannelBadge channel={order?.channel || 'N/A'} /></div>
               </div>
             </div>
           </CardContent>
@@ -273,7 +220,11 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-enterprise-text-light">Order Number</p>
+                  <p className="text-sm text-enterprise-text-light">Order Number (ID)</p>
+                  <p className="font-mono text-sm">{order?.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-enterprise-text-light">Short Order</p>
                   <p className="font-mono text-sm">{order?.order_no}</p>
                 </div>
                 <div>
@@ -339,7 +290,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Payment Status</p>
-                  <Badge variant="outline">{order?.payment_info?.status || 'N/A'}</Badge>
+                  <PaymentStatusBadge status={order?.payment_info?.status || 'N/A'} />
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Transaction ID</p>
@@ -389,7 +340,7 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                           <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
                             {/* Placeholder for image - item.product_details.imageUrl might exist */}
                             <img
-                              src={'/placeholder-image.png'} 
+                              src="https://via.placeholder.com/48x48/f3f4f6/9ca3af?text=📦" 
                               alt={item.product_name || 'Item image'}
                               width={48}
                               height={48}
@@ -509,7 +460,11 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">SLA Status</p>
-                  <Badge variant="outline">{order?.sla_info?.status || 'N/A'}</Badge>
+                  <SLABadge
+                    targetMinutes={order?.sla_info?.target_minutes || 0}
+                    elapsedMinutes={order?.sla_info?.elapsed_minutes || 0}
+                    status={order?.status || 'N/A'}
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Escalation Level</p>

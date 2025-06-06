@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
+import { OrderDetailView } from "./order-detail-view";
 import {
   Search,
   RefreshCw,
@@ -357,6 +358,12 @@ export function OrderManagementHub() {
     }
   };
 
+  // Close Order Detail View
+  const handleCloseDetailView = () => {
+    setIsDetailViewOpen(false);
+    setSelectedOrderForDetail(null);
+  };
+
   // Data states
   const [ordersData, setOrdersData] = useState<Order[]>([])
 
@@ -439,7 +446,31 @@ export function OrderManagementHub() {
       setStatusFilter('all-status')
     } else if (filter.startsWith('Channel:')) {
       setChannelFilter('all-channels')
+    } else if (filter.startsWith('SLA:')) {
+      setActiveSlaFilter('all')
+    } else if (filter.startsWith('Order:')) {
+      setAdvancedFilters(prev => ({ ...prev, orderNumber: '' }))
+    } else if (filter.startsWith('Customer:')) {
+      setAdvancedFilters(prev => ({ ...prev, customerName: '' }))
+    } else if (filter.startsWith('Phone:')) {
+      setAdvancedFilters(prev => ({ ...prev, phoneNumber: '' }))
+    } else if (filter.startsWith('Email:')) {
+      setAdvancedFilters(prev => ({ ...prev, email: '' }))
+    } else if (filter.startsWith('Date:')) {
+      setAdvancedFilters(prev => ({ 
+        ...prev, 
+        orderDateFrom: undefined, 
+        orderDateTo: undefined 
+      }))
+    } else if (filter === 'SLA Exceeded') {
+      setAdvancedFilters(prev => ({ ...prev, exceedSLA: false }))
+    } else if (filter.startsWith('Location:')) {
+      setAdvancedFilters(prev => ({ ...prev, fulfillmentLocationId: '' }))
+    } else if (filter.startsWith('Items:')) {
+      setAdvancedFilters(prev => ({ ...prev, items: '' }))
     }
+    // Reset to first page when filter is removed
+    setCurrentPage(1)
   }
 
   // Generate active filters for display
@@ -742,10 +773,13 @@ export function OrderManagementHub() {
             ) : (
               ordersToShow.map((order) => (
                 <TableRow key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
-                  <TableCell onClick={() => handleOrderRowClick(order)} className="cursor-pointer text-blue-600 hover:text-blue-800">
-                    <Link href={`/orders/${order.id}`} className="hover:underline">
+                  <TableCell className="cursor-pointer text-blue-600 hover:text-blue-800">
+                    <button 
+                      onClick={() => handleOrderRowClick(ordersData.find(o => o.id === order.id) || order)}
+                      className="hover:underline text-left"
+                    >
                       {order.id}
-                    </Link>
+                    </button>
                   </TableCell>
                   <TableCell>{order.orderNo}</TableCell>
                   <TableCell>{order.total_amount}</TableCell>
@@ -923,6 +957,18 @@ export function OrderManagementHub() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Order Detail View Modal/Overlay */}
+      {isDetailViewOpen && selectedOrderForDetail && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-auto">
+            <OrderDetailView
+              order={selectedOrderForDetail}
+              onClose={handleCloseDetailView}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
