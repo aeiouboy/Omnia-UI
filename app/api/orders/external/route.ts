@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = "force-dynamic";
 
-// Authentication credentials
-const PARTNER_CLIENT_ID = "testpocorderlist"
-const PARTNER_CLIENT_SECRET = "xitgmLwmp"
-const BASE_URL = "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
+// Authentication credentials (with environment variable fallbacks)
+const PARTNER_CLIENT_ID = process.env.PARTNER_CLIENT_ID || "testpocorderlist"
+const PARTNER_CLIENT_SECRET = process.env.PARTNER_CLIENT_SECRET || "xitgmLwmp"
+const BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
 
 // Cache for authentication token
 let authToken: string | null = null
@@ -18,6 +18,8 @@ async function getAuthToken(): Promise<string> {
   }
 
   console.log("🔐 Authenticating with external API...")
+  console.log(`🔗 Auth URL: ${BASE_URL}/auth/poc-orderlist/login`)
+  console.log(`🔑 Client ID: ${PARTNER_CLIENT_ID}`)
   
   const authController = new AbortController()
   const authTimeoutId = setTimeout(() => authController.abort(), 15000)
@@ -72,8 +74,28 @@ export async function GET(request: Request) {
     const page = searchParams.get("page") || "1"
     const pageSize = searchParams.get("pageSize") || "10"
 
-    // Get authentication token
-    const token = await getAuthToken()
+    // Get authentication token with fallback
+    let token: string
+    try {
+      token = await getAuthToken()
+    } catch (authError) {
+      console.error("❌ Authentication failed, returning fallback response:", authError)
+      return NextResponse.json({
+        success: false,
+        error: `Authentication failed: ${authError instanceof Error ? authError.message : 'Unknown auth error'}`,
+        fallback: true,
+        data: {
+          data: [], // Empty data array
+          pagination: {
+            page: parseInt(page),
+            pageSize: parseInt(pageSize),
+            total: 0,
+            hasNext: false,
+            hasPrev: false
+          }
+        }
+      })
+    }
 
     // Build API URL with pagination
     const apiUrl = new URL(`${BASE_URL}/merchant/orders`)
@@ -163,6 +185,11 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("❌ Server proxy error:", error)
 
+    // Get searchParams safely for fallback response
+    const { searchParams: fallbackParams } = new URL(request.url)
+    const fallbackPage = fallbackParams.get("page") || "1"
+    const fallbackPageSize = fallbackParams.get("pageSize") || "10"
+
     let errorMessage = "Unknown server error"
     if (error instanceof Error) {
       if (error.name === "AbortError") {
@@ -176,6 +203,16 @@ export async function GET(request: Request) {
       success: false,
       error: errorMessage,
       fallback: true,
+      data: {
+        data: [], // Empty data array for fallback
+        pagination: {
+          page: parseInt(fallbackPage),
+          pageSize: parseInt(fallbackPageSize),
+          total: 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      }
     })
   }
 }
