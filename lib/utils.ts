@@ -1,46 +1,37 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-/**
- * Combines multiple class names using clsx and tailwind-merge
- */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 /**
- * Gets the current time in GMT+7 (Bangkok) timezone
+ * Convert any date input to GMT+7 timezone
+ * @param dateInput - Date string, Date object, or timestamp
+ * @returns Date object in GMT+7 timezone
  */
-export function getGMT7Time(date?: Date | string | number): Date {
-  const inputDate = date ? new Date(date) : new Date()
-  return inputDate // Return the original date, let toLocaleString handle timezone conversion
+export function getGMT7Time(dateInput?: string | Date | number): Date {
+  if (!dateInput) return new Date()
+
+  const date = new Date(dateInput)
+  if (isNaN(date.getTime())) {
+    console.warn("Invalid date input:", dateInput)
+    return new Date()
+  }
+
+  return date
 }
 
-export function formatGMT7Time(date?: Date | string, options?: Intl.DateTimeFormatOptions): string {
-  const inputDate = date ? new Date(date) : new Date()
-  return inputDate.toLocaleString("en-US", {
+/**
+ * Format date to GMT+7 date string only
+ * @param dateInput - Date string, Date object, or timestamp
+ * @returns Formatted date string in GMT+7 timezone (e.g., "2025-01-09")
+ */
+export function formatGMT7DateString(dateInput?: string | Date | number): string {
+  const date = getGMT7Time(dateInput)
+
+  return date.toLocaleDateString("en-CA", {
     timeZone: "Asia/Bangkok",
-    ...options
-  })
-}
-
-/**
- * Formats a date to a time string in GMT+7 timezone (HH:MM:SS AM/PM)
- */
-export function formatGMT7TimeString(date?: Date | string | number): string {
-  return formatGMT7Time(date, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  })
-}
-
-/**
- * Formats a date to a date string in GMT+7 timezone (MM/DD/YYYY)
- */
-export function formatGMT7DateString(date?: Date | string | number): string {
-  return formatGMT7Time(date, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -48,18 +39,43 @@ export function formatGMT7DateString(date?: Date | string | number): string {
 }
 
 /**
- * Formats a date to a datetime string in GMT+7 timezone
+ * Format date to GMT+7 date and time string
+ * @param dateInput - Date string, Date object, or timestamp
+ * @returns Formatted date string in GMT+7 timezone (e.g., "09/01/2025 14:30:45 GMT+7")
  */
-export function formatGMT7DateTime(date?: Date | string | number): string {
-  return formatGMT7Time(date, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  })
+export function formatGMT7DateTime(dateInput?: string | Date | number): string {
+  const date = getGMT7Time(dateInput)
+
+  return (
+    date.toLocaleString("en-GB", {
+      timeZone: "Asia/Bangkok",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }) + " GMT+7"
+  )
+}
+
+/**
+ * Format current time to GMT+7 time string
+ * @returns Current time formatted as GMT+7 (e.g., "14:30:45 GMT+7")
+ */
+export function formatGMT7TimeString(): string {
+  const now = new Date()
+
+  return (
+    now.toLocaleString("en-GB", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }) + " GMT+7"
+  )
 }
 
 /**

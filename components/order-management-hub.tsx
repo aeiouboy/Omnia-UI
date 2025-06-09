@@ -1,43 +1,25 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
-import { OrderDetailView } from "./order-detail-view";
 import {
-  Search,
-  RefreshCw,
-  ShoppingBag,
-  Package,
-  Truck,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  MoreHorizontal,
-  X,
-  Filter,
-  Loader2,
-  AlertCircle,
-} from "lucide-react"
+  ChannelBadge,
+  PaymentStatusBadge,
+  OrderStatusBadge,
+  OnHoldBadge,
+  ReturnStatusBadge,
+  SLABadge,
+} from "./order-badges"
+import { OrderDetailView } from "./order-detail-view"
+import { RefreshCw, X, Filter, Loader2, AlertCircle } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AdvancedFilterPanel, type AdvancedFilterValues } from "./advanced-filter-panel"
 import { PaginationControls } from "./pagination-controls"
-import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Exact API response types based on the actual API structure
@@ -298,22 +280,22 @@ const fetchOrdersFromApi = async (
 
 export function OrderManagementHub() {
   // Track client mount to avoid hydration mismatch
-  const [isMounted, setIsMounted] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
-  
+  const [isMounted, setIsMounted] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<string>("")
+
   useEffect(() => {
-    setIsMounted(true);
+    setIsMounted(true)
     // Set initial timestamp only after client mount
     const updateTimestamp = () => {
-      setLastUpdated(formatGMT7TimeString());
-    };
-    updateTimestamp();
+      setLastUpdated(formatGMT7TimeString())
+    }
+    updateTimestamp()
 
     // Cleanup function to restore body scroll when component unmounts
     return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []);
+      document.body.style.overflow = "unset"
+    }
+  }, [])
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all-status")
@@ -340,45 +322,45 @@ export function OrderManagementHub() {
   // Set default page size to 25
   const [pageSize, setPageSize] = useState(25)
   const [pagination, setPagination] = useState<ApiPagination>({
-  page: 1,
-  pageSize: 25,
-  total: 0,
-  totalPages: 0,
-  hasNext: false,
-  hasPrev: false,
-})
+    page: 1,
+    pageSize: 25,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
 
   // SLA Filter Handler
   const handleSlaFilterChange = (filterValue: "all" | "near-breach" | "breach") => {
-    setActiveSlaFilter(filterValue);
-    setCurrentPage(1); // Reset to first page when SLA filter changes
-  };
+    setActiveSlaFilter(filterValue)
+    setCurrentPage(1) // Reset to first page when SLA filter changes
+  }
 
   // Order Detail Click Handler
   const handleOrderRowClick = (order: Order) => {
-    const fullOrderData = ordersData.find(o => o.id === order.id); // Ensure we pass the full original order object
+    const fullOrderData = ordersData.find((o) => o.id === order.id) // Ensure we pass the full original order object
     if (fullOrderData) {
-      setSelectedOrderForDetail(fullOrderData);
-      setIsDetailViewOpen(true);
+      setSelectedOrderForDetail(fullOrderData)
+      setIsDetailViewOpen(true)
       // Disable body scroll when modal opens
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden"
     }
-  };
+  }
 
   // Close Order Detail View
   const handleCloseDetailView = () => {
-    setIsDetailViewOpen(false);
-    setSelectedOrderForDetail(null);
+    setIsDetailViewOpen(false)
+    setSelectedOrderForDetail(null)
     // Re-enable body scroll when modal closes
-    document.body.style.overflow = 'unset';
-  };
+    document.body.style.overflow = "unset"
+  }
 
   // Data states
   const [ordersData, setOrdersData] = useState<Order[]>([])
 
   // Order Detail View states
-  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<Order | null>(null);
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<Order | null>(null)
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -408,20 +390,20 @@ export function OrderManagementHub() {
         paymentStatus: advancedFilters.paymentStatus,
         fulfillmentLocationId: advancedFilters.fulfillmentLocationId,
         items: advancedFilters.items,
-      };
+      }
       const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
         { page: currentPage, pageSize },
-        mergedFilters
+        mergedFilters,
       )
       setOrdersData(orders)
       setPagination(apiPagination)
-      
+
       // Only update timestamp on client side
-      if (typeof window !== 'undefined') {
-        setLastUpdated(formatGMT7TimeString());
+      if (typeof window !== "undefined") {
+        setLastUpdated(formatGMT7TimeString())
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch orders')
+      setError(err.message || "Failed to fetch orders")
       setOrdersData([])
       setPagination({
         page: 1,
@@ -444,15 +426,15 @@ export function OrderManagementHub() {
   // Handle escape key to close order detail modal
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isDetailViewOpen) {
+      if (event.key === "Escape" && isDetailViewOpen) {
         handleCloseDetailView()
       }
     }
 
     if (isDetailViewOpen) {
-      document.addEventListener('keydown', handleEscapeKey)
+      document.addEventListener("keydown", handleEscapeKey)
       return () => {
-        document.removeEventListener('keydown', handleEscapeKey)
+        document.removeEventListener("keydown", handleEscapeKey)
       }
     }
   }, [isDetailViewOpen])
@@ -464,34 +446,34 @@ export function OrderManagementHub() {
 
   // Remove individual filter
   const removeFilter = (filter: string) => {
-    if (filter.startsWith('Search:')) {
-      setSearchTerm('')
-    } else if (filter.startsWith('Status:')) {
-      setStatusFilter('all-status')
-    } else if (filter.startsWith('Channel:')) {
-      setChannelFilter('all-channels')
-    } else if (filter.startsWith('SLA:')) {
-      setActiveSlaFilter('all')
-    } else if (filter.startsWith('Order:')) {
-      setAdvancedFilters(prev => ({ ...prev, orderNumber: '' }))
-    } else if (filter.startsWith('Customer:')) {
-      setAdvancedFilters(prev => ({ ...prev, customerName: '' }))
-    } else if (filter.startsWith('Phone:')) {
-      setAdvancedFilters(prev => ({ ...prev, phoneNumber: '' }))
-    } else if (filter.startsWith('Email:')) {
-      setAdvancedFilters(prev => ({ ...prev, email: '' }))
-    } else if (filter.startsWith('Date:')) {
-      setAdvancedFilters(prev => ({ 
-        ...prev, 
-        orderDateFrom: undefined, 
-        orderDateTo: undefined 
+    if (filter.startsWith("Search:")) {
+      setSearchTerm("")
+    } else if (filter.startsWith("Status:")) {
+      setStatusFilter("all-status")
+    } else if (filter.startsWith("Channel:")) {
+      setChannelFilter("all-channels")
+    } else if (filter.startsWith("SLA:")) {
+      setActiveSlaFilter("all")
+    } else if (filter.startsWith("Order:")) {
+      setAdvancedFilters((prev) => ({ ...prev, orderNumber: "" }))
+    } else if (filter.startsWith("Customer:")) {
+      setAdvancedFilters((prev) => ({ ...prev, customerName: "" }))
+    } else if (filter.startsWith("Phone:")) {
+      setAdvancedFilters((prev) => ({ ...prev, phoneNumber: "" }))
+    } else if (filter.startsWith("Email:")) {
+      setAdvancedFilters((prev) => ({ ...prev, email: "" }))
+    } else if (filter.startsWith("Date:")) {
+      setAdvancedFilters((prev) => ({
+        ...prev,
+        orderDateFrom: undefined,
+        orderDateTo: undefined,
       }))
-    } else if (filter === 'SLA Exceeded') {
-      setAdvancedFilters(prev => ({ ...prev, exceedSLA: false }))
-    } else if (filter.startsWith('Location:')) {
-      setAdvancedFilters(prev => ({ ...prev, fulfillmentLocationId: '' }))
-    } else if (filter.startsWith('Items:')) {
-      setAdvancedFilters(prev => ({ ...prev, items: '' }))
+    } else if (filter === "SLA Exceeded") {
+      setAdvancedFilters((prev) => ({ ...prev, exceedSLA: false }))
+    } else if (filter.startsWith("Location:")) {
+      setAdvancedFilters((prev) => ({ ...prev, fulfillmentLocationId: "" }))
+    } else if (filter.startsWith("Items:")) {
+      setAdvancedFilters((prev) => ({ ...prev, items: "" }))
     }
     // Reset to first page when filter is removed
     setCurrentPage(1)
@@ -500,25 +482,25 @@ export function OrderManagementHub() {
   // Generate active filters for display
   const generateActiveFilters = useMemo(() => {
     const filters: string[] = []
-    
+
     if (searchTerm) filters.push(`Search: ${searchTerm}`)
-    if (statusFilter !== 'all-status') filters.push(`Status: ${statusFilter}`)
-    if (channelFilter !== 'all-channels') filters.push(`Channel: ${channelFilter}`)
-    if (activeSlaFilter !== 'all') filters.push(`SLA: ${activeSlaFilter}`)
-    
+    if (statusFilter !== "all-status") filters.push(`Status: ${statusFilter}`)
+    if (channelFilter !== "all-channels") filters.push(`Channel: ${channelFilter}`)
+    if (activeSlaFilter !== "all") filters.push(`SLA: ${activeSlaFilter}`)
+
     // Advanced filters
     if (advancedFilters.orderNumber) filters.push(`Order: ${advancedFilters.orderNumber}`)
     if (advancedFilters.customerName) filters.push(`Customer: ${advancedFilters.customerName}`)
     if (advancedFilters.phoneNumber) filters.push(`Phone: ${advancedFilters.phoneNumber}`)
     if (advancedFilters.email) filters.push(`Email: ${advancedFilters.email}`)
     if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
-      const dateRange = `${advancedFilters.orderDateFrom || 'Start'} - ${advancedFilters.orderDateTo || 'End'}`
+      const dateRange = `${advancedFilters.orderDateFrom || "Start"} - ${advancedFilters.orderDateTo || "End"}`
       filters.push(`Date: ${dateRange}`)
     }
-    if (advancedFilters.exceedSLA) filters.push('SLA Exceeded')
+    if (advancedFilters.exceedSLA) filters.push("SLA Exceeded")
     if (advancedFilters.fulfillmentLocationId) filters.push(`Location: ${advancedFilters.fulfillmentLocationId}`)
     if (advancedFilters.items) filters.push(`Items: ${advancedFilters.items}`)
-    
+
     return filters
   }, [searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
 
@@ -563,19 +545,19 @@ export function OrderManagementHub() {
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
     // Handle potential seconds-to-minutes conversion for SLA data
-    let slaInfo = order.sla_info;
+    let slaInfo = order.sla_info
     if (slaInfo) {
-      const targetValue = slaInfo.target_minutes;
-      const elapsedValue = slaInfo.elapsed_minutes;
+      const targetValue = slaInfo.target_minutes
+      const elapsedValue = slaInfo.elapsed_minutes
       if (targetValue > 1000 || elapsedValue > 1000) {
         slaInfo = {
           ...slaInfo,
           target_minutes: targetValue > 1000 ? Math.round(targetValue / 60) : targetValue,
           elapsed_minutes: elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue,
-        };
+        }
       }
     }
-    
+
     return {
       id: order.id,
       orderNo: order.order_no,
@@ -595,47 +577,59 @@ export function OrderManagementHub() {
 
   // Compute SLA stats and alerts for quick filter buttons
   const slaStats = useMemo(() => {
-    const nearBreachOrders = ordersData.filter(order => {
-      if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
-      
+    const nearBreachOrders = ordersData.filter((order) => {
+      if (
+        !order.sla_info ||
+        order.status === "DELIVERED" ||
+        order.status === "FULFILLED" ||
+        order.status === "CANCELLED"
+      )
+        return false
+
       // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes;
-      const elapsedValue = order.sla_info.elapsed_minutes;
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue;
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue;
-      
-      const remainingMinutes = targetMinutes - elapsedMinutes;
-      const criticalThreshold = targetMinutes * 0.2;
-      return ((remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH");
-    });
-    const breachedOrders = ordersData.filter(order => {
-      if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") return false;
-      
+      const targetValue = order.sla_info.target_minutes
+      const elapsedValue = order.sla_info.elapsed_minutes
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+
+      const remainingMinutes = targetMinutes - elapsedMinutes
+      const criticalThreshold = targetMinutes * 0.2
+      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
+    })
+    const breachedOrders = ordersData.filter((order) => {
+      if (
+        !order.sla_info ||
+        order.status === "DELIVERED" ||
+        order.status === "FULFILLED" ||
+        order.status === "CANCELLED"
+      )
+        return false
+
       // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes;
-      const elapsedValue = order.sla_info.elapsed_minutes;
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue;
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue;
-      
-      const remainingMinutes = targetMinutes - elapsedMinutes;
-      return (remainingMinutes <= 0 || order.sla_info.status === "BREACH");
+      const targetValue = order.sla_info.target_minutes
+      const elapsedValue = order.sla_info.elapsed_minutes
+      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
+      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+
+      const remainingMinutes = targetMinutes - elapsedMinutes
+      return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
     })
     return {
       all: ordersData.length,
       nearBreach: nearBreachOrders.length,
       breach: breachedOrders.length,
     }
-  }, [ordersData]);
+  }, [ordersData])
 
   // slaAlerts is just the breached orders for button enablement
-  const slaAlerts = slaStats.breach > 0; // True if there are any breached orders
+  const slaAlerts = slaStats.breach > 0 // True if there are any breached orders
 
   // Filter and map orders for table
   const filteredOrders = ordersData.filter((order) => {
     // Search term filter (searches across multiple fields)
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      const matchesSearch = 
+      const matchesSearch =
         order.id?.toLowerCase().includes(searchLower) ||
         order.order_no?.toLowerCase().includes(searchLower) ||
         order.customer?.name?.toLowerCase().includes(searchLower) ||
@@ -643,7 +637,7 @@ export function OrderManagementHub() {
         order.customer?.phone?.toLowerCase().includes(searchLower) ||
         order.channel?.toLowerCase().includes(searchLower) ||
         order.status?.toLowerCase().includes(searchLower)
-      
+
       if (!matchesSearch) return false
     }
 
@@ -661,13 +655,11 @@ export function OrderManagementHub() {
       }
     }
 
-
     // Advanced filters
     if (advancedFilters.orderNumber) {
       const orderNumberLower = advancedFilters.orderNumber.toLowerCase()
-      const matchesOrderNumber = 
-        order.id?.toLowerCase().includes(orderNumberLower) ||
-        order.order_no?.toLowerCase().includes(orderNumberLower)
+      const matchesOrderNumber =
+        order.id?.toLowerCase().includes(orderNumberLower) || order.order_no?.toLowerCase().includes(orderNumberLower)
       if (!matchesOrderNumber) return false
     }
 
@@ -718,9 +710,9 @@ export function OrderManagementHub() {
 
     if (advancedFilters.items) {
       const itemsLower = advancedFilters.items.toLowerCase()
-      const matchesItems = order.items?.some(item => 
-        item.product_name?.toLowerCase().includes(itemsLower) ||
-        item.product_sku?.toLowerCase().includes(itemsLower)
+      const matchesItems = order.items?.some(
+        (item) =>
+          item.product_name?.toLowerCase().includes(itemsLower) || item.product_sku?.toLowerCase().includes(itemsLower),
       )
       if (!matchesItems) return false
     }
@@ -728,12 +720,12 @@ export function OrderManagementHub() {
     // Date range filter
     if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
       const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
-      
+
       if (advancedFilters.orderDateFrom) {
         const fromDate = getGMT7Time(advancedFilters.orderDateFrom)
         if (orderDate < fromDate) return false
       }
-      
+
       if (advancedFilters.orderDateTo) {
         const toDate = getGMT7Time(advancedFilters.orderDateTo)
         toDate.setHours(23, 59, 59, 999) // Include the entire day
@@ -747,13 +739,13 @@ export function OrderManagementHub() {
         return false
       }
       if (!order.sla_info) return false
-      
+
       // Handle potential seconds-to-minutes conversion
       const targetValue = order.sla_info.target_minutes
       const elapsedValue = order.sla_info.elapsed_minutes
       const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
       const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-      
+
       const remainingMinutes = targetMinutes - elapsedMinutes
       const criticalThreshold = targetMinutes * 0.2
       return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
@@ -762,13 +754,13 @@ export function OrderManagementHub() {
         return false
       }
       if (!order.sla_info) return false
-      
+
       // Handle potential seconds-to-minutes conversion
       const targetValue = order.sla_info.target_minutes
       const elapsedValue = order.sla_info.elapsed_minutes
       const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
       const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-      
+
       const remainingMinutes = targetMinutes - elapsedMinutes
       return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
     }
@@ -776,13 +768,13 @@ export function OrderManagementHub() {
     // SLA exceed filter from advanced filters
     if (advancedFilters.exceedSLA) {
       if (!order.sla_info) return false
-      
+
       // Handle potential seconds-to-minutes conversion
       const targetValue = order.sla_info.target_minutes
       const elapsedValue = order.sla_info.elapsed_minutes
       const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
       const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-      
+
       const remainingMinutes = targetMinutes - elapsedMinutes
       if (remainingMinutes > 0 && order.sla_info.status !== "BREACH") return false
     }
@@ -824,7 +816,9 @@ export function OrderManagementHub() {
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 PAYMENT STATUS
               </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">CONFIRMED</TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
+                CONFIRMED
+              </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 SELLING CHANNEL
               </TableHead>
@@ -847,17 +841,19 @@ export function OrderManagementHub() {
               ordersToShow.map((order) => (
                 <TableRow key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
                   <TableCell className="cursor-pointer text-blue-600 hover:text-blue-800">
-                    <button 
-                      onClick={() => handleOrderRowClick(ordersData.find(o => o.id === order.id) || order)}
+                    <button
+                      onClick={() => handleOrderRowClick(ordersData.find((o) => o.id === order.id) || order)}
                       className="hover:underline text-left"
                     >
                       {order.id}
                     </button>
                   </TableCell>
                   <TableCell>{order.orderNo}</TableCell>
-                  <TableCell>฿{order.total_amount?.toLocaleString() || '0'}</TableCell>
+                  <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
                   <TableCell>{order.sellingLocationId}</TableCell>
-                  <TableCell><OrderStatusBadge status={order.status} /></TableCell>
+                  <TableCell>
+                    <OrderStatusBadge status={order.status} />
+                  </TableCell>
                   <TableCell>
                     <SLABadge
                       targetMinutes={order.slaStatus?.target_minutes ?? 0}
@@ -865,11 +861,19 @@ export function OrderManagementHub() {
                       status={order.status}
                     />
                   </TableCell>
-                  <TableCell><ReturnStatusBadge status={order.returnStatus} /></TableCell>
-                  <TableCell><OnHoldBadge onHold={order.onHold} /></TableCell>
-                  <TableCell><PaymentStatusBadge status={order.paymentStatus} /></TableCell>
+                  <TableCell>
+                    <ReturnStatusBadge status={order.returnStatus} />
+                  </TableCell>
+                  <TableCell>
+                    <OnHoldBadge onHold={order.onHold} />
+                  </TableCell>
+                  <TableCell>
+                    <PaymentStatusBadge status={order.paymentStatus} />
+                  </TableCell>
                   <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
-                  <TableCell><ChannelBadge channel={order.channel} /></TableCell>
+                  <TableCell>
+                    <ChannelBadge channel={order.channel} />
+                  </TableCell>
                   <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
                   <TableCell>{order.createdDate}</TableCell>
                 </TableRow>
@@ -878,16 +882,14 @@ export function OrderManagementHub() {
           </TableBody>
         </Table>
       </div>
-    );
+    )
   }
   return (
     <>
       <Card className="w-full max-w-none">
         <CardHeader className="border-b border-medium-gray bg-white p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-deep-navy font-heading">
-              Order Management Hub
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-deep-navy font-heading">Order Management Hub</CardTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -916,9 +918,27 @@ export function OrderManagementHub() {
           </div>
           {/* Quick filters section */}
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant={activeSlaFilter === "all" ? "default" : "outline"} onClick={() => handleSlaFilterChange("all")} className="text-xs px-2 py-1 h-auto">All ({slaStats.all})</Button>
-            <Button variant={activeSlaFilter === "near-breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("near-breach")} className="text-xs px-2 py-1 h-auto bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200">Near Breach ({slaStats.nearBreach})</Button>
-            <Button variant={activeSlaFilter === "breach" ? "default" : "outline"} onClick={() => handleSlaFilterChange("breach")} className="text-xs px-2 py-1 h-auto bg-red-100 text-red-700 border-red-300 hover:bg-red-200">Breach ({slaStats.breach})</Button>
+            <Button
+              variant={activeSlaFilter === "all" ? "default" : "outline"}
+              onClick={() => handleSlaFilterChange("all")}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              All ({slaStats.all})
+            </Button>
+            <Button
+              variant={activeSlaFilter === "near-breach" ? "default" : "outline"}
+              onClick={() => handleSlaFilterChange("near-breach")}
+              className="text-xs px-2 py-1 h-auto bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
+            >
+              Near Breach ({slaStats.nearBreach})
+            </Button>
+            <Button
+              variant={activeSlaFilter === "breach" ? "default" : "outline"}
+              onClick={() => handleSlaFilterChange("breach")}
+              className="text-xs px-2 py-1 h-auto bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
+            >
+              Breach ({slaStats.breach})
+            </Button>
           </div>
 
           {/* Basic filters row */}
@@ -982,7 +1002,11 @@ export function OrderManagementHub() {
           {isMounted && generateActiveFilters.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-2">
               {generateActiveFilters.map((filter) => (
-                <Badge key={filter} variant="outline" className="bg-light-gray text-deep-navy font-mono text-sm transition-colors duration-150 shadow-sm hover:shadow-md hover:bg-enterprise-light/70 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none">
+                <Badge
+                  key={filter}
+                  variant="outline"
+                  className="bg-light-gray text-deep-navy font-mono text-sm transition-colors duration-150 shadow-sm hover:shadow-md hover:bg-enterprise-light/70 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none"
+                >
                   {filter}
                   <button
                     onClick={() => removeFilter(filter)}
@@ -1030,24 +1054,21 @@ export function OrderManagementHub() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Order Detail View Modal/Overlay */}
       {isDetailViewOpen && selectedOrderForDetail && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
           onClick={handleCloseDetailView}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <OrderDetailView
-              order={selectedOrderForDetail}
-              onClose={handleCloseDetailView}
-            />
+            <OrderDetailView order={selectedOrderForDetail} onClose={handleCloseDetailView} />
           </div>
         </div>
       )}
     </>
-  );
+  )
 }
