@@ -544,19 +544,8 @@ export function OrderManagementHub() {
 
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
-    // Handle potential seconds-to-minutes conversion for SLA data
+    // SLA data is already in seconds, pass through as-is for SLA badge component to handle
     let slaInfo = order.sla_info
-    if (slaInfo) {
-      const targetValue = slaInfo.target_minutes
-      const elapsedValue = slaInfo.elapsed_minutes
-      if (targetValue > 1000 || elapsedValue > 1000) {
-        slaInfo = {
-          ...slaInfo,
-          target_minutes: targetValue > 1000 ? Math.round(targetValue / 60) : targetValue,
-          elapsed_minutes: elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue,
-        }
-      }
-    }
 
     return {
       id: order.id,
@@ -586,15 +575,13 @@ export function OrderManagementHub() {
       )
         return false
 
-      // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes
-      const elapsedValue = order.sla_info.elapsed_minutes
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
+      const targetSeconds = order.sla_info.target_minutes || 300
+      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
 
-      const remainingMinutes = targetMinutes - elapsedMinutes
-      const criticalThreshold = targetMinutes * 0.2
-      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
+      const remainingSeconds = targetSeconds - elapsedSeconds
+      const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
+      return (remainingSeconds <= criticalThreshold && remainingSeconds > 0) || order.sla_info.status === "NEAR_BREACH"
     })
     const breachedOrders = ordersData.filter((order) => {
       if (
@@ -605,14 +592,12 @@ export function OrderManagementHub() {
       )
         return false
 
-      // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes
-      const elapsedValue = order.sla_info.elapsed_minutes
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
+      const targetSeconds = order.sla_info.target_minutes || 300
+      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
 
-      const remainingMinutes = targetMinutes - elapsedMinutes
-      return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+      // Over SLA if elapsed time exceeds target
+      return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
     })
     return {
       all: ordersData.length,
@@ -740,43 +725,37 @@ export function OrderManagementHub() {
       }
       if (!order.sla_info) return false
 
-      // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes
-      const elapsedValue = order.sla_info.elapsed_minutes
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
+      const targetSeconds = order.sla_info.target_minutes || 300
+      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
 
-      const remainingMinutes = targetMinutes - elapsedMinutes
-      const criticalThreshold = targetMinutes * 0.2
-      return (remainingMinutes <= criticalThreshold && remainingMinutes > 0) || order.sla_info.status === "NEAR_BREACH"
+      const remainingSeconds = targetSeconds - elapsedSeconds
+      const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
+      return (remainingSeconds <= criticalThreshold && remainingSeconds > 0) || order.sla_info.status === "NEAR_BREACH"
     } else if (activeSlaFilter === "breach") {
       if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
         return false
       }
       if (!order.sla_info) return false
 
-      // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes
-      const elapsedValue = order.sla_info.elapsed_minutes
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
+      const targetSeconds = order.sla_info.target_minutes || 300
+      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
 
-      const remainingMinutes = targetMinutes - elapsedMinutes
-      return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+      // Over SLA if elapsed time exceeds target
+      return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
     }
 
     // SLA exceed filter from advanced filters
     if (advancedFilters.exceedSLA) {
       if (!order.sla_info) return false
 
-      // Handle potential seconds-to-minutes conversion
-      const targetValue = order.sla_info.target_minutes
-      const elapsedValue = order.sla_info.elapsed_minutes
-      const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-      const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
+      const targetSeconds = order.sla_info.target_minutes || 300
+      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
 
-      const remainingMinutes = targetMinutes - elapsedMinutes
-      if (remainingMinutes > 0 && order.sla_info.status !== "BREACH") return false
+      // Only show orders that exceed SLA (elapsed > target)
+      if (elapsedSeconds <= targetSeconds && order.sla_info.status !== "BREACH") return false
     }
 
     return true

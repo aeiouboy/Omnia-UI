@@ -765,7 +765,7 @@ export function ExecutiveDashboard() {
 
         return {
           id: order.id,
-          order_number: order.order_no || order.id,
+          order_number: order.id, // Use full order ID instead of short order_no
           channel: order.channel,
           remaining: remainingSeconds,
         }
@@ -1704,7 +1704,7 @@ export function ExecutiveDashboard() {
 
               {/* Order Alerts */}
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-4 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
                       <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
@@ -1789,7 +1789,8 @@ export function ExecutiveDashboard() {
                           {approachingSla.map((item, index) => (
                             <div
                               key={index}
-                              className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors"
+                              className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors touch-manipulation"
+                              style={{ WebkitOverflowScrolling: 'touch' }}
                             >
                               {/* Mobile layout: stacked */}
                               <div className="flex flex-col space-y-2 sm:hidden">
