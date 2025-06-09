@@ -418,12 +418,13 @@ export function ExecutiveDashboard() {
       }
 
       if (isBreach) {
-        description = `SLA breach detected for order ${orderNumber}. Target: ${Math.round(alertOrder.target_minutes / 60)}min, Elapsed: ${Math.round(alertOrder.elapsed_minutes / 60)}min`
+        const timeOverTarget = Math.round(alertOrder.elapsed_minutes / 60) - Math.round(alertOrder.target_minutes / 60)
+        description = `SLA breach detected for order ${orderNumber}. Target: ${Math.round(alertOrder.target_minutes / 60)}min, Elapsed: ${Math.round(alertOrder.elapsed_minutes / 60)}min (${timeOverTarget} min over)`
         additionalInfo = {
           ...additionalInfo,
           targetMinutes: `${Math.round(alertOrder.target_minutes / 60)} minutes`,
           elapsedMinutes: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
-          currentDelay: `${Math.round(alertOrder.elapsed_minutes / 60) - Math.round(alertOrder.target_minutes / 60)} minutes over target`,
+          timeOverTarget: `${timeOverTarget} minutes over SLA target`,
           processingTime: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
         }
       } else {
@@ -1663,7 +1664,7 @@ export function ExecutiveDashboard() {
                     </div>
                     {orderAlerts.map((alert, index) => (
                       <div key={index} className="border-l-2 border-red-500 pl-3 py-1 ml-1 text-xs">
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           <div>
                             <div className="text-muted-foreground">Order:</div>
                             <div>{alert.order_number}</div>
@@ -1687,6 +1688,15 @@ export function ExecutiveDashboard() {
                           <div>
                             <div className="text-muted-foreground">Elapsed:</div>
                             <div className="text-red-600 font-medium">{Math.round(alert.elapsed_minutes / 60)} min</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Time Left:</div>
+                            <div className="text-red-600 font-medium">
+                              {(() => {
+                                const timeLeft = Math.round((alert.target_minutes - alert.elapsed_minutes) / 60)
+                                return timeLeft <= 0 ? `${Math.abs(timeLeft)} min over` : `${timeLeft} min`
+                              })()}
+                            </div>
                           </div>
                         </div>
                       </div>
