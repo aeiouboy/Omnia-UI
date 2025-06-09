@@ -5,7 +5,7 @@ import { TeamsWebhookService } from "@/lib/teams-webhook"
 import { useToast } from "@/components/ui/use-toast"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useSwipeTabs } from "@/hooks/use-swipe-tabs"
-import { getGMT7Time, formatGMT7DateString, formatGMT7DateTime } from "@/lib/utils"
+import { getGMT7Time, formatGMT7DateString, formatGMT7DateTime, normalizeTimeUnit } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -418,19 +418,19 @@ export function ExecutiveDashboard() {
       }
 
       if (isBreach) {
-        description = `SLA breach detected for order ${orderNumber}. Target: ${alertOrder.target_minutes}min, Elapsed: ${alertOrder.elapsed_minutes}min`
+        description = `SLA breach detected for order ${orderNumber}. Target: ${normalizeTimeUnit(alertOrder.target_minutes)}min, Elapsed: ${normalizeTimeUnit(alertOrder.elapsed_minutes)}min`
         additionalInfo = {
           ...additionalInfo,
-          targetMinutes: `${alertOrder.target_minutes} minutes`,
-          elapsedMinutes: `${alertOrder.elapsed_minutes} minutes`,
-          currentDelay: `${alertOrder.elapsed_minutes - alertOrder.target_minutes} minutes over target`,
-          processingTime: `${alertOrder.elapsed_minutes} minutes`,
+          targetMinutes: `${normalizeTimeUnit(alertOrder.target_minutes)} minutes`,
+          elapsedMinutes: `${normalizeTimeUnit(alertOrder.elapsed_minutes)} minutes`,
+          currentDelay: `${normalizeTimeUnit(alertOrder.elapsed_minutes) - normalizeTimeUnit(alertOrder.target_minutes)} minutes over target`,
+          processingTime: `${normalizeTimeUnit(alertOrder.elapsed_minutes)} minutes`,
         }
       } else {
-        description = `SLA warning for order ${orderNumber}. Only ${alertOrder.remaining} minutes remaining.`
+        description = `SLA warning for order ${orderNumber}. Only ${normalizeTimeUnit(alertOrder.remaining)} minutes remaining.`
         additionalInfo = {
           ...additionalInfo,
-          remainingMinutes: `${alertOrder.remaining} minutes`,
+          remainingMinutes: `${normalizeTimeUnit(alertOrder.remaining)} minutes`,
           alertLevel: "Approaching SLA deadline",
         }
       }
@@ -1698,11 +1698,11 @@ export function ExecutiveDashboard() {
                           </div>
                           <div>
                             <div className="text-muted-foreground">Target:</div>
-                            <div>{alert.target_minutes} min</div>
+                            <div>{normalizeTimeUnit(alert.target_minutes)} min</div>
                           </div>
                           <div>
                             <div className="text-muted-foreground">Elapsed:</div>
-                            <div className="text-red-600 font-medium">{alert.elapsed_minutes} min</div>
+                            <div className="text-red-600 font-medium">{normalizeTimeUnit(alert.elapsed_minutes)} min</div>
                           </div>
                         </div>
                       </div>
@@ -1748,7 +1748,7 @@ export function ExecutiveDashboard() {
                                 </div>
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-yellow-800">
-                                    {item.remaining} min remaining
+                                    {normalizeTimeUnit(item.remaining)} min remaining
                                   </span>
                                 </div>
                               </div>
@@ -1770,7 +1770,7 @@ export function ExecutiveDashboard() {
                               <div className="flex items-center space-x-2 flex-shrink-0">
                                 <div className="text-right">
                                   <div className="text-xs font-bold text-yellow-800">
-                                    {item.remaining} min
+                                    {normalizeTimeUnit(item.remaining)} min
                                   </div>
                                   <div className="text-xs text-yellow-600">
                                     remaining
