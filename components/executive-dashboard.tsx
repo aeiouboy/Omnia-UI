@@ -418,19 +418,19 @@ export function ExecutiveDashboard() {
       }
 
       if (isBreach) {
-        description = `SLA breach detected for order ${orderNumber}. Target: ${normalizeTimeUnit(alertOrder.target_minutes)}min, Elapsed: ${normalizeTimeUnit(alertOrder.elapsed_minutes)}min`
+        description = `SLA breach detected for order ${orderNumber}. Target: ${Math.round(alertOrder.target_minutes / 60)}min, Elapsed: ${Math.round(alertOrder.elapsed_minutes / 60)}min`
         additionalInfo = {
           ...additionalInfo,
-          targetMinutes: `${normalizeTimeUnit(alertOrder.target_minutes)} minutes`,
-          elapsedMinutes: `${normalizeTimeUnit(alertOrder.elapsed_minutes)} minutes`,
-          currentDelay: `${normalizeTimeUnit(alertOrder.elapsed_minutes) - normalizeTimeUnit(alertOrder.target_minutes)} minutes over target`,
-          processingTime: `${normalizeTimeUnit(alertOrder.elapsed_minutes)} minutes`,
+          targetMinutes: `${Math.round(alertOrder.target_minutes / 60)} minutes`,
+          elapsedMinutes: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
+          currentDelay: `${Math.round(alertOrder.elapsed_minutes / 60) - Math.round(alertOrder.target_minutes / 60)} minutes over target`,
+          processingTime: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
         }
       } else {
-        description = `SLA warning for order ${orderNumber}. Only ${normalizeTimeUnit(alertOrder.remaining)} minutes remaining.`
+        description = `SLA warning for order ${orderNumber}. Only ${Math.round(alertOrder.remaining / 60)} minutes remaining.`
         additionalInfo = {
           ...additionalInfo,
-          remainingMinutes: `${normalizeTimeUnit(alertOrder.remaining)} minutes`,
+          remainingMinutes: `${Math.round(alertOrder.remaining / 60)} minutes`,
           alertLevel: "Approaching SLA deadline",
         }
       }
@@ -1682,11 +1682,11 @@ export function ExecutiveDashboard() {
                           </div>
                           <div>
                             <div className="text-muted-foreground">Target:</div>
-                            <div>{normalizeTimeUnit(alert.target_minutes)} min</div>
+                            <div>{Math.round(alert.target_minutes / 60)} min</div>
                           </div>
                           <div>
                             <div className="text-muted-foreground">Elapsed:</div>
-                            <div className="text-red-600 font-medium">{normalizeTimeUnit(alert.elapsed_minutes)} min</div>
+                            <div className="text-red-600 font-medium">{Math.round(alert.elapsed_minutes / 60)} min</div>
                           </div>
                         </div>
                       </div>
@@ -1732,7 +1732,7 @@ export function ExecutiveDashboard() {
                                 </div>
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-yellow-800">
-                                    {normalizeTimeUnit(item.remaining)} min remaining
+                                    {Math.round(item.remaining / 60)} min remaining
                                   </span>
                                 </div>
                               </div>
@@ -1754,7 +1754,7 @@ export function ExecutiveDashboard() {
                               <div className="flex items-center space-x-2 flex-shrink-0">
                                 <div className="text-right">
                                   <div className="text-xs font-bold text-yellow-800">
-                                    {normalizeTimeUnit(item.remaining)} min
+                                    {Math.round(item.remaining / 60)} min
                                   </div>
                                   <div className="text-xs text-yellow-600">
                                     remaining
