@@ -3,9 +3,10 @@
 import type React from "react"
 import { UserNav } from "@/components/user-nav"
 import { SideNav } from "@/components/side-nav"
-import { RefreshCw, Menu } from "lucide-react"
+import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle } from "lucide-react"
+import { BottomNav } from "@/components/ui/bottom-nav"
 import { useSidebar } from "@/contexts/sidebar-context"
-import { cn } from "@/lib/utils"
+import { cn, formatGMT7TimeString } from "@/lib/utils"
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -13,12 +14,31 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const { isCollapsed, isMobile, setIsMobileOpen } = useSidebar()
-  const currentTime = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  })
+  const currentTime = formatGMT7TimeString()
+
+  const bottomNavItems = [
+    {
+      href: "/",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />
+    },
+    {
+      href: "/orders", 
+      label: "Orders",
+      icon: <Search className="h-5 w-5" />
+    },
+    {
+      href: "/inventory",
+      label: "Inventory", 
+      icon: <Package className="h-5 w-5" />
+    },
+    {
+      href: "/escalations",
+      label: "Alerts",
+      icon: <AlertTriangle className="h-5 w-5" />,
+      badge: 2 // Example badge for alerts
+    }
+  ]
 
   return (
     <div className="min-h-screen">
@@ -60,8 +80,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg font-semibold">Central Group OMS</h1>
-                <p className="text-xs text-gray-300">Enterprise Command Center</p>
+                <h1 className="text-lg font-semibold text-white">Central Group OMS</h1>
+                <p className="text-xs text-gray-100">Enterprise Command Center</p>
               </div>
             </div>
             <div className="ml-auto flex items-center gap-4">
@@ -70,19 +90,20 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <span>Refresh</span>
               </button>
               <div className="text-sm hidden sm:block">
-                <span className="text-gray-300">Last updated:</span> {currentTime}
+                <span className="text-gray-200">Last updated:</span> {currentTime}
               </div>
               <UserNav />
             </div>
           </div>
         </header>
-        <main className="flex-1 bg-enterprise-light p-6">{children}</main>
-        <footer className="bg-enterprise-dark text-white border-t border-enterprise-border">
+        <main className="flex-1 bg-enterprise-light p-6 pb-20 md:pb-6">{children}</main>
+        <footer className="bg-enterprise-dark text-white border-t border-enterprise-border hidden md:block">
           <div className="flex h-12 items-center justify-center px-6">
             <div className="text-xs text-gray-300">Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.</div>
           </div>
         </footer>
       </div>
+      <BottomNav items={bottomNavItems} />
     </div>
   )
 }

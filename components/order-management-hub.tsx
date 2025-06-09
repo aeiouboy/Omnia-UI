@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -304,13 +305,7 @@ export function OrderManagementHub() {
     setIsMounted(true);
     // Set initial timestamp only after client mount
     const updateTimestamp = () => {
-      const now = new Date();
-      setLastUpdated(now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      }));
+      setLastUpdated(formatGMT7TimeString());
     };
     updateTimestamp();
 
@@ -423,12 +418,7 @@ export function OrderManagementHub() {
       
       // Only update timestamp on client side
       if (typeof window !== 'undefined') {
-        setLastUpdated(new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false
-        }));
+        setLastUpdated(formatGMT7TimeString());
       }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch orders')
@@ -599,7 +589,7 @@ export function OrderManagementHub() {
       confirmed: order.confirmed ?? false,
       channel: order.channel,
       allowSubstitution: order.allow_substitution ?? false,
-      createdDate: order.metadata?.created_at ?? "",
+      createdDate: order.metadata?.created_at ? formatGMT7DateTime(order.metadata.created_at) : "",
     }
   }
 
@@ -737,15 +727,15 @@ export function OrderManagementHub() {
 
     // Date range filter
     if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
-      const orderDate = new Date(order.order_date || order.metadata?.created_at)
+      const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
       
       if (advancedFilters.orderDateFrom) {
-        const fromDate = new Date(advancedFilters.orderDateFrom)
+        const fromDate = getGMT7Time(advancedFilters.orderDateFrom)
         if (orderDate < fromDate) return false
       }
       
       if (advancedFilters.orderDateTo) {
-        const toDate = new Date(advancedFilters.orderDateTo)
+        const toDate = getGMT7Time(advancedFilters.orderDateTo)
         toDate.setHours(23, 59, 59, 999) // Include the entire day
         if (orderDate > toDate) return false
       }

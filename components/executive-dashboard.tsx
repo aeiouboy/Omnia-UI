@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react"
 import { TeamsWebhookService } from "@/lib/teams-webhook"
 import { useToast } from "@/components/ui/use-toast"
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
+import { useSwipeTabs } from "@/hooks/use-swipe-tabs"
+import { getGMT7Time, formatGMT7DateString, formatGMT7DateTime } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -23,8 +26,12 @@ import {
   Search,
   Filter,
   Download,
+  Eye,
+  Edit,
+  Trash2,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { SwipeableListItem } from "@/components/ui/swipeable-list-item"
 import {
   LineChart,
   Line,
@@ -141,12 +148,12 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
 
     console.log("🔄 Fetching last 7 days orders from API for dashboard...")
     
-    // Calculate date range for last 7 days - using UTC to ensure consistency
-    const endDate = new Date()
-    endDate.setUTCHours(23, 59, 59, 999) // End of today in UTC
-    const startDate = new Date()
+    // Calculate date range for last 7 days - using GMT+7 timezone
+    const endDate = getGMT7Time()
+    endDate.setHours(23, 59, 59, 999) // End of today in GMT+7
+    const startDate = getGMT7Time()
     startDate.setDate(endDate.getDate() - 7)
-    startDate.setUTCHours(0, 0, 0, 0) // Start of 7 days ago in UTC
+    startDate.setHours(0, 0, 0, 0) // Start of 7 days ago in GMT+7
     
     const dateFrom = startDate.toISOString().split('T')[0]
     const dateTo = endDate.toISOString().split('T')[0]
@@ -182,7 +189,7 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
           
           // Additional client-side filtering to ensure we only get last 7 days
           const filteredOrders = orders.filter((order: ApiOrder) => {
-            const orderDate = new Date(order.order_date || order.metadata?.created_at)
+            const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
             return orderDate >= startDate && orderDate <= endDate
           })
           
@@ -237,6 +244,136 @@ export function ExecutiveDashboard() {
   const [channelPerformance, setChannelPerformance] = useState<any[]>([])
   const [topProducts, setTopProducts] = useState<any[]>([])
   const [revenueByCategory, setRevenueByCategory] = useState<any[]>([])
+
+  const loadData = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Load all data in parallel with error handling for each request
+      const [
+        ordersData,
+        breachesData,
+        channelData,
+        alertsData,
+        approachingData,
+        processingData,
+        complianceData,
+        recentOrdersData,
+        dailyOrdersData,
+        fulfillmentData,
+        channelPerfData,
+        productsData,
+        categoryData,
+      ] = await Promise.all([
+        fetchOrdersProcessing().catch((err) => {
+          console.error("Error fetching orders processing:", err)
+          return { count: 0, change: 0, orders: [] }
+        }),
+        fetchSlaBreaches().catch((err) => {
+          console.error("Error fetching SLA breaches:", err)
+          return { count: 0, change: 0, breaches: [] }
+        }),
+        fetchChannelVolume().catch((err) => {
+          console.error("Error fetching channel volume:", err)
+          return [
+            { channel: "GRAB", orders: 0 },
+            { channel: "LAZADA", orders: 0 },
+            { channel: "SHOPEE", orders: 0 },
+            { channel: "TIKTOK", orders: 0 },
+          ]
+        }),
+        fetchOrderAlerts().catch((err) => {
+          console.error("Error fetching order alerts:", err)
+          return []
+        }),
+        fetchApproachingSla().catch((err) => {
+          console.error("Error fetching approaching SLA:", err)
+          return []
+        }),
+        fetchProcessingTimes().catch((err) => {
+          console.error("Error fetching processing times:", err)
+          return []
+        }),
+        fetchSlaCompliance().catch((err) => {
+          console.error("Error fetching SLA compliance:", err)
+          return []
+        }),
+        fetchRecentOrders().catch((err) => {
+          console.error("Error fetching recent orders:", err)
+          return []
+        }),
+        fetchDailyOrders().catch((err) => {
+          console.error("Error fetching daily orders:", err)
+          return []
+        }),
+        fetchFulfillmentByBranch().catch((err) => {
+          console.error("Error fetching fulfillment by branch:", err)
+          return []
+        }),
+        fetchChannelPerformance().catch((err) => {
+          console.error("Error fetching channel performance:", err)
+          return []
+        }),
+        fetchTopProducts().catch((err) => {
+          console.error("Error fetching top products:", err)
+          return []
+        }),
+        fetchRevenueByCategory().catch((err) => {
+          console.error("Error fetching revenue by category:", err)
+          return []
+        }),
+      ])
+
+      // Set KPI data - all based on real data now
+      const allOrders = await fetchOrdersFromApi()
+      const fulfillmentRate = calculateFulfillmentRate(allOrders)
+      const activeOrdersCount = calculateActiveOrders(allOrders)
+      
+      setKpiData({
+        ordersProcessing: { value: ordersData.count, change: 0 }, // Real count, change calculation would need historical data
+        slaBreaches: { value: breachesData.count, change: 0 }, // Real count, change calculation would need historical data  
+        revenueToday: { value: calculateRevenue(allOrders), change: 0 }, // Real revenue, change calculation would need historical data
+        avgProcessingTime: { value: calculateAvgProcessingTime(ordersData.orders), change: 0 }, // Real avg time, change calculation would need historical data
+        activeOrders: { value: activeOrdersCount, change: 0 }, // Real active orders count
+        fulfillmentRate: { value: fulfillmentRate, change: 0 }, // Real fulfillment rate
+      })
+
+      // Set other data
+      setChannelVolume(channelData)
+      setOrderAlerts(alertsData)
+      setApproachingSla(approachingData)
+      setProcessingTimes(processingData)
+      setSlaCompliance(complianceData)
+      setRecentOrders(recentOrdersData)
+      setDailyOrders(dailyOrdersData)
+      setFulfillmentByBranch(fulfillmentData)
+      setChannelPerformance(channelPerfData)
+      setTopProducts(productsData)
+      setRevenueByCategory(categoryData)
+    } catch (err) {
+      console.error("Failed to load dashboard data:", err)
+      setError("Failed to load dashboard data. Please try again later.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const { containerRef, isRefreshing: isPullRefreshing, pullToRefreshIndicator } = usePullToRefresh({
+    onRefresh: loadData,
+    threshold: 80
+  })
+
+  const tabs = ["overview", "orders", "fulfillment", "analytics"]
+  const { 
+    containerRef: tabsContainerRef, 
+    swipeProps, 
+    swipeIndicator 
+  } = useSwipeTabs({
+    tabs,
+    activeTab,
+    onTabChange: setActiveTab
+  })
 
   useEffect(() => {
     setIsMounted(true)
@@ -790,8 +927,8 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
       // Sort by date descending and show up to 50 orders for better visibility
       const sortedOrders = orders.sort((a, b) => {
-        const dateA = new Date(a.order_date || a.metadata?.created_at).getTime()
-        const dateB = new Date(b.order_date || b.metadata?.created_at).getTime()
+        const dateA = getGMT7Time(a.order_date || a.metadata?.created_at).getTime()
+        const dateB = getGMT7Time(b.order_date || b.metadata?.created_at).getTime()
         return dateB - dateA // Most recent first
       })
       const recentOrders = sortedOrders.slice(0, 50)
@@ -807,7 +944,7 @@ export function ExecutiveDashboard() {
         channel: order.channel,
         status: order.status || "CREATED",
         total: `฿${(order.total_amount || 0).toLocaleString()}`,
-        date: order.order_date ? new Date(order.order_date).toISOString().split('T')[0] : "N/A",
+        date: order.order_date ? formatGMT7DateString(order.order_date) : "N/A",
       }))
     } catch (err) {
       console.warn("Error fetching recent orders:", err)
@@ -867,12 +1004,12 @@ export function ExecutiveDashboard() {
       // Create consistent 7-day structure using UTC dates
       const createDailyStructure = () => {
         const dailyData = {}
-        const today = new Date()
+        const today = getGMT7Time()
         
         for (let i = 6; i >= 0; i--) {
-          const date = new Date(today)
-          date.setUTCDate(date.getUTCDate() - i)
-          const dateKey = date.toISOString().split("T")[0]
+          const date = getGMT7Time(today)
+          date.setDate(date.getDate() - i)
+          const dateKey = formatGMT7DateString(date).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
           dailyData[dateKey] = { 
             date: dateKey, 
             GRAB: 0, 
@@ -890,8 +1027,8 @@ export function ExecutiveDashboard() {
       if (orders && orders.length > 0) {
         // Populate with real data from last 7 days
         orders.forEach((order) => {
-          const orderDate = new Date(order.order_date || order.metadata?.created_at)
-          const dateKey = orderDate.toISOString().split("T")[0]
+          const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
+          const dateKey = formatGMT7DateString(orderDate).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
           
           // Only include if it's within our 7-day window
           if (dailyData[dateKey]) {
@@ -913,12 +1050,12 @@ export function ExecutiveDashboard() {
       console.warn("Error in fetchDailyOrders:", err)
       // Return consistent empty structure on error
       const dailyData = {}
-      const today = new Date()
+      const today = getGMT7Time()
 
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(today)
-        date.setUTCDate(date.getUTCDate() - i)
-        const dateKey = date.toISOString().split("T")[0]
+        const date = getGMT7Time(today)
+        date.setDate(date.getDate() - i)
+        const dateKey = formatGMT7DateString(date).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
         dailyData[dateKey] = { 
           date: dateKey, 
           GRAB: 0, 
@@ -1155,120 +1292,6 @@ export function ExecutiveDashboard() {
     }
   }
 
-  const loadData = async () => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // Load all data in parallel with error handling for each request
-      const [
-        ordersData,
-        breachesData,
-        channelData,
-        alertsData,
-        approachingData,
-        processingData,
-        complianceData,
-        recentOrdersData,
-        dailyOrdersData,
-        fulfillmentData,
-        channelPerfData,
-        productsData,
-        categoryData,
-      ] = await Promise.all([
-        fetchOrdersProcessing().catch((err) => {
-          console.error("Error fetching orders processing:", err)
-          return { count: 0, change: 0, orders: [] }
-        }),
-        fetchSlaBreaches().catch((err) => {
-          console.error("Error fetching SLA breaches:", err)
-          return { count: 0, change: 0, breaches: [] }
-        }),
-        fetchChannelVolume().catch((err) => {
-          console.error("Error fetching channel volume:", err)
-          return [
-            { channel: "GRAB", orders: 0 },
-            { channel: "LAZADA", orders: 0 },
-            { channel: "SHOPEE", orders: 0 },
-            { channel: "TIKTOK", orders: 0 },
-          ]
-        }),
-        fetchOrderAlerts().catch((err) => {
-          console.error("Error fetching order alerts:", err)
-          return []
-        }),
-        fetchApproachingSla().catch((err) => {
-          console.error("Error fetching approaching SLA:", err)
-          return []
-        }),
-        fetchProcessingTimes().catch((err) => {
-          console.error("Error fetching processing times:", err)
-          return []
-        }),
-        fetchSlaCompliance().catch((err) => {
-          console.error("Error fetching SLA compliance:", err)
-          return []
-        }),
-        fetchRecentOrders().catch((err) => {
-          console.error("Error fetching recent orders:", err)
-          return []
-        }),
-        fetchDailyOrders().catch((err) => {
-          console.error("Error fetching daily orders:", err)
-          return []
-        }),
-        fetchFulfillmentByBranch().catch((err) => {
-          console.error("Error fetching fulfillment by branch:", err)
-          return []
-        }),
-        fetchChannelPerformance().catch((err) => {
-          console.error("Error fetching channel performance:", err)
-          return []
-        }),
-        fetchTopProducts().catch((err) => {
-          console.error("Error fetching top products:", err)
-          return []
-        }),
-        fetchRevenueByCategory().catch((err) => {
-          console.error("Error fetching revenue by category:", err)
-          return []
-        }),
-      ])
-
-      // Set KPI data - all based on real data now
-      const allOrders = await fetchOrdersFromApi()
-      const fulfillmentRate = calculateFulfillmentRate(allOrders)
-      const activeOrdersCount = calculateActiveOrders(allOrders)
-      
-      setKpiData({
-        ordersProcessing: { value: ordersData.count, change: 0 }, // Real count, change calculation would need historical data
-        slaBreaches: { value: breachesData.count, change: 0 }, // Real count, change calculation would need historical data  
-        revenueToday: { value: calculateRevenue(allOrders), change: 0 }, // Real revenue, change calculation would need historical data
-        avgProcessingTime: { value: calculateAvgProcessingTime(ordersData.orders), change: 0 }, // Real avg time, change calculation would need historical data
-        activeOrders: { value: activeOrdersCount, change: 0 }, // Real active orders count
-        fulfillmentRate: { value: fulfillmentRate, change: 0 }, // Real fulfillment rate
-      })
-
-      // Set other data
-      setChannelVolume(channelData)
-      setOrderAlerts(alertsData)
-      setApproachingSla(approachingData)
-      setProcessingTimes(processingData)
-      setSlaCompliance(complianceData)
-      setRecentOrders(recentOrdersData)
-      setDailyOrders(dailyOrdersData)
-      setFulfillmentByBranch(fulfillmentData)
-      setChannelPerformance(channelPerfData)
-      setTopProducts(productsData)
-      setRevenueByCategory(categoryData)
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err)
-      setError("Failed to load dashboard data. Please try again later.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const calculateRevenue = (orders: any[]) => {
     if (!orders || orders.length === 0) return 0
 
@@ -1353,7 +1376,7 @@ export function ExecutiveDashboard() {
 
   const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
 
-  if (isLoading || !isMounted) {
+  if ((isLoading && !isPullRefreshing) || !isMounted) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -1392,129 +1415,173 @@ export function ExecutiveDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative" ref={containerRef}>
+      {pullToRefreshIndicator}
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Executive Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Executive Dashboard</h1>
           <p className="text-sm text-muted-foreground">Last 7 days operational insights across all business units</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <div className="text-xs text-muted-foreground">
             Last 7 Days
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
             All Business Units
           </Button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Orders Processing */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.ordersProcessing.change)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <ShoppingCart className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.ordersProcessing.change)}`}>
+                  {getChangeIcon(kpiData.ordersProcessing.change)}
+                  {Math.abs(kpiData.ordersProcessing.change)}%
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.ordersProcessing.change)}`}>
                 {getChangeIcon(kpiData.ordersProcessing.change)}
                 {Math.abs(kpiData.ordersProcessing.change)}%
               </span>
             </div>
-            <div className="text-2xl font-bold">{kpiData.ordersProcessing.value.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Orders Processing (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">{kpiData.ordersProcessing.value.toLocaleString()}</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">Orders Processing (7d)</div>
           </CardContent>
         </Card>
 
         {/* SLA Breaches */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.slaBreaches.change, true)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <AlertTriangle className="h-6 w-6 sm:h-5 sm:w-5 text-red-500" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.slaBreaches.change, true)}`}>
+                  {getChangeIcon(kpiData.slaBreaches.change)}
+                  {kpiData.slaBreaches.change > 0 ? "+" : ""}
+                  {kpiData.slaBreaches.change}% vs yesterday
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.slaBreaches.change, true)}`}>
                 {getChangeIcon(kpiData.slaBreaches.change)}
                 {kpiData.slaBreaches.change > 0 ? "+" : ""}
                 {kpiData.slaBreaches.change}% vs yesterday
               </span>
             </div>
-            <div className="text-2xl font-bold">{kpiData.slaBreaches.value}</div>
-            <div className="text-xs text-muted-foreground">SLA Breaches (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">{kpiData.slaBreaches.value}</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">SLA Breaches (7d)</div>
           </CardContent>
         </Card>
 
         {/* Revenue Today */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.revenueToday.change)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <DollarSign className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.revenueToday.change)}`}>
+                  {getChangeIcon(kpiData.revenueToday.change)}
+                  {Math.abs(kpiData.revenueToday.change)}%
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.revenueToday.change)}`}>
                 {getChangeIcon(kpiData.revenueToday.change)}
                 {Math.abs(kpiData.revenueToday.change)}%
               </span>
             </div>
-            <div className="text-2xl font-bold">฿{kpiData.revenueToday.value}M</div>
-            <div className="text-xs text-muted-foreground">Revenue (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">฿{kpiData.revenueToday.value}M</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">Revenue (7d)</div>
           </CardContent>
         </Card>
 
         {/* Avg Processing Time */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <Clock className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}>
+                  {getChangeIcon(kpiData.avgProcessingTime.change)}
+                  {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
+                  {Math.abs(kpiData.avgProcessingTime.change)} min
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}>
                 {getChangeIcon(kpiData.avgProcessingTime.change)}
                 {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
                 {Math.abs(kpiData.avgProcessingTime.change)} min
               </span>
             </div>
-            <div className="text-2xl font-bold">{kpiData.avgProcessingTime.value} min</div>
-            <div className="text-xs text-muted-foreground">Avg Processing Time (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">{kpiData.avgProcessingTime.value} min</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">Avg Processing Time (7d)</div>
           </CardContent>
         </Card>
 
         {/* Active Orders */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <Package className="h-5 w-5 text-muted-foreground" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.activeOrders.change)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <Package className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.activeOrders.change)}`}>
+                  {getChangeIcon(kpiData.activeOrders.change)}
+                  {Math.abs(kpiData.activeOrders.change)}%
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.activeOrders.change)}`}>
                 {getChangeIcon(kpiData.activeOrders.change)}
                 {Math.abs(kpiData.activeOrders.change)}%
               </span>
             </div>
-            <div className="text-2xl font-bold">{kpiData.activeOrders.value.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Active Orders (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">{kpiData.activeOrders.value.toLocaleString()}</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">Active Orders (7d)</div>
           </CardContent>
         </Card>
 
         {/* Fulfillment Rate */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <Package className="h-5 w-5 text-muted-foreground" />
-              <span className={`text-xs flex items-center ${getChangeClass(kpiData.fulfillmentRate.change)}`}>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
+              <div className="flex justify-between items-start mb-2 sm:mb-0">
+                <Package className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.fulfillmentRate.change)}`}>
+                  {getChangeIcon(kpiData.fulfillmentRate.change)}
+                  {Math.abs(kpiData.fulfillmentRate.change)}%
+                </span>
+              </div>
+              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.fulfillmentRate.change)}`}>
                 {getChangeIcon(kpiData.fulfillmentRate.change)}
                 {Math.abs(kpiData.fulfillmentRate.change)}%
               </span>
             </div>
-            <div className="text-2xl font-bold">{kpiData.fulfillmentRate.value}%</div>
-            <div className="text-xs text-muted-foreground">Fulfillment Rate (7d)</div>
+            <div className="text-3xl sm:text-2xl font-bold">{kpiData.fulfillmentRate.value}%</div>
+            <div className="text-sm sm:text-xs text-muted-foreground">Fulfillment Rate (7d)</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+        <div className="relative">
+          {swipeIndicator}
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="fulfillment">Fulfillment</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
+        </div>
+
+        <div ref={tabsContainerRef} className="relative" {...swipeProps}>
 
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Order Volume by Channel */}
             <Card>
               <CardContent className="p-6">
@@ -1605,7 +1672,7 @@ export function ExecutiveDashboard() {
                         size="sm" 
                         className="ml-auto text-xs h-6"
                         onClick={handleEscalation}
-                        disabled={isEscalating}
+                        disabled={isEscalating || (orderAlerts.length === 0 && approachingSla.length === 0)}
                       >
                         {isEscalating ? "Escalating..." : "Escalate"}
                       </Button>
@@ -1650,26 +1717,77 @@ export function ExecutiveDashboard() {
                       APPROACHING SLA ({approachingSla.length})
                     </span>
                   </div>
-                  <div className="border-l-2 border-yellow-500 pl-3 py-1 ml-1">
+                  <div className="border-l-2 border-yellow-500 pl-2 sm:pl-3 py-1 ml-1">
                     {approachingSla.length > 0 ? (
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="text-muted-foreground">
-                            <th className="text-left font-normal">ORDER</th>
-                            <th className="text-left font-normal">CHANNEL</th>
-                            <th className="text-right font-normal">REMAINING</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {approachingSla.map((item, index) => (
-                            <tr key={index}>
-                              <td>{item.order_number}</td>
-                              <td>{item.channel}</td>
-                              <td className="text-right font-medium text-yellow-700">{item.remaining} min</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="space-y-2">
+                        {approachingSla.map((item, index) => (
+                          <div 
+                            key={index} 
+                            className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors"
+                          >
+                            {/* Mobile layout: stacked */}
+                            <div className="flex flex-col space-y-2 sm:hidden">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-1">
+                                  <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                                  <span className="text-xs font-medium text-yellow-900 truncate">
+                                    {item.order_number}
+                                  </span>
+                                </div>
+                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                  item.remaining <= 5 
+                                    ? 'bg-red-500 animate-pulse' 
+                                    : item.remaining <= 10 
+                                    ? 'bg-yellow-500' 
+                                    : 'bg-yellow-400'
+                                }`} />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-yellow-700">
+                                  <ChannelBadge channel={item.channel} />
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs font-bold text-yellow-800">
+                                    {item.remaining} min remaining
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Desktop layout: horizontal */}
+                            <div className="hidden sm:flex items-center justify-between">
+                              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                <div className="flex items-center space-x-1 min-w-0">
+                                  <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                                  <span className="text-xs font-medium text-yellow-900 truncate">
+                                    {item.order_number}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-yellow-700 flex-shrink-0">
+                                  <ChannelBadge channel={item.channel} />
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 flex-shrink-0">
+                                <div className="text-right">
+                                  <div className="text-xs font-bold text-yellow-800">
+                                    {item.remaining} min
+                                  </div>
+                                  <div className="text-xs text-yellow-600">
+                                    remaining
+                                  </div>
+                                </div>
+                                <div className={`w-2 h-2 rounded-full ${
+                                  item.remaining <= 5 
+                                    ? 'bg-red-500 animate-pulse' 
+                                    : item.remaining <= 10 
+                                    ? 'bg-yellow-500' 
+                                    : 'bg-yellow-400'
+                                }`} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <div className="text-xs text-muted-foreground py-2">
                         No orders approaching SLA deadline
@@ -1705,7 +1823,7 @@ export function ExecutiveDashboard() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Order Processing Performance */}
             <Card>
               <CardContent className="p-4">
@@ -1814,18 +1932,18 @@ export function ExecutiveDashboard() {
         </TabsContent>
 
         <TabsContent value="orders" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="text-lg font-medium">Recent Orders (Last 7 Days)</h3>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
+            <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
@@ -1833,8 +1951,9 @@ export function ExecutiveDashboard() {
           </div>
 
           <Card>
-            <CardContent className="p-4">
-              <Table>
+            <CardContent className="p-4 overflow-x-auto">
+              <div className="min-w-[640px]">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order ID</TableHead>
@@ -1848,17 +1967,48 @@ export function ExecutiveDashboard() {
                 </TableHeader>
                 <TableBody>
                   {recentOrders.length > 0 ? (
-                    recentOrders.map((order, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium font-mono text-xs">{order.order_number}</TableCell>
-                        <TableCell className="font-medium">{order.order_no}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell><ChannelBadge channel={order.channel} /></TableCell>
-                        <TableCell><OrderStatusBadge status={order.status} /></TableCell>
-                        <TableCell>{order.total}</TableCell>
-                        <TableCell>{order.date}</TableCell>
-                      </TableRow>
-                    ))
+                    recentOrders.map((order, index) => {
+                      const swipeActions = [
+                        {
+                          id: 'view',
+                          label: 'View',
+                          icon: <Eye className="h-4 w-4" />,
+                          className: 'bg-blue-500 text-white',
+                          onAction: () => {
+                            toast({
+                              title: "View Order",
+                              description: `Opening order ${order.order_no}`,
+                            })
+                          }
+                        },
+                        {
+                          id: 'edit',
+                          label: 'Edit',
+                          icon: <Edit className="h-4 w-4" />,
+                          className: 'bg-green-500 text-white',
+                          onAction: () => {
+                            toast({
+                              title: "Edit Order",
+                              description: `Editing order ${order.order_no}`,
+                            })
+                          }
+                        }
+                      ]
+
+                      return (
+                        <SwipeableListItem key={index} actions={swipeActions}>
+                          <TableRow className="hover:bg-gray-50">
+                            <TableCell className="font-medium font-mono text-xs">{order.order_number}</TableCell>
+                            <TableCell className="font-medium">{order.order_no}</TableCell>
+                            <TableCell>{order.customer}</TableCell>
+                            <TableCell><ChannelBadge channel={order.channel} /></TableCell>
+                            <TableCell><OrderStatusBadge status={order.status} /></TableCell>
+                            <TableCell>{order.total}</TableCell>
+                            <TableCell>{order.date}</TableCell>
+                          </TableRow>
+                        </SwipeableListItem>
+                      )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
@@ -1868,6 +2018,7 @@ export function ExecutiveDashboard() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
 
@@ -1876,7 +2027,7 @@ export function ExecutiveDashboard() {
               <CardTitle>Daily Order Volume (Last 7 Days)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailyOrders}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -1896,7 +2047,7 @@ export function ExecutiveDashboard() {
         </TabsContent>
 
         <TabsContent value="fulfillment" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Fulfillment by Branch</CardTitle>
@@ -1935,7 +2086,7 @@ export function ExecutiveDashboard() {
                 <CardTitle>Channel Performance</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px]">
+                <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={channelPerformance}
@@ -1961,7 +2112,7 @@ export function ExecutiveDashboard() {
               <CardTitle>Fulfillment Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex flex-col items-center">
                   <div className="text-2xl font-bold text-green-600">{kpiData.fulfillmentRate.value}%</div>
                   <div className="text-sm text-muted-foreground">Overall Fulfillment Rate (7d)</div>
@@ -1999,13 +2150,14 @@ export function ExecutiveDashboard() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Top Products</CardTitle>
               </CardHeader>
-              <CardContent>
-                <Table>
+              <CardContent className="overflow-x-auto">
+                <div className="min-w-[480px]">
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Product</TableHead>
@@ -2036,6 +2188,7 @@ export function ExecutiveDashboard() {
                     )}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
 
@@ -2045,7 +2198,7 @@ export function ExecutiveDashboard() {
               </CardHeader>
               <CardContent>
                 {revenueByCategory.length > 0 ? (
-                  <div className="h-[300px]">
+                  <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -2068,7 +2221,7 @@ export function ExecutiveDashboard() {
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  <div className="h-[200px] sm:h-[250px] lg:h-[300px] flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
                       <p>No category data available</p>
                       <p className="text-xs mt-1">Data will appear when orders contain product categories</p>
@@ -2084,7 +2237,7 @@ export function ExecutiveDashboard() {
               <CardTitle>Revenue Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={dailyOrders}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -2099,6 +2252,7 @@ export function ExecutiveDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+        </div>
       </Tabs>
     </div>
   )
