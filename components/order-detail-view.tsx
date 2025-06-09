@@ -98,31 +98,32 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Back to Orders
+            <span className="hidden sm:inline">Back to Orders</span>
+            <span className="sm:hidden">Back</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold text-enterprise-dark">Order Details</h1>
+            <h1 className="text-xl md:text-2xl font-semibold text-enterprise-dark">Order Details</h1>
             <p className="text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button variant="outline" size="sm">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Order
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+            <Edit className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Edit Order</span>
           </Button>
-          <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Process Order
+          <Button size="sm" className="bg-blue-500 hover:bg-blue-600 flex-1 sm:flex-none">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Process Order</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={onClose} className="ml-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>

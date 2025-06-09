@@ -1,12 +1,14 @@
 "use client"
 
 import type React from "react"
+import { useState, useEffect } from "react"
 import { UserNav } from "@/components/user-nav"
 import { SideNav } from "@/components/side-nav"
 import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle } from "lucide-react"
 import { BottomNav } from "@/components/ui/bottom-nav"
 import { useSidebar } from "@/contexts/sidebar-context"
 import { cn, formatGMT7TimeString } from "@/lib/utils"
+import { getEscalationStats } from "@/lib/escalation-service"
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -15,6 +17,31 @@ interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   const { isCollapsed, isMobile, setIsMobileOpen } = useSidebar()
   const currentTime = formatGMT7TimeString()
+  
+  // State for escalation badge count
+  const [escalationBadgeCount, setEscalationBadgeCount] = useState<number>(0)
+
+  // Load escalation stats for badge count
+  useEffect(() => {
+    const loadEscalationStats = async () => {
+      try {
+        const stats = await getEscalationStats()
+        // Show count of pending + failed escalations (actionable items)
+        const actionableCount = stats.pending + stats.failed
+        setEscalationBadgeCount(actionableCount)
+      } catch (error) {
+        console.warn("Failed to load escalation stats for badge:", error)
+        setEscalationBadgeCount(0)
+      }
+    }
+
+    loadEscalationStats()
+    
+    // Refresh badge count every 30 seconds
+    const interval = setInterval(loadEscalationStats, 30000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   const bottomNavItems = [
     {
@@ -36,7 +63,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       href: "/escalations",
       label: "Alerts",
       icon: <AlertTriangle className="h-5 w-5" />,
-      badge: 2 // Example badge for alerts
+      badge: escalationBadgeCount
     }
   ]
 

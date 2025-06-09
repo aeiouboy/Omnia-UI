@@ -6,6 +6,13 @@ import { useToast } from "@/components/ui/use-toast"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useSwipeTabs } from "@/hooks/use-swipe-tabs"
 import { getGMT7Time, formatGMT7DateString, safeParseDate } from "@/lib/utils"
+import { 
+  createEscalationRecord, 
+  updateEscalationStatus,
+  getAlertMessage,
+  getSeverityFromAlertType,
+  createTeamsMessagePayload,
+} from "@/lib/escalation-service"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -409,53 +416,81 @@ export function ExecutiveDashboard() {
       // Determine if it's a breach or approaching breach
       const isBreach = orderAlerts.length > 0
       const alertType = isBreach ? "SLA_BREACH" : "SLA_WARNING"
-      const severity = isBreach ? "HIGH" : "MEDIUM"
-
+      
       // Handle different data structures for breach vs approaching
       const orderNumber = alertOrder.order_number || alertOrder.id
       const location = alertOrder.location || "Unknown Location"
       const channel = alertOrder.channel || "UNKNOWN"
-      const customerName = alertOrder.customer_name || "Customer"
 
-      let description = ""
-      let additionalInfo: any = {
-        customerName,
-        channel,
-        status: "PROCESSING",
-        location,
+      // Create escalation record in database first
+      let createdEscalation: any = null
+      let dbStorageWorking = true
+
+      try {
+        const escalationData = {
+          alert_id: orderNumber,
+          alert_type: alertType,
+          message: getAlertMessage(alertType, orderNumber),
+          severity: getSeverityFromAlertType(alertType),
+          status: "PENDING" as const,
+          escalated_by: "Executive Dashboard",
+          escalated_to: location,
+        }
+
+        createdEscalation = await createEscalationRecord(escalationData)
+      } catch (dbError) {
+        console.warn("Database storage failed, but continuing with Teams notification:", dbError)
+        dbStorageWorking = false
       }
 
-      if (isBreach) {
-        const timeOverTarget = Math.round(alertOrder.elapsed_minutes / 60) - Math.round(alertOrder.target_minutes / 60)
-        description = `SLA breach detected for order ${orderNumber}. Target: ${Math.round(alertOrder.target_minutes / 60)}min, Elapsed: ${Math.round(alertOrder.elapsed_minutes / 60)}min (${timeOverTarget} min over)`
-        additionalInfo = {
-          ...additionalInfo,
-          targetMinutes: `${Math.round(alertOrder.target_minutes / 60)} minutes`,
-          elapsedMinutes: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
-          timeOverTarget: `${timeOverTarget} minutes over SLA target`,
-          processingTime: `${Math.round(alertOrder.elapsed_minutes / 60)} minutes`,
-        }
-      } else {
-        description = `SLA warning for order ${orderNumber}. Only ${Math.round(alertOrder.remaining / 60)} minutes remaining.`
-        additionalInfo = {
-          ...additionalInfo,
-          remainingMinutes: `${Math.round(alertOrder.remaining / 60)} minutes`,
-          alertLevel: "Approaching SLA deadline",
-        }
-      }
-
-      await TeamsWebhookService.sendEscalation({
-        orderNumber,
-        alertType,
-        branch: location,
-        severity,
-        description,
-        additionalInfo,
+      // Create timestamp for Teams message
+      const timestamp = new Date().toLocaleString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       })
+
+      // Create Teams message payload
+      const teamsMessage = createTeamsMessagePayload(orderNumber, alertType, location, timestamp)
+
+      // Send to MS Teams
+      const response = await fetch("/api/teams-webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(teamsMessage),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Update escalation status to FAILED if Teams webhook fails (only if DB is working)
+        if (dbStorageWorking && createdEscalation) {
+          try {
+            await updateEscalationStatus(createdEscalation.id, { status: "FAILED" })
+          } catch (updateError) {
+            console.warn("Failed to update escalation status:", updateError)
+          }
+        }
+        throw new Error(result.message || `Failed to send to MS Teams: ${response.statusText}`)
+      }
+
+      // Update escalation status to SENT if Teams webhook succeeds (only if DB is working)
+      if (dbStorageWorking && createdEscalation) {
+        try {
+          await updateEscalationStatus(createdEscalation.id, { status: "SENT" })
+        } catch (updateError) {
+          console.warn("Failed to update escalation status:", updateError)
+        }
+      }
 
       toast({
         title: "Escalation sent successfully",
-        description: `${isBreach ? "SLA breach" : "SLA warning"} alert for order ${orderNumber} has been escalated to MS Teams.`,
+        description: `${isBreach ? "SLA breach" : "SLA warning"} alert for order ${orderNumber} has been escalated to MS Teams${!dbStorageWorking ? " (History not saved - database not configured)" : ""}.`,
         variant: "default",
       })
     } catch (error) {
