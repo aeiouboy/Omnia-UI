@@ -80,17 +80,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-white">Central Group OMS</h1>
-                <p className="text-xs text-gray-100">Enterprise Command Center</p>
+                <h1 className="text-base font-bold text-white drop-shadow-sm">Central Group OMS</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm">Enterprise Command Center</p>
               </div>
             </div>
             <div className="ml-auto flex items-center gap-4">
-              <button className="flex items-center gap-1 text-sm">
+              <button className="flex items-center justify-center w-8 h-8 text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors" title="Refresh">
                 <RefreshCw className="h-4 w-4" />
-                <span>Refresh</span>
               </button>
-              <div className="text-sm hidden sm:block">
-                <span className="text-gray-200">Last updated:</span> {currentTime}
+              <div className="text-sm hidden sm:block text-white/80">
+                <span className="text-white/70">Last updated:</span> <span className="text-white/90">{currentTime}</span>
               </div>
               <UserNav />
             </div>
