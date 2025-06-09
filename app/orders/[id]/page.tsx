@@ -2,15 +2,16 @@ import { DashboardShell } from "@/components/dashboard-shell"
 import { OrderDetailView } from "@/components/order-detail-view"
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function OrderDetailPage({ params }: OrderDetailPageProps) {
+export default async function OrderDetailPage({ params }: OrderDetailPageProps) {
+  const { id } = await params
   return (
     <DashboardShell>
-      <OrderDetailView orderId={params.id} />
+      <OrderDetailView orderId={id} />
     </DashboardShell>
   )
 }

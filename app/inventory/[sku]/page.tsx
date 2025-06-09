@@ -8,13 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InventoryService } from "@/lib/inventory-service"
 
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
     sku: string
-  }
+  }>
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { sku } = params
+  const { sku } = await params
   const product = await InventoryService.getProductByBarcode(sku)
 
   if (!product) {
