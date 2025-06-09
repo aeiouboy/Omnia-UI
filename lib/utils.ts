@@ -13,47 +13,53 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function getGMT7Time(date?: Date | string | number): Date {
   const inputDate = date ? new Date(date) : new Date()
+  return inputDate // Return the original date, let toLocaleString handle timezone conversion
+}
 
-  // Create a date object with the GMT+7 offset
-  const gmt7Offset = 7 * 60 * 60 * 1000 // 7 hours in milliseconds
-  const utcTime = inputDate.getTime() + inputDate.getTimezoneOffset() * 60 * 1000
-  return new Date(utcTime + gmt7Offset)
+export function formatGMT7Time(date?: Date | string, options?: Intl.DateTimeFormatOptions): string {
+  const inputDate = date ? new Date(date) : new Date()
+  return inputDate.toLocaleString("en-US", {
+    timeZone: "Asia/Bangkok",
+    ...options
+  })
 }
 
 /**
- * Formats a date to a time string in GMT+7 timezone (HH:MM:SS)
+ * Formats a date to a time string in GMT+7 timezone (HH:MM:SS AM/PM)
  */
 export function formatGMT7TimeString(date?: Date | string | number): string {
-  const gmt7Date = getGMT7Time(date)
-
-  const hours = gmt7Date.getUTCHours().toString().padStart(2, "0")
-  const minutes = gmt7Date.getUTCMinutes().toString().padStart(2, "0")
-  const seconds = gmt7Date.getUTCSeconds().toString().padStart(2, "0")
-
-  return `${hours}:${minutes}:${seconds}`
+  return formatGMT7Time(date, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  })
 }
 
 /**
- * Formats a date to a date string in GMT+7 timezone (YYYY-MM-DD)
+ * Formats a date to a date string in GMT+7 timezone (MM/DD/YYYY)
  */
 export function formatGMT7DateString(date?: Date | string | number): string {
-  const gmt7Date = getGMT7Time(date)
-
-  const year = gmt7Date.getUTCFullYear()
-  const month = (gmt7Date.getUTCMonth() + 1).toString().padStart(2, "0")
-  const day = gmt7Date.getUTCDate().toString().padStart(2, "0")
-
-  return `${year}-${month}-${day}`
+  return formatGMT7Time(date, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
 }
 
 /**
- * Formats a date to a datetime string in GMT+7 timezone (YYYY-MM-DD HH:MM:SS)
+ * Formats a date to a datetime string in GMT+7 timezone
  */
 export function formatGMT7DateTime(date?: Date | string | number): string {
-  const dateString = formatGMT7DateString(date)
-  const timeString = formatGMT7TimeString(date)
-
-  return `${dateString} ${timeString}`
+  return formatGMT7Time(date, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  })
 }
 
 /**
