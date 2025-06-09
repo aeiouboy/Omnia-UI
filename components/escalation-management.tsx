@@ -8,22 +8,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
-import { AlertTriangle, MessageSquare, Check, Search, Download, Filter, Clock, Bell } from "lucide-react"
+import { AlertTriangle, MessageSquare, Check, Search, Filter, Clock, Bell } from "lucide-react"
+import { 
+  fetchEscalationHistory, 
+  createEscalationRecord, 
+  updateEscalationStatus,
+  getAlertMessage,
+  getSeverityFromAlertType,
+  createTeamsMessagePayload,
+  withRetry,
+  type EscalationFilters,
+  type EscalationResponse
+} from "@/lib/escalation-service"
+import { EscalationRecord } from "@/app/api/escalations/route"
 
 // Define types for escalation history
 type EscalationStatus = "PENDING" | "SENT" | "FAILED" | "RESOLVED"
-
-interface EscalationRecord {
-  id: string
-  alertId: string
-  alertType: string
-  message: string
-  severity: "HIGH" | "MEDIUM" | "LOW"
-  timestamp: string
-  status: EscalationStatus
-  escalatedBy: string
-  escalatedTo: string
-}
 
 export function EscalationManagement() {
   const { toast } = useToast()
@@ -36,64 +36,18 @@ export function EscalationManagement() {
   })
   const [isEscalating, setIsEscalating] = useState(false)
 
-  // State for escalation history
-  const [escalationHistory, setEscalationHistory] = useState<EscalationRecord[]>([
-    {
-      id: "ESC-2025052301",
-      alertId: "ALERT-2025052301",
-      alertType: "SLA_BREACH",
-      message: "Grab order processing delay",
-      severity: "HIGH",
-      timestamp: "2025-05-23 08:30:00",
-      status: "SENT",
-      escalatedBy: "System",
-      escalatedTo: "Tops Central World",
-    },
-    {
-      id: "ESC-2025052302",
-      alertId: "ALERT-2025052302",
-      alertType: "INVENTORY",
-      message: "Low stock for multiple items",
-      severity: "MEDIUM",
-      timestamp: "2025-05-23 08:15:00",
-      status: "SENT",
-      escalatedBy: "System",
-      escalatedTo: "Inventory Management Team",
-    },
-    {
-      id: "ESC-2025052303",
-      alertId: "ALERT-2025052303",
-      alertType: "API_LATENCY",
-      message: "Lazada API response time high",
-      severity: "LOW",
-      timestamp: "2025-05-23 09:45:00",
-      status: "SENT",
-      escalatedBy: "System",
-      escalatedTo: "IT Support Team",
-    },
-    {
-      id: "ESC-2025052304",
-      alertId: "ALERT-2025052304",
-      alertType: "SLA_BREACH",
-      message: "Shopee order SLA breach",
-      severity: "HIGH",
-      timestamp: "2025-05-23 10:15:00",
-      status: "FAILED",
-      escalatedBy: "System",
-      escalatedTo: "Tops Sukhumvit",
-    },
-    {
-      id: "ESC-2025052305",
-      alertId: "ALERT-2025052305",
-      alertType: "INVENTORY",
-      message: "Critical stock shortage",
-      severity: "HIGH",
-      timestamp: "2025-05-23 11:00:00",
-      status: "RESOLVED",
-      escalatedBy: "System",
-      escalatedTo: "Central Warehouse",
-    },
-  ])
+  // State for escalation history - now from real data
+  const [escalationHistory, setEscalationHistory] = useState<EscalationRecord[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [historyError, setHistoryError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 25,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  })
 
   // Filter state for escalation history
   const [historyFilter, setHistoryFilter] = useState("all")
@@ -101,6 +55,55 @@ export function EscalationManagement() {
 
   // Add this after other useState declarations
   const [retryCountdowns, setRetryCountdowns] = useState<Record<string, number>>({})
+
+  // Load escalation history
+  const loadEscalationHistory = async () => {
+    setIsLoadingHistory(true)
+    setHistoryError(null)
+    
+    try {
+      const filters: EscalationFilters = {}
+      
+      if (historyFilter !== "all") {
+        filters.status = historyFilter.toUpperCase()
+      }
+      
+      if (historySearchTerm) {
+        filters.search = historySearchTerm
+      }
+
+      const response = await fetchEscalationHistory(pagination.page, pagination.pageSize, filters)
+      setEscalationHistory(response.data)
+      setPagination(response.pagination)
+    } catch (error) {
+      console.error("Error loading escalation history:", error)
+      setHistoryError(error instanceof Error ? error.message : "Failed to load escalation history")
+      setEscalationHistory([])
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setPagination(prev => ({ ...prev, page: 1 })) // Reset to first page when search changes
+      loadEscalationHistory()
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [historySearchTerm])
+
+  // Effect for filter changes (immediate reload)
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 })) // Reset to first page when filter changes
+    loadEscalationHistory()
+  }, [historyFilter])
+
+  // Effect for pagination changes
+  useEffect(() => {
+    loadEscalationHistory()
+  }, [pagination.page, pagination.pageSize])
 
   const handleEscalation = async (orderNumber: string, alertType: string, branch: string) => {
     setIsEscalating(true)
@@ -127,60 +130,29 @@ export function EscalationManagement() {
     })
 
     try {
-      // สร้าง Adaptive Card สำหรับ MS Teams
-      const teamsMessage = {
-        "@type": "MessageCard",
-        "@context": "http://schema.org/extensions",
-        themeColor: alertType === "SLA_BREACH" ? "FF0000" : alertType === "INVENTORY" ? "FFA500" : "0078D7",
-        summary: `Order Alert: ${alertType} - ${orderNumber}`,
-        sections: [
-          {
-            activityTitle: `🚨 Order Alert: ${alertType}`,
-            activitySubtitle: `Escalated at ${timestamp}`,
-            facts: [
-              {
-                name: "Order Number:",
-                value: orderNumber,
-              },
-              {
-                name: "Alert Type:",
-                value: alertType,
-              },
-              {
-                name: "Branch:",
-                value: branch,
-              },
-              {
-                name: "Escalated by:",
-                value: "Executive Dashboard",
-              },
-            ],
-            markdown: true,
-          },
-        ],
-        potentialAction: [
-          {
-            "@type": "OpenUri",
-            name: "View Order Details",
-            targets: [
-              {
-                os: "default",
-                uri: `https://ris-oms.vercel.app/orders/${orderNumber}`,
-              },
-            ],
-          },
-          {
-            "@type": "OpenUri",
-            name: "View Dashboard",
-            targets: [
-              {
-                os: "default",
-                uri: "https://ris-oms.vercel.app/",
-              },
-            ],
-          },
-        ],
+      let createdEscalation: any = null
+      let dbStorageWorking = true
+
+      // Try to create escalation record in database first
+      try {
+        const escalationData = {
+          alert_id: orderNumber,
+          alert_type: alertType,
+          message: getAlertMessage(alertType, orderNumber),
+          severity: getSeverityFromAlertType(alertType),
+          status: "PENDING" as const,
+          escalated_by: "Executive Dashboard",
+          escalated_to: branch,
+        }
+
+        createdEscalation = await createEscalationRecord(escalationData)
+      } catch (dbError) {
+        console.warn("Database storage failed, but continuing with Teams notification:", dbError)
+        dbStorageWorking = false
       }
+
+      // สร้าง Adaptive Card สำหรับ MS Teams
+      const teamsMessage = createTeamsMessagePayload(orderNumber, alertType, branch, timestamp)
 
       // ส่งข้อมูลไปยัง API route ของเรา
       const response = await fetch("/api/teams-webhook", {
@@ -194,24 +166,30 @@ export function EscalationManagement() {
       const result = await response.json()
 
       if (!response.ok) {
+        // Update escalation status to FAILED if Teams webhook fails (only if DB is working)
+        if (dbStorageWorking && createdEscalation) {
+          try {
+            await updateEscalationStatus(createdEscalation.id, { status: "FAILED" })
+          } catch (updateError) {
+            console.warn("Failed to update escalation status:", updateError)
+          }
+        }
         throw new Error(result.message || `Failed to send to MS Teams: ${response.statusText}`)
       }
 
-      // Create a new escalation record
-      const newEscalationRecord: EscalationRecord = {
-        id: `ESC-${Date.now().toString().substring(6)}`,
-        alertId: orderNumber,
-        alertType: alertType,
-        message: getAlertMessage(alertType, orderNumber),
-        severity: getSeverityFromAlertType(alertType),
-        timestamp: dbTimestamp,
-        status: "SENT",
-        escalatedBy: "Executive Dashboard",
-        escalatedTo: branch,
+      // Update escalation status to SENT if Teams webhook succeeds (only if DB is working)
+      if (dbStorageWorking && createdEscalation) {
+        try {
+          await updateEscalationStatus(createdEscalation.id, { status: "SENT" })
+        } catch (updateError) {
+          console.warn("Failed to update escalation status:", updateError)
+        }
       }
 
-      // Add to escalation history
-      setEscalationHistory((prev) => [newEscalationRecord, ...prev])
+      // Refresh escalation history to show the new record (only if DB is working)
+      if (dbStorageWorking) {
+        await loadEscalationHistory()
+      }
 
       // Show success dialog
       setSuccessDialogOpen(true)
@@ -219,30 +197,14 @@ export function EscalationManagement() {
       // Also show toast notification
       toast({
         title: "Order escalated to branch",
-        description: `Notification sent to ${branch} MS Teams channel at ${timestamp}`,
+        description: `Notification sent to ${branch} MS Teams channel at ${timestamp}${!dbStorageWorking ? " (History not saved - database not configured)" : ""}`,
         duration: 5000,
       })
     } catch (error) {
-      console.error("Error sending to MS Teams:", error)
+      console.error("Error in escalation process:", error)
 
-      // Create a failed escalation record
-      const failedEscalationRecord: EscalationRecord = {
-        id: `ESC-${Date.now().toString().substring(6)}`,
-        alertId: orderNumber,
-        alertType: alertType,
-        message: getAlertMessage(alertType, orderNumber),
-        severity: getSeverityFromAlertType(alertType),
-        timestamp: dbTimestamp,
-        status: "FAILED",
-        escalatedBy: "Executive Dashboard",
-        escalatedTo: branch,
-      }
-
-      // Add to escalation history
-      setEscalationHistory((prev) => [failedEscalationRecord, ...prev])
-
-      // Remove this line:
-      // setRetryCountdowns((prev) => ({ ...prev, [failedEscalationRecord.id]: 60 }))
+      // Refresh escalation history to show any created record with FAILED status
+      await loadEscalationHistory()
 
       // Show error toast
       toast({
@@ -256,58 +218,34 @@ export function EscalationManagement() {
     }
   }
 
-  // Helper function to get alert message based on alert type
-  const getAlertMessage = (alertType: string, orderNumber: string): string => {
-    switch (alertType) {
-      case "SLA_BREACH":
-        return `SLA breach for order ${orderNumber}`
-      case "INVENTORY":
-        return `Inventory issue affecting order ${orderNumber}`
-      case "SYSTEM":
-        return `System issue affecting order ${orderNumber}`
-      default:
-        return `Alert for order ${orderNumber}`
-    }
-  }
-
-  // Helper function to get severity from alert type
-  const getSeverityFromAlertType = (alertType: string): "HIGH" | "MEDIUM" | "LOW" => {
-    switch (alertType) {
-      case "SLA_BREACH":
-        return "HIGH"
-      case "INVENTORY":
-        return "MEDIUM"
-      case "SYSTEM":
-        return "LOW"
-      default:
-        return "MEDIUM"
-    }
-  }
 
   // Function to handle resolving an escalation
-  const handleResolveEscalation = (id: string) => {
-    setEscalationHistory((prev) =>
-      prev.map((record) => (record.id === id ? { ...record, status: "RESOLVED" } : record)),
-    )
+  const handleResolveEscalation = async (id: string) => {
+    try {
+      // Update escalation status in database
+      await updateEscalationStatus(id, { status: "RESOLVED" })
+      
+      // Refresh escalation history to show updated status
+      await loadEscalationHistory()
 
-    toast({
-      title: "Escalation resolved",
-      description: `Escalation ${id} has been marked as resolved`,
-      duration: 3000,
-    })
+      toast({
+        title: "Escalation resolved",
+        description: `Escalation ${id} has been marked as resolved`,
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error("Error resolving escalation:", error)
+      toast({
+        title: "Failed to resolve escalation",
+        description: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+        duration: 5000,
+      })
+    }
   }
 
-  // Filter escalation history based on filter and search term
-  const filteredEscalationHistory = escalationHistory.filter((record) => {
-    const matchesFilter = historyFilter === "all" || record.status === historyFilter
-    const matchesSearch =
-      record.id.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
-      record.alertId.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
-      record.message.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
-      record.escalatedTo.toLowerCase().includes(historySearchTerm.toLowerCase())
-
-    return matchesFilter && matchesSearch
-  })
+  // Since filtering is now done server-side, we just use the escalation history directly
+  const filteredEscalationHistory = escalationHistory
 
   // Add this after other useEffect or before the return statement
   useEffect(() => {
@@ -352,6 +290,21 @@ export function EscalationManagement() {
         </div>
       </div>
 
+      {/* Database Setup Notice */}
+      {escalationHistory.length === 0 && !isLoadingHistory && !historyError && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-blue-800">Database Setup Notice</h3>
+              <p className="text-sm text-blue-700 mt-0.5">
+                The escalation history database table may not be set up yet. Escalations will still work with MS Teams notifications, but history may not be saved until the database is properly configured.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="bg-white rounded-lg shadow-sm border border-medium-gray p-6">
         <div className="flex justify-between items-start">
@@ -362,10 +315,6 @@ export function EscalationManagement() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-9">
-              <Download className="h-3.5 w-3.5 mr-1" />
-              Export Report
-            </Button>
             <Button
               size="sm"
               className="h-9"
@@ -484,8 +433,29 @@ export function EscalationManagement() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          {/* Loading state */}
+          {isLoadingHistory && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2 text-muted-foreground">Loading escalation history...</span>
+            </div>
+          )}
+
+          {/* Error state */}
+          {historyError && (
+            <div className="p-6 text-center">
+              <div className="text-red-600 mb-2">Failed to load escalation history</div>
+              <div className="text-sm text-muted-foreground mb-4">{historyError}</div>
+              <Button onClick={loadEscalationHistory} variant="outline" size="sm">
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {/* Table content */}
+          {!isLoadingHistory && !historyError && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="bg-light-gray">
                   <th className="px-4 py-3 text-left font-medium">Escalation ID</th>
@@ -504,8 +474,8 @@ export function EscalationManagement() {
                   filteredEscalationHistory.map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-mono text-xs">{record.id}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{record.alertId}</td>
-                      <td className="px-4 py-3">{record.alertType}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{record.alert_id}</td>
+                      <td className="px-4 py-3">{record.alert_type}</td>
                       <td className="px-4 py-3 max-w-xs truncate">{record.message}</td>
                       <td className="px-4 py-3">
                         <Badge
@@ -520,8 +490,8 @@ export function EscalationManagement() {
                           {record.severity}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3">{record.escalatedTo}</td>
-                      <td className="px-4 py-3 text-xs">{record.timestamp}</td>
+                      <td className="px-4 py-3">{record.escalated_to}</td>
+                      <td className="px-4 py-3 text-xs">{record.timestamp || record.created_at}</td>
                       <td className="px-4 py-3">
                         <Badge
                           className={
@@ -561,7 +531,7 @@ export function EscalationManagement() {
 
                                 // Proceed with escalation
                                 setIsEscalating(true)
-                                handleEscalation(record.alertId, record.alertType, record.escalatedTo).finally(() => {
+                                handleEscalation(record.alert_id, record.alert_type, record.escalated_to).finally(() => {
                                   setIsEscalating(false)
                                 })
                               }}
@@ -591,8 +561,41 @@ export function EscalationManagement() {
                   </tr>
                 )}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination controls */}
+          {!isLoadingHistory && !historyError && pagination.totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((pagination.page - 1) * pagination.pageSize) + 1} to {Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} escalations
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                    disabled={!pagination.hasPrev}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm">
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                    disabled={!pagination.hasNext}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
