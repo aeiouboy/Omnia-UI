@@ -1729,9 +1729,9 @@ export function ExecutiveDashboard() {
                                   </span>
                                 </div>
                                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                  item.remaining <= 5 
+                                  item.remaining <= 300 
                                     ? 'bg-red-500 animate-pulse' 
-                                    : item.remaining <= 10 
+                                    : item.remaining <= 600 
                                     ? 'bg-yellow-500' 
                                     : 'bg-yellow-400'
                                 }`} />
@@ -1771,9 +1771,9 @@ export function ExecutiveDashboard() {
                                   </div>
                                 </div>
                                 <div className={`w-2 h-2 rounded-full ${
-                                  item.remaining <= 5 
+                                  item.remaining <= 300 
                                     ? 'bg-red-500 animate-pulse' 
-                                    : item.remaining <= 10 
+                                    : item.remaining <= 600 
                                     ? 'bg-yellow-500' 
                                     : 'bg-yellow-400'
                                 }`} />
