@@ -530,14 +530,13 @@ export function ExecutiveDashboard() {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
         
-        // Handle potential seconds-to-minutes conversion
-        const targetValue = order.sla_info.target_minutes
-        const elapsedValue = order.sla_info.elapsed_minutes
-        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        // API returns values in seconds
+        // Default SLA target is 300 seconds (5 minutes)
+        const targetSeconds = order.sla_info.target_minutes || 300
+        const elapsedSeconds = order.sla_info.elapsed_minutes || 0
         
-        const remainingMinutes = targetMinutes - elapsedMinutes
-        return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+        // Over SLA if elapsed time exceeds target
+        return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
       })
       
       return {
@@ -665,14 +664,13 @@ export function ExecutiveDashboard() {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
         
-        // Handle potential seconds-to-minutes conversion
-        const targetValue = order.sla_info.target_minutes
-        const elapsedValue = order.sla_info.elapsed_minutes
-        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        // API returns values in seconds
+        // Default SLA target is 300 seconds (5 minutes)
+        const targetSeconds = order.sla_info.target_minutes || 300
+        const elapsedSeconds = order.sla_info.elapsed_minutes || 0
         
-        const remainingMinutes = targetMinutes - elapsedMinutes
-        return remainingMinutes <= 0 || order.sla_info.status === "BREACH"
+        // Over SLA if elapsed time exceeds target
+        return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
       })
 
       if (!breachedOrders || breachedOrders.length === 0) {
@@ -680,17 +678,13 @@ export function ExecutiveDashboard() {
       }
 
       return breachedOrders.slice(0, 1).map((order) => {
-        const targetValue = order.sla_info?.target_minutes || 5
-        const elapsedValue = order.sla_info?.elapsed_minutes || 6
-        
-        // Apply seconds-to-minutes conversion
-        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        const targetSeconds = order.sla_info?.target_minutes || 300
+        const elapsedSeconds = order.sla_info?.elapsed_minutes || 0
         
         console.log(`🔍 SLA Breach Debug for order ${order.id}:`)
-        console.log(`  - target_minutes (raw): ${targetValue} -> converted: ${targetMinutes}`)
-        console.log(`  - elapsed_minutes (raw): ${elapsedValue} -> converted: ${elapsedMinutes}`)
-        console.log(`  - conversion applied: ${targetValue > 1000 || elapsedValue > 1000}`)
+        console.log(`  - target_minutes (seconds): ${targetSeconds}`)
+        console.log(`  - elapsed_minutes (seconds): ${elapsedSeconds}`)
+        console.log(`  - over SLA: ${elapsedSeconds > targetSeconds}`)
         
         return {
           id: order.id,
@@ -698,8 +692,8 @@ export function ExecutiveDashboard() {
           customer_name: order.customer?.name || "Customer",
           channel: order.channel || "UNKNOWN",
           location: order.metadata?.store_name || "Unknown Location",
-          target_minutes: targetMinutes,
-          elapsed_minutes: elapsedMinutes,
+          target_minutes: targetSeconds,
+          elapsed_minutes: elapsedSeconds,
         }
       })
     } catch (err) {
@@ -728,17 +722,15 @@ export function ExecutiveDashboard() {
         if (!order.sla_info) return false
         if (order.sla_info.status === "BREACH") return false
         
-        // Check if the API might be returning seconds instead of minutes
-        const targetValue = order.sla_info.target_minutes
-        const elapsedValue = order.sla_info.elapsed_minutes
+        // API returns values in seconds
+        // Default SLA target is 300 seconds (5 minutes)
+        const targetSeconds = order.sla_info.target_minutes || 300
+        const elapsedSeconds = order.sla_info.elapsed_minutes || 0
         
-        // If values are very large, they might be in seconds - convert to minutes
-        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-        
-        const remainingMinutes = targetMinutes - elapsedMinutes
-        const criticalThreshold = targetMinutes * 0.2
-        return remainingMinutes <= criticalThreshold && remainingMinutes > 0
+        // Check if approaching SLA (within 20% of target time)
+        const remainingSeconds = targetSeconds - elapsedSeconds
+        const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
+        return remainingSeconds <= criticalThreshold && remainingSeconds > 0
       })
 
       console.log(`🔍 Found ${approaching.length} orders approaching SLA deadline`)
@@ -748,25 +740,21 @@ export function ExecutiveDashboard() {
       }
 
       return approaching.slice(0, 4).map((order) => {
-        const targetValue = order.sla_info.target_minutes
-        const elapsedValue = order.sla_info.elapsed_minutes
-        
-        // Handle potential seconds-to-minutes conversion
-        const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-        const remainingMinutes = Math.max(1, Math.round(targetMinutes - elapsedMinutes))
+        const targetSeconds = order.sla_info.target_minutes || 300
+        const elapsedSeconds = order.sla_info.elapsed_minutes || 0
+        const remainingSeconds = Math.max(1, targetSeconds - elapsedSeconds)
         
         console.log(`🔍 SLA Approaching Debug for order ${order.id}:`)
-        console.log(`  - target_minutes (raw): ${targetValue} -> converted: ${targetMinutes}`)
-        console.log(`  - elapsed_minutes (raw): ${elapsedValue} -> converted: ${elapsedMinutes}`)
-        console.log(`  - calculated remaining: ${remainingMinutes} minutes`)
-        console.log(`  - conversion applied: ${targetValue > 1000 || elapsedValue > 1000}`)
+        console.log(`  - target_minutes (seconds): ${targetSeconds}`)
+        console.log(`  - elapsed_minutes (seconds): ${elapsedSeconds}`)
+        console.log(`  - remaining seconds: ${remainingSeconds}`)
+        console.log(`  - approaching threshold: ${targetSeconds * 0.2}s`)
         
         return {
           id: order.id,
           order_number: order.order_no || order.id,
           channel: order.channel,
-          remaining: remainingMinutes,
+          remaining: remainingSeconds,
         }
       })
     } catch (err) {
@@ -800,9 +788,9 @@ export function ExecutiveDashboard() {
       activeOrders.forEach((order) => {
         const channel = order.channel?.toUpperCase() // Normalize to uppercase
         if (channelTimes[channel] && order.sla_info?.elapsed_minutes) {
-          // Handle potential seconds-to-minutes conversion
-          const elapsedValue = order.sla_info.elapsed_minutes
-          const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+          // API returns elapsed time in seconds, convert to minutes for display
+          const elapsedSeconds = order.sla_info.elapsed_minutes
+          const elapsedMinutes = elapsedSeconds / 60
           
           channelTimes[channel].total += elapsedMinutes
           channelTimes[channel].count++
@@ -857,16 +845,14 @@ export function ExecutiveDashboard() {
           if (channelCompliance[channel]) {
             channelCompliance[channel].total++
             
-            // Handle potential seconds-to-minutes conversion for SLA compliance check
+            // Check SLA compliance using seconds-based calculation
             let isCompliant = false
             if (order.sla_info?.status === "COMPLIANT" || order.status === "DELIVERED" || order.status === "FULFILLED") {
               isCompliant = true
             } else if (order.sla_info) {
-              const targetValue = order.sla_info.target_minutes
-              const elapsedValue = order.sla_info.elapsed_minutes
-              const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-              const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-              isCompliant = elapsedMinutes <= targetMinutes
+              const targetSeconds = order.sla_info.target_minutes || 300
+              const elapsedSeconds = order.sla_info.elapsed_minutes || 0
+              isCompliant = elapsedSeconds <= targetSeconds
             }
             
             if (isCompliant) {
@@ -1101,16 +1087,14 @@ export function ExecutiveDashboard() {
           channelData[channel].revenue += order.total_amount || 0
           channelData[channel].total++
 
-          // Handle potential seconds-to-minutes conversion for SLA compliance check
+          // Check SLA compliance using seconds-based calculation
           let isCompliant = false
           if (order.sla_info?.status === "COMPLIANT" || order.status === "DELIVERED" || order.status === "FULFILLED") {
             isCompliant = true
           } else if (order.sla_info) {
-            const targetValue = order.sla_info.target_minutes
-            const elapsedValue = order.sla_info.elapsed_minutes
-            const targetMinutes = targetValue > 1000 ? Math.round(targetValue / 60) : targetValue
-            const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
-            isCompliant = elapsedMinutes <= targetMinutes
+            const targetSeconds = order.sla_info.target_minutes || 300
+            const elapsedSeconds = order.sla_info.elapsed_minutes || 0
+            isCompliant = elapsedSeconds <= targetSeconds
           }
           
           if (isCompliant) {
@@ -1311,9 +1295,9 @@ export function ExecutiveDashboard() {
 
     const totalMinutes = processingOrders.reduce((sum, order) => {
       if (order.sla_info?.elapsed_minutes) {
-        // Handle potential seconds-to-minutes conversion
-        const elapsedValue = order.sla_info.elapsed_minutes
-        const elapsedMinutes = elapsedValue > 1000 ? Math.round(elapsedValue / 60) : elapsedValue
+        // API returns elapsed time in seconds, convert to minutes
+        const elapsedSeconds = order.sla_info.elapsed_minutes
+        const elapsedMinutes = elapsedSeconds / 60
         return sum + elapsedMinutes
       }
       return sum
