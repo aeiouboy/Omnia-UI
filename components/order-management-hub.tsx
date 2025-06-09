@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
+import { formatBangkokTime, formatBangkokDateTime } from "@/lib/timezone-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"

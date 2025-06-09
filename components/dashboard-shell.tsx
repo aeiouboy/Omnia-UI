@@ -7,7 +7,8 @@ import { SideNav } from "@/components/side-nav"
 import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle } from "lucide-react"
 import { BottomNav } from "@/components/ui/bottom-nav"
 import { useSidebar } from "@/contexts/sidebar-context"
-import { cn, formatGMT7TimeString } from "@/lib/utils"
+import { cn, formatGMT7TimeString, getCurrentTimeString } from "@/lib/utils"
+import { getBangkokTimeString } from "@/lib/timezone-utils"
 import { getEscalationStats } from "@/lib/escalation-service"
 
 interface DashboardShellProps {
@@ -17,13 +18,23 @@ interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   const { isCollapsed, isMobile, setIsMobileOpen } = useSidebar()
   
-  // Get current time with fallback
+  // Get current time with multiple fallbacks
   const getCurrentTime = () => {
     try {
       return formatGMT7TimeString()
     } catch (error) {
-      console.warn("Error getting GMT+7 time, using fallback:", error)
-      return new Date().toLocaleTimeString("en-US", { hour12: false })
+      console.warn("Error getting GMT+7 time with formatGMT7TimeString, trying getCurrentTimeString:", error)
+      try {
+        return getCurrentTimeString()
+      } catch (error2) {
+        console.warn("Error getting GMT+7 time with getCurrentTimeString, trying getBangkokTimeString:", error2)
+        try {
+          return getBangkokTimeString()
+        } catch (error3) {
+          console.warn("Error getting GMT+7 time with getBangkokTimeString, using basic fallback:", error3)
+          return new Date().toLocaleTimeString("en-US", { hour12: false })
+        }
+      }
     }
   }
   
