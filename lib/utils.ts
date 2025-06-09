@@ -9,9 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Normalizes a time unit to ensure it's always two digits
- * @param unit - The time unit to normalize (e.g., hours, minutes, seconds)
- * @returns A string representation of the unit with leading zero if needed
+ * Ensures time units (hours, minutes, seconds) are always displayed with two digits
+ * by adding leading zeros when needed
  */
 export function normalizeTimeUnit(unit: number): string {
   return unit.toString().padStart(2, "0")
@@ -19,51 +18,84 @@ export function normalizeTimeUnit(unit: number): string {
 
 /**
  * Gets the current time in GMT+7 (Bangkok timezone)
- * @returns Date object representing the current time in GMT+7
+ * @param date - Optional date input (Date object, string, or number)
+ * @returns Date object representing the time in GMT+7
  */
-export function getGMT7Time(): Date {
-  const now = new Date()
-  // Get UTC time in milliseconds
-  const utcTime = now.getTime() + now.getTimezoneOffset() * 60000
-  // Convert to GMT+7
-  return new Date(utcTime + 7 * 60 * 60000)
+export function getGMT7Time(date?: Date | string | number): Date {
+  let inputDate: Date
+
+  if (date === undefined || date === null) {
+    inputDate = new Date()
+  } else if (date instanceof Date) {
+    inputDate = date
+  } else if (typeof date === "string" || typeof date === "number") {
+    inputDate = new Date(date)
+    // Check if the date is invalid
+    if (isNaN(inputDate.getTime())) {
+      console.warn(`Invalid date provided to getGMT7Time: ${date}`)
+      inputDate = new Date()
+    }
+  } else {
+    console.warn(`Invalid date type provided to getGMT7Time: ${typeof date}`)
+    inputDate = new Date()
+  }
+
+  // Create a date object with the GMT+7 offset
+  const utcTime = inputDate.getTime() + inputDate.getTimezoneOffset() * 60000
+  return new Date(utcTime + 7 * 60 * 60 * 1000)
 }
 
 /**
- * Formats a date to GMT+7 time string in HH:MM:SS format
- * @param date - The date to format (defaults to current time)
+ * Formats a date to a time string in HH:MM:SS format using GMT+7 timezone
+ * @param date - Optional date input (Date object, string, or number)
  * @returns Formatted time string in HH:MM:SS format
  */
-export function formatGMT7TimeString(date: Date = new Date()): string {
-  const gmt7Date = new Date(date.getTime() + (7 * 60 - date.getTimezoneOffset()) * 60000)
-
-  const hours = normalizeTimeUnit(gmt7Date.getHours())
-  const minutes = normalizeTimeUnit(gmt7Date.getMinutes())
-  const seconds = normalizeTimeUnit(gmt7Date.getSeconds())
+export function formatGMT7TimeString(date?: Date | string | number): string {
+  const gmt7Time = getGMT7Time(date)
+  const hours = normalizeTimeUnit(gmt7Time.getHours())
+  const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
+  const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
 
   return `${hours}:${minutes}:${seconds}`
 }
 
 /**
- * Formats a date to GMT+7 date string in YYYY-MM-DD format
- * @param date - The date to format (defaults to current time)
- * @returns Formatted date string in YYYY-MM-DD format
+ * Formats a date to a date string in MM/DD/YYYY format using GMT+7 timezone
+ * @param date - Optional date input (Date object, string, or number)
+ * @returns Formatted date string in MM/DD/YYYY format
  */
-export function formatGMT7DateString(date: Date = new Date()): string {
-  const gmt7Date = new Date(date.getTime() + (7 * 60 - date.getTimezoneOffset()) * 60000)
+export function formatGMT7DateString(date?: Date | string | number): string {
+  const gmt7Time = getGMT7Time(date)
+  const year = gmt7Time.getFullYear()
+  const month = normalizeTimeUnit(gmt7Time.getMonth() + 1) // getMonth() is 0-indexed
+  const day = normalizeTimeUnit(gmt7Time.getDate())
 
-  const year = gmt7Date.getFullYear()
-  const month = normalizeTimeUnit(gmt7Date.getMonth() + 1) // getMonth() is zero-based
-  const day = normalizeTimeUnit(gmt7Date.getDate())
-
-  return `${year}-${month}-${day}`
+  return `${month}/${day}/${year}`
 }
 
 /**
- * Formats a date to GMT+7 date and time string in YYYY-MM-DD HH:MM:SS format
- * @param date - The date to format (defaults to current time)
- * @returns Formatted date and time string in YYYY-MM-DD HH:MM:SS format
+ * Formats a date to a datetime string in MM/DD/YYYY HH:MM:SS format using GMT+7 timezone
+ * @param date - Optional date input (Date object, string, or number)
+ * @returns Formatted datetime string in MM/DD/YYYY HH:MM:SS format
  */
-export function formatGMT7DateTime(date: Date = new Date()): string {
+export function formatGMT7DateTime(date?: Date | string | number): string {
   return `${formatGMT7DateString(date)} ${formatGMT7TimeString(date)}`
+}
+
+/**
+ * Safely parses a date value and returns a valid Date object
+ * @param dateValue - The date value to parse
+ * @returns A valid Date object or current date if parsing fails
+ */
+export function safeParseDate(dateValue: any): Date {
+  if (!dateValue) {
+    return new Date()
+  }
+
+  if (dateValue instanceof Date) {
+    return isNaN(dateValue.getTime()) ? new Date() : dateValue
+  }
+
+  const parsed = new Date(dateValue)
+  return isNaN(parsed.getTime()) ? new Date() : parsed
 }

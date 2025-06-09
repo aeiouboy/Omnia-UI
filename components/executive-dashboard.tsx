@@ -5,13 +5,12 @@ import { TeamsWebhookService } from "@/lib/teams-webhook"
 import { useToast } from "@/components/ui/use-toast"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useSwipeTabs } from "@/hooks/use-swipe-tabs"
-import { getGMT7Time, formatGMT7DateString, formatGMT7DateTime, normalizeTimeUnit } from "@/lib/utils"
+import { getGMT7Time, formatGMT7DateString, safeParseDate } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
 import { ChannelBadge, OrderStatusBadge } from "./order-badges"
 import {
   AlertTriangle,
@@ -28,7 +27,6 @@ import {
   Download,
   Eye,
   Edit,
-  Trash2,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SwipeableListItem } from "@/components/ui/swipeable-list-item"
@@ -133,7 +131,7 @@ interface ApiResponse {
 }
 
 // Cache for API data
-let ordersCache: { data: ApiOrder[], timestamp: number } | null = null
+let ordersCache: { data: ApiOrder[]; timestamp: number } | null = null
 const CACHE_DURATION = 30000 // 30 seconds
 
 // Optimized API client function with caching - Last 7 days only
@@ -141,23 +139,23 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
   try {
     // Check cache first
     const now = Date.now()
-    if (ordersCache && (now - ordersCache.timestamp) < CACHE_DURATION) {
+    if (ordersCache && now - ordersCache.timestamp < CACHE_DURATION) {
       console.log("📦 Using cached orders data (last 7 days)")
       return ordersCache.data
     }
 
     console.log("🔄 Fetching last 7 days orders from API for dashboard...")
-    
+
     // Calculate date range for last 7 days - using GMT+7 timezone
     const endDate = getGMT7Time()
     endDate.setHours(23, 59, 59, 999) // End of today in GMT+7
     const startDate = getGMT7Time()
     startDate.setDate(endDate.getDate() - 7)
     startDate.setHours(0, 0, 0, 0) // Start of 7 days ago in GMT+7
-    
-    const dateFrom = startDate.toISOString().split('T')[0]
-    const dateTo = endDate.toISOString().split('T')[0]
-    
+
+    const dateFrom = startDate.toISOString().split("T")[0]
+    const dateTo = endDate.toISOString().split("T")[0]
+
     // Try server-side API route with date filtering
     const controller = new AbortController()
     const timeoutId = setTimeout(() => {
@@ -167,7 +165,7 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
     const queryParams = new URLSearchParams({
       pageSize: "200", // Smaller page size for last 7 days
       dateFrom,
-      dateTo
+      dateTo,
     })
 
     try {
@@ -186,13 +184,19 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
         if (proxyData.success && proxyData.data) {
           console.log("✅ Successfully fetched last 7 days data via server proxy")
           const orders = proxyData.data.data || []
-          
+
           // Additional client-side filtering to ensure we only get last 7 days
           const filteredOrders = orders.filter((order: ApiOrder) => {
-            const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
-            return orderDate >= startDate && orderDate <= endDate
+            try {
+              const orderDate = safeParseDate(order.order_date || order.metadata?.created_at)
+              const orderGMT7 = getGMT7Time(orderDate)
+              return orderGMT7 >= startDate && orderGMT7 <= endDate
+            } catch (error) {
+              console.warn("Error parsing order date:", error, order)
+              return false
+            }
           })
-          
+
           // Cache the result
           ordersCache = { data: filteredOrders, timestamp: now }
           return filteredOrders
@@ -203,12 +207,12 @@ const fetchOrdersFromApi = async (): Promise<ApiOrder[]> => {
       return []
     } catch (fetchError) {
       clearTimeout(timeoutId)
-      
-      if (fetchError.name === 'AbortError') {
+
+      if (fetchError.name === "AbortError") {
         console.warn("⏰ Dashboard API request timed out after 15 seconds")
         return []
       }
-      
+
       console.error("❌ Dashboard API fetch failed:", fetchError)
       return []
     }
@@ -329,10 +333,10 @@ export function ExecutiveDashboard() {
       const allOrders = await fetchOrdersFromApi()
       const fulfillmentRate = calculateFulfillmentRate(allOrders)
       const activeOrdersCount = calculateActiveOrders(allOrders)
-      
+
       setKpiData({
         ordersProcessing: { value: ordersData.count, change: 0 }, // Real count, change calculation would need historical data
-        slaBreaches: { value: breachesData.count, change: 0 }, // Real count, change calculation would need historical data  
+        slaBreaches: { value: breachesData.count, change: 0 }, // Real count, change calculation would need historical data
         revenueToday: { value: calculateRevenue(allOrders), change: 0 }, // Real revenue, change calculation would need historical data
         avgProcessingTime: { value: calculateAvgProcessingTime(ordersData.orders), change: 0 }, // Real avg time, change calculation would need historical data
         activeOrders: { value: activeOrdersCount, change: 0 }, // Real active orders count
@@ -359,20 +363,24 @@ export function ExecutiveDashboard() {
     }
   }
 
-  const { containerRef, isRefreshing: isPullRefreshing, pullToRefreshIndicator } = usePullToRefresh({
+  const {
+    containerRef,
+    isRefreshing: isPullRefreshing,
+    pullToRefreshIndicator,
+  } = usePullToRefresh({
     onRefresh: loadData,
-    threshold: 80
+    threshold: 80,
   })
 
   const tabs = ["overview", "orders", "fulfillment", "analytics"]
-  const { 
-    containerRef: tabsContainerRef, 
-    swipeProps, 
-    swipeIndicator 
+  const {
+    containerRef: tabsContainerRef,
+    swipeProps,
+    swipeIndicator,
   } = useSwipeTabs({
     tabs,
     activeTab,
-    onTabChange: setActiveTab
+    onTabChange: setActiveTab,
   })
 
   useEffect(() => {
@@ -382,13 +390,13 @@ export function ExecutiveDashboard() {
 
   const handleEscalation = async () => {
     if (isEscalating) return
-    
+
     setIsEscalating(true)
-    
+
     try {
       // Get the first SLA breach order, or approaching SLA order if no breaches
       const alertOrder = orderAlerts[0] || approachingSla[0]
-      
+
       if (!alertOrder) {
         toast({
           title: "No alerts to escalate",
@@ -402,13 +410,13 @@ export function ExecutiveDashboard() {
       const isBreach = orderAlerts.length > 0
       const alertType = isBreach ? "SLA_BREACH" : "SLA_WARNING"
       const severity = isBreach ? "HIGH" : "MEDIUM"
-      
+
       // Handle different data structures for breach vs approaching
       const orderNumber = alertOrder.order_number || alertOrder.id
       const location = alertOrder.location || "Unknown Location"
       const channel = alertOrder.channel || "UNKNOWN"
       const customerName = alertOrder.customer_name || "Customer"
-      
+
       let description = ""
       let additionalInfo: any = {
         customerName,
@@ -442,12 +450,12 @@ export function ExecutiveDashboard() {
         branch: location,
         severity,
         description,
-        additionalInfo
+        additionalInfo,
       })
 
       toast({
         title: "Escalation sent successfully",
-        description: `${isBreach ? 'SLA breach' : 'SLA warning'} alert for order ${orderNumber} has been escalated to MS Teams.`,
+        description: `${isBreach ? "SLA breach" : "SLA warning"} alert for order ${orderNumber} has been escalated to MS Teams.`,
         variant: "default",
       })
     } catch (error) {
@@ -464,9 +472,9 @@ export function ExecutiveDashboard() {
 
   const handleTestEscalation = async () => {
     if (isEscalating) return
-    
+
     setIsEscalating(true)
-    
+
     try {
       await TeamsWebhookService.sendEscalation({
         orderNumber: "TEST-ORDER-001",
@@ -483,8 +491,8 @@ export function ExecutiveDashboard() {
           status: "PROCESSING",
           processingTime: "8 minutes",
           location: "Test Location",
-          testMode: "true"
-        }
+          testMode: "true",
+        },
       })
 
       toast({
@@ -507,8 +515,8 @@ export function ExecutiveDashboard() {
   const fetchOrdersProcessing = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      const processingOrders = orders.filter(order => order.status === "PROCESSING")
-      
+      const processingOrders = orders.filter((order) => order.status === "PROCESSING")
+
       return {
         count: processingOrders.length,
         change: 0,
@@ -527,19 +535,19 @@ export function ExecutiveDashboard() {
   const fetchSlaBreaches = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      const breachedOrders = orders.filter(order => {
+      const breachedOrders = orders.filter((order) => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
-        
+
         // API returns values in seconds
         // Default SLA target is 300 seconds (5 minutes)
         const targetSeconds = order.sla_info.target_minutes || 300
         const elapsedSeconds = order.sla_info.elapsed_minutes || 0
-        
+
         // Over SLA if elapsed time exceeds target
         return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
       })
-      
+
       return {
         count: breachedOrders.length,
         change: 0,
@@ -558,9 +566,9 @@ export function ExecutiveDashboard() {
   const fetchChannelVolume = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      
+
       console.log("🔍 Channel Volume Debug - Total orders:", orders.length)
-      
+
       if (!orders || orders.length === 0) {
         console.log("⚠️ No orders found for channel volume")
         return [
@@ -581,32 +589,32 @@ export function ExecutiveDashboard() {
 
       // Channel mapping to handle different variations
       const channelMapping = {
-        'GRAB': 'GRAB',
-        'GRABMART': 'GRAB',
-        'GRAB_MART': 'GRAB',
-        'GRAB-MART': 'GRAB',
-        'LAZADA': 'LAZADA',
-        'SHOPEE': 'SHOPEE',
-        'TIKTOK': 'TIKTOK',
-        'TIKTOK_SHOP': 'TIKTOK',
-        'TIKTOK-SHOP': 'TIKTOK',
+        GRAB: "GRAB",
+        GRABMART: "GRAB",
+        GRAB_MART: "GRAB",
+        "GRAB-MART": "GRAB",
+        LAZADA: "LAZADA",
+        SHOPEE: "SHOPEE",
+        TIKTOK: "TIKTOK",
+        TIKTOK_SHOP: "TIKTOK",
+        "TIKTOK-SHOP": "TIKTOK",
       }
 
       // Debug: Log all unique channels found and detailed analysis
       const allChannels = new Set()
       const channelAnalysis = {}
-      
+
       orders.forEach((order, index) => {
         const originalChannel = order.channel
         const normalizedChannel = order.channel?.toUpperCase()?.trim()
-        
+
         // Track all variations
         if (originalChannel) {
           channelAnalysis[originalChannel] = (channelAnalysis[originalChannel] || 0) + 1
         }
-        
+
         allChannels.add(`"${originalChannel}" -> "${normalizedChannel}"`)
-        
+
         // Log first 10 orders for more detailed debugging
         if (index < 10) {
           console.log(`🔍 Order ${index + 1}:`, {
@@ -615,18 +623,22 @@ export function ExecutiveDashboard() {
             channel_normalized: normalizedChannel,
             channel_type: typeof originalChannel,
             channel_length: originalChannel?.length,
-            has_channel: !!originalChannel
+            has_channel: !!originalChannel,
           })
         }
-        
+
         // Count with better debugging using channel mapping
         if (normalizedChannel) {
           const mappedChannel = channelMapping[normalizedChannel]
           if (mappedChannel && channelCounts.hasOwnProperty(mappedChannel)) {
             channelCounts[mappedChannel]++
-            console.log(`✅ Mapped "${normalizedChannel}" -> "${mappedChannel}" - new count: ${channelCounts[mappedChannel]}`)
+            console.log(
+              `✅ Mapped "${normalizedChannel}" -> "${mappedChannel}" - new count: ${channelCounts[mappedChannel]}`,
+            )
           } else {
-            console.log(`⚠️ Unknown channel found: "${normalizedChannel}" (original: "${originalChannel}", type: ${typeof originalChannel})`)
+            console.log(
+              `⚠️ Unknown channel found: "${normalizedChannel}" (original: "${originalChannel}", type: ${typeof originalChannel})`,
+            )
           }
         } else {
           console.log(`❌ Order ${index + 1} has null/undefined channel:`, order.channel)
@@ -644,7 +656,7 @@ export function ExecutiveDashboard() {
         { channel: "SHOPEE", orders: channelCounts.SHOPEE },
         { channel: "TIKTOK", orders: channelCounts.TIKTOK },
       ]
-      
+
       console.log("🔍 Channel volume result:", result)
       return result
     } catch (err) {
@@ -661,15 +673,15 @@ export function ExecutiveDashboard() {
   const fetchOrderAlerts = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      const breachedOrders = orders.filter(order => {
+      const breachedOrders = orders.filter((order) => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
-        
+
         // API returns values in seconds
         // Default SLA target is 300 seconds (5 minutes)
         const targetSeconds = order.sla_info.target_minutes || 300
         const elapsedSeconds = order.sla_info.elapsed_minutes || 0
-        
+
         // Over SLA if elapsed time exceeds target
         return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
       })
@@ -681,12 +693,12 @@ export function ExecutiveDashboard() {
       return breachedOrders.slice(0, 1).map((order) => {
         const targetSeconds = order.sla_info?.target_minutes || 300
         const elapsedSeconds = order.sla_info?.elapsed_minutes || 0
-        
+
         console.log(`🔍 SLA Breach Debug for order ${order.id}:`)
         console.log(`  - target_minutes (seconds): ${targetSeconds}`)
         console.log(`  - elapsed_minutes (seconds): ${elapsedSeconds}`)
         console.log(`  - over SLA: ${elapsedSeconds > targetSeconds}`)
-        
+
         return {
           id: order.id,
           order_number: order.id,
@@ -707,27 +719,27 @@ export function ExecutiveDashboard() {
     try {
       const orders = await fetchOrdersFromApi()
       console.log(`🔍 SLA Debug - Processing ${orders.length} orders for approaching SLA check`)
-      
+
       // Log first order's SLA info to understand the data structure
       if (orders.length > 0 && orders[0].sla_info) {
         console.log(`🔍 Sample SLA Info from first order:`, {
           target_minutes: orders[0].sla_info.target_minutes,
           elapsed_minutes: orders[0].sla_info.elapsed_minutes,
           status: orders[0].sla_info.status,
-          sla_info_keys: Object.keys(orders[0].sla_info)
+          sla_info_keys: Object.keys(orders[0].sla_info),
         })
       }
-      
+
       const approaching = orders.filter((order) => {
         if (order.status === "DELIVERED" || order.status === "FULFILLED") return false
         if (!order.sla_info) return false
         if (order.sla_info.status === "BREACH") return false
-        
+
         // API returns values in seconds
         // Default SLA target is 300 seconds (5 minutes)
         const targetSeconds = order.sla_info.target_minutes || 300
         const elapsedSeconds = order.sla_info.elapsed_minutes || 0
-        
+
         // Check if approaching SLA (within 20% of target time)
         const remainingSeconds = targetSeconds - elapsedSeconds
         const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
@@ -744,13 +756,13 @@ export function ExecutiveDashboard() {
         const targetSeconds = order.sla_info.target_minutes || 300
         const elapsedSeconds = order.sla_info.elapsed_minutes || 0
         const remainingSeconds = Math.max(1, targetSeconds - elapsedSeconds)
-        
+
         console.log(`🔍 SLA Approaching Debug for order ${order.id}:`)
         console.log(`  - target_minutes (seconds): ${targetSeconds}`)
         console.log(`  - elapsed_minutes (seconds): ${elapsedSeconds}`)
         console.log(`  - remaining seconds: ${remainingSeconds}`)
         console.log(`  - approaching threshold: ${targetSeconds * 0.2}s`)
-        
+
         return {
           id: order.id,
           order_number: order.order_no || order.id,
@@ -767,7 +779,7 @@ export function ExecutiveDashboard() {
   const fetchProcessingTimes = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      const activeOrders = orders.filter(order => order.status !== "DELIVERED" && order.status !== "FULFILLED")
+      const activeOrders = orders.filter((order) => order.status !== "DELIVERED" && order.status !== "FULFILLED")
 
       if (!activeOrders || activeOrders.length === 0) {
         return [
@@ -792,7 +804,7 @@ export function ExecutiveDashboard() {
           // API returns elapsed time in seconds, convert to minutes for display
           const elapsedSeconds = order.sla_info.elapsed_minutes
           const elapsedMinutes = elapsedSeconds / 60
-          
+
           channelTimes[channel].total += elapsedMinutes
           channelTimes[channel].count++
         }
@@ -845,17 +857,21 @@ export function ExecutiveDashboard() {
           const channel = order.channel?.toUpperCase() // Normalize to uppercase
           if (channelCompliance[channel]) {
             channelCompliance[channel].total++
-            
+
             // Check SLA compliance using seconds-based calculation
             let isCompliant = false
-            if (order.sla_info?.status === "COMPLIANT" || order.status === "DELIVERED" || order.status === "FULFILLED") {
+            if (
+              order.sla_info?.status === "COMPLIANT" ||
+              order.status === "DELIVERED" ||
+              order.status === "FULFILLED"
+            ) {
               isCompliant = true
             } else if (order.sla_info) {
               const targetSeconds = order.sla_info.target_minutes || 300
               const elapsedSeconds = order.sla_info.elapsed_minutes || 0
               isCompliant = elapsedSeconds <= targetSeconds
             }
-            
+
             if (isCompliant) {
               channelCompliance[channel].compliant++
             }
@@ -866,33 +882,37 @@ export function ExecutiveDashboard() {
       return [
         {
           channel: "GRAB",
-          compliance: channelCompliance.GRAB.total > 0
-            ? (channelCompliance.GRAB.compliant / channelCompliance.GRAB.total) * 100
-            : null,
+          compliance:
+            channelCompliance.GRAB.total > 0
+              ? (channelCompliance.GRAB.compliant / channelCompliance.GRAB.total) * 100
+              : null,
           total: channelCompliance.GRAB.total,
           compliant: channelCompliance.GRAB.compliant,
         },
         {
           channel: "LAZADA",
-          compliance: channelCompliance.LAZADA.total > 0
-            ? (channelCompliance.LAZADA.compliant / channelCompliance.LAZADA.total) * 100
-            : null,
+          compliance:
+            channelCompliance.LAZADA.total > 0
+              ? (channelCompliance.LAZADA.compliant / channelCompliance.LAZADA.total) * 100
+              : null,
           total: channelCompliance.LAZADA.total,
           compliant: channelCompliance.LAZADA.compliant,
         },
         {
           channel: "SHOPEE",
-          compliance: channelCompliance.SHOPEE.total > 0
-            ? (channelCompliance.SHOPEE.compliant / channelCompliance.SHOPEE.total) * 100
-            : null,
+          compliance:
+            channelCompliance.SHOPEE.total > 0
+              ? (channelCompliance.SHOPEE.compliant / channelCompliance.SHOPEE.total) * 100
+              : null,
           total: channelCompliance.SHOPEE.total,
           compliant: channelCompliance.SHOPEE.compliant,
         },
         {
           channel: "TIKTOK",
-          compliance: channelCompliance.TIKTOK.total > 0
-            ? (channelCompliance.TIKTOK.compliant / channelCompliance.TIKTOK.total) * 100
-            : null,
+          compliance:
+            channelCompliance.TIKTOK.total > 0
+              ? (channelCompliance.TIKTOK.compliant / channelCompliance.TIKTOK.total) * 100
+              : null,
           total: channelCompliance.TIKTOK.total,
           compliant: channelCompliance.TIKTOK.compliant,
         },
@@ -914,9 +934,16 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
       // Sort by date descending and show up to 50 orders for better visibility
       const sortedOrders = orders.sort((a, b) => {
-        const dateA = getGMT7Time(a.order_date || a.metadata?.created_at).getTime()
-        const dateB = getGMT7Time(b.order_date || b.metadata?.created_at).getTime()
-        return dateB - dateA // Most recent first
+        try {
+          const dateA = safeParseDate(a.order_date || a.metadata?.created_at)
+          const dateB = safeParseDate(b.order_date || b.metadata?.created_at)
+          const gmt7A = getGMT7Time(dateA)
+          const gmt7B = getGMT7Time(dateB)
+          return gmt7B.getTime() - gmt7A.getTime() // Most recent first
+        } catch (error) {
+          console.warn("Error sorting orders by date:", error)
+          return 0
+        }
       })
       const recentOrders = sortedOrders.slice(0, 50)
 
@@ -924,15 +951,31 @@ export function ExecutiveDashboard() {
         return []
       }
 
-      return recentOrders.map((order) => ({
-        order_number: order.id, // Full Order ID
-        order_no: order.order_no || order.id, // Use order ID directly to avoid dynamic generation
-        customer: order.customer?.name || "Customer",
-        channel: order.channel,
-        status: order.status || "CREATED",
-        total: `฿${(order.total_amount || 0).toLocaleString()}`,
-        date: order.order_date ? formatGMT7DateString(order.order_date) : "N/A",
-      }))
+      return recentOrders.map((order) => {
+        try {
+          const orderDate = safeParseDate(order.order_date)
+          return {
+            order_number: order.id, // Full Order ID
+            order_no: order.order_no || order.id, // Use order ID directly to avoid dynamic generation
+            customer: order.customer?.name || "Customer",
+            channel: order.channel,
+            status: order.status || "CREATED",
+            total: `฿${(order.total_amount || 0).toLocaleString()}`,
+            date: formatGMT7DateString(orderDate),
+          }
+        } catch (error) {
+          console.warn("Error processing order:", error, order)
+          return {
+            order_number: order.id || "Unknown",
+            order_no: order.order_no || order.id || "Unknown",
+            customer: "Customer",
+            channel: order.channel || "UNKNOWN",
+            status: order.status || "CREATED",
+            total: "฿0",
+            date: formatGMT7DateString(new Date()),
+          }
+        }
+      })
     } catch (err) {
       console.warn("Error fetching recent orders:", err)
       return []
@@ -942,35 +985,38 @@ export function ExecutiveDashboard() {
   const fetchFulfillmentByBranch = async () => {
     try {
       const orders = await fetchOrdersFromApi()
-      
+
       if (!orders || orders.length === 0) {
         return []
       }
 
       // Group by store/branch
       const branchData = {}
-      
+
       orders.forEach((order) => {
         const branchName = order.metadata?.store_name || "Unknown Store"
-        
+
         if (!branchData[branchName]) {
           branchData[branchName] = { total: 0, fulfilled: 0 }
         }
-        
+
         branchData[branchName].total++
-        
+
         if (order.status === "DELIVERED" || order.status === "FULFILLED") {
           branchData[branchName].fulfilled++
         }
       })
 
       // Convert to array and calculate rates
-      const result = Object.entries(branchData).map(([branch, data]: [string, any]) => ({
-        branch,
-        total: data.total,
-        fulfilled: data.fulfilled,
-        rate: data.total > 0 ? (data.fulfilled / data.total) * 100 : 0,
-      })).sort((a, b) => b.rate - a.rate).slice(0, 3)
+      const result = Object.entries(branchData)
+        .map(([branch, data]: [string, any]) => ({
+          branch,
+          total: data.total,
+          fulfilled: data.fulfilled,
+          rate: data.total > 0 ? (data.fulfilled / data.total) * 100 : 0,
+        }))
+        .sort((a, b) => b.rate - a.rate)
+        .slice(0, 3)
 
       // If no real data, return empty array
       if (result.length === 0) {
@@ -988,22 +1034,22 @@ export function ExecutiveDashboard() {
     try {
       const orders = await fetchOrdersFromApi()
 
-      // Create consistent 7-day structure using UTC dates
+      // Create consistent 7-day structure using GMT+7 dates
       const createDailyStructure = () => {
         const dailyData = {}
         const today = getGMT7Time()
-        
+
         for (let i = 6; i >= 0; i--) {
           const date = getGMT7Time(today)
           date.setDate(date.getDate() - i)
-          const dateKey = formatGMT7DateString(date).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
-          dailyData[dateKey] = { 
-            date: dateKey, 
-            GRAB: 0, 
-            LAZADA: 0, 
-            SHOPEE: 0, 
-            TIKTOK: 0, 
-            total: 0 
+          const dateKey = formatGMT7DateString(date).split("/").reverse().join("-") // Convert MM/DD/YYYY to YYYY-MM-DD
+          dailyData[dateKey] = {
+            date: dateKey,
+            GRAB: 0,
+            LAZADA: 0,
+            SHOPEE: 0,
+            TIKTOK: 0,
+            total: 0,
           }
         }
         return dailyData
@@ -1014,16 +1060,21 @@ export function ExecutiveDashboard() {
       if (orders && orders.length > 0) {
         // Populate with real data from last 7 days
         orders.forEach((order) => {
-          const orderDate = getGMT7Time(order.order_date || order.metadata?.created_at)
-          const dateKey = formatGMT7DateString(orderDate).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
-          
-          // Only include if it's within our 7-day window
-          if (dailyData[dateKey]) {
-            const channel = (order.channel || "UNKNOWN").toUpperCase()
-            if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
-              dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+          try {
+            const orderDate = safeParseDate(order.order_date || order.metadata?.created_at)
+            const gmt7Date = getGMT7Time(orderDate)
+            const dateKey = formatGMT7DateString(gmt7Date).split("/").reverse().join("-") // Convert MM/DD/YYYY to YYYY-MM-DD
+
+            // Only include if it's within our 7-day window
+            if (dailyData[dateKey]) {
+              const channel = (order.channel || "UNKNOWN").toUpperCase()
+              if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
+                dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+              }
+              dailyData[dateKey].total += order.total_amount || 0
             }
-            dailyData[dateKey].total += order.total_amount || 0
+          } catch (error) {
+            console.warn("Error processing order for daily data:", error, order)
           }
         })
       }
@@ -1031,7 +1082,7 @@ export function ExecutiveDashboard() {
       // Use consistent date formatting
       return Object.values(dailyData).map((day: any) => ({
         ...day,
-        date: day.date.slice(5).replace('-', '/'), // Convert YYYY-MM-DD to MM/DD format consistently
+        date: day.date.slice(5).replace("-", "/"), // Convert YYYY-MM-DD to MM/DD format consistently
       }))
     } catch (err) {
       console.warn("Error in fetchDailyOrders:", err)
@@ -1042,20 +1093,20 @@ export function ExecutiveDashboard() {
       for (let i = 6; i >= 0; i--) {
         const date = getGMT7Time(today)
         date.setDate(date.getDate() - i)
-        const dateKey = formatGMT7DateString(date).split('/').reverse().join('-') // Convert MM/DD/YYYY to YYYY-MM-DD
-        dailyData[dateKey] = { 
-          date: dateKey, 
-          GRAB: 0, 
-          LAZADA: 0, 
-          SHOPEE: 0, 
-          TIKTOK: 0, 
-          total: 0 
+        const dateKey = formatGMT7DateString(date).split("/").reverse().join("-") // Convert MM/DD/YYYY to YYYY-MM-DD
+        dailyData[dateKey] = {
+          date: dateKey,
+          GRAB: 0,
+          LAZADA: 0,
+          SHOPEE: 0,
+          TIKTOK: 0,
+          total: 0,
         }
       }
 
       return Object.values(dailyData).map((day: any) => ({
         ...day,
-        date: day.date.slice(5).replace('-', '/'),
+        date: day.date.slice(5).replace("-", "/"),
       }))
     }
   }
@@ -1097,7 +1148,7 @@ export function ExecutiveDashboard() {
             const elapsedSeconds = order.sla_info.elapsed_minutes || 0
             isCompliant = elapsedSeconds <= targetSeconds
           }
-          
+
           if (isCompliant) {
             channelData[channel].sla_compliance++
           }
@@ -1124,11 +1175,11 @@ export function ExecutiveDashboard() {
   const fetchTopProducts = async () => {
     try {
       console.log("🔍 Top Products Debug - Using external API directly...")
-      
+
       // Use the same fetchOrdersFromApi function to get data from external API
       // This ensures consistency with other dashboard widgets
       const orders = await fetchOrdersFromApi()
-      
+
       console.log("🔍 External API - Total orders for top products:", orders.length)
 
       if (!orders || orders.length === 0) {
@@ -1140,20 +1191,21 @@ export function ExecutiveDashboard() {
       const productMap = {}
       let totalItemsProcessed = 0
       let ordersWithItems = 0
-      
+
       orders.forEach((order, orderIndex) => {
         if (order.items && Array.isArray(order.items)) {
           ordersWithItems++
-          
+
           if (orderIndex < 3) {
             console.log(`🔍 Order ${orderIndex + 1} (${order.id}) has ${order.items.length} items`)
           }
-          
+
           order.items.forEach((item, itemIndex) => {
             totalItemsProcessed++
             const productKey = item.product_sku || item.product_id
-            
-            if (orderIndex < 2 && itemIndex < 2) { // Log first few items for debugging
+
+            if (orderIndex < 2 && itemIndex < 2) {
+              // Log first few items for debugging
               console.log(`🔍 External API Item ${itemIndex + 1} in Order ${orderIndex + 1}:`, {
                 product_id: item.product_id,
                 product_name: item.product_name,
@@ -1162,27 +1214,27 @@ export function ExecutiveDashboard() {
                 unit_price: item.unit_price,
                 total_price: item.total_price,
                 productKey,
-                calculated_total: (item.unit_price || 0) * (item.quantity || 0)
+                calculated_total: (item.unit_price || 0) * (item.quantity || 0),
               })
             }
-            
+
             if (productKey) {
               if (!productMap[productKey]) {
                 productMap[productKey] = {
-                  name: item.product_name || 'Unknown Product',
+                  name: item.product_name || "Unknown Product",
                   sku: item.product_sku || productKey,
                   units: 0,
                   revenue: 0,
                 }
               }
-              
+
               const quantity = item.quantity || 1
               const unitPrice = item.unit_price || 0
-              const revenue = item.total_price || (unitPrice * quantity) || 0
-              
+              const revenue = item.total_price || unitPrice * quantity || 0
+
               productMap[productKey].units += quantity
               productMap[productKey].revenue += revenue
-              
+
               if (orderIndex < 2 && itemIndex < 2) {
                 console.log(`✅ Added to product ${productKey}: +${quantity} units, +฿${revenue} revenue`)
               }
@@ -1191,7 +1243,7 @@ export function ExecutiveDashboard() {
                 console.log(`⚠️ Item missing product key:`, {
                   product_id: item.product_id,
                   product_sku: item.product_sku,
-                  product_name: item.product_name
+                  product_name: item.product_name,
                 })
               }
             }
@@ -1201,7 +1253,7 @@ export function ExecutiveDashboard() {
             console.log(`❌ Order ${orderIndex + 1} (${order.id}) has no items or items is not array:`, {
               items: order.items,
               itemsType: typeof order.items,
-              isArray: Array.isArray(order.items)
+              isArray: Array.isArray(order.items),
             })
           }
         }
@@ -1210,7 +1262,7 @@ export function ExecutiveDashboard() {
       console.log("🔍 External API Top Products Summary:", {
         ordersWithItems,
         totalItemsProcessed,
-        uniqueProducts: Object.keys(productMap).length
+        uniqueProducts: Object.keys(productMap).length,
       })
 
       // Convert to array and sort by revenue
@@ -1242,20 +1294,20 @@ export function ExecutiveDashboard() {
 
       // Aggregate revenue by category from order items
       const categoryMap = {}
-      
+
       orders.forEach((order) => {
         if (order.items && Array.isArray(order.items)) {
           order.items.forEach((item) => {
-            const category = item.product_details?.category || 'Other'
-            
+            const category = item.product_details?.category || "Other"
+
             if (!categoryMap[category]) {
               categoryMap[category] = {
                 name: category,
                 value: 0,
               }
             }
-            
-            const itemRevenue = item.total_price || (item.unit_price * item.quantity) || 0
+
+            const itemRevenue = item.total_price || item.unit_price * item.quantity || 0
             categoryMap[category].value += itemRevenue
           })
         }
@@ -1310,9 +1362,7 @@ export function ExecutiveDashboard() {
   const calculateFulfillmentRate = (orders: any[]) => {
     if (!orders || orders.length === 0) return 0
 
-    const fulfilledOrders = orders.filter(order => 
-      order.status === "DELIVERED" || order.status === "FULFILLED"
-    )
+    const fulfilledOrders = orders.filter((order) => order.status === "DELIVERED" || order.status === "FULFILLED")
 
     return Math.round((fulfilledOrders.length / orders.length) * 100 * 10) / 10
   }
@@ -1320,10 +1370,8 @@ export function ExecutiveDashboard() {
   const calculateActiveOrders = (orders: any[]) => {
     if (!orders || orders.length === 0) return 0
 
-    const activeOrders = orders.filter(order => 
-      order.status !== "DELIVERED" && 
-      order.status !== "FULFILLED" && 
-      order.status !== "CANCELLED"
+    const activeOrders = orders.filter(
+      (order) => order.status !== "DELIVERED" && order.status !== "FULFILLED" && order.status !== "CANCELLED",
     )
 
     return activeOrders.length
@@ -1357,7 +1405,6 @@ export function ExecutiveDashboard() {
     if (value >= threshold - 10) return "bg-yellow-500"
     return "bg-red-500"
   }
-
 
   const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
 
@@ -1409,9 +1456,7 @@ export function ExecutiveDashboard() {
           <p className="text-sm text-muted-foreground">Last 7 days operational insights across all business units</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <div className="text-xs text-muted-foreground">
-            Last 7 Days
-          </div>
+          <div className="text-xs text-muted-foreground">Last 7 Days</div>
           <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
             All Business Units
           </Button>
@@ -1426,12 +1471,16 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <ShoppingCart className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.ordersProcessing.change)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.ordersProcessing.change)}`}
+                >
                   {getChangeIcon(kpiData.ordersProcessing.change)}
                   {Math.abs(kpiData.ordersProcessing.change)}%
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.ordersProcessing.change)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.ordersProcessing.change)}`}
+              >
                 {getChangeIcon(kpiData.ordersProcessing.change)}
                 {Math.abs(kpiData.ordersProcessing.change)}%
               </span>
@@ -1447,13 +1496,17 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <AlertTriangle className="h-6 w-6 sm:h-5 sm:w-5 text-red-500" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.slaBreaches.change, true)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.slaBreaches.change, true)}`}
+                >
                   {getChangeIcon(kpiData.slaBreaches.change)}
                   {kpiData.slaBreaches.change > 0 ? "+" : ""}
                   {kpiData.slaBreaches.change}% vs yesterday
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.slaBreaches.change, true)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.slaBreaches.change, true)}`}
+              >
                 {getChangeIcon(kpiData.slaBreaches.change)}
                 {kpiData.slaBreaches.change > 0 ? "+" : ""}
                 {kpiData.slaBreaches.change}% vs yesterday
@@ -1470,12 +1523,16 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <DollarSign className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.revenueToday.change)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.revenueToday.change)}`}
+                >
                   {getChangeIcon(kpiData.revenueToday.change)}
                   {Math.abs(kpiData.revenueToday.change)}%
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.revenueToday.change)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.revenueToday.change)}`}
+              >
                 {getChangeIcon(kpiData.revenueToday.change)}
                 {Math.abs(kpiData.revenueToday.change)}%
               </span>
@@ -1491,13 +1548,17 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <Clock className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}
+                >
                   {getChangeIcon(kpiData.avgProcessingTime.change)}
                   {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
                   {Math.abs(kpiData.avgProcessingTime.change)} min
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.avgProcessingTime.change, true)}`}
+              >
                 {getChangeIcon(kpiData.avgProcessingTime.change)}
                 {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
                 {Math.abs(kpiData.avgProcessingTime.change)} min
@@ -1514,12 +1575,16 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <Package className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.activeOrders.change)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.activeOrders.change)}`}
+                >
                   {getChangeIcon(kpiData.activeOrders.change)}
                   {Math.abs(kpiData.activeOrders.change)}%
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.activeOrders.change)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.activeOrders.change)}`}
+              >
                 {getChangeIcon(kpiData.activeOrders.change)}
                 {Math.abs(kpiData.activeOrders.change)}%
               </span>
@@ -1535,12 +1600,16 @@ export function ExecutiveDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-2">
               <div className="flex justify-between items-start mb-2 sm:mb-0">
                 <Package className="h-6 w-6 sm:h-5 sm:w-5 text-muted-foreground" />
-                <span className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.fulfillmentRate.change)}`}>
+                <span
+                  className={`text-sm sm:text-xs flex items-center sm:hidden ${getChangeClass(kpiData.fulfillmentRate.change)}`}
+                >
                   {getChangeIcon(kpiData.fulfillmentRate.change)}
                   {Math.abs(kpiData.fulfillmentRate.change)}%
                 </span>
               </div>
-              <span className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.fulfillmentRate.change)}`}>
+              <span
+                className={`text-sm sm:text-xs hidden sm:flex items-center ${getChangeClass(kpiData.fulfillmentRate.change)}`}
+              >
                 {getChangeIcon(kpiData.fulfillmentRate.change)}
                 {Math.abs(kpiData.fulfillmentRate.change)}%
               </span>
@@ -1555,697 +1624,708 @@ export function ExecutiveDashboard() {
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
         <div className="relative">
           {swipeIndicator}
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="fulfillment">Fulfillment</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="fulfillment">Fulfillment</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
         </div>
 
         <div ref={tabsContainerRef} className="relative" {...swipeProps}>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Order Volume by Channel */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <BarChart2 className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold">Order Volume by Channel</h3>
-                      <p className="text-xs text-muted-foreground">Last 7 days orders per channel</p>
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Order Volume by Channel */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-2">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <BarChart2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold">Order Volume by Channel</h3>
+                        <p className="text-xs text-muted-foreground">Last 7 days orders per channel</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="space-y-4">
-                  {channelVolume.map((item, index) => {
-                    const maxOrders = Math.max(...channelVolume.map((c) => c.orders || 0))
-                    const percentage = maxOrders > 0 ? ((item.orders || 0) / maxOrders) * 100 : 0
-                    const channelColors = {
-                      0: { bg: "bg-green-500", light: "bg-green-100", icon: "🟢" },
-                      1: { bg: "bg-blue-500", light: "bg-blue-100", icon: "🔵" },
-                      2: { bg: "bg-orange-500", light: "bg-orange-100", icon: "🟠" },
-                      3: { bg: "bg-gray-500", light: "bg-gray-100", icon: "⚫" },
-                    }
-                    const color = channelColors[index] || channelColors[3]
+                  <div className="space-y-4">
+                    {channelVolume.map((item, index) => {
+                      const maxOrders = Math.max(...channelVolume.map((c) => c.orders || 0))
+                      const percentage = maxOrders > 0 ? ((item.orders || 0) / maxOrders) * 100 : 0
+                      const channelColors = {
+                        0: { bg: "bg-green-500", light: "bg-green-100", icon: "🟢" },
+                        1: { bg: "bg-blue-500", light: "bg-blue-100", icon: "🔵" },
+                        2: { bg: "bg-orange-500", light: "bg-orange-100", icon: "🟠" },
+                        3: { bg: "bg-gray-500", light: "bg-gray-100", icon: "⚫" },
+                      }
+                      const color = channelColors[index] || channelColors[3]
 
-                    return (
-                      <div key={index} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">{color.icon}</span>
-                            <span className="text-sm font-medium">
-                              {item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}
-                            </span>
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">{color.icon}</span>
+                              <span className="text-sm font-medium">
+                                {item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-semibold">{item.orders.toLocaleString()}</span>
+                              <span className="text-xs text-muted-foreground ml-1">orders</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-sm font-semibold">{item.orders.toLocaleString()}</span>
-                            <span className="text-xs text-muted-foreground ml-1">orders</span>
-                          </div>
-                        </div>
-                        <div className="relative">
-                          <div className={`h-8 ${color.light} rounded-full overflow-hidden`}>
-                            <div
-                              className={`h-full ${color.bg} rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
-                              style={{ width: `${isNaN(percentage) ? 0 : percentage}%` }}
-                            >
-                              <span className="text-xs text-white font-medium">{(isNaN(percentage) ? 0 : percentage).toFixed(0)}%</span>
+                          <div className="relative">
+                            <div className={`h-8 ${color.light} rounded-full overflow-hidden`}>
+                              <div
+                                className={`h-full ${color.bg} rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
+                                style={{ width: `${isNaN(percentage) ? 0 : percentage}%` }}
+                              >
+                                <span className="text-xs text-white font-medium">
+                                  {(isNaN(percentage) ? 0 : percentage).toFixed(0)}%
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="mt-6 pt-4 border-t">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Orders (7d)</span>
-                    <span className="font-semibold">
-                      {channelVolume.reduce((sum, item) => sum + item.orders, 0).toLocaleString()}
+                      )
+                    })}
+                  </div>
+                  <div className="mt-6 pt-4 border-t">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Total Orders (7d)</span>
+                      <span className="font-semibold">
+                        {channelVolume.reduce((sum, item) => sum + item.orders, 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Alerts */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
+                      <h3 className="text-sm font-medium">Order Alerts</h3>
+                    </div>
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                      {orderAlerts.length + approachingSla.length} Active Alerts
                     </span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Order Alerts */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-                    <h3 className="text-sm font-medium">Order Alerts</h3>
-                  </div>
-                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
-                    {orderAlerts.length + approachingSla.length} Active Alerts
-                  </span>
-                </div>
-
-                {(orderAlerts.length > 0 || approachingSla.length > 0) && (
-                  <div className="mb-4">
-                    <div className="flex items-center mb-2">
-                      <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
-                      <span className="text-xs font-bold text-red-800 bg-red-100 px-2 py-1 rounded">
-                        {orderAlerts.length > 0 ? "SLA BREACH" : "SLA WARNING"}
-                      </span>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        className="ml-auto text-xs h-6"
-                        onClick={handleEscalation}
-                        disabled={isEscalating || (orderAlerts.length === 0 && approachingSla.length === 0)}
-                      >
-                        {isEscalating ? "Escalating..." : "Escalate"}
-                      </Button>
-                    </div>
-                    {orderAlerts.map((alert, index) => (
-                      <div key={index} className="border-l-2 border-red-500 pl-3 py-1 ml-1 text-xs">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          <div>
-                            <div className="text-muted-foreground">Order:</div>
-                            <div>{alert.order_number}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Customer:</div>
-                            <div>{alert.customer_name}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Channel:</div>
-                            <div>{alert.channel}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Location:</div>
-                            <div>{alert.location}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Target:</div>
-                            <div>{Math.round(alert.target_minutes / 60)} min</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Elapsed:</div>
-                            <div className="text-red-600 font-medium">{Math.round(alert.elapsed_minutes / 60)} min</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground">Time Left:</div>
-                            <div className="text-red-600 font-medium">
-                              {(() => {
-                                const timeLeft = Math.round((alert.target_minutes - alert.elapsed_minutes) / 60)
-                                return timeLeft <= 0 ? `${Math.abs(timeLeft)} min over` : `${timeLeft} min`
-                              })()}
-                            </div>
-                          </div>
-                        </div>
+                  {(orderAlerts.length > 0 || approachingSla.length > 0) && (
+                    <div className="mb-4">
+                      <div className="flex items-center mb-2">
+                        <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
+                        <span className="text-xs font-bold text-red-800 bg-red-100 px-2 py-1 rounded">
+                          {orderAlerts.length > 0 ? "SLA BREACH" : "SLA WARNING"}
+                        </span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="ml-auto text-xs h-6"
+                          onClick={handleEscalation}
+                          disabled={isEscalating || (orderAlerts.length === 0 && approachingSla.length === 0)}
+                        >
+                          {isEscalating ? "Escalating..." : "Escalate"}
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                <div>
-                  <div className="flex items-center mb-2">
-                    <Clock className="h-4 w-4 mr-2 text-yellow-500" />
-                    <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
-                      APPROACHING SLA ({approachingSla.length})
-                    </span>
-                  </div>
-                  <div className="border-l-2 border-yellow-500 pl-2 sm:pl-3 py-1 ml-1">
-                    {approachingSla.length > 0 ? (
-                      <div className="space-y-2">
-                        {approachingSla.map((item, index) => (
-                          <div 
-                            key={index} 
-                            className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors"
-                          >
-                            {/* Mobile layout: stacked */}
-                            <div className="flex flex-col space-y-2 sm:hidden">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-1">
-                                  <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
-                                  <span className="text-xs font-medium text-yellow-900 truncate">
-                                    {item.order_number}
-                                  </span>
-                                </div>
-                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                  item.remaining <= 300 
-                                    ? 'bg-red-500 animate-pulse' 
-                                    : item.remaining <= 600 
-                                    ? 'bg-yellow-500' 
-                                    : 'bg-yellow-400'
-                                }`} />
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <div className="text-xs text-yellow-700">
-                                  <ChannelBadge channel={item.channel} />
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-xs font-bold text-yellow-800">
-                                    {Math.round(item.remaining / 60)} min remaining
-                                  </span>
-                                </div>
+                      {orderAlerts.map((alert, index) => (
+                        <div key={index} className="border-l-2 border-red-500 pl-3 py-1 ml-1 text-xs">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <div>
+                              <div className="text-muted-foreground">Order:</div>
+                              <div>{alert.order_number}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Customer:</div>
+                              <div>{alert.customer_name}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Channel:</div>
+                              <div>{alert.channel}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Location:</div>
+                              <div>{alert.location}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Target:</div>
+                              <div>{Math.round(alert.target_minutes / 60)} min</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Elapsed:</div>
+                              <div className="text-red-600 font-medium">
+                                {Math.round(alert.elapsed_minutes / 60)} min
                               </div>
                             </div>
-                            
-                            {/* Desktop layout: horizontal */}
-                            <div className="hidden sm:flex items-center justify-between">
-                              <div className="flex items-center space-x-3 min-w-0 flex-1">
-                                <div className="flex items-center space-x-1 min-w-0">
-                                  <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
-                                  <span className="text-xs font-medium text-yellow-900 truncate">
-                                    {item.order_number}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-yellow-700 flex-shrink-0">
-                                  <ChannelBadge channel={item.channel} />
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2 flex-shrink-0">
-                                <div className="text-right">
-                                  <div className="text-xs font-bold text-yellow-800">
-                                    {Math.round(item.remaining / 60)} min
-                                  </div>
-                                  <div className="text-xs text-yellow-600">
-                                    remaining
-                                  </div>
-                                </div>
-                                <div className={`w-2 h-2 rounded-full ${
-                                  item.remaining <= 300 
-                                    ? 'bg-red-500 animate-pulse' 
-                                    : item.remaining <= 600 
-                                    ? 'bg-yellow-500' 
-                                    : 'bg-yellow-400'
-                                }`} />
+                            <div>
+                              <div className="text-muted-foreground">Time Left:</div>
+                              <div className="text-red-600 font-medium">
+                                {(() => {
+                                  const timeLeft = Math.round((alert.target_minutes - alert.elapsed_minutes) / 60)
+                                  return timeLeft <= 0 ? `${Math.abs(timeLeft)} min over` : `${timeLeft} min`
+                                })()}
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-xs text-muted-foreground py-2">
-                        No orders approaching SLA deadline
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Test Escalation Button - Always visible for testing */}
-                {(orderAlerts.length === 0 && approachingSla.length === 0) && (
-                  <div className="mb-4">
-                    <div className="flex items-center mb-2">
-                      <AlertTriangle className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-xs font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded">
-                        TEST ESCALATION
-                      </span>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="ml-auto text-xs h-6"
-                        onClick={handleTestEscalation}
-                        disabled={isEscalating}
-                      >
-                        {isEscalating ? "Testing..." : "Test Escalation"}
-                      </Button>
-                    </div>
-                    <div className="text-xs text-gray-500 pl-3">
-                      No active alerts. Click to test webhook functionality.
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Order Processing Performance */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center mb-4">
-                  <Clock className="h-4 w-4 mr-2" />
-                  <h3 className="text-sm font-medium">Order Processing Performance</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-xs text-muted-foreground mb-2">Average Processing Time (minutes)</h4>
-                    <div className="space-y-2">
-                      {processingTimes.map((item, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <span className="text-xs">
-                            {item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}
-                          </span>
-                          <span className="text-xs font-medium">{item.minutes.toFixed(1)} min</span>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
 
                   <div>
-                    <h4 className="text-xs text-muted-foreground mb-2">Order Fulfillment Rate</h4>
-                    <div className="relative h-32 w-32 mx-auto">
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
-                        <circle
-                          className="text-gray-200"
-                          strokeWidth="8"
-                          stroke="currentColor"
-                          fill="transparent"
-                          r="40"
-                          cx="50"
-                          cy="50"
-                        />
-                        <circle
-                          className="text-green-500"
-                          strokeWidth="8"
-                          strokeLinecap="round"
-                          stroke="currentColor"
-                          fill="transparent"
-                          r="40"
-                          cx="50"
-                          cy="50"
-                          strokeDasharray={`${(kpiData.fulfillmentRate.value / 100) * 251.2} 251.2`}
-                          strokeDashoffset="0"
-                          transform="rotate(-90 50 50)"
-                        />
-                      </svg>
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <p className="text-xl font-bold">{kpiData.fulfillmentRate.value}%</p>
-                      </div>
+                    <div className="flex items-center mb-2">
+                      <Clock className="h-4 w-4 mr-2 text-yellow-500" />
+                      <span className="text-xs font-bold text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
+                        APPROACHING SLA ({approachingSla.length})
+                      </span>
                     </div>
-                    <p className="text-xs text-center mt-2 text-muted-foreground">Target: 98%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SLA Compliance by Channel */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center mb-4">
-                  <Clock className="h-4 w-4 mr-2" />
-                  <h3 className="text-sm font-medium">SLA Compliance by Channel</h3>
-                </div>
-
-                <div className="space-y-4">
-                  {slaCompliance.map((item, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}</span>
-                        <div className="text-right">
-                          {item.compliance !== null ? (
-                            <>
-                              <span className="font-medium">{item.compliance.toFixed(1)}%</span>
-                              <div className="text-xs text-muted-foreground">
-                                {item.compliant}/{item.total} orders
+                    <div className="border-l-2 border-yellow-500 pl-2 sm:pl-3 py-1 ml-1">
+                      {approachingSla.length > 0 ? (
+                        <div className="space-y-2">
+                          {approachingSla.map((item, index) => (
+                            <div
+                              key={index}
+                              className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors"
+                            >
+                              {/* Mobile layout: stacked */}
+                              <div className="flex flex-col space-y-2 sm:hidden">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-1">
+                                    <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                                    <span className="text-xs font-medium text-yellow-900 truncate">
+                                      {item.order_number}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                      item.remaining <= 300
+                                        ? "bg-red-500 animate-pulse"
+                                        : item.remaining <= 600
+                                          ? "bg-yellow-500"
+                                          : "bg-yellow-400"
+                                    }`}
+                                  />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs text-yellow-700">
+                                    <ChannelBadge channel={item.channel} />
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-xs font-bold text-yellow-800">
+                                      {Math.round(item.remaining / 60)} min remaining
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-                            </>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">No data</span>
-                          )}
+
+                              {/* Desktop layout: horizontal */}
+                              <div className="hidden sm:flex items-center justify-between">
+                                <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                  <div className="flex items-center space-x-1 min-w-0">
+                                    <Clock className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                                    <span className="text-xs font-medium text-yellow-900 truncate">
+                                      {item.order_number}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-yellow-700 flex-shrink-0">
+                                    <ChannelBadge channel={item.channel} />
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-shrink-0">
+                                  <div className="text-right">
+                                    <div className="text-xs font-bold text-yellow-800">
+                                      {Math.round(item.remaining / 60)} min
+                                    </div>
+                                    <div className="text-xs text-yellow-600">remaining</div>
+                                  </div>
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      item.remaining <= 300
+                                        ? "bg-red-500 animate-pulse"
+                                        : item.remaining <= 600
+                                          ? "bg-yellow-500"
+                                          : "bg-yellow-400"
+                                    }`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                      {item.compliance !== null ? (
-                        <Progress
-                          value={item.compliance}
-                          className="h-2 bg-gray-100"
-                          indicatorClassName={getProgressColor(item.compliance)}
-                        />
                       ) : (
-                        <div className="h-2 bg-gray-100 rounded-full">
-                          <div className="h-full bg-gray-300 rounded-full flex items-center justify-center">
-                            <span className="text-xs text-gray-500">No orders</span>
-                          </div>
-                        </div>
+                        <div className="text-xs text-muted-foreground py-2">No orders approaching SLA deadline</div>
                       )}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+                  </div>
 
-        <TabsContent value="orders" className="space-y-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h3 className="text-lg font-medium">Recent Orders (Last 7 Days)</h3>
-            <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </Button>
-              <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+                  {/* Test Escalation Button - Always visible for testing */}
+                  {orderAlerts.length === 0 && approachingSla.length === 0 && (
+                    <div className="mb-4">
+                      <div className="flex items-center mb-2">
+                        <AlertTriangle className="h-4 w-4 mr-2 text-gray-500" />
+                        <span className="text-xs font-bold text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                          TEST ESCALATION
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="ml-auto text-xs h-6"
+                          onClick={handleTestEscalation}
+                          disabled={isEscalating}
+                        >
+                          {isEscalating ? "Testing..." : "Test Escalation"}
+                        </Button>
+                      </div>
+                      <div className="text-xs text-gray-500 pl-3">
+                        No active alerts. Click to test webhook functionality.
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          </div>
 
-          <Card>
-            <CardContent className="p-4 overflow-x-auto">
-              <div className="min-w-[640px]">
-                <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Order Number</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentOrders.length > 0 ? (
-                    recentOrders.map((order, index) => {
-                      const swipeActions = [
-                        {
-                          id: 'view',
-                          label: 'View',
-                          icon: <Eye className="h-4 w-4" />,
-                          className: 'bg-blue-500 text-white',
-                          onAction: () => {
-                            toast({
-                              title: "View Order",
-                              description: `Opening order ${order.order_no}`,
-                            })
-                          }
-                        },
-                        {
-                          id: 'edit',
-                          label: 'Edit',
-                          icon: <Edit className="h-4 w-4" />,
-                          className: 'bg-green-500 text-white',
-                          onAction: () => {
-                            toast({
-                              title: "Edit Order",
-                              description: `Editing order ${order.order_no}`,
-                            })
-                          }
-                        }
-                      ]
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Order Processing Performance */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center mb-4">
+                    <Clock className="h-4 w-4 mr-2" />
+                    <h3 className="text-sm font-medium">Order Processing Performance</h3>
+                  </div>
 
-                      return (
-                        <SwipeableListItem key={index} actions={swipeActions}>
-                          <TableRow className="hover:bg-gray-50">
-                            <TableCell className="font-medium font-mono text-xs">{order.order_number}</TableCell>
-                            <TableCell className="font-medium">{order.order_no}</TableCell>
-                            <TableCell>{order.customer}</TableCell>
-                            <TableCell><ChannelBadge channel={order.channel} /></TableCell>
-                            <TableCell><OrderStatusBadge status={order.status} /></TableCell>
-                            <TableCell>{order.total}</TableCell>
-                            <TableCell>{order.date}</TableCell>
-                          </TableRow>
-                        </SwipeableListItem>
-                      )
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                        No orders found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-xs text-muted-foreground mb-2">Average Processing Time (minutes)</h4>
+                      <div className="space-y-2">
+                        {processingTimes.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center">
+                            <span className="text-xs">
+                              {item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}
+                            </span>
+                            <span className="text-xs font-medium">{item.minutes.toFixed(1)} min</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs text-muted-foreground mb-2">Order Fulfillment Rate</h4>
+                      <div className="relative h-32 w-32 mx-auto">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <circle
+                            className="text-gray-200"
+                            strokeWidth="8"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="40"
+                            cx="50"
+                            cy="50"
+                          />
+                          <circle
+                            className="text-green-500"
+                            strokeWidth="8"
+                            strokeLinecap="round"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="40"
+                            cx="50"
+                            cy="50"
+                            strokeDasharray={`${(kpiData.fulfillmentRate.value / 100) * 251.2} 251.2`}
+                            strokeDashoffset="0"
+                            transform="rotate(-90 50 50)"
+                          />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                          <p className="text-xl font-bold">{kpiData.fulfillmentRate.value}%</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-center mt-2 text-muted-foreground">Target: 98%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SLA Compliance by Channel */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center mb-4">
+                    <Clock className="h-4 w-4 mr-2" />
+                    <h3 className="text-sm font-medium">SLA Compliance by Channel</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    {slaCompliance.map((item, index) => (
+                      <div key={index}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{item.channel.charAt(0) + item.channel.slice(1).toLowerCase()}</span>
+                          <div className="text-right">
+                            {item.compliance !== null ? (
+                              <>
+                                <span className="font-medium">{item.compliance.toFixed(1)}%</span>
+                                <div className="text-xs text-muted-foreground">
+                                  {item.compliant}/{item.total} orders
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No data</span>
+                            )}
+                          </div>
+                        </div>
+                        {item.compliance !== null ? (
+                          <Progress
+                            value={item.compliance}
+                            className="h-2 bg-gray-100"
+                            indicatorClassName={getProgressColor(item.compliance)}
+                          />
+                        ) : (
+                          <div className="h-2 bg-gray-100 rounded-full">
+                            <div className="h-full bg-gray-300 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-gray-500">No orders</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="orders" className="space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h3 className="text-lg font-medium">Recent Orders (Last 7 Days)</h3>
+              <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+                <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
+                <Button variant="outline" size="sm" className="min-h-[44px] w-full sm:w-auto">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Order Volume (Last 7 Days)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dailyOrders}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="GRAB" stackId="a" fill="#10b981" name="Grab" />
-                    <Bar dataKey="LAZADA" stackId="a" fill="#3b82f6" name="Lazada" />
-                    <Bar dataKey="SHOPEE" stackId="a" fill="#f59e0b" name="Shopee" />
-                    <Bar dataKey="TIKTOK" stackId="a" fill="#6b7280" name="TikTok" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="fulfillment" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Fulfillment by Branch</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {fulfillmentByBranch.length > 0 ? fulfillmentByBranch.map((branch, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between mb-1">
-                        <span>{branch.branch}</span>
-                        <span className="font-medium">{branch.rate.toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full ${getProgressColor(branch.rate)}`}
-                          style={{ width: `${branch.rate}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>{branch.fulfilled} fulfilled</span>
-                        <span>{branch.total} total</span>
-                      </div>
-                    </div>
-                  )) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No fulfillment data available</p>
-                      <p className="text-xs mt-1">Data will appear when orders are processed</p>
-                    </div>
-                  )}
+              <CardContent className="p-4 overflow-x-auto">
+                <div className="min-w-[640px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Order Number</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Channel</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentOrders.length > 0 ? (
+                        recentOrders.map((order, index) => {
+                          const swipeActions = [
+                            {
+                              id: "view",
+                              label: "View",
+                              icon: <Eye className="h-4 w-4" />,
+                              className: "bg-blue-500 text-white",
+                              onAction: () => {
+                                toast({
+                                  title: "View Order",
+                                  description: `Opening order ${order.order_no}`,
+                                })
+                              },
+                            },
+                            {
+                              id: "edit",
+                              label: "Edit",
+                              icon: <Edit className="h-4 w-4" />,
+                              className: "bg-green-500 text-white",
+                              onAction: () => {
+                                toast({
+                                  title: "Edit Order",
+                                  description: `Editing order ${order.order_no}`,
+                                })
+                              },
+                            },
+                          ]
+
+                          return (
+                            <SwipeableListItem key={index} actions={swipeActions}>
+                              <TableRow className="hover:bg-gray-50">
+                                <TableCell className="font-medium font-mono text-xs">{order.order_number}</TableCell>
+                                <TableCell className="font-medium">{order.order_no}</TableCell>
+                                <TableCell>{order.customer}</TableCell>
+                                <TableCell>
+                                  <ChannelBadge channel={order.channel} />
+                                </TableCell>
+                                <TableCell>
+                                  <OrderStatusBadge status={order.status} />
+                                </TableCell>
+                                <TableCell>{order.total}</TableCell>
+                                <TableCell>{order.date}</TableCell>
+                              </TableRow>
+                            </SwipeableListItem>
+                          )
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                            No orders found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Channel Performance</CardTitle>
+                <CardTitle>Daily Order Volume (Last 7 Days)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={channelPerformance}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
+                    <BarChart data={dailyOrders}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="channel" type="category" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="orders" fill="#3b82f6" name="Orders" />
-                      <Bar dataKey="sla_rate" fill="#10b981" name="SLA Compliance %" />
+                      <Bar dataKey="GRAB" stackId="a" fill="#10b981" name="Grab" />
+                      <Bar dataKey="LAZADA" stackId="a" fill="#3b82f6" name="Lazada" />
+                      <Bar dataKey="SHOPEE" stackId="a" fill="#f59e0b" name="Shopee" />
+                      <Bar dataKey="TIKTOK" stackId="a" fill="#6b7280" name="TikTok" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Fulfillment Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="text-2xl font-bold text-green-600">{kpiData.fulfillmentRate.value}%</div>
-                  <div className="text-sm text-muted-foreground">Overall Fulfillment Rate (7d)</div>
-                  <div className={`text-xs mt-1 ${getChangeClass(kpiData.fulfillmentRate.change)} flex items-center`}>
-                    {getChangeIcon(kpiData.fulfillmentRate.change)}
-                    {kpiData.fulfillmentRate.change > 0 ? "+" : ""}
-                    {kpiData.fulfillmentRate.change}% from last period
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <div className="text-2xl font-bold text-blue-600">{kpiData.avgProcessingTime.value} min</div>
-                  <div className="text-sm text-muted-foreground">Avg Processing Time (7d)</div>
-                  <div
-                    className={`text-xs mt-1 ${getChangeClass(kpiData.avgProcessingTime.change, true)} flex items-center`}
-                  >
-                    {getChangeIcon(kpiData.avgProcessingTime.change)}
-                    {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
-                    {Math.abs(kpiData.avgProcessingTime.change)} min from last period
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <div className="text-2xl font-bold text-yellow-600">{kpiData.slaBreaches.value}</div>
-                  <div className="text-sm text-muted-foreground">SLA Breaches (7d)</div>
-                  <div className={`text-xs mt-1 ${getChangeClass(kpiData.slaBreaches.change, true)} flex items-center`}>
-                    {getChangeIcon(kpiData.slaBreaches.change)}
-                    {kpiData.slaBreaches.change > 0 ? "+" : ""}
-                    {kpiData.slaBreaches.change}% from yesterday
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Products</CardTitle>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <div className="min-w-[480px]">
-                  <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead className="text-right">Units</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topProducts.length > 0 ? (
-                      topProducts.map((product, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.sku}</TableCell>
-                          <TableCell className="text-right">{product.units.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">฿{product.revenue.toLocaleString()}</TableCell>
-                        </TableRow>
+          <TabsContent value="fulfillment" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fulfillment by Branch</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {fulfillmentByBranch.length > 0 ? (
+                      fulfillmentByBranch.map((branch, index) => (
+                        <div key={index}>
+                          <div className="flex justify-between mb-1">
+                            <span>{branch.branch}</span>
+                            <span className="font-medium">{branch.rate.toFixed(1)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2.5">
+                            <div
+                              className={`h-2.5 rounded-full ${getProgressColor(branch.rate)}`}
+                              style={{ width: `${branch.rate}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>{branch.fulfilled} fulfilled</span>
+                            <span>{branch.total} total</span>
+                          </div>
+                        </div>
                       ))
                     ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                          <div>
-                            <p>No product data available</p>
-                            <p className="text-xs mt-1">Data will appear when orders contain product information</p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No fulfillment data available</p>
+                        <p className="text-xs mt-1">Data will appear when orders are processed</p>
+                      </div>
                     )}
-                  </TableBody>
-                </Table>
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Channel Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={channelPerformance}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="channel" type="category" />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="orders" fill="#3b82f6" name="Orders" />
+                        <Bar dataKey="sla_rate" fill="#10b981" name="SLA Compliance %" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardHeader>
-                <CardTitle>Revenue by Category</CardTitle>
+                <CardTitle>Fulfillment Status</CardTitle>
               </CardHeader>
               <CardContent>
-                {revenueByCategory.length > 0 ? (
-                  <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={revenueByCategory}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {revenueByCategory.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <div className="h-[200px] sm:h-[250px] lg:h-[300px] flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <p>No category data available</p>
-                      <p className="text-xs mt-1">Data will appear when orders contain product categories</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="text-2xl font-bold text-green-600">{kpiData.fulfillmentRate.value}%</div>
+                    <div className="text-sm text-muted-foreground">Overall Fulfillment Rate (7d)</div>
+                    <div className={`text-xs mt-1 ${getChangeClass(kpiData.fulfillmentRate.change)} flex items-center`}>
+                      {getChangeIcon(kpiData.fulfillmentRate.change)}
+                      {kpiData.fulfillmentRate.change > 0 ? "+" : ""}
+                      {kpiData.fulfillmentRate.change}% from last period
                     </div>
                   </div>
-                )}
+
+                  <div className="flex flex-col items-center">
+                    <div className="text-2xl font-bold text-blue-600">{kpiData.avgProcessingTime.value} min</div>
+                    <div className="text-sm text-muted-foreground">Avg Processing Time (7d)</div>
+                    <div
+                      className={`text-xs mt-1 ${getChangeClass(kpiData.avgProcessingTime.change, true)} flex items-center`}
+                    >
+                      {getChangeIcon(kpiData.avgProcessingTime.change)}
+                      {kpiData.avgProcessingTime.change > 0 ? "+" : ""}
+                      {Math.abs(kpiData.avgProcessingTime.change)} min from last period
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <div className="text-2xl font-bold text-yellow-600">{kpiData.slaBreaches.value}</div>
+                    <div className="text-sm text-muted-foreground">SLA Breaches (7d)</div>
+                    <div
+                      className={`text-xs mt-1 ${getChangeClass(kpiData.slaBreaches.change, true)} flex items-center`}
+                    >
+                      {getChangeIcon(kpiData.slaBreaches.change)}
+                      {kpiData.slaBreaches.change > 0 ? "+" : ""}
+                      {kpiData.slaBreaches.change}% from yesterday
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Trends</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailyOrders}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
-                    <Legend />
-                    <Line type="monotone" dataKey="total" stroke="#10b981" name="Revenue" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <TabsContent value="analytics" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Products</CardTitle>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                  <div className="min-w-[480px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>SKU</TableHead>
+                          <TableHead className="text-right">Units</TableHead>
+                          <TableHead className="text-right">Revenue</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {topProducts.length > 0 ? (
+                          topProducts.map((product, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell>{product.sku}</TableCell>
+                              <TableCell className="text-right">{product.units.toLocaleString()}</TableCell>
+                              <TableCell className="text-right">฿{product.revenue.toLocaleString()}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                              <div>
+                                <p>No product data available</p>
+                                <p className="text-xs mt-1">Data will appear when orders contain product information</p>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue by Category</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {revenueByCategory.length > 0 ? (
+                    <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={revenueByCategory}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {revenueByCategory.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-[200px] sm:h-[250px] lg:h-[300px] flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <p>No category data available</p>
+                        <p className="text-xs mt-1">Data will appear when orders contain product categories</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dailyOrders}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `฿${value.toLocaleString()}`} />
+                      <Legend />
+                      <Line type="monotone" dataKey="total" stroke="#10b981" name="Revenue" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </div>
       </Tabs>
     </div>

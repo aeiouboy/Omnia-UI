@@ -1,70 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server"
+import { getAuthToken } from "@/lib/auth-client"
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
-// Authentication credentials (with environment variable fallbacks)
-const PARTNER_CLIENT_ID = process.env.PARTNER_CLIENT_ID || "testpocorderlist"
-const PARTNER_CLIENT_SECRET = process.env.PARTNER_CLIENT_SECRET || "xitgmLwmp"
+// Base URL for the external API
 const BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
-
-// Cache for authentication token
-let authToken: string | null = null
-let tokenExpiry: number = 0
-
-async function getAuthToken(): Promise<string> {
-  // Check if we have a valid cached token
-  if (authToken && Date.now() < tokenExpiry) {
-    return authToken
-  }
-
-  console.log("🔐 Authenticating with external API...")
-  console.log(`🔗 Auth URL: ${BASE_URL}/auth/poc-orderlist/login`)
-  console.log(`🔑 Client ID: ${PARTNER_CLIENT_ID}`)
-  
-  const authController = new AbortController()
-  const authTimeoutId = setTimeout(() => authController.abort(), 15000)
-
-  try {
-    const loginResponse = await fetch(`${BASE_URL}/auth/poc-orderlist/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        partnerClientId: PARTNER_CLIENT_ID,
-        partnerClientSecret: PARTNER_CLIENT_SECRET,
-      }),
-      signal: authController.signal,
-    })
-
-    clearTimeout(authTimeoutId)
-
-    if (!loginResponse.ok) {
-      const errorText = await loginResponse.text()
-      console.error(`❌ Auth Error: ${loginResponse.status} - ${loginResponse.statusText}`)
-      console.error(`❌ Auth Response: ${errorText}`)
-      throw new Error(`Authentication failed: ${loginResponse.status} - ${loginResponse.statusText}`)
-    }
-
-    const authData = await loginResponse.json()
-    console.log("✅ Authentication successful")
-
-    // Cache the token (assuming it expires in 1 hour if not specified)
-    authToken = authData.token || authData.access_token || authData.accessToken
-    tokenExpiry = Date.now() + (authData.expires_in ? authData.expires_in * 1000 : 3600000) // 1 hour default
-
-    if (!authToken) {
-      throw new Error("No token received from authentication response")
-    }
-
-    return authToken
-  } catch (error) {
-    clearTimeout(authTimeoutId)
-    console.error("❌ Authentication error:", error)
-    throw error
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -73,8 +13,13 @@ export async function GET(request: Request) {
     // Extract pagination parameters
     const page = searchParams.get("page") || "1"
     const pageSize = searchParams.get("pageSize") || "10"
+    const status = searchParams.get("status") || ""
+    const channel = searchParams.get("channel") || ""
+    const search = searchParams.get("search") || ""
 
-    // Get authentication token with fallback
+    console.log(`🔄 External orders API request:`, { page, pageSize, status, channel, search })
+
+    // Get authentication token
     let token: string
     try {
       token = await getAuthToken()
@@ -82,18 +27,18 @@ export async function GET(request: Request) {
       console.error("❌ Authentication failed, returning fallback response:", authError)
       return NextResponse.json({
         success: false,
-        error: `Authentication failed: ${authError instanceof Error ? authError.message : 'Unknown auth error'}`,
+        error: `Authentication failed: ${authError instanceof Error ? authError.message : "Unknown auth error"}`,
         fallback: true,
         data: {
           data: [], // Empty data array
           pagination: {
-            page: parseInt(page),
-            pageSize: parseInt(pageSize),
+            page: Number.parseInt(page),
+            pageSize: Number.parseInt(pageSize),
             total: 0,
             hasNext: false,
-            hasPrev: false
-          }
-        }
+            hasPrev: false,
+          },
+        },
       })
     }
 
@@ -102,12 +47,10 @@ export async function GET(request: Request) {
     apiUrl.searchParams.set("page", page)
     apiUrl.searchParams.set("pageSize", pageSize)
 
-    // Add any other query parameters
-    for (const [key, value] of searchParams.entries()) {
-      if (key !== "page" && key !== "pageSize") {
-        apiUrl.searchParams.set(key, value)
-      }
-    }
+    // Add optional filters
+    if (status && status !== "all-status") apiUrl.searchParams.set("status", status)
+    if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
+    if (search) apiUrl.searchParams.set("search", search)
 
     console.log(`🔄 Fetching from API: ${apiUrl.toString()}`)
 
@@ -128,20 +71,19 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       console.error(`❌ API Error: ${response.status} - ${response.statusText}`)
-      
+
       // If we get 401 Unauthorized, try to refresh the token and retry once
       if (response.status === 401) {
         console.log("🔄 Token may be expired, refreshing and retrying...")
-        authToken = null // Clear cached token
-        tokenExpiry = 0
-        
+
         try {
-          const newToken = await getAuthToken()
-          
+          // Force new token
+          const newToken = await getAuthToken(true)
+
           // Retry the request with new token
           const retryController = new AbortController()
           const retryTimeoutId = setTimeout(() => retryController.abort(), 30000)
-          
+
           const retryResponse = await fetch(apiUrl.toString(), {
             method: "GET",
             headers: {
@@ -151,13 +93,13 @@ export async function GET(request: Request) {
             },
             signal: retryController.signal,
           })
-          
+
           clearTimeout(retryTimeoutId)
-          
+
           if (retryResponse.ok) {
             const retryData = await retryResponse.json()
             console.log(`✅ API Success (retry): Page ${page}, ${retryData.data?.length || 0} orders`)
-            
+
             return NextResponse.json({
               success: true,
               data: retryData,
@@ -167,11 +109,21 @@ export async function GET(request: Request) {
           console.error("❌ Retry failed:", retryError)
         }
       }
-      
+
       return NextResponse.json({
         success: false,
         error: `API Error: ${response.status} - ${response.statusText}`,
         fallback: true,
+        data: {
+          data: [], // Empty data array for fallback
+          pagination: {
+            page: Number.parseInt(page),
+            pageSize: Number.parseInt(pageSize),
+            total: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+        },
       })
     }
 
@@ -206,13 +158,13 @@ export async function GET(request: Request) {
       data: {
         data: [], // Empty data array for fallback
         pagination: {
-          page: parseInt(fallbackPage),
-          pageSize: parseInt(fallbackPageSize),
+          page: Number.parseInt(fallbackPage),
+          pageSize: Number.parseInt(fallbackPageSize),
           total: 0,
           hasNext: false,
-          hasPrev: false
-        }
-      }
+          hasPrev: false,
+        },
+      },
     })
   }
 }
