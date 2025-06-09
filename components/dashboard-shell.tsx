@@ -16,7 +16,18 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const { isCollapsed, isMobile, setIsMobileOpen } = useSidebar()
-  const currentTime = formatGMT7TimeString()
+  
+  // Get current time with fallback
+  const getCurrentTime = () => {
+    try {
+      return formatGMT7TimeString()
+    } catch (error) {
+      console.warn("Error getting GMT+7 time, using fallback:", error)
+      return new Date().toLocaleTimeString("en-US", { hour12: false })
+    }
+  }
+  
+  const currentTime = getCurrentTime()
   
   // State for escalation badge count
   const [escalationBadgeCount, setEscalationBadgeCount] = useState<number>(0)

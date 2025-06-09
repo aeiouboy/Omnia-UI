@@ -51,12 +51,19 @@ export function getGMT7Time(date?: Date | string | number): Date {
  * @returns Formatted time string in HH:MM:SS format
  */
 export function formatGMT7TimeString(date?: Date | string | number): string {
-  const gmt7Time = getGMT7Time(date)
-  const hours = normalizeTimeUnit(gmt7Time.getHours())
-  const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
-  const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
-
-  return `${hours}:${minutes}:${seconds}`
+  try {
+    const inputDate = date ? new Date(date) : new Date()
+    return inputDate.toLocaleString("en-US", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit", 
+      second: "2-digit",
+      hour12: false,
+    })
+  } catch (error) {
+    console.warn("Error formatting GMT+7 time:", error)
+    return new Date().toLocaleTimeString("en-US", { hour12: false })
+  }
 }
 
 /**
@@ -99,3 +106,23 @@ export function safeParseDate(dateValue: any): Date {
   const parsed = new Date(dateValue)
   return isNaN(parsed.getTime()) ? new Date() : parsed
 }
+
+/**
+ * General function to format time with GMT+7 timezone
+ * @param date - Optional date input
+ * @param options - Intl.DateTimeFormatOptions
+ * @returns Formatted string
+ */
+export function formatGMT7Time(date?: Date | string, options?: Intl.DateTimeFormatOptions): string {
+  try {
+    const inputDate = date ? new Date(date) : new Date()
+    return inputDate.toLocaleString("en-US", {
+      timeZone: "Asia/Bangkok",
+      ...options
+    })
+  } catch (error) {
+    console.warn("Error formatting GMT+7 time:", error)
+    return new Date().toLocaleString("en-US")
+  }
+}
+
