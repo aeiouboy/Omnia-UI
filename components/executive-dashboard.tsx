@@ -2452,7 +2452,7 @@ export function ExecutiveDashboard() {
                   {/* Hourly Chart */}
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
+                      <BarChart
                         data={hourlyOrderSummary}
                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                       >
@@ -2477,8 +2477,8 @@ export function ExecutiveDashboard() {
                         />
                         <Legend />
                         <Bar yAxisId="left" dataKey="orders" fill="#3b82f6" name="Orders" />
-                        <Line yAxisId="right" type="monotone" dataKey="sla_compliance" stroke="#10b981" strokeWidth={2} name="SLA Compliance %" />
-                      </LineChart>
+                        <Bar yAxisId="right" dataKey="sla_compliance" fill="#10b981" name="SLA Compliance %" />
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
