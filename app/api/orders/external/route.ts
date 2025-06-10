@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     }
 
     // Build API URL with pagination
-    const apiUrl = new URL('merchant/orders', BASE_URL) // More robust URL construction
+    const apiUrl = new URL(`${BASE_URL}/merchant/orders`)
     apiUrl.searchParams.set("page", page)
     apiUrl.searchParams.set("pageSize", pageSize)
 
