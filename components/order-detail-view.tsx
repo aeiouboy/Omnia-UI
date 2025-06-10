@@ -96,34 +96,46 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
     : [];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Orders</span>
-            <span className="sm:hidden">Back</span>
-          </Button>
-          <div>
-            <h1 className="text-xl md:text-2xl font-semibold text-enterprise-dark">Order Details</h1>
-            <p className="text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Orders</span>
+              <span className="sm:hidden">Back</span>
+            </Button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-enterprise-dark truncate">Order Details</h1>
+              <p className="text-xs sm:text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
+            </div>
           </div>
+          <Button variant="outline" size="sm" onClick={onClose} className="sm:hidden">
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Download className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-            <Edit className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Edit Order</span>
-          </Button>
-          <Button size="sm" className="bg-blue-500 hover:bg-blue-600 flex-1 sm:flex-none">
-            <RefreshCw className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Process Order</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={onClose}>
+        
+        {/* Action Buttons - Mobile First Design */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3 flex-1">
+            <Button variant="outline" size="sm" className="justify-center">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Export</span>
+              <span className="sm:hidden text-xs">Export</span>
+            </Button>
+            <Button variant="outline" size="sm" className="justify-center">
+              <Edit className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Edit Order</span>
+              <span className="sm:hidden text-xs">Edit</span>
+            </Button>
+            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 justify-center col-span-2 sm:col-span-1">
+              <RefreshCw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Process Order</span>
+              <span className="sm:hidden text-xs">Process</span>
+            </Button>
+          </div>
+          <Button variant="outline" size="sm" onClick={onClose} className="hidden sm:flex">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -141,48 +153,42 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
       )}
 
       {/* Quick Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-enterprise-text-light">Status</p>
-                <div className="mt-1"><OrderStatusBadge status={order?.status || 'N/A'} /></div>
-              </div>
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm text-enterprise-text-light">Status</p>
+              <div><OrderStatusBadge status={order?.status || 'N/A'} /></div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-enterprise-text-light">Priority</p>
-                <div className="mt-1"><PriorityBadge priority={order?.metadata?.priority || 'N/A'} /></div>
-              </div>
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm text-enterprise-text-light">Priority</p>
+              <div><PriorityBadge priority={order?.metadata?.priority || 'N/A'} /></div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-enterprise-text-light">Channel</p>
-                <div className="mt-1"><ChannelBadge channel={order?.channel || 'N/A'} /></div>
-              </div>
+          <CardContent className="p-3 sm:p-4">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm text-enterprise-text-light">Channel</p>
+              <div><ChannelBadge channel={order?.channel || 'N/A'} /></div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-enterprise-text-light">Total Amount</p>
-                <p className="text-lg font-semibold mt-1">฿{order?.total_amount?.toFixed(2) || '0.00'}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-enterprise-text-light">Total Amount</p>
+                <p className="text-base sm:text-lg font-semibold mt-1 truncate">฿{order?.total_amount?.toFixed(2) || '0.00'}</p>
               </div>
-              <DollarSign className="h-5 w-5 text-green-500" />
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
@@ -190,17 +196,17 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5">
-        <TabsList className="bg-white border border-enterprise-border">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="items">Items ({order?.items.length})</TabsTrigger>
-          <TabsTrigger value="fulfillment">Fulfillment</TabsTrigger>
-          <TabsTrigger value="delivery">Delivery</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
+        <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto p-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Overview</TabsTrigger>
+          <TabsTrigger value="items" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Items ({order?.items?.length || 0})</TabsTrigger>
+          <TabsTrigger value="fulfillment" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Fulfillment</TabsTrigger>
+          <TabsTrigger value="delivery" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Delivery</TabsTrigger>
+          <TabsTrigger value="timeline" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Timeline</TabsTrigger>
+          <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Notes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Customer Information */}
             <Card>
               <CardHeader>
@@ -350,85 +356,119 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
 
         <TabsContent value="items" className="space-y-4">
           <Card>
-            <CardHeader>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <CardTitle>Order Items</CardTitle>
-                  <CardDescription>{order?.items?.length || 0} items in this order</CardDescription>
-                </div>
-                <div className="relative w-full md:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-dark-gray" />
-                  <Input
-                    type="search"
-                    placeholder="Search items by name or SKU..."
-                    className="pl-8 w-full border-medium-gray text-deep-navy"
-                    value={itemSearchTerm}
-                    onChange={(e) => setItemSearchTerm(e.target.value)}
-                  />
+            <CardHeader className="pb-4">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl">Order Items</CardTitle>
+                    <CardDescription className="text-sm">{order?.items?.length || 0} items in this order</CardDescription>
+                  </div>
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="search"
+                      placeholder="Search items..."
+                      className="pl-10 h-10 text-sm w-full"
+                      value={itemSearchTerm}
+                      onChange={(e) => setItemSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               {filteredItems.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {filteredItems.map((item: ApiOrderItem) => (
-                    <Card key={item.product_sku} className="border border-gray-200 overflow-hidden">
-                      {/* Item Header - Always visible */}
+                    <Card key={item.product_sku} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
+                      {/* Mobile-optimized Item Header */}
                       <div
-                        className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+                        className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => toggleItemExpansion(item.product_sku)}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
-                            {/* Placeholder for image - item.product_details.imageUrl might exist */}
+                        <div className="flex gap-3">
+                          {/* Product Image */}
+                          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
                             <img
-                              src="https://via.placeholder.com/48x48/f3f4f6/9ca3af?text=📦" 
-                              alt={item.product_name || 'Item image'}
-                              width={48}
-                              height={48}
+                              src={`https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=${encodeURIComponent('📦')}`}
+                              alt={item.product_name || 'Product image'}
                               className="object-cover w-full h-full"
                             />
                           </div>
-                          <div>
-                            <p className="font-semibold text-deep-navy">{item.product_name || 'N/A'}</p>
-                            <p className="text-sm text-dark-gray">SKU: {item.product_sku || 'N/A'}</p>
+                          
+                          {/* Product Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm sm:text-base text-gray-900 leading-tight" style={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden'
+                                }}>
+                                  {item.product_name || 'N/A'}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-gray-500 mt-1 font-mono">
+                                  SKU: {item.product_sku || 'N/A'}
+                                </p>
+                              </div>
+                              <ChevronDown
+                                className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 mt-1 ${
+                                  expandedItems[item.product_sku] ? "rotate-180" : ""
+                                }`}
+                              />
+                            </div>
+                            
+                            {/* Price and Quantity */}
+                            <div className="flex justify-between items-center mt-3">
+                              <div className="flex items-center gap-4">
+                                <div className="text-center">
+                                  <p className="text-xs text-gray-500">Qty</p>
+                                  <p className="text-sm font-medium">{item.quantity}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-gray-500">Unit Price</p>
+                                  <p className="text-sm font-medium">฿{(item.unit_price || 0).toFixed(2)}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500">Total</p>
+                                <p className="text-base font-semibold text-green-600">
+                                  ฿{(item.total_price || 0).toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm text-dark-gray">Qty: {item.quantity}</p>
-                          <p className="text-sm font-medium text-deep-navy">
-                            ฿{(item.total_price || 0).toFixed(2)}
-                          </p>
-                          <ChevronDown
-                            className={`h-5 w-5 text-dark-gray transition-transform ${
-                              expandedItems[item.product_sku] ? "rotate-180" : ""
-                            }`}
-                          />
-                        </div>
                       </div>
+                      
                       {/* Collapsible Item Details */}
                       {expandedItems[item.product_sku] && (
-                        <div className="p-4 border-t border-gray-200 bg-light-gray">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="font-medium text-medium-gray">Product ID</p>
-                              <p className="text-deep-navy">{item.product_id}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-medium-gray">Unit Price</p>
-                              <p className="text-deep-navy">฿{(item.unit_price || 0).toFixed(2)}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-medium-gray">Description</p>
-                              <p className="text-deep-navy">{item.product_details?.description || 'N/A'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-medium-gray">Category</p>
-                              <p className="text-deep-navy">{item.product_details?.category || 'N/A'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-medium-gray">Brand</p>
-                              <p className="text-deep-navy">{item.product_details?.brand || 'N/A'}</p>
+                        <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-gray-100 bg-gray-50">
+                          <div className="pt-3 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Product ID</p>
+                                  <p className="text-gray-900 font-mono text-sm">{item.product_id}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Category</p>
+                                  <p className="text-gray-900">{item.product_details?.category || 'N/A'}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Brand</p>
+                                  <p className="text-gray-900">{item.product_details?.brand || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Description</p>
+                                  <p className="text-gray-900 text-sm leading-relaxed">
+                                    {item.product_details?.description || 'No description available'}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -437,12 +477,22 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No items found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {itemSearchTerm ? 'Try adjusting your search term.' : 'This order has no items.'}
+                <div className="text-center py-12">
+                  <PackageOpen className="mx-auto h-16 w-16 text-gray-300" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">No items found</h3>
+                  <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+                    {itemSearchTerm ? 'No items match your search. Try different keywords.' : 'This order has no items to display.'}
                   </p>
+                  {itemSearchTerm && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4" 
+                      onClick={() => setItemSearchTerm('')}
+                    >
+                      Clear search
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -450,12 +500,12 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
         </TabsContent>
 
         <TabsContent value="fulfillment" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Fulfillment Details</CardTitle>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl">Fulfillment Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-4 sm:px-6">
                 <div>
                   <p className="text-sm text-enterprise-text-light">Fulfillment Method</p>
                   <Badge variant="outline">{'N/A' /* No fulfillment_info in payload */}</Badge>
@@ -488,10 +538,10 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>SLA Performance</CardTitle>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg sm:text-xl">SLA Performance</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-4 sm:px-6">
                 <div>
                   <p className="text-sm text-enterprise-text-light">Target Processing Time</p>
                   <p className="text-lg font-semibold">{order?.sla_info?.target_minutes || 'N/A'} minutes</p>
@@ -519,13 +569,13 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
 
         <TabsContent value="delivery" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Truck className="h-5 w-5" />
                 Delivery Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-4 sm:px-6">
               {false ? ( // No delivery info in API payload
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
@@ -563,7 +613,10 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No delivery information available.</p>
+                <div className="text-center py-8">
+                  <Truck className="mx-auto h-12 w-12 text-gray-300" />
+                  <p className="mt-4 text-sm text-muted-foreground">No delivery information available for this order.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -571,13 +624,13 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
 
         <TabsContent value="timeline" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Calendar className="h-5 w-5" />
                 Order Timeline
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               {false ? ( // No timeline info in API payload
                 <div className="space-y-4">
                   {order.timeline.map((event: any, index: any) => (
@@ -601,7 +654,10 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No timeline events available for this order.</p>
+                <div className="text-center py-8">
+                  <Calendar className="mx-auto h-12 w-12 text-gray-300" />
+                  <p className="mt-4 text-sm text-muted-foreground">No timeline events available for this order.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -609,13 +665,13 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
 
         <TabsContent value="notes" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <MessageSquare className="h-5 w-5" />
                 Notes & Comments
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               {false ? ( // No notes info in API payload
                 <div className="space-y-4">
                   {order.notes.map((note: any) => (
@@ -636,7 +692,10 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No notes or comments for this order.</p>
+                <div className="text-center py-8">
+                  <MessageSquare className="mx-auto h-12 w-12 text-gray-300" />
+                  <p className="mt-4 text-sm text-muted-foreground">No notes or comments for this order.</p>
+                </div>
               )}
             </CardContent>
           </Card>
