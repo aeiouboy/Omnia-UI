@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     }
 
     // Build API URL with pagination
-    const apiUrl = new URL(`${BASE_URL}/merchant/orders`)
+    const apiUrl = new URL('merchant/orders', BASE_URL) // More robust URL construction
     apiUrl.searchParams.set("page", page)
     apiUrl.searchParams.set("pageSize", pageSize)
 
@@ -134,8 +134,8 @@ export async function GET(request: Request) {
       success: true,
       data: data,
     })
-  } catch (error) {
-    console.error("❌ Server proxy error:", error)
+  } catch (error: any) {
+    console.error("❌ Server proxy error:", error, "Stack:", error?.stack);
 
     // Get searchParams safely for fallback response
     const { searchParams: fallbackParams } = new URL(request.url)
