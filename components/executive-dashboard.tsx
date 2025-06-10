@@ -255,6 +255,7 @@ export function ExecutiveDashboard() {
   const [channelPerformance, setChannelPerformance] = useState<any[]>([])
   const [topProducts, setTopProducts] = useState<any[]>([])
   const [revenueByCategory, setRevenueByCategory] = useState<any[]>([])
+  const [hourlyOrderSummary, setHourlyOrderSummary] = useState<any[]>([])
 
   const loadData = async () => {
     setIsLoading(true)
@@ -276,6 +277,7 @@ export function ExecutiveDashboard() {
         channelPerfData,
         productsData,
         categoryData,
+        hourlyData,
       ] = await Promise.all([
         fetchOrdersProcessing().catch((err) => {
           console.error("Error fetching orders processing:", err)
@@ -334,6 +336,10 @@ export function ExecutiveDashboard() {
           console.error("Error fetching revenue by category:", err)
           return []
         }),
+        fetchHourlyOrderSummary().catch((err) => {
+          console.error("Error fetching hourly order summary:", err)
+          return []
+        }),
       ])
 
       // Set KPI data - all based on real data now
@@ -362,6 +368,7 @@ export function ExecutiveDashboard() {
       setChannelPerformance(channelPerfData)
       setTopProducts(productsData)
       setRevenueByCategory(categoryData)
+      setHourlyOrderSummary(hourlyData)
     } catch (err) {
       console.error("Failed to load dashboard data:", err)
       setError("Failed to load dashboard data. Please try again later.")
@@ -1207,6 +1214,75 @@ export function ExecutiveDashboard() {
     }
   }
 
+  const fetchHourlyOrderSummary = async () => {
+    try {
+      const orders = await fetchOrdersFromApi()
+      
+      if (!orders || orders.length === 0) {
+        // Return empty hourly data for 24 hours
+        return Array.from({ length: 24 }, (_, i) => ({
+          hour: i.toString().padStart(2, '0') + ':00',
+          orders: 0,
+          revenue: 0,
+          sla_compliance: 100
+        }))
+      }
+
+      // Get today's date in GMT+7
+      const today = new Date()
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+
+      // Filter orders for today only
+      const todayOrders = orders.filter(order => {
+        const orderDate = new Date(order.order_date || order.metadata?.created_at)
+        return orderDate >= todayStart && orderDate < todayEnd
+      })
+
+      // Initialize hourly data
+      const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+        hour: i.toString().padStart(2, '0') + ':00',
+        orders: 0,
+        revenue: 0,
+        sla_compliant: 0,
+        total_orders: 0
+      }))
+
+      // Aggregate orders by hour
+      todayOrders.forEach(order => {
+        const orderDate = new Date(order.order_date || order.metadata?.created_at)
+        const hour = orderDate.getHours()
+        
+        hourlyData[hour].orders++
+        hourlyData[hour].revenue += order.total_amount || 0
+        hourlyData[hour].total_orders++
+
+        // Check SLA compliance
+        if (order.sla_info?.status === "COMPLIANT" || 
+            order.status === "DELIVERED" || 
+            order.status === "FULFILLED" ||
+            (order.sla_info && (order.sla_info.elapsed_minutes || 0) <= (order.sla_info.target_minutes || 300))) {
+          hourlyData[hour].sla_compliant++
+        }
+      })
+
+      // Calculate SLA compliance percentage
+      return hourlyData.map(data => ({
+        ...data,
+        sla_compliance: data.total_orders > 0 ? (data.sla_compliant / data.total_orders) * 100 : 100
+      }))
+
+    } catch (err) {
+      console.warn("Error fetching hourly order summary:", err)
+      return Array.from({ length: 24 }, (_, i) => ({
+        hour: i.toString().padStart(2, '0') + ':00',
+        orders: 0,
+        revenue: 0,
+        sla_compliance: 100
+      }))
+    }
+  }
+
   const fetchTopProducts = async () => {
     try {
       console.log("🔍 Top Products Debug - Using external API directly...")
@@ -1767,7 +1843,7 @@ export function ExecutiveDashboard() {
                           {isEscalating ? "Escalating..." : "Escalate"}
                         </Button>
                       </div>
-                      {orderAlerts.map((alert, index) => (
+                      {orderAlerts.slice(0, 5).map((alert, index) => (
                         <div key={index} className="border-l-2 border-red-500 pl-3 py-1 ml-1 text-xs">
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             <div>
@@ -1808,6 +1884,22 @@ export function ExecutiveDashboard() {
                           </div>
                         </div>
                       ))}
+                      {orderAlerts.length > 5 && (
+                        <div className="mt-3 pt-3 border-t border-red-200">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs h-8 text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={() => {
+                              // Navigate to full orders page with filter
+                              window.location.href = '/orders?filter=sla-breach';
+                            }}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View All {orderAlerts.length} SLA Breach Orders
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1821,7 +1913,7 @@ export function ExecutiveDashboard() {
                     <div className="border-l-2 border-yellow-500 pl-2 sm:pl-3 py-1 ml-1">
                       {approachingSla.length > 0 ? (
                         <div className="space-y-2">
-                          {approachingSla.map((item, index) => (
+                          {approachingSla.slice(0, 5).map((item, index) => (
                             <div
                               key={index}
                               className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3 hover:bg-yellow-100 transition-colors touch-manipulation"
@@ -1892,6 +1984,22 @@ export function ExecutiveDashboard() {
                             </div>
                           ))}
                         </div>
+                        {approachingSla.length > 5 && (
+                          <div className="mt-3 pt-3 border-t border-yellow-200">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-8 text-yellow-600 border-yellow-200 hover:bg-yellow-50"
+                              onClick={() => {
+                                // Navigate to full orders page with filter
+                                window.location.href = '/orders?filter=approaching-sla';
+                              }}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View All {approachingSla.length} Approaching SLA Orders
+                            </Button>
+                          </div>
+                        )}
                       ) : (
                         <div className="text-xs text-muted-foreground py-2">No orders approaching SLA deadline</div>
                       )}
@@ -2191,25 +2299,64 @@ export function ExecutiveDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Channel Performance</CardTitle>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Channel Performance</span>
+                    <span className="text-sm text-muted-foreground">Today</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[200px] sm:h-[250px] lg:h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={channelPerformance}
-                        layout="vertical"
-                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="channel" type="category" />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="orders" fill="#3b82f6" name="Orders" />
-                        <Bar dataKey="sla_rate" fill="#10b981" name="SLA Compliance %" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="space-y-4">
+                    {/* Performance Summary Cards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {channelPerformance.map((channel, index) => (
+                        <div key={channel.channel} className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <ChannelBadge channel={channel.channel} />
+                            <div className={`text-xs px-2 py-1 rounded-full ${
+                              channel.sla_rate >= 95 ? 'bg-green-100 text-green-800' :
+                              channel.sla_rate >= 85 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {channel.sla_rate.toFixed(1)}% SLA
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-xs text-muted-foreground">Orders</span>
+                              <span className="text-sm font-medium">{channel.orders}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-xs text-muted-foreground">Revenue</span>
+                              <span className="text-sm font-medium">฿{(channel.revenue || 0).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Performance Chart */}
+                    <div className="h-[200px] sm:h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={channelPerformance}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="channel" />
+                          <YAxis yAxisId="left" orientation="left" />
+                          <YAxis yAxisId="right" orientation="right" />
+                          <Tooltip 
+                            formatter={(value, name, props) => [
+                              name === 'orders' ? value : name === 'revenue' ? `฿${value.toLocaleString()}` : `${value.toFixed(1)}%`,
+                              name === 'orders' ? 'Orders' : name === 'revenue' ? 'Revenue' : 'SLA Compliance'
+                            ]}
+                          />
+                          <Legend />
+                          <Bar yAxisId="left" dataKey="orders" fill="#3b82f6" name="Orders" />
+                          <Bar yAxisId="right" dataKey="sla_rate" fill="#10b981" name="SLA Compliance %" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -2253,6 +2400,86 @@ export function ExecutiveDashboard() {
                       {kpiData.slaBreaches.change > 0 ? "+" : ""}
                       {kpiData.slaBreaches.change}% from yesterday
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Hourly Order Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Order Summary by Hour</span>
+                  <span className="text-sm text-muted-foreground">Today</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Current Hour Summary */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg">
+                    {(() => {
+                      const currentHour = new Date().getHours()
+                      const currentHourData = hourlyOrderSummary.find(h => h.hour === currentHour.toString().padStart(2, '0') + ':00') || 
+                                               { orders: 0, revenue: 0, sla_compliance: 100 }
+                      return (
+                        <>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">{currentHour.toString().padStart(2, '0')}:00</div>
+                            <div className="text-xs text-muted-foreground">Current Hour</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold">{currentHourData.orders}</div>
+                            <div className="text-xs text-muted-foreground">Orders</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold">฿{(currentHourData.revenue || 0).toLocaleString()}</div>
+                            <div className="text-xs text-muted-foreground">Revenue</div>
+                          </div>
+                          <div className="text-center">
+                            <div className={`text-xl font-bold ${
+                              currentHourData.sla_compliance >= 95 ? 'text-green-600' :
+                              currentHourData.sla_compliance >= 85 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                              {currentHourData.sla_compliance.toFixed(1)}%
+                            </div>
+                            <div className="text-xs text-muted-foreground">SLA</div>
+                          </div>
+                        </>
+                      )
+                    })()}
+                  </div>
+
+                  {/* Hourly Chart */}
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={hourlyOrderSummary}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="hour" 
+                          tick={{ fontSize: 12 }}
+                          interval={3}
+                        />
+                        <YAxis yAxisId="left" orientation="left" />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip 
+                          formatter={(value, name) => [
+                            name === 'orders' ? value : 
+                            name === 'revenue' ? `฿${value.toLocaleString()}` : 
+                            `${value.toFixed(1)}%`,
+                            name === 'orders' ? 'Orders' : 
+                            name === 'revenue' ? 'Revenue' : 
+                            'SLA Compliance'
+                          ]}
+                          labelFormatter={(hour) => `Time: ${hour}`}
+                        />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="orders" fill="#3b82f6" name="Orders" />
+                        <Line yAxisId="right" type="monotone" dataKey="sla_compliance" stroke="#10b981" strokeWidth={2} name="SLA Compliance %" />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </CardContent>
