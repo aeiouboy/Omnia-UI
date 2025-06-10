@@ -6,6 +6,19 @@ export const dynamic = "force-dynamic"
 // Base URL for the external API
 const BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
 
+// Handle CORS preflight requests
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -25,7 +38,7 @@ export async function GET(request: Request) {
       token = await getAuthToken()
     } catch (authError) {
       console.error("❌ Authentication failed, returning fallback response:", authError)
-      return NextResponse.json({
+      const authErrorResponse = NextResponse.json({
         success: false,
         error: `Authentication failed: ${authError instanceof Error ? authError.message : "Unknown auth error"}`,
         fallback: true,
@@ -40,6 +53,13 @@ export async function GET(request: Request) {
           },
         },
       })
+      
+      // Add CORS headers
+      authErrorResponse.headers.set('Access-Control-Allow-Origin', '*')
+      authErrorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      authErrorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      
+      return authErrorResponse
     }
 
     // Build API URL with pagination
@@ -100,17 +120,24 @@ export async function GET(request: Request) {
             const retryData = await retryResponse.json()
             console.log(`✅ API Success (retry): Page ${page}, ${retryData.data?.length || 0} orders`)
 
-            return NextResponse.json({
+            const retrySuccessResponse = NextResponse.json({
               success: true,
               data: retryData,
             })
+            
+            // Add CORS headers
+            retrySuccessResponse.headers.set('Access-Control-Allow-Origin', '*')
+            retrySuccessResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            retrySuccessResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            
+            return retrySuccessResponse
           }
         } catch (retryError) {
           console.error("❌ Retry failed:", retryError)
         }
       }
 
-      return NextResponse.json({
+      const errorResponse = NextResponse.json({
         success: false,
         error: `API Error: ${response.status} - ${response.statusText}`,
         fallback: true,
@@ -125,15 +152,29 @@ export async function GET(request: Request) {
           },
         },
       })
+      
+      // Add CORS headers
+      errorResponse.headers.set('Access-Control-Allow-Origin', '*')
+      errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      
+      return errorResponse
     }
 
     const data = await response.json()
     console.log(`✅ API Success: Page ${page}, ${data.data?.length || 0} orders`)
 
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       success: true,
       data: data,
     })
+    
+    // Add CORS headers
+    successResponse.headers.set('Access-Control-Allow-Origin', '*')
+    successResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    successResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return successResponse
   } catch (error: any) {
     console.error("❌ Server proxy error:", error, "Stack:", error?.stack);
 
@@ -151,7 +192,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    const fallbackResponse = NextResponse.json({
       success: false,
       error: errorMessage,
       fallback: true,
@@ -166,5 +207,12 @@ export async function GET(request: Request) {
         },
       },
     })
+    
+    // Add CORS headers
+    fallbackResponse.headers.set('Access-Control-Allow-Origin', '*')
+    fallbackResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    fallbackResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    
+    return fallbackResponse
   }
 }
