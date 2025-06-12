@@ -3,8 +3,8 @@ import { getAuthToken } from "@/lib/auth-client"
 
 export const dynamic = "force-dynamic"
 
-// Base URL for the external API
-const BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
+// Base URL for the external API (use working endpoint first)
+const BASE_URL = "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: Request) {
@@ -29,13 +29,17 @@ export async function GET(request: Request) {
     const status = searchParams.get("status") || ""
     const channel = searchParams.get("channel") || ""
     const search = searchParams.get("search") || ""
+    const dateFrom = searchParams.get("dateFrom") || ""
+    const dateTo = searchParams.get("dateTo") || ""
 
-    console.log(`🔄 External orders API request:`, { page, pageSize, status, channel, search })
+    console.log(`🔄 External orders API request:`, { page, pageSize, status, channel, search, dateFrom, dateTo })
 
     // Get authentication token
     let token: string
+    let isUsingMockAuth = false
     try {
       token = await getAuthToken()
+      isUsingMockAuth = token.startsWith("mock-dev-token-")
     } catch (authError) {
       console.error("❌ Authentication failed, returning fallback response:", authError)
       const authErrorResponse = NextResponse.json({
@@ -62,6 +66,32 @@ export async function GET(request: Request) {
       return authErrorResponse
     }
 
+    // If using mock authentication, return fallback data immediately
+    if (isUsingMockAuth) {
+      console.log("🟡 Using mock authentication - returning fallback data")
+      const mockResponse = NextResponse.json({
+        success: true,
+        data: {
+          data: [], // Empty data array
+          pagination: {
+            page: Number.parseInt(page),
+            pageSize: Number.parseInt(pageSize),
+            total: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+        },
+        mockData: true,
+      })
+      
+      // Add CORS headers
+      mockResponse.headers.set('Access-Control-Allow-Origin', '*')
+      mockResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      mockResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      
+      return mockResponse
+    }
+
     // Build API URL with pagination
     const apiUrl = new URL(`${BASE_URL}/merchant/orders`)
     apiUrl.searchParams.set("page", page)
@@ -71,6 +101,10 @@ export async function GET(request: Request) {
     if (status && status !== "all-status") apiUrl.searchParams.set("status", status)
     if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
     if (search) apiUrl.searchParams.set("search", search)
+    
+    // Add date filtering (YYYY-MM-DD format)
+    if (dateFrom) apiUrl.searchParams.set("dateFrom", dateFrom)
+    if (dateTo) apiUrl.searchParams.set("dateTo", dateTo)
 
     console.log(`🔄 Fetching from API: ${apiUrl.toString()}`)
 

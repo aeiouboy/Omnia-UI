@@ -99,7 +99,7 @@ export function SideNav() {
               <span className="font-display font-semibold text-lg text-deep-navy">Central OMS</span>
               <button
                 onClick={() => setIsMobileOpen(false)}
-                className="p-2 rounded-md hover:bg-enterprise-light transition-colors"
+                className="p-2 rounded-md hover:bg-enterprise-light transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Close sidebar"
               >
                 <X className="h-4 w-4 text-enterprise-text-light" />

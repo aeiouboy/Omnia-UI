@@ -53,9 +53,11 @@ export function CriticalAlerts() {
         }
 
         // Filter for orders within 20% of SLA threshold
-        const nearBreachOrders = (allActiveOrders || []).filter((order) => {
-          const remainingMinutes = order.sla_target_minutes - order.elapsed_minutes
-          const criticalThreshold = order.sla_target_minutes * 0.2
+        const nearBreachOrders = (allActiveOrders || []).filter((order: any) => {
+          const slaTargetMinutes = Number(order.sla_target_minutes) || 300 // Default 5 minutes
+          const elapsedMinutes = Number(order.elapsed_minutes) || 0
+          const remainingMinutes = slaTargetMinutes - elapsedMinutes
+          const criticalThreshold = slaTargetMinutes * 0.2
           return remainingMinutes <= criticalThreshold && remainingMinutes > 0
         })
 
@@ -69,7 +71,7 @@ export function CriticalAlerts() {
         if (slaBreachedOrders && slaBreachedOrders.length > 0) {
           // Group by business unit
           const businessUnitGroups = slaBreachedOrders.reduce(
-            (groups, order) => {
+            (groups, order: any) => {
               const unit = order.business_unit || "ALL"
               if (!groups[unit]) groups[unit] = []
               groups[unit].push(order)
@@ -95,7 +97,7 @@ export function CriticalAlerts() {
         if (nearBreachOrders && nearBreachOrders.length > 0) {
           // Group by business unit
           const businessUnitGroups = nearBreachOrders.reduce(
-            (groups, order) => {
+            (groups, order: any) => {
               const unit = order.business_unit || "ALL"
               if (!groups[unit]) groups[unit] = []
               groups[unit].push(order)

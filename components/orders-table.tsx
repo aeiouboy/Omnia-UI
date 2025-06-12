@@ -251,7 +251,7 @@ export function OrdersTable() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-xs border-corporate-blue text-corporate-blue hover:bg-corporate-blue/10"
+                  className="min-h-[44px] text-xs border-corporate-blue text-corporate-blue hover:bg-corporate-blue/10"
                 >
                   View Details
                 </Button>

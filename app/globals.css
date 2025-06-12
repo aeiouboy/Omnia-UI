@@ -353,3 +353,62 @@
     padding: 24px;
   }
 }
+
+/* Real-time Status Animations */
+@layer utilities {
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes status-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes connection-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-status-pulse {
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-connection-glow {
+    animation: connection-glow 2s ease-in-out infinite;
+  }
+
+  /* Connection state transitions */
+  .connection-entering {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .connection-connected {
+    animation: connection-glow 2s ease-in-out infinite;
+  }
+
+  .connection-error {
+    animation: pulse 1s ease-in-out infinite;
+  }
+}

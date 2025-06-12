@@ -18,6 +18,10 @@ interface DashboardShellProps {
 export function DashboardShell({ children }: DashboardShellProps) {
   const { isCollapsed, isMobile, setIsMobileOpen } = useSidebar()
   
+  // State for client-side time to prevent hydration mismatch
+  const [currentTime, setCurrentTime] = useState<string>("")
+  const [isMounted, setIsMounted] = useState(false)
+  
   // Get current time with multiple fallbacks
   const getCurrentTime = () => {
     try {
@@ -38,10 +42,21 @@ export function DashboardShell({ children }: DashboardShellProps) {
     }
   }
   
-  const currentTime = getCurrentTime()
-  
   // State for escalation badge count
   const [escalationBadgeCount, setEscalationBadgeCount] = useState<number>(0)
+
+  // Client-side time update to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+    setCurrentTime(getCurrentTime())
+    
+    // Update time every second
+    const timeInterval = setInterval(() => {
+      setCurrentTime(getCurrentTime())
+    }, 1000)
+    
+    return () => clearInterval(timeInterval)
+  }, [])
 
   // Load escalation stats for badge count
   useEffect(() => {
@@ -138,7 +153,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <RefreshCw className="h-4 w-4" />
               </button>
               <div className="text-sm hidden sm:block text-white/80">
-                <span className="text-white/70">Last updated:</span> <span className="text-white/90">{currentTime}</span>
+                <span className="text-white/70">Last updated:</span> <span className="text-white/90">{isMounted ? currentTime : "--:--:--"}</span>
               </div>
               <UserNav />
             </div>

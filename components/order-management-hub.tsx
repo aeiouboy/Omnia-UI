@@ -19,7 +19,7 @@ import { OrderDetailView } from "./order-detail-view"
 import { RefreshCw, X, Filter, Loader2, AlertCircle } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AdvancedFilterPanel, type AdvancedFilterValues } from "./advanced-filter-panel"
+import { EnhancedFilterPanel, type AdvancedFilterValues } from "./enhanced-filter-panel"
 import { PaginationControls } from "./pagination-controls"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -968,7 +968,7 @@ export function OrderManagementHub() {
           {/* Advanced filters panel */}
           {showAdvancedFilters && (
             <div className="mb-6">
-              <AdvancedFilterPanel
+              <EnhancedFilterPanel
                 isOpen={showAdvancedFilters}
                 onClose={() => setShowAdvancedFilters(false)}
                 onApplyFilters={handleApplyAdvancedFilters}

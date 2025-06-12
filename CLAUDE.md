@@ -24,9 +24,10 @@ RIS OMS (Retail Intelligence System - Order Management System) is a Next.js 15 e
 ### Data Flow Architecture
 
 **External API Integration**:
-- Primary data source: `https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1/merchant/orders` (fallback to working API)
-- New API endpoint: `https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1/merchant/orders` (not yet accessible)
-- Authentication via JWT tokens with automatic refresh logic
+- **Currently working API**: `https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1/merchant/orders` ✅
+- **Future API (not yet available)**: `https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1/merchant/orders` ❌ (404 errors)
+- **Authentication**: `/auth/poc-orderlist/login` with partner credentials: `testpocorderlist` / `xitgmLwmp` ✅
+- **Token format**: JWT with `access_token` field, 1800 seconds expiry
 - Server-side proxy at `/api/orders/external/route.ts` handles CORS and auth
 - Fallback to local Supabase when external API unavailable
 
@@ -108,8 +109,10 @@ const isNearBreach = remainingSeconds <= criticalThreshold && remainingSeconds >
 **Required Variables**:
 ```bash
 # External API
-API_BASE_URL=https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1
-# New API (when available): https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1
+API_BASE_URL=https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1
+# Legacy fallback: https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1
+PARTNER_CLIENT_ID=testpocorderlist
+PARTNER_CLIENT_SECRET=xitgmLwmp
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-key
 
@@ -183,15 +186,16 @@ The system includes comprehensive todo tracking in `todo.md` for mobile optimiza
 ## Quick Update Shortcuts
 
 **API Endpoint Updates**:
-- Current working API: `https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1`
-- Future API (when available): `https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1`
+- Current primary API: `https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1`
+- Legacy fallback API: `https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1`
 - Update files: `/app/api/*/route.ts`, `/lib/auth-client.ts`, `/docs/*.md`, `CLAUDE.md`
 - Use environment variable `API_BASE_URL` to switch between APIs
 
-**Authentication Endpoint Issues**:
-- Check `/lib/auth-client.ts` for multi-endpoint discovery logic
-- Auth endpoints tried: `/auth/login`, `/auth/partner/login`, `/partner/auth/login`, `/oauth/token`
-- Add new endpoints to the `authEndpoints` array
+**Authentication Configuration**:
+- Authentication endpoint: `/auth/poc-orderlist/login` (POST method)
+- Partner credentials: `partnerClientId: "testpocorderlist"`, `partnerClientSecret: "xitgmLwmp"`
+- Token caching with automatic refresh logic
+- Check `/lib/auth-client.ts` for implementation details
 
 **API Documentation Updates**:
 - Update `/docs/merchant-orders-api.md` with new parameter specifications

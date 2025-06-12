@@ -28,14 +28,20 @@ export function PaginationControls({
   const [pageInput, setPageInput] = useState("")
   const [showPageInput, setShowPageInput] = useState(false)
   
-  const startItem = (currentPage - 1) * pageSize + 1
-  const endItem = Math.min(currentPage * pageSize, totalItems)
+  // Ensure all values are defined with safe defaults
+  const safeCurrentPage = Math.max(1, currentPage || 1)
+  const safeTotalPages = Math.max(0, totalPages || 0)
+  const safePageSize = Math.max(1, pageSize || 25)
+  const safeTotalItems = Math.max(0, totalItems || 0)
+  
+  const startItem = safeTotalItems > 0 ? (safeCurrentPage - 1) * safePageSize + 1 : 0
+  const endItem = Math.min(safeCurrentPage * safePageSize, safeTotalItems)
 
   // Handle direct page input
   const handlePageInputSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const pageNum = parseInt(pageInput)
-    if (pageNum >= 1 && pageNum <= totalPages) {
+    if (pageNum >= 1 && pageNum <= safeTotalPages) {
       onPageChange(pageNum)
       setPageInput("")
       setShowPageInput(false)
@@ -48,9 +54,9 @@ export function PaginationControls({
     const range = []
     const rangeWithDots = []
 
-    if (totalPages <= 7) {
+    if (safeTotalPages <= 7) {
       // Show all pages if total is small
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 1; i <= safeTotalPages; i++) {
         range.push(i)
       }
     } else {
@@ -58,8 +64,8 @@ export function PaginationControls({
       range.push(1)
 
       // Add pages around current page
-      const startPage = Math.max(2, currentPage - delta)
-      const endPage = Math.min(totalPages - 1, currentPage + delta)
+      const startPage = Math.max(2, safeCurrentPage - delta)
+      const endPage = Math.min(safeTotalPages - 1, safeCurrentPage + delta)
 
       // Add gap if needed before current range
       if (startPage > 2) {
@@ -72,13 +78,13 @@ export function PaginationControls({
       }
 
       // Add gap if needed after current range
-      if (endPage < totalPages - 1) {
+      if (endPage < safeTotalPages - 1) {
         range.push("...")
       }
 
       // Always include last page
-      if (totalPages > 1) {
-        range.push(totalPages)
+      if (safeTotalPages > 1) {
+        range.push(safeTotalPages)
       }
     }
 
@@ -88,10 +94,10 @@ export function PaginationControls({
   // Quick jump options for large datasets
   const getQuickJumpOptions = () => {
     const options = []
-    const step = Math.max(1, Math.floor(totalPages / 10))
+    const step = Math.max(1, Math.floor(safeTotalPages / 10))
     
-    for (let i = step; i < totalPages; i += step) {
-      if (i !== currentPage && Math.abs(i - currentPage) > 2) {
+    for (let i = step; i < safeTotalPages; i += step) {
+      if (i !== safeCurrentPage && Math.abs(i - safeCurrentPage) > 2) {
         options.push(i)
       }
     }
@@ -108,11 +114,11 @@ export function PaginationControls({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            Showing {startItem.toLocaleString()} to {endItem.toLocaleString()} of {totalItems.toLocaleString()} orders
+            Showing {startItem.toLocaleString()} to {endItem.toLocaleString()} of {safeTotalItems.toLocaleString()} orders
           </div>
-          {totalPages > 50 && (
+          {safeTotalPages > 50 && (
             <div className="text-xs text-muted-foreground bg-amber-50 px-2 py-1 rounded border border-amber-200">
-              Large dataset: {totalPages.toLocaleString()} pages
+              Large dataset: {safeTotalPages.toLocaleString()} pages
             </div>
           )}
         </div>
@@ -120,7 +126,7 @@ export function PaginationControls({
         {/* Page size selector */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Show:</span>
-          <Select value={pageSize.toString()} onValueChange={(value) => onPageSizeChange(Number(value))}>
+          <Select value={safePageSize.toString()} onValueChange={(value) => onPageSizeChange(Number(value))}>
             <SelectTrigger className="w-20">
               <SelectValue />
             </SelectTrigger>
@@ -144,8 +150,8 @@ export function PaginationControls({
             variant="outline"
             size="sm"
             onClick={() => onPageChange(1)}
-            disabled={currentPage === 1 || isLoading}
-            className="h-8 w-8 p-0"
+            disabled={safeCurrentPage === 1 || isLoading}
+            className="min-h-[44px] min-w-[44px] p-0"
             title="First page"
           >
             <ChevronsLeft className="h-4 w-4" />
@@ -155,9 +161,9 @@ export function PaginationControls({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1 || isLoading}
-            className="h-8 w-8 p-0"
+            onClick={() => onPageChange(safeCurrentPage - 1)}
+            disabled={safeCurrentPage === 1 || isLoading}
+            className="min-h-[44px] min-w-[44px] p-0"
             title="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -172,18 +178,18 @@ export function PaginationControls({
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowPageInput(!showPageInput)}
-                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                    className="min-h-[44px] min-w-[44px] p-0 hover:bg-gray-100"
                     title="Jump to page"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
-                    variant={currentPage === page ? "default" : "outline"}
+                    variant={safeCurrentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => onPageChange(page as number)}
                     disabled={isLoading}
-                    className="h-8 w-8 p-0"
+                    className="min-h-[44px] min-w-[44px] p-0"
                   >
                     {page}
                   </Button>
@@ -196,9 +202,9 @@ export function PaginationControls({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || isLoading}
-            className="h-8 w-8 p-0"
+            onClick={() => onPageChange(safeCurrentPage + 1)}
+            disabled={safeCurrentPage === safeTotalPages || isLoading}
+            className="min-h-[44px] min-w-[44px] p-0"
             title="Next page"
           >
             <ChevronRight className="h-4 w-4" />
@@ -208,9 +214,9 @@ export function PaginationControls({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(totalPages)}
+            onClick={() => onPageChange(safeTotalPages)}
             disabled={currentPage === totalPages || isLoading}
-            className="h-8 w-8 p-0"
+            className="min-h-[44px] min-w-[44px] p-0"
             title="Last page"
           >
             <ChevronsRight className="h-4 w-4" />
@@ -220,7 +226,7 @@ export function PaginationControls({
         {/* Page input and quick jumps */}
         <div className="flex items-center gap-2">
           {/* Quick jump buttons for large datasets */}
-          {totalPages > 20 && quickJumpOptions.length > 0 && (
+          {safeTotalPages > 20 && quickJumpOptions.length > 0 && (
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted-foreground mr-1">Jump:</span>
               {quickJumpOptions.map((page) => (
@@ -230,7 +236,7 @@ export function PaginationControls({
                   size="sm"
                   onClick={() => onPageChange(page)}
                   disabled={isLoading}
-                  className="h-6 px-2 text-xs"
+                  className="min-h-[44px] px-3 text-xs"
                   title={`Jump to page ${page}`}
                 >
                   {page}
@@ -245,18 +251,18 @@ export function PaginationControls({
               <Input
                 type="number"
                 min="1"
-                max={totalPages}
+                max={safeTotalPages}
                 value={pageInput}
                 onChange={(e) => setPageInput(e.target.value)}
-                placeholder={`1-${totalPages}`}
-                className="w-20 h-8 text-sm"
+                placeholder={`1-${safeTotalPages}`}
+                className="w-20 min-h-[44px] text-sm"
                 autoFocus
               />
               <Button
                 type="submit"
                 variant="outline"
                 size="sm"
-                className="h-8 px-2 text-xs"
+                className="min-h-[44px] px-3 text-xs"
                 disabled={!pageInput || isLoading}
               >
                 Go
@@ -269,7 +275,7 @@ export function PaginationControls({
                   setShowPageInput(false)
                   setPageInput("")
                 }}
-                className="h-8 px-2 text-xs"
+                className="min-h-[44px] px-3 text-xs"
               >
                 ×
               </Button>
@@ -277,12 +283,12 @@ export function PaginationControls({
           )}
 
           {/* Toggle page input button */}
-          {!showPageInput && totalPages > 10 && (
+          {!showPageInput && safeTotalPages > 10 && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowPageInput(true)}
-              className="h-8 px-3 text-xs"
+              className="min-h-[44px] px-4 text-xs"
               title="Jump to specific page"
             >
               Go to...
@@ -291,7 +297,7 @@ export function PaginationControls({
 
           {/* Current page indicator */}
           <div className="text-sm text-muted-foreground bg-gray-50 px-2 py-1 rounded border">
-            Page {currentPage.toLocaleString()} of {totalPages.toLocaleString()}
+            Page {safeCurrentPage.toLocaleString()} of {safeTotalPages.toLocaleString()}
           </div>
         </div>
       </div>
