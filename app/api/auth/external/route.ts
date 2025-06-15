@@ -9,14 +9,32 @@ const BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/
 
 export async function POST(request: Request) {
   try {
+    const body = await request.json().catch(() => ({}))
+    
+    // Check if this is a manual token injection
+    if (body.manualToken) {
+      console.log("🔧 Manual Bearer Token injection received")
+      return NextResponse.json({
+        success: true,
+        message: "Manual token accepted - use setManualAuthToken() in client",
+        data: {
+          token: body.manualToken,
+          expires_in: body.expiresIn || 3600,
+          token_type: "Bearer",
+          authenticated_at: new Date().toISOString(),
+          method: "manual_injection"
+        },
+      })
+    }
+
     console.log("🔐 External authentication request received")
-    console.log(`🔗 Auth URL: ${BASE_URL}/auth/poc-orderlist/login`)
+    console.log(`🔗 Auth URL: ${BASE_URL}/auth/login`)
     console.log(`🔑 Client ID: ${PARTNER_CLIENT_ID}`)
 
     const authController = new AbortController()
     const authTimeoutId = setTimeout(() => authController.abort(), 15000)
 
-    const loginResponse = await fetch(`${BASE_URL}/auth/poc-orderlist/login`, {
+    const loginResponse = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

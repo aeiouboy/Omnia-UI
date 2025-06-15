@@ -89,3 +89,4 @@ export function formatGMT7Time(date?: Date | string, options?: Intl.DateTimeForm
     return new Date().toLocaleString("en-US")
   }
 }
+

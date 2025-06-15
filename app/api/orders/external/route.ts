@@ -3,8 +3,8 @@ import { getAuthToken } from "@/lib/auth-client"
 
 export const dynamic = "force-dynamic"
 
-// Base URL for the external API (use working endpoint first)
-const BASE_URL = "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
+// Base URL for the external API (merchant orders endpoint)
+const BASE_URL = "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1/merchant/orders"
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: Request) {
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     }
 
     // Build API URL with pagination
-    const apiUrl = new URL(`${BASE_URL}/merchant/orders`)
+    const apiUrl = new URL(BASE_URL)
     apiUrl.searchParams.set("page", page)
     apiUrl.searchParams.set("pageSize", pageSize)
 

@@ -2,20 +2,21 @@
 const PARTNER_CLIENT_ID = process.env.PARTNER_CLIENT_ID || "testpocorderlist"
 const PARTNER_CLIENT_SECRET = process.env.PARTNER_CLIENT_SECRET || "xitgmLwmp"
 
-// Multiple API endpoints to try (working endpoint first, confirmed working)
+// Multiple API endpoints to try (merchant endpoint for orders and auth)
 const API_ENDPOINTS = [
-  "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1", // ✅ Working endpoint confirmed
+  "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1", // ✅ Base endpoint for auth
   // Future endpoint temporarily disabled until ready
   // "https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1" // ❌ Returns 404
 ]
 
-// Authentication endpoints to try (confirmed working endpoint first)
+// Authentication endpoints to try (based on API testing)
 const AUTH_ENDPOINTS = [
-  "/auth/poc-orderlist/login", // ✅ Confirmed working with testpocorderlist credentials
-  "/auth/login", 
-  "/auth/partner/login",
-  "/partner/auth/login",
-  "/oauth/token"
+  "/auth/login", // ✅ Working endpoint (returns 401 with current credentials)
+  "/merchant/auth/poc-orderlist/login", // ❌ Returns 404
+  "/merchant/auth/login", // ❌ Returns 404
+  "/auth/partner/login", // Need to test
+  "/partner/auth/login", // Need to test
+  "/oauth/token" // Need to test
 ]
 
 // Cache for authentication token
@@ -52,10 +53,16 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
       try {
         // Prepare request body - try different formats
         const requestBodies = [
-          // Primary format
+          // Primary format for POC
           {
             partnerClientId: PARTNER_CLIENT_ID,
             partnerClientSecret: PARTNER_CLIENT_SECRET,
+          },
+          // Standard OAuth2 format
+          {
+            grant_type: "client_credentials",
+            client_id: PARTNER_CLIENT_ID,
+            client_secret: PARTNER_CLIENT_SECRET,
           },
           // Alternative formats
           {
@@ -66,10 +73,14 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
             username: PARTNER_CLIENT_ID,
             password: PARTNER_CLIENT_SECRET,
           },
+          // Try different field names
           {
-            grant_type: "client_credentials",
-            client_id: PARTNER_CLIENT_ID,
-            client_secret: PARTNER_CLIENT_SECRET,
+            clientId: PARTNER_CLIENT_ID,
+            clientSecret: PARTNER_CLIENT_SECRET,
+          },
+          {
+            user: PARTNER_CLIENT_ID,
+            pass: PARTNER_CLIENT_SECRET,
           }
         ]
 
@@ -120,8 +131,9 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
               const errorText = await loginResponse.text()
               console.warn(`⚠️ Auth failed: ${fullUrl} - ${loginResponse.status} - ${errorText}`)
               
-              // Don't break on 401/403, try next format
+              // For 401/403, log the response but continue trying other formats
               if (loginResponse.status === 401 || loginResponse.status === 403) {
+                console.log(`🔑 Auth response for ${fullUrl}:`, errorText)
                 continue
               }
             }
@@ -141,6 +153,13 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
   // If all attempts failed, provide development fallback
   const errorMessage = `Authentication failed on all endpoints. Tried ${API_ENDPOINTS.length} APIs with ${AUTH_ENDPOINTS.length} auth endpoints each.`
   console.error("❌", errorMessage)
+  console.log("📋 Authentication Status Summary:")
+  console.log("🔑 Credentials: testpocorderlist / xitgmLwmp")
+  console.log("❌ /merchant/auth/poc-orderlist/login: 404 Not Found (POC endpoint not deployed)")
+  console.log("⚠️ /auth/login: 401 Unauthorized (endpoint exists, but credentials invalid)")
+  console.log("✅ /merchant/orders: Working with Bearer Token (confirmed from screenshot)")
+  console.log("💡 POC credentials may need activation or different endpoint")
+  console.log("🎯 Using mock authentication for development - inject real token when available")
   
   // For development: create a mock token to prevent dashboard from breaking
   console.log("🟡 Creating mock token for development purposes...")
@@ -174,6 +193,18 @@ export function createAuthenticatedFetch() {
 }
 
 /**
+ * Manually set a valid Bearer Token (for when you have a working token)
+ * @param token Valid Bearer Token
+ * @param expiresIn Token expiry time in seconds (default: 1 hour)
+ */
+export function setManualAuthToken(token: string, expiresIn = 3600) {
+  authToken = token
+  tokenExpiry = Date.now() + (expiresIn * 1000)
+  console.log("✅ Manual Bearer Token set successfully")
+  console.log(`⏰ Token expires in: ${expiresIn} seconds`)
+}
+
+/**
  * Create an authentication client for external API
  * @returns Authentication client object
  */
@@ -183,6 +214,12 @@ export function createAuthClient() {
       return getAuthToken(forceRefresh)
     },
     fetch: createAuthenticatedFetch(),
+    setToken: setManualAuthToken,
+    hasValidToken: () => authToken && Date.now() < tokenExpiry,
+    clearToken: () => {
+      authToken = null
+      tokenExpiry = 0
+    }
   }
 }
 

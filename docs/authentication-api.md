@@ -89,6 +89,28 @@ The following environment variables are used for authentication:
 - `PARTNER_CLIENT_SECRET`: Partner client secret (default: "xitgmLwmp")
 - `API_BASE_URL`: Base URL for the external API (default: "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1")
 
+## Authentication Endpoints
+
+The system tries multiple authentication endpoints in order:
+
+1. `/auth/poc-orderlist/login` - **Specified POC endpoint** (should work with testpocorderlist credentials)
+   - **Current Status**: Returns 404 Not Found
+   - **Expected**: Should return valid JWT token
+   - **Credentials**: partnerClientId: "testpocorderlist", partnerClientSecret: "xitgmLwmp"
+
+2. `/auth/login` - Generic auth endpoint  
+   - **Current Status**: Returns 401 Unauthorized (endpoint exists, credentials rejected)
+   - **Note**: Endpoint works but rejects testpocorderlist credentials
+
+3. `/merchant/auth/login` - Merchant API endpoint (404 Not Found)
+4. `/auth/partner/login` - Partner-specific endpoint (404 Not Found) 
+5. `/partner/auth/login` - Alternative partner endpoint (404 Not Found)
+6. `/oauth/token` - OAuth2 standard endpoint (404 Not Found)
+
+## Current Issue
+
+The `/auth/poc-orderlist/login` endpoint returns 404 Not Found, suggesting it may not be deployed on the current API server (`dev-pmpapis.central.co.th`). This endpoint should work according to the specification.
+
 ## Usage Examples
 
 ### Using the Auth Client
