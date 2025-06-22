@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Clock } from "lucide-react";
 import React from "react";
-import { formatRemainingTime, formatOverTime } from "@/lib/sla-utils";
 
 // Theme color classes based on tailwind.config.ts
 const channelTheme = {
@@ -134,41 +133,32 @@ export function ReturnStatusBadge({ status }: { status: string }) {
   return <Badge className="bg-purple-100 text-purple-800 border-purple-200 font-mono text-sm">{status}</Badge>;
 }
 
-// Note: Despite parameter names, targetMinutes and elapsedMinutes are actually in SECONDS (API naming issue)
 export function SLABadge({ targetMinutes, elapsedMinutes, status }: { targetMinutes: number; elapsedMinutes: number; status: string }) {
-  if (status === "DELIVERED" || status === "FULFILLED" || status === "SUBMITTED") {
+  if (status === "DELIVERED" || status === "FULFILLED") {
     return (
-      <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-xs inline-flex whitespace-nowrap">COMPLETE</Badge>
+      <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm">COMPLETE</Badge>
     );
   }
-  
-  // API returns values in seconds despite field names suggesting minutes
-  const targetSeconds = targetMinutes || 300; // Default 5 minutes
-  const elapsedSeconds = elapsedMinutes || 0;
-  const remainingSeconds = targetSeconds - elapsedSeconds;
-  
-  if (status === "BREACH" || remainingSeconds < 0) {
-    const overTime = formatOverTime(elapsedSeconds - targetSeconds);
+  const remainingMinutes = targetMinutes - elapsedMinutes;
+  if (status === "BREACH" || remainingMinutes < 0) {
     return (
-      <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-xs inline-flex items-center whitespace-nowrap max-w-full">
-        <AlertTriangle className="h-3 w-3 mr-1 flex-shrink-0" />
-        <span className="truncate">{overTime} over BREACH</span>
+      <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-sm flex items-center">
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        {Math.abs(remainingMinutes)}m BREACH
       </Badge>
     );
-  } else if (remainingSeconds < targetSeconds * 0.2 || status === "NEAR_BREACH") {
-    const timeLeft = formatRemainingTime(remainingSeconds);
+  } else if (remainingMinutes < targetMinutes * 0.2 || status === "NEAR_BREACH") {
     return (
-      <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-xs inline-flex items-center whitespace-nowrap max-w-full">
-        <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-        <span className="truncate">{timeLeft} over BREACH</span>
+      <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-sm flex items-center">
+        <Clock className="h-3 w-3 mr-1" />
+        {remainingMinutes}m LEFT
       </Badge>
     );
   } else {
-    const timeLeft = formatRemainingTime(remainingSeconds);
     return (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-xs inline-flex items-center whitespace-nowrap max-w-full">
-        <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-        <span className="truncate">{timeLeft}</span>
+      <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-sm flex items-center">
+        <Clock className="h-3 w-3 mr-1" />
+        {remainingMinutes}m LEFT
       </Badge>
     );
   }
