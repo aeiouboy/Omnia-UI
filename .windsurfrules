@@ -72,7 +72,7 @@ alwaysApply: true
   - Add custom status values as needed for project-specific workflows
 
 - **Task File Format Reference**
-  ```
+  \`\`\`
   # Task ID: <id>
   # Title: <title>
   # Status: <status>
@@ -84,7 +84,7 @@ alwaysApply: true
   
   # Test Strategy:
   <verification approach>
-  ```
+  \`\`\`
 
 - **Command Reference: parse-prd**
   - Legacy Syntax: `node scripts/dev.js parse-prd --input=<prd-file.txt>`
@@ -350,7 +350,7 @@ alwaysApply: true
 ---
 The below describes how you should be structuring new rule sections in this document.
 - **Required Rule Structure:**
-  ```markdown
+  \`\`\`markdown
   ---
   description: Clear, one-line description of what the rule enforces
   globs: path/to/files/*.ext, other/path/**/*
@@ -360,7 +360,7 @@ The below describes how you should be structuring new rule sections in this docu
   - **Main Points in Bold**
     - Sub-points with details
     - Examples and explanations
-  ```
+  \`\`\`
 
 - **Section References:**
   - Use `ALL_CAPS_SECTION` to reference files
@@ -368,13 +368,13 @@ The below describes how you should be structuring new rule sections in this docu
 
 - **Code Examples:**
   - Use language-specific code blocks
-  ```typescript
+  \`\`\`typescript
   // ✅ DO: Show good examples
   const goodExample = true;
   
   // ❌ DON'T: Show anti-patterns
   const badExample = false;
-  ```
+  \`\`\`
 
 - **Rule Content Guidelines:**
   - Start with high-level overview
@@ -433,7 +433,7 @@ alwaysApply: true
     - Implementation details have changed
 
 - **Example Pattern Recognition:**
-  ```typescript
+  \`\`\`typescript
   // If you see repeated patterns like:
   const data = await prisma.user.findMany({
     select: { id: true, email: true },
@@ -444,7 +444,7 @@ alwaysApply: true
   // - Standard select fields
   // - Common where conditions
   // - Performance optimization patterns
-  ```
+  \`\`\`
 
 - **Rule Quality Checks:**
   - Rules should be actionable and specific
@@ -549,7 +549,7 @@ alwaysApply: true
   - Add custom status values as needed for project-specific workflows
 
 - **Task File Format Reference**
-  ```
+  \`\`\`
   # Task ID: <id>
   # Title: <title>
   # Status: <status>
@@ -561,7 +561,7 @@ alwaysApply: true
   
   # Test Strategy:
   <verification approach>
-  ```
+  \`\`\`
 
 - **Command Reference: parse-prd**
   - Legacy Syntax: `node scripts/dev.js parse-prd --input=<prd-file.txt>`
@@ -827,7 +827,7 @@ alwaysApply: true
 ---
 The below describes how you should be structuring new rule sections in this document.
 - **Required Rule Structure:**
-  ```markdown
+  \`\`\`markdown
   ---
   description: Clear, one-line description of what the rule enforces
   globs: path/to/files/*.ext, other/path/**/*
@@ -837,7 +837,7 @@ The below describes how you should be structuring new rule sections in this docu
   - **Main Points in Bold**
     - Sub-points with details
     - Examples and explanations
-  ```
+  \`\`\`
 
 - **Section References:**
   - Use `ALL_CAPS_SECTION` to reference files
@@ -845,13 +845,13 @@ The below describes how you should be structuring new rule sections in this docu
 
 - **Code Examples:**
   - Use language-specific code blocks
-  ```typescript
+  \`\`\`typescript
   // ✅ DO: Show good examples
   const goodExample = true;
   
   // ❌ DON'T: Show anti-patterns
   const badExample = false;
-  ```
+  \`\`\`
 
 - **Rule Content Guidelines:**
   - Start with high-level overview
@@ -910,7 +910,7 @@ alwaysApply: true
     - Implementation details have changed
 
 - **Example Pattern Recognition:**
-  ```typescript
+  \`\`\`typescript
   // If you see repeated patterns like:
   const data = await prisma.user.findMany({
     select: { id: true, email: true },
@@ -921,7 +921,7 @@ alwaysApply: true
   // - Standard select fields
   // - Common where conditions
   // - Performance optimization patterns
-  ```
+  \`\`\`
 
 - **Rule Quality Checks:**
   - Rules should be actionable and specific
@@ -1026,7 +1026,7 @@ alwaysApply: true
   - Add custom status values as needed for project-specific workflows
 
 - **Task File Format Reference**
-  ```
+  \`\`\`
   # Task ID: <id>
   # Title: <title>
   # Status: <status>
@@ -1038,7 +1038,7 @@ alwaysApply: true
   
   # Test Strategy:
   <verification approach>
-  ```
+  \`\`\`
 
 - **Command Reference: parse-prd**
   - Legacy Syntax: `node scripts/dev.js parse-prd --input=<prd-file.txt>`
@@ -1304,7 +1304,7 @@ alwaysApply: true
 ---
 The below describes how you should be structuring new rule sections in this document.
 - **Required Rule Structure:**
-  ```markdown
+  \`\`\`markdown
   ---
   description: Clear, one-line description of what the rule enforces
   globs: path/to/files/*.ext, other/path/**/*
@@ -1314,7 +1314,7 @@ The below describes how you should be structuring new rule sections in this docu
   - **Main Points in Bold**
     - Sub-points with details
     - Examples and explanations
-  ```
+  \`\`\`
 
 - **Section References:**
   - Use `ALL_CAPS_SECTION` to reference files
@@ -1322,13 +1322,13 @@ The below describes how you should be structuring new rule sections in this docu
 
 - **Code Examples:**
   - Use language-specific code blocks
-  ```typescript
+  \`\`\`typescript
   // ✅ DO: Show good examples
   const goodExample = true;
   
   // ❌ DON'T: Show anti-patterns
   const badExample = false;
-  ```
+  \`\`\`
 
 - **Rule Content Guidelines:**
   - Start with high-level overview
@@ -1387,7 +1387,7 @@ alwaysApply: true
     - Implementation details have changed
 
 - **Example Pattern Recognition:**
-  ```typescript
+  \`\`\`typescript
   // If you see repeated patterns like:
   const data = await prisma.user.findMany({
     select: { id: true, email: true },
@@ -1398,7 +1398,7 @@ alwaysApply: true
   // - Standard select fields
   // - Common where conditions
   // - Performance optimization patterns
-  ```
+  \`\`\`
 
 - **Rule Quality Checks:**
   - Rules should be actionable and specific

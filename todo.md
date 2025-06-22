@@ -14,7 +14,7 @@
 The executive dashboard currently uses single-page fetching with `pageSize: "500"`, which only retrieves a limited subset of available orders. This approach misses the complete dataset needed for comprehensive analytics.
 
 **API Response Structure Confirmed:**
-```json
+\`\`\`json
 {
   "data": {
     "data": [...], // Array of orders
@@ -27,28 +27,28 @@ The executive dashboard currently uses single-page fetching with `pageSize: "500
     }
   }
 }
-```
+\`\`\`
 
 ## Solution: Implement Pagination Looping with Large Page Size
 
 ### 1. Update Page Size to 10,000
 **Current Implementation:**
-```typescript
+\`\`\`typescript
 const queryParams = new URLSearchParams({
   pageSize: "500", // Too small for comprehensive data
   dateFrom,
   dateTo,
 })
-```
+\`\`\`
 
 **Target Implementation:**
-```typescript
+\`\`\`typescript
 const queryParams = new URLSearchParams({
   pageSize: "10000", // Efficient bulk fetching
   dateFrom,
   dateTo,
 })
-```
+\`\`\`
 
 ### 2. Implement Pagination Looping Logic
 
@@ -133,7 +133,7 @@ const queryParams = new URLSearchParams({
 
 ### 5. Implementation Code Structure
 
-```typescript
+\`\`\`typescript
 // New pagination loop implementation
 const fetchAllOrdersWithPagination = async (): Promise<ApiOrder[]> => {
   const allOrders: ApiOrder[] = []
@@ -171,7 +171,7 @@ const fetchAllOrdersWithPagination = async (): Promise<ApiOrder[]> => {
   console.log(`🎯 Pagination complete: Total ${allOrders.length} orders fetched`)
   return allOrders
 }
-```
+\`\`\`
 
 ### 6. Testing Strategy
 
@@ -339,7 +339,7 @@ No further action required. The system now successfully fetches all available or
 
 ### Technical Implementation Summary:
 
-```typescript
+\`\`\`typescript
 // BEFORE (problematic 7-day implementation):
 - maxPages: 5 (limited coverage)
 - pageSize: 2000 (suboptimal efficiency)
@@ -355,7 +355,7 @@ No further action required. The system now successfully fetches all available or
 - No order limits (complete dataset)
 - Retry failed pages + continue (maximum data recovery)
 - User notifications + fallback messaging (transparent UX)
-```
+\`\`\`
 
 ### Performance & Build Results:
 
@@ -430,7 +430,7 @@ The 7-day data display issues have been systematically investigated and resolved
 
 ### Technical Changes Made:
 
-```typescript
+\`\`\`typescript
 // BEFORE (causing timeouts):
 - 7 days date range (massive dataset)
 - pageSize: "10000" (very large pages)
@@ -442,7 +442,7 @@ The 7-day data display issues have been systematically investigated and resolved
 - pageSize: "5000" (balanced size)
 - 30-second timeout
 - 10 page limit (50,000 orders max)
-```
+\`\`\`
 
 ### Performance Results:
 - **✅ Timeout Issues**: Resolved
@@ -485,7 +485,7 @@ The 7-day data display issues have been systematically investigated and resolved
 
 ### Technical Performance Changes:
 
-```typescript
+\`\`\`typescript
 // BEFORE (slow loading):
 - pageSize: "5000" (large payloads)
 - maxPages: 10 (up to 50,000 orders)
@@ -499,7 +499,7 @@ The 7-day data display issues have been systematically investigated and resolved
 - timeout: 15000ms  
 - cache: 120 seconds (2 minutes)
 - Early termination at 2,000 orders
-```
+\`\`\`
 
 ### Performance Improvements Achieved:
 
@@ -562,18 +562,18 @@ The 7-day data display issues have been systematically investigated and resolved
 - **Coverage**: All dashboard sections now have appropriate loading states
 
 **4. ✅ Enhanced Loading UX Components**
-```typescript
+\`\`\`typescript
 // New reusable loading components implemented:
 - KpiCard: Individual KPI loading with skeleton placeholders
 - ChartCard: Chart loading with realistic skeleton patterns
 - Progressive state management for smooth transitions
 - Eliminated confusing zero-value displays during processing
-```
+\`\`\`
 
 ### Technical Implementation Summary:
 
 **Loading State Architecture:**
-```typescript
+\`\`\`typescript
 // Individual KPI loading states (no more global zeros)
 const [kpiLoading, setKpiLoading] = useState({
   ordersProcessing: true,
@@ -595,7 +595,7 @@ const [chartsLoading, setChartsLoading] = useState({
   revenueByCategory: true,
   hourlyOrderSummary: true,
 })
-```
+\`\`\`
 
 **Progressive Loading Benefits:**
 - **Eliminated Zero Values**: KPI cards show proper skeletons instead of 0 during processing
@@ -676,14 +676,14 @@ The UX/UI loading improvements have eliminated confusing zero values during orde
 
 ### Technical Implementation:
 
-```typescript
+\`\`\`typescript
 // Restored state management structure:
 - 15+ individual loading states for progressive UX
 - 20+ data states for comprehensive dashboard
 - 4-tab navigation with swipe support
 - All original fetch functions and data processing
 - Enhanced error handling and fallback strategies
-```
+\`\`\`
 
 ### Build & Performance Results:
 
@@ -724,7 +724,7 @@ The executive dashboard has been successfully restored to its complete functiona
 - **Problem**: Server rendered time (e.g., 16:28:02) differed from client hydration time (e.g., 16:28:03)
 - **Solution**: Implemented client-side only time rendering with proper state management
 - **Implementation**: 
-  ```typescript
+  \`\`\`typescript
   // Before: Direct time calculation during render (hydration mismatch)
   const currentTime = getCurrentTime()
   
@@ -740,28 +740,28 @@ The executive dashboard has been successfully restored to its complete functiona
   
   // Conditional rendering to prevent mismatch
   {isMounted ? currentTime : "--:--:--"}
-  ```
+  \`\`\`
 
 **2. ✅ Executive Dashboard Current Hour Fix**
 - **Issue**: `new Date().getHours()` called during render causing server/client mismatch
 - **Problem**: Different hour values on server vs client during midnight transitions or processing delays
 - **Solution**: Client-side only hour calculation with fallback display
 - **Implementation**:
-  ```typescript
+  \`\`\`typescript
   // Before: Direct date calculation (hydration mismatch)
   const currentHour = new Date().getHours()
   
   // After: Client-side conditional calculation
   const currentHour = isMounted ? new Date().getHours() : 0
   {isMounted ? currentHour.toString().padStart(2, '0') : '--'}:00
-  ```
+  \`\`\`
 
 **3. ✅ useSwipeTabs Hook Integration Fix**
 - **Issue**: `useSwipeTabs is not defined` error due to incorrect usage
 - **Problem**: Wrong parameter structure passed to the hook
 - **Solution**: Fixed hook parameters and proper state management
 - **Implementation**:
-  ```typescript
+  \`\`\`typescript
   // Before: Incorrect parameters
   useSwipeTabs({ tabs: [...], defaultTab: "overview" })
   
@@ -772,7 +772,7 @@ The executive dashboard has been successfully restored to its complete functiona
     activeTab,
     onTabChange: setActiveTab,
   })
-  ```
+  \`\`\`
 
 ### Technical Implementation Details:
 
@@ -886,7 +886,7 @@ All hydration errors have been successfully resolved through proper client-side 
 ### Technical Implementation Summary:
 
 **Component Architecture:**
-```typescript
+\`\`\`typescript
 // New Components Created:
 - CriticalAlertsBanner: Prominent SLA alert display with actions
 - Enhanced KpiCard: 3-tier visual hierarchy with status indicators
@@ -901,10 +901,10 @@ All hydration errors have been successfully resolved through proper client-side 
 - Priority-aware skeleton patterns
 - Content-specific loading indicators
 - Professional progressive loading experience
-```
+\`\`\`
 
 **Visual Hierarchy System:**
-```typescript
+\`\`\`typescript
 // 3-Tier Priority System:
 type KpiPriority = 'hero' | 'important' | 'supporting'
 type KpiStatus = 'excellent' | 'good' | 'warning' | 'critical'
@@ -912,7 +912,7 @@ type KpiStatus = 'excellent' | 'good' | 'warning' | 'critical'
 // Hero: Most critical metrics with maximum visual prominence
 // Important: Secondary metrics with moderate prominence  
 // Supporting: Standard metrics with baseline treatment
-```
+\`\`\`
 
 ### User Experience Improvements Achieved:
 
@@ -1043,7 +1043,7 @@ The executive dashboard has been significantly enhanced with professional UX/UI 
 ### Technical Implementation Summary:
 
 **Advanced Component Architecture:**
-```typescript
+\`\`\`typescript
 // New Advanced Components Created:
 - InteractiveChart: Multi-level drill-down with breadcrumb navigation
 - EnhancedFilterPanel: Tabbed filtering with smart suggestions
@@ -1054,26 +1054,26 @@ The executive dashboard has been significantly enhanced with professional UX/UI 
 // Custom Hooks:
 - useRealTimeUpdates: Optimistic UI patterns with rollback
 - useKeyboardNavigation: Comprehensive accessibility controls
-```
+\`\`\`
 
 **Real-Time Architecture:**
-```typescript
+\`\`\`typescript
 // Optimistic Updates System:
 - Immediate UI feedback for user actions
 - Background verification with automatic rollback
 - Connection status monitoring with retry logic
 - Live data streaming with WebSocket-ready design
-```
+\`\`\`
 
 **Accessibility Implementation:**
-```typescript
+\`\`\`typescript
 // WCAG 2.1 AA Compliance:
 - Full keyboard navigation support
 - Screen reader announcements for dynamic content
 - Focus management and trapping
 - Semantic markup with proper ARIA labels
 - Skip links and navigation shortcuts
-```
+\`\`\`
 
 ### User Experience Improvements Achieved:
 
@@ -1183,41 +1183,41 @@ Phase 2 UX/UI enhancements have successfully transformed the executive dashboard
 **4. ✅ Color Palette Standardization**
 - **Issue**: COLORS array had duplicate green values causing pie chart color conflicts
 - **Solution**: Updated palette for consistent color distribution:
-  ```typescript
+  \`\`\`typescript
   // BEFORE (duplicate colors):
   ["#10b981", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
   
   // AFTER (distinct colors):
   ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
-  ```
+  \`\`\`
 - **Impact**: Proper color distribution across all pie charts and data visualizations
 - **Status**: ✅ COMPLETED
 
 ### Technical Implementation Summary:
 
 **Standardized Channel Colors:**
-```typescript
+\`\`\`typescript
 // Consistent across all dashboard charts:
 - GRAB: "#10b981" (Emerald Green)
 - LAZADA: "#3b82f6" (Blue)  
 - SHOPEE: "#f59e0b" (Amber Orange)
 - TIKTOK: "#ef4444" (Red)
-```
+\`\`\`
 
 **Dual-Axis Chart Convention:**
-```typescript
+\`\`\`typescript
 // Clear visual separation for different data types:
 - Primary metrics (Orders, Volume): Blue "#3b82f6"
 - Performance metrics (SLA, Compliance): Green "#10b981"
-```
+\`\`\`
 
 **Semantic Progress Colors:**
-```typescript
+\`\`\`typescript
 // Industry-standard performance indicators:
 - Excellent (≥90%): Green - success/good performance
 - Warning (80-89%): Yellow - attention needed
 - Critical (<80%): Red - immediate action required
-```
+\`\`\`
 
 ### User Experience Improvements:
 
@@ -1284,7 +1284,7 @@ All chart color conflicts have been resolved with a professional, accessible, an
 - **Problem**: `useRealTimeUpdates` hook attempting to fetch from undefined endpoint, causing constant 404 errors
 - **Solution**: Completely rewrote real-time system to poll actual orders API endpoint instead of non-existent real-time streams
 - **Implementation**: 
-  ```typescript
+  \`\`\`typescript
   // BEFORE (broken):
   - Trying to connect to non-existent /api/updates/stream
   - Real-time features completely non-functional
@@ -1294,7 +1294,7 @@ All chart color conflicts have been resolved with a professional, accessible, an
   - Polling /api/orders/external endpoint every 10 seconds
   - Change detection by comparing current vs previous orders
   - Proper "Live" status with actual functional updates
-  ```
+  \`\`\`
 - **Impact**: Real-time "Live" connection features now fully functional
 - **Status**: ✅ COMPLETED
 
@@ -1308,13 +1308,13 @@ All chart color conflicts have been resolved with a professional, accessible, an
   - State-specific animations (connecting, connected, error states)
   - Group hover effects for enhanced interactivity
 - **CSS Implementation**:
-  ```css
+  \`\`\`css
   @keyframes connection-glow {
     0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
     50% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
   }
   .connection-connected { animation: connection-glow 2s ease-in-out infinite; }
-  ```
+  \`\`\`
 - **Impact**: Smooth, professional transitions between connection states
 - **Status**: ✅ COMPLETED
 
@@ -1328,7 +1328,7 @@ All chart color conflicts have been resolved with a professional, accessible, an
   - **Smart loading states**: Only show loading indicators for sections being updated
   - **Performance monitoring**: Added logging to track real-time update efficiency
 - **Implementation**:
-  ```typescript
+  \`\`\`typescript
   const loadData = async (isRealTimeUpdate = false) => {
     if (isRealTimeUpdate) {
       // Only fetch critical data: orders processing, SLA breaches, alerts
@@ -1337,7 +1337,7 @@ All chart color conflicts have been resolved with a professional, accessible, an
       // Full data refresh for manual actions
     }
   }
-  ```
+  \`\`\`
 - **Impact**: 70% reduction in real-time update overhead, eliminated page lag
 - **Status**: ✅ COMPLETED
 
@@ -1351,13 +1351,13 @@ All chart color conflicts have been resolved with a professional, accessible, an
   - **InteractiveChart Component**: Updated status-based backgrounds to white
   - **Executive Dashboard**: Enhanced visual hierarchy with better spacing
 - **Design Changes**:
-  ```typescript
+  \`\`\`typescript
   // BEFORE (colored backgrounds):
   bg: 'bg-gradient-to-br from-green-50/80 via-green-50/60 to-lime-50/40'
   
   // AFTER (clean white):
   bg: 'bg-white'
-  ```
+  \`\`\`
 - **Impact**: Professional, enterprise-grade clean design with improved readability
 - **Status**: ✅ COMPLETED
 
@@ -1371,13 +1371,13 @@ All chart color conflicts have been resolved with a professional, accessible, an
   - **Data Processing**: Removed SLA compliance calculations from hourly aggregation
   - **Visual Design**: Cleaner layout with better focus on business volume metrics
 - **Implementation**:
-  ```typescript
+  \`\`\`typescript
   // BEFORE: 4 metrics including SLA
   grid-cols-4: [Hour, Orders, Revenue, SLA]
   
   // AFTER: 3 focused metrics
   grid-cols-3: [Hour, Orders, Revenue]
-  ```
+  \`\`\`
 - **Impact**: Cleaner, more focused hourly analytics aligned with business priorities
 - **Status**: ✅ COMPLETED
 
@@ -1398,13 +1398,13 @@ All chart color conflicts have been resolved with a professional, accessible, an
 ### Technical Implementation Summary:
 
 **Real-Time Architecture Redesign:**
-```typescript
+\`\`\`typescript
 // Complete system overhaul:
 - Replaced broken endpoint polling with working orders API polling
 - Implemented change detection through order comparison
 - Added selective loading for performance optimization
 - Created smooth transition animation system
-```
+\`\`\`
 
 **Performance Optimization Results:**
 - **API Efficiency**: 70% reduction in real-time update overhead
@@ -1486,7 +1486,7 @@ The executive dashboard real-time "Live" connection system has been completely t
   - Manual Bearer token injection capability
   - Mock authentication for development
 - **Code Architecture**:
-  ```typescript
+  \`\`\`typescript
   // Authentication endpoints discovery
   const AUTH_ENDPOINTS = [
     "/auth/login", // ✅ Working endpoint (returns 401 with current credentials)
@@ -1506,7 +1506,7 @@ The executive dashboard real-time "Live" connection system has been completely t
     { clientId: "testpocorderlist", clientSecret: "xitgmLwmp" },
     { user: "testpocorderlist", pass: "xitgmLwmp" }
   ]
-  ```
+  \`\`\`
 - **Status**: ✅ FULLY IMPLEMENTED
 
 **5. ✅ Bearer Token Injection System**
@@ -1519,7 +1519,7 @@ The executive dashboard real-time "Live" connection system has been completely t
   - Command-line interface for development use
   - Automatic token caching and management
 - **Implementation**:
-  ```typescript
+  \`\`\`typescript
   // Manual token injection function
   export function setManualAuthToken(token: string, expiresIn = 3600) {
     authToken = token
@@ -1529,7 +1529,7 @@ The executive dashboard real-time "Live" connection system has been completely t
   
   // Command-line usage
   node inject-token.js "YOUR_BEARER_TOKEN_HERE"
-  ```
+  \`\`\`
 - **Status**: ✅ READY FOR USE
 
 **6. ✅ API Endpoint Configuration Updates**
@@ -1550,7 +1550,7 @@ The executive dashboard real-time "Live" connection system has been completely t
 ### Technical Implementation Summary:
 
 **Authentication Flow Architecture:**
-```typescript
+\`\`\`typescript
 // Complete authentication system flow:
 1. Try multiple authentication endpoints in priority order
 2. Test multiple credential formats for each endpoint
@@ -1558,7 +1558,7 @@ The executive dashboard real-time "Live" connection system has been completely t
 4. Cache valid tokens with automatic expiry management
 5. Fallback to mock authentication for development
 6. Support manual Bearer token injection when available
-```
+\`\`\`
 
 **API Integration Results:**
 - **POC Endpoint Status**: 404 Not Found (not deployed)
