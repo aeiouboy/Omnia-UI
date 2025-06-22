@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-```bash
+\`\`\`bash
 # Development
 pnpm dev              # Start development server on http://localhost:3000
 pnpm build            # Build for production
@@ -14,7 +14,7 @@ pnpm lint             # Run ESLint
 # Package Management
 pnpm install          # Install dependencies
 pnpm add <package>    # Add new dependency
-```
+\`\`\`
 
 ## Core Architecture
 
@@ -52,7 +52,7 @@ RIS OMS (Retail Intelligence System - Order Management System) is a Next.js 15 e
 - Complex search across multiple order fields
 
 **API Response Structure**:
-```typescript
+\`\`\`typescript
 interface ApiOrder {
   id: string
   order_no: string
@@ -64,13 +64,13 @@ interface ApiOrder {
   }
   // ... other fields
 }
-```
+\`\`\`
 
 ### Critical SLA Logic Standards
 
 **IMPORTANT**: SLA calculations must be consistent across all components:
 
-```typescript
+\`\`\`typescript
 // API returns values in seconds, despite field names suggesting minutes
 const targetSeconds = order.sla_info.target_minutes || 300  // Default 5 minutes
 const elapsedSeconds = order.sla_info.elapsed_minutes || 0
@@ -82,7 +82,7 @@ const isBreach = elapsedSeconds > targetSeconds || order.sla_info.status === "BR
 const remainingSeconds = targetSeconds - elapsedSeconds
 const criticalThreshold = targetSeconds * 0.2
 const isNearBreach = remainingSeconds <= criticalThreshold && remainingSeconds > 0
-```
+\`\`\`
 
 ### Timezone Handling
 
@@ -107,7 +107,7 @@ const isNearBreach = remainingSeconds <= criticalThreshold && remainingSeconds >
 ### Environment Configuration
 
 **Required Variables**:
-```bash
+\`\`\`bash
 # External API
 API_BASE_URL=https://service-api-nonprd.central.co.th/dev/pmprevamp/grabmart/v1
 # Legacy fallback: https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1
@@ -119,7 +119,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-key
 # MS Teams Integration
 NEXT_PUBLIC_MS_TEAMS_WEBHOOK_URL=your-teams-webhook-url
 NEXT_PUBLIC_APP_URL=your-app-domain
-```
+\`\`\`
 
 ### Component Dependencies
 
