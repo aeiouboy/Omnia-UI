@@ -322,6 +322,18 @@ When completing a task, ALWAYS update status in ALL locations:
 - Update `/docs/merchant-orders-api.md` with new parameter specifications
 - Ensure all mandatory/optional parameters are documented correctly
 
+**Git Commit Rules**:
+- **ALWAYS** use `git add .` before committing to ensure no files are missed
+- Review `git status` output carefully before staging files
+- Never commit partially - all related changes must be included in the commit
+- Example workflow:
+  ```bash
+  git status          # Review all changes
+  git add .           # Stage ALL changes
+  git status          # Verify all files are staged
+  git commit -m "..."  # Commit with clear message
+  ```
+
 **Add New Instructions**: 
 - Edit this `CLAUDE.md` file and add to appropriate section
 
