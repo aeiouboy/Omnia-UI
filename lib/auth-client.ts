@@ -1,9 +1,9 @@
 // Authentication client for external API
-import { getEnvConfig, EnvValidationError, hasValidApiCredentials } from './env-validation'
-import { retryWithBackoff, isRetryableError } from './auth-retry'
 
-// Get environment configuration
-const envConfig = getEnvConfig()
+// Get environment configuration directly
+const API_BASE_URL = process.env.API_BASE_URL || "https://dev-pmpapis.central.co.th/pmp/v2/grabmart/v1"
+const PARTNER_CLIENT_ID = process.env.PARTNER_CLIENT_ID
+const PARTNER_CLIENT_SECRET = process.env.PARTNER_CLIENT_SECRET
 
 // Authentication endpoints to try (based on API testing)
 const AUTH_ENDPOINTS = [
@@ -27,7 +27,7 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
   }
 
   // Validate environment configuration
-  if (!hasValidApiCredentials()) {
+  if (!PARTNER_CLIENT_ID || !PARTNER_CLIENT_SECRET) {
     const error = new Error('Invalid API credentials configuration')
     console.error('❌ Authentication failed: Missing or invalid API credentials')
     console.error('Please ensure the following environment variables are set:')
@@ -36,8 +36,6 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
     console.error('- PARTNER_CLIENT_SECRET')
     throw error
   }
-
-  const { API_BASE_URL, PARTNER_CLIENT_ID, PARTNER_CLIENT_SECRET } = envConfig!
 
   console.log("🔐 Authenticating with external API...")
   console.log(`🔑 Using credentials: ${PARTNER_CLIENT_ID} / [PROTECTED]`)
@@ -93,39 +91,16 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
           try {
             console.log(`📤 Trying request body format:`, Object.keys(requestBody))
 
-            const loginResponse = await retryWithBackoff(
-              async () => {
-                const response = await fetch(fullUrl, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    "User-Agent": "RIS-OMS/1.0",
-                  },
-                  body: JSON.stringify(requestBody),
-                  signal: authController.signal,
-                })
-                
-                // Don't retry on 401/403/404 - these are not transient errors
-                if (response.status === 401 || response.status === 403 || response.status === 404) {
-                  return response
-                }
-                
-                // Retry on server errors
-                if (!response.ok && response.status >= 500) {
-                  throw new Error(`Server error: ${response.status}`)
-                }
-                
-                return response
+            const loginResponse = await fetch(fullUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "User-Agent": "RIS-OMS/1.0",
               },
-              {
-                maxRetries: 3,
-                initialDelay: 500,
-                onRetry: (attempt, error) => {
-                  console.log(`🔄 Retrying authentication (attempt ${attempt}): ${error.message}`)
-                }
-              }
-            )
+              body: JSON.stringify(requestBody),
+              signal: authController.signal,
+            })
 
             clearTimeout(authTimeoutId)
 

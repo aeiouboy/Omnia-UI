@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { getAuthToken } from "@/lib/auth-client"
-import { hasValidApiCredentials } from "@/lib/env-validation"
 
 export const dynamic = "force-dynamic"
 
@@ -23,7 +22,8 @@ export async function OPTIONS(request: Request) {
 export async function GET(request: Request) {
   try {
     // Check for valid API credentials early
-    if (!hasValidApiCredentials()) {
+    const hasValidCredentials = !!(process.env.API_BASE_URL && process.env.PARTNER_CLIENT_ID && process.env.PARTNER_CLIENT_SECRET)
+    if (!hasValidCredentials) {
       console.error("❌ Missing API credentials")
       const credentialsError = NextResponse.json({
         success: false,
