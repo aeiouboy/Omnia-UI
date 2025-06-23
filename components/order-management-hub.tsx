@@ -20,7 +20,8 @@ import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search, Clock, Pa
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PaginationControls } from "./pagination-controls"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"\nimport { toast } from "@/hooks/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { toast } from "@/hooks/use-toast"
 
 // Exact API response types based on the actual API structure
 export interface ApiCustomer {
@@ -130,6 +131,22 @@ export interface Order {
 interface PaginationParams {
   page: number
   pageSize: number
+}
+
+// Advanced filter values interface (legacy, kept for compatibility)
+interface AdvancedFilterValues {
+  orderNumber: string
+  customerName: string
+  phoneNumber: string
+  email: string
+  orderDateFrom: Date | undefined
+  orderDateTo: Date | undefined
+  orderStatus: string
+  exceedSLA: boolean
+  sellingChannel: string
+  paymentStatus: string
+  fulfillmentLocationId: string
+  items: string
 }
 
 // Filter parameters interface
@@ -341,6 +358,22 @@ export function OrderManagementHub() {
   const [channelFilter, setChannelFilter] = useState("all-channels")
   const [activeSlaFilter, setActiveSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
   const [quickFilter, setQuickFilter] = useState<"all" | "urgent" | "due-soon" | "ready" | "on-hold">("all")
+  
+  // Legacy advanced filters state (kept for compatibility)
+  const [advancedFilters] = useState({
+    orderNumber: "",
+    customerName: "",
+    phoneNumber: "",
+    email: "",
+    orderDateFrom: undefined,
+    orderDateTo: undefined,
+    orderStatus: "all-status",
+    exceedSLA: false,
+    sellingChannel: "all-channels",
+    paymentStatus: "all-payment",
+    fulfillmentLocationId: "",
+    items: "",
+  })
   
   // Bulk selection states
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set())
