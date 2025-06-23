@@ -16,12 +16,11 @@ import {
   SLABadge,
 } from "./order-badges"
 import { OrderDetailView } from "./order-detail-view"
-import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search } from "lucide-react"
+import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search, Clock, Package, PauseCircle } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { EnhancedFilterPanel, type AdvancedFilterValues } from "./enhanced-filter-panel"
 import { PaginationControls } from "./pagination-controls"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"\nimport { toast } from "@/hooks/use-toast"
 
 // Exact API response types based on the actual API structure
 export interface ApiCustomer {
@@ -341,21 +340,11 @@ export function OrderManagementHub() {
   const [statusFilter, setStatusFilter] = useState("all-status")
   const [channelFilter, setChannelFilter] = useState("all-channels")
   const [activeSlaFilter, setActiveSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterValues>({
-    orderNumber: "",
-    customerName: "",
-    phoneNumber: "",
-    email: "",
-    orderDateFrom: undefined,
-    orderDateTo: undefined,
-    orderStatus: "all-status",
-    exceedSLA: false,
-    sellingChannel: "all-channels",
-    paymentStatus: "all-payment",
-    fulfillmentLocationId: "",
-    items: "",
-  })
+  const [quickFilter, setQuickFilter] = useState<"all" | "urgent" | "due-soon" | "ready" | "on-hold">("all")
+  
+  // Bulk selection states
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set())
+  const [isAllSelected, setIsAllSelected] = useState(false)
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -385,6 +374,78 @@ export function OrderManagementHub() {
       // Disable body scroll when modal opens
       document.body.style.overflow = "hidden"
     }
+  }
+
+  // Bulk selection handlers
+  const handleSelectOrder = (orderId: string) => {
+    const newSelection = new Set(selectedOrders)
+    if (newSelection.has(orderId)) {
+      newSelection.delete(orderId)
+    } else {
+      newSelection.add(orderId)
+    }
+    setSelectedOrders(newSelection)
+    setIsAllSelected(false)
+  }
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedOrders(new Set())
+      setIsAllSelected(false)
+    } else {
+      const allOrderIds = new Set(filteredOrders.map(order => order.id))
+      setSelectedOrders(allOrderIds)
+      setIsAllSelected(true)
+    }
+  }
+
+  // Quick action handlers
+  const handleQuickAction = async (action: "process" | "hold" | "print" | "assign") => {
+    if (selectedOrders.size === 0) {
+      toast({
+        title: "No orders selected",
+        description: "Please select at least one order to perform this action.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const orderIds = Array.from(selectedOrders)
+    
+    switch (action) {
+      case "process":
+        toast({
+          title: "Processing orders",
+          description: `Processing ${orderIds.length} order(s)...`,
+        })
+        // TODO: Implement actual processing logic
+        break
+      case "hold":
+        toast({
+          title: "Orders on hold",
+          description: `${orderIds.length} order(s) placed on hold.`,
+        })
+        // TODO: Implement actual hold logic
+        break
+      case "print":
+        toast({
+          title: "Printing documents",
+          description: `Preparing documents for ${orderIds.length} order(s)...`,
+        })
+        // TODO: Implement actual print logic
+        break
+      case "assign":
+        toast({
+          title: "Assignment dialog",
+          description: "Opening assignment dialog...",
+        })
+        // TODO: Implement assignment modal
+        break
+    }
+
+    // Clear selection after action
+    setSelectedOrders(new Set())
+    setIsAllSelected(false)
   }
 
   // Close Order Detail View
@@ -570,28 +631,9 @@ export function OrderManagementHub() {
       setStatusFilter("all-status")
     } else if (filter.startsWith("Channel:")) {
       setChannelFilter("all-channels")
-    } else if (filter.startsWith("SLA:")) {
+    } else if (filter === "Urgent Orders" || filter === "Due Soon" || filter === "Ready to Process" || filter === "On Hold") {
+      setQuickFilter("all")
       setActiveSlaFilter("all")
-    } else if (filter.startsWith("Order:")) {
-      setAdvancedFilters((prev) => ({ ...prev, orderNumber: "" }))
-    } else if (filter.startsWith("Customer:")) {
-      setAdvancedFilters((prev) => ({ ...prev, customerName: "" }))
-    } else if (filter.startsWith("Phone:")) {
-      setAdvancedFilters((prev) => ({ ...prev, phoneNumber: "" }))
-    } else if (filter.startsWith("Email:")) {
-      setAdvancedFilters((prev) => ({ ...prev, email: "" }))
-    } else if (filter.startsWith("Date:")) {
-      setAdvancedFilters((prev) => ({
-        ...prev,
-        orderDateFrom: undefined,
-        orderDateTo: undefined,
-      }))
-    } else if (filter === "SLA Exceeded") {
-      setAdvancedFilters((prev) => ({ ...prev, exceedSLA: false }))
-    } else if (filter.startsWith("Location:")) {
-      setAdvancedFilters((prev) => ({ ...prev, fulfillmentLocationId: "" }))
-    } else if (filter.startsWith("Items:")) {
-      setAdvancedFilters((prev) => ({ ...prev, items: "" }))
     }
     // Reset to first page when filter is removed
     setCurrentPage(1)
@@ -604,55 +646,26 @@ export function OrderManagementHub() {
     if (searchTerm) filters.push(`Search: ${searchTerm}`)
     if (statusFilter !== "all-status") filters.push(`Status: ${statusFilter}`)
     if (channelFilter !== "all-channels") filters.push(`Channel: ${channelFilter}`)
-    if (activeSlaFilter !== "all") filters.push(`SLA: ${activeSlaFilter}`)
-
-    // Advanced filters
-    if (advancedFilters.orderNumber) filters.push(`Order: ${advancedFilters.orderNumber}`)
-    if (advancedFilters.customerName) filters.push(`Customer: ${advancedFilters.customerName}`)
-    if (advancedFilters.phoneNumber) filters.push(`Phone: ${advancedFilters.phoneNumber}`)
-    if (advancedFilters.email) filters.push(`Email: ${advancedFilters.email}`)
-    if (advancedFilters.orderDateFrom || advancedFilters.orderDateTo) {
-      const dateRange = `${advancedFilters.orderDateFrom || "Start"} - ${advancedFilters.orderDateTo || "End"}`
-      filters.push(`Date: ${dateRange}`)
+    if (quickFilter !== "all") {
+      const quickFilterLabels = {
+        "urgent": "Urgent Orders",
+        "due-soon": "Due Soon",
+        "ready": "Ready to Process",
+        "on-hold": "On Hold"
+      }
+      filters.push(quickFilterLabels[quickFilter] || quickFilter)
     }
-    if (advancedFilters.exceedSLA) filters.push("SLA Exceeded")
-    if (advancedFilters.fulfillmentLocationId) filters.push(`Location: ${advancedFilters.fulfillmentLocationId}`)
-    if (advancedFilters.items) filters.push(`Items: ${advancedFilters.items}`)
 
     return filters
-  }, [searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
+  }, [searchTerm, statusFilter, channelFilter, quickFilter])
 
-  // Advanced filter handlers
-  const handleResetAdvancedFilters = () => {
-    setAdvancedFilters({
-      orderNumber: "",
-      customerName: "",
-      phoneNumber: "",
-      email: "",
-      orderDateFrom: undefined,
-      orderDateTo: undefined,
-      orderStatus: "all-status",
-      exceedSLA: false,
-      sellingChannel: "all-channels",
-      paymentStatus: "all-payment",
-      fulfillmentLocationId: "",
-      items: "",
-    })
+  // Reset all filters
+  const handleResetAllFilters = () => {
     setSearchTerm("")
     setStatusFilter("all-status")
     setChannelFilter("all-channels")
     setActiveSlaFilter("all")
-  }
-
-  const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
-    setAdvancedFilters(filters)
-    // Sync status and channel from advanced filters if they were changed there
-    if (filters.orderStatus && filters.orderStatus !== "all-status") {
-      setStatusFilter(filters.orderStatus)
-    }
-    if (filters.sellingChannel && filters.sellingChannel !== "all-channels") {
-      setChannelFilter(filters.sellingChannel)
-    }
+    setQuickFilter("all")
     setCurrentPage(1)
   }
 
@@ -666,10 +679,46 @@ export function OrderManagementHub() {
     setCurrentPage(1)
   }
 
+  // Function to determine urgency level based on SLA status
+  function getOrderUrgencyLevel(order: Order): "critical" | "warning" | "approaching" | "normal" {
+    if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+      return "normal"
+    }
+
+    const targetSeconds = order.sla_info.target_minutes || 300
+    const elapsedSeconds = order.sla_info.elapsed_minutes || 0
+    const remainingSeconds = targetSeconds - elapsedSeconds
+    const percentRemaining = (remainingSeconds / targetSeconds) * 100
+
+    if (elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH") {
+      return "critical" // Red - SLA breached
+    } else if (percentRemaining <= 20 || order.sla_info.status === "NEAR_BREACH") {
+      return "warning" // Orange - Near breach (20% or less remaining)
+    } else if (percentRemaining <= 50) {
+      return "approaching" // Yellow - Approaching deadline (50% or less remaining)
+    }
+    return "normal" // Green - On track
+  }
+
+  // Get row styling based on urgency
+  function getUrgencyRowStyle(urgencyLevel: string): string {
+    switch (urgencyLevel) {
+      case "critical":
+        return "bg-red-50 border-l-4 border-l-red-500 hover:bg-red-100"
+      case "warning":
+        return "bg-orange-50 border-l-4 border-l-orange-500 hover:bg-orange-100"
+      case "approaching":
+        return "bg-yellow-50 border-l-4 border-l-yellow-500 hover:bg-yellow-100"
+      default:
+        return "hover:bg-gray-50"
+    }
+  }
+
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
     // SLA data is already in seconds, pass through as-is for SLA badge component to handle
     let slaInfo = order.sla_info
+    const urgencyLevel = getOrderUrgencyLevel(order)
 
     return {
       id: order.id,
@@ -685,6 +734,8 @@ export function OrderManagementHub() {
       channel: order.channel,
       allowSubstitution: order.allow_substitution ?? false,
       createdDate: order.metadata?.created_at ? formatGMT7DateTime(order.metadata.created_at) : "",
+      urgencyLevel: urgencyLevel,
+      _originalOrder: order // Keep reference to original order for urgency calculation
     }
   }
 
@@ -941,16 +992,18 @@ export function OrderManagementHub() {
                 </TableCell>
               </TableRow>
             ) : (
-              ordersToShow.map((order) => (
-                <TableRow key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
-                  <TableCell className="cursor-pointer text-blue-600 hover:text-blue-800">
-                    <button
-                      onClick={() => handleOrderRowClick(ordersData.find((o) => o.id === order.id) || order)}
-                      className="hover:underline text-left"
-                    >
-                      {order.id}
-                    </button>
-                  </TableCell>
+              ordersToShow.map((order) => {
+                const urgencyStyle = getUrgencyRowStyle(order.urgencyLevel || "normal")
+                return (
+                  <TableRow key={order.id} className={`transition-colors duration-150 ${urgencyStyle}`}>
+                    <TableCell className="cursor-pointer text-blue-600 hover:text-blue-800">
+                      <button
+                        onClick={() => handleOrderRowClick(order._originalOrder || ordersData.find((o) => o.id === order.id) || order)}
+                        className="hover:underline text-left"
+                      >
+                        {order.id}
+                      </button>
+                    </TableCell>
                   <TableCell>{order.orderNo}</TableCell>
                   <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
                   <TableCell>{order.sellingLocationId}</TableCell>
@@ -979,8 +1032,9 @@ export function OrderManagementHub() {
                   </TableCell>
                   <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
                   <TableCell>{order.createdDate}</TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -993,103 +1047,134 @@ export function OrderManagementHub() {
         <CardHeader className="border-b border-medium-gray bg-white p-6">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold text-deep-navy font-heading">Order Management Hub</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className={`border-medium-gray ${
-                  showAdvancedFilters
-                    ? "bg-light-gray text-deep-navy"
-                    : "text-steel-gray hover:text-deep-navy hover:bg-light-gray"
-                } transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none shadow-sm hover:shadow-md`}
-                title="Advanced Filters"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-medium-gray text-steel-gray hover:text-deep-navy hover:bg-light-gray transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none shadow-sm hover:shadow-md"
-                title="Refresh Data"
-                onClick={refreshData}
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-medium-gray text-steel-gray hover:text-deep-navy hover:bg-light-gray transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none shadow-sm hover:shadow-md"
+              title="Refresh Data"
+              onClick={refreshData}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </Button>
+          </div>
+          {/* Urgency Legend */}
+          <div className="mt-4 flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span className="text-gray-600">Critical (Breach)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-orange-500 rounded"></div>
+              <span className="text-gray-600">Warning (≤20% time)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+              <span className="text-gray-600">Approaching (≤50% time)</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-green-500 rounded"></div>
+              <span className="text-gray-600">On Track</span>
             </div>
           </div>
+
           {/* Operations Quick Filters */}
           <div className="mt-4 space-y-3">
             <div className="text-sm font-medium text-gray-700">Quick Filters</div>
             <div className="flex flex-wrap gap-2">
+              {/* Urgent Orders - SLA Breach */}
               <Button
-                variant={activeSlaFilter === "breach" ? "default" : "outline"}
-                onClick={() => handleSlaFilterChange("breach")}
+                variant={quickFilter === "urgent" ? "default" : "outline"}
+                onClick={() => {
+                  setQuickFilter("urgent")
+                  setActiveSlaFilter("breach")
+                  setStatusFilter("all-status")
+                  setCurrentPage(1)
+                }}
                 className={`h-10 px-4 font-medium ${
-                  activeSlaFilter === "breach" 
-                    ? "bg-red-600 text-white hover:bg-red-700" 
+                  quickFilter === "urgent" 
+                    ? "bg-red-600 text-white hover:bg-red-700 shadow-md" 
                     : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
                 }`}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
-                🚨 SLA Breach ({slaStats.breach})
+                Urgent Orders ({slaStats.breach})
               </Button>
+              
+              {/* Due Soon - Near Breach */}
               <Button
-                variant={activeSlaFilter === "near-breach" ? "default" : "outline"}
-                onClick={() => handleSlaFilterChange("near-breach")}
+                variant={quickFilter === "due-soon" ? "default" : "outline"}
+                onClick={() => {
+                  setQuickFilter("due-soon")
+                  setActiveSlaFilter("near-breach")
+                  setStatusFilter("all-status")
+                  setCurrentPage(1)
+                }}
                 className={`h-10 px-4 font-medium ${
-                  activeSlaFilter === "near-breach"
-                    ? "bg-amber-600 text-white hover:bg-amber-700"
+                  quickFilter === "due-soon"
+                    ? "bg-amber-600 text-white hover:bg-amber-700 shadow-md"
                     : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
                 }`}
               >
-                ⚠️ Near Breach ({slaStats.nearBreach})
+                <Clock className="h-4 w-4 mr-2" />
+                Due Soon ({slaStats.nearBreach})
               </Button>
+              
+              {/* Ready to Process - New/Submitted Orders */}
               <Button
-                variant={statusFilter === "PROCESSING" ? "default" : "outline"}
+                variant={quickFilter === "ready" ? "default" : "outline"}
                 onClick={() => {
-                  setStatusFilter("PROCESSING")
-                  setActiveSlaFilter("all")
-                  setCurrentPage(1)
-                }}
-                className="h-10 px-4 font-medium"
-              >
-                📦 Processing Orders
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const today = new Date()
-                  const todayStr = today.toISOString().split('T')[0]
-                  setAdvancedFilters(prev => ({
-                    ...prev,
-                    orderDateFrom: today,
-                    orderDateTo: today
-                  }))
-                  setCurrentPage(1)
-                }}
-                className="h-10 px-4 font-medium"
-              >
-                ✓ Today's Orders
-              </Button>
-              <Button
-                variant={statusFilter === "SUBMITTED" ? "default" : "outline"}
-                onClick={() => {
+                  setQuickFilter("ready")
                   setStatusFilter("SUBMITTED")
                   setActiveSlaFilter("all")
                   setCurrentPage(1)
                 }}
-                className="h-10 px-4 font-medium"
+                className={`h-10 px-4 font-medium ${
+                  quickFilter === "ready"
+                    ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
+                    : "bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
+                }`}
               >
-                🆕 New Orders
+                <Package className="h-4 w-4 mr-2" />
+                Ready to Process
               </Button>
+              
+              {/* On Hold Orders */}
               <Button
-                variant={activeSlaFilter === "all" ? "default" : "outline"}
-                onClick={() => handleSlaFilterChange("all")}
-                className="h-10 px-4 font-medium"
+                variant={quickFilter === "on-hold" ? "default" : "outline"}
+                onClick={() => {
+                  setQuickFilter("on-hold")
+                  // Filter will be applied client-side for on-hold status
+                  setStatusFilter("all-status")
+                  setActiveSlaFilter("all")
+                  setCurrentPage(1)
+                }}
+                className={`h-10 px-4 font-medium ${
+                  quickFilter === "on-hold"
+                    ? "bg-gray-600 text-white hover:bg-gray-700 shadow-md"
+                    : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
+                }`}
               >
-                All Orders ({slaStats.all})
+                <PauseCircle className="h-4 w-4 mr-2" />
+                On Hold ({filteredOrders.filter(o => o.on_hold).length})
+              </Button>
+              
+              {/* Reset Filters */}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setQuickFilter("all")
+                  setStatusFilter("all-status")
+                  setChannelFilter("all-channels")
+                  setActiveSlaFilter("all")
+                  setSearchTerm("")
+                  setCurrentPage(1)
+                }}
+                className="h-10 px-4 font-medium text-gray-600 hover:text-gray-900"
+                disabled={quickFilter === "all" && statusFilter === "all-status" && channelFilter === "all-channels" && activeSlaFilter === "all" && !searchTerm}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear Filters
               </Button>
             </div>
           </div>
@@ -1142,18 +1227,6 @@ export function OrderManagementHub() {
         </CardHeader>
 
         <CardContent className="p-6">
-          {/* Advanced filters panel */}
-          {showAdvancedFilters && (
-            <div className="mb-6">
-              <EnhancedFilterPanel
-                isOpen={showAdvancedFilters}
-                onClose={() => setShowAdvancedFilters(false)}
-                onApplyFilters={handleApplyAdvancedFilters}
-                onResetFilters={handleResetAdvancedFilters}
-                initialValues={advancedFilters}
-              />
-            </div>
-          )}
 
           {/* Active filters summary */}
           {isMounted && generateActiveFilters.length > 0 && (
@@ -1163,7 +1236,7 @@ export function OrderManagementHub() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleResetAdvancedFilters}
+                  onClick={handleResetAllFilters}
                   className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
                 >
                   Clear All Filters
@@ -1186,13 +1259,6 @@ export function OrderManagementHub() {
                   </Badge>
                 ))}
               </div>
-              {/* Note about filtering limitations */}
-              {(advancedFilters.orderNumber || advancedFilters.customerName || advancedFilters.phoneNumber || 
-                advancedFilters.email || advancedFilters.fulfillmentLocationId || advancedFilters.items) && (
-                <p className="text-xs text-blue-700 mt-2">
-                  Note: Some filters are applied on current page only. Use "Fetch All Pages" for complete filtering.
-                </p>
-              )}
             </div>
           )}
 
