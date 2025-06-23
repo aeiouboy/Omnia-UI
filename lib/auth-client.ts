@@ -46,14 +46,14 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
   const baseUrl = API_BASE_URL
   console.log(`🌐 Using API endpoint: ${baseUrl}`)
     
-    for (const authEndpoint of AUTH_ENDPOINTS) {
-      const fullUrl = `${baseUrl}${authEndpoint}`
-      console.log(`🔐 Trying auth endpoint: ${fullUrl}`)
+  for (const authEndpoint of AUTH_ENDPOINTS) {
+    const fullUrl = `${baseUrl}${authEndpoint}`
+    console.log(`🔐 Trying auth endpoint: ${fullUrl}`)
 
-      const authController = new AbortController()
-      const authTimeoutId = setTimeout(() => authController.abort(), 15000)
+    const authController = new AbortController()
+    const authTimeoutId = setTimeout(() => authController.abort(), 15000)
 
-      try {
+    try {
         // Prepare request body - try different formats
         const requestBodies = [
           // Primary format for POC
@@ -140,16 +140,15 @@ export async function getAuthToken(forceRefresh = false): Promise<string> {
                 continue
               }
             }
-          } catch (bodyError) {
+          } catch (bodyError: any) {
             console.warn(`⚠️ Request body format failed:`, bodyError.message)
             continue
           }
         }
-      } catch (error) {
-        clearTimeout(authTimeoutId)
-        console.warn(`⚠️ Auth endpoint failed: ${fullUrl} - ${error.message}`)
-        continue
-      }
+    } catch (error: any) {
+      clearTimeout(authTimeoutId)
+      console.warn(`⚠️ Auth endpoint failed: ${fullUrl} - ${error.message}`)
+      continue
     }
   }
 
