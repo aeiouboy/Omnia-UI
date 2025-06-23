@@ -58,69 +58,50 @@ export function CriticalAlertsBanner({
         ? 'border-l-red-500 bg-red-50 border-red-200' 
         : 'border-l-amber-500 bg-amber-50 border-amber-200'
     }`}>
-      <div className="p-4">
+      <div className="p-3">
         {/* Header Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {alertLevel === 'critical' ? (
-              <AlertTriangle className="h-6 w-6 text-red-600 animate-pulse" />
+              <AlertTriangle className="h-5 w-5 text-red-600" />
             ) : (
-              <Clock className="h-6 w-6 text-amber-600" />
+              <Clock className="h-5 w-5 text-amber-600" />
             )}
             
             <div className="flex-1">
-              <h3 className={`font-bold text-lg ${
+              <h3 className={`font-semibold text-base ${
                 alertLevel === 'critical' ? 'text-red-800' : 'text-amber-800'
               }`}>
-                {hasBreaches ? '🚨 SLA BREACH - ACTION REQUIRED' : '⚠️ SLA WARNING'}
+                {hasBreaches ? 'SLA Breach Alert' : 'SLA Warning'}
               </h3>
               
-              {/* Show first breach details in collapsed view - Operations focused */}
+              {/* Show first breach details in collapsed view - Compact for operations */}
               {slaBreaches.length > 0 && !isExpanded && (
-                <div className="mt-3 bg-white rounded-lg p-3 border-2 border-red-300">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      {/* Primary: Order identification */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold font-mono text-red-700">{slaBreaches[0].order_number}</span>
-                        <span className="text-sm text-gray-500">ID: {slaBreaches[0].id}</span>
-                        <ChannelBadge channel={slaBreaches[0].channel} />
-                      </div>
-                      
-                      {/* Secondary: Location and customer */}
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="font-semibold text-gray-900">📍 {slaBreaches[0].location}</span>
-                        <span className="text-gray-600">👤 {slaBreaches[0].customer_name}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Critical: Time breach */}
-                    <div className="text-right">
-                      <div className="bg-red-100 px-3 py-1 rounded-lg">
-                        <div className="text-xs text-red-600 font-medium">OVERDUE BY</div>
-                        <div className="text-2xl font-bold text-red-700">
-                          {(() => {
-                            // API returns seconds despite field name
-                            const overSeconds = slaBreaches[0].elapsed_minutes - slaBreaches[0].target_minutes;
-                            const overMinutes = Math.floor(overSeconds / 60);
-                            if (overMinutes > 60) {
-                              const hours = Math.floor(overMinutes / 60);
-                              const mins = overMinutes % 60;
-                              return `${hours}h ${mins}m`;
-                            }
-                            return `${overMinutes}m`;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
+                <div className="mt-2 flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold font-mono text-lg">{slaBreaches[0].order_number}</span>
+                    <span className="text-xs text-gray-500">#{slaBreaches[0].id}</span>
+                    <ChannelBadge channel={slaBreaches[0].channel} />
+                    <span className="text-sm text-gray-700">• {slaBreaches[0].location}</span>
                   </div>
                   
-                  {/* Additional orders indicator */}
-                  {slaBreaches.length > 1 && (
-                    <div className="mt-2 pt-2 border-t border-gray-200 text-sm text-red-600 font-medium">
-                      ⚠️ +{slaBreaches.length - 1} more order{slaBreaches.length > 2 ? 's' : ''} breached
-                    </div>
-                  )}
+                  <div className="ml-auto flex items-center gap-3">
+                    <span className="bg-red-100 px-2 py-1 rounded text-sm font-bold text-red-700">
+                      {(() => {
+                        const overSeconds = slaBreaches[0].elapsed_minutes - slaBreaches[0].target_minutes;
+                        const overMinutes = Math.floor(overSeconds / 60);
+                        if (overMinutes > 60) {
+                          return `${Math.floor(overMinutes / 60)}h ${overMinutes % 60}m over`;
+                        }
+                        return `${overMinutes}m over`;
+                      })()}
+                    </span>
+                    {slaBreaches.length > 1 && (
+                      <span className="text-sm text-red-600 font-medium">
+                        +{slaBreaches.length - 1} more
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
               
@@ -148,10 +129,10 @@ export function CriticalAlertsBanner({
               size="sm"
               onClick={onEscalate}
               disabled={isEscalating}
-              className="min-h-[44px] px-6"
+              className="h-8 px-3 text-sm"
             >
-              <Send className="h-4 w-4 mr-2" />
-              {isEscalating ? 'Escalating...' : 'Escalate Now'}
+              <Send className="h-3 w-3 mr-1" />
+              {isEscalating ? 'Escalating...' : 'Escalate'}
             </Button>
 
             {/* Expand/Collapse */}
@@ -159,7 +140,7 @@ export function CriticalAlertsBanner({
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="min-h-[44px] min-w-[44px]"
+              className="h-8 w-8"
             >
               {isExpanded ? (
                 <ChevronUp className="h-4 w-4" />
@@ -174,7 +155,7 @@ export function CriticalAlertsBanner({
                 variant="ghost"
                 size="sm"
                 onClick={onDismiss}
-                className="min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-700"
+                className="h-8 w-8 text-gray-500 hover:text-gray-700"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -184,76 +165,39 @@ export function CriticalAlertsBanner({
 
         {/* Expanded Details */}
         {isExpanded && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {/* SLA Breaches */}
             {slaBreaches.length > 0 && (
               <div>
-                <h4 className="font-bold text-red-700 mb-3 text-lg">
-                  🚨 BREACHED ORDERS - IMMEDIATE ACTION REQUIRED
+                <h4 className="font-semibold text-red-700 mb-2 text-sm uppercase">
+                  Breached Orders ({slaBreaches.length})
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {slaBreaches.slice(0, 5).map((alert, index) => (
-                    <div key={alert.id} className="bg-white rounded-lg border-2 border-red-200 hover:border-red-400 transition-colors">
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            {/* Order Header */}
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="text-xl font-bold font-mono">{alert.order_number}</span>
-                              <span className="text-sm text-gray-500">#{alert.id}</span>
-                              <ChannelBadge channel={alert.channel} />
-                            </div>
-                            
-                            {/* Location and Customer Grid */}
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-500">Store:</span>
-                                <span className="ml-2 font-semibold">{alert.location}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Customer:</span>
-                                <span className="ml-2">{alert.customer_name}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Time Breach Display */}
-                          <div className="ml-4">
-                            <div className="bg-red-100 px-4 py-2 rounded-lg text-center">
-                              <div className="text-xs text-red-600 font-medium uppercase">Overdue</div>
-                              <div className="text-2xl font-bold text-red-700">
-                                {(() => {
-                                  // API returns seconds despite field name
-                                  const overSeconds = alert.elapsed_minutes - alert.target_minutes;
-                                  const overMinutes = Math.floor(overSeconds / 60);
-                                  if (overMinutes > 60) {
-                                    const hours = Math.floor(overMinutes / 60);
-                                    const mins = overMinutes % 60;
-                                    return `${hours}h ${mins}m`;
-                                  }
-                                  return `${overMinutes}m`;
-                                })()}
-                              </div>
-                              <div className="text-xs text-red-500">
-                                Target: {Math.floor(alert.target_minutes / 60)}m
-                              </div>
-                            </div>
-                          </div>
+                    <div key={alert.id} className="bg-white rounded border border-red-200 hover:border-red-400 transition-colors p-3">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold font-mono">{alert.order_number}</span>
+                          <span className="text-xs text-gray-500">#{alert.id}</span>
+                          <ChannelBadge channel={alert.channel} />
+                          <span className="text-sm text-gray-700">{alert.location}</span>
+                          <span className="text-sm text-gray-500">• {alert.customer_name}</span>
                         </div>
                         
-                        {/* Action Bar */}
-                        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-                          <div className="text-xs text-gray-500">
-                            Order placed {Math.floor(alert.elapsed_minutes / 60)} minutes ago
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="text-red-600 hover:bg-red-50 border-red-300"
-                            onClick={() => {/* TODO: View order details */}}
-                          >
-                            View Details →
-                          </Button>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500">
+                            {Math.floor(alert.elapsed_minutes / 60)}m ago
+                          </span>
+                          <span className="bg-red-100 px-2 py-1 rounded text-sm font-bold text-red-700">
+                            {(() => {
+                              const overSeconds = alert.elapsed_minutes - alert.target_minutes;
+                              const overMinutes = Math.floor(overSeconds / 60);
+                              if (overMinutes > 60) {
+                                return `${Math.floor(overMinutes / 60)}h ${overMinutes % 60}m over`;
+                              }
+                              return `${overMinutes}m over`;
+                            })()}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -272,73 +216,36 @@ export function CriticalAlertsBanner({
             {/* Approaching SLA */}
             {approachingAlerts.length > 0 && (
               <div>
-                <h4 className="font-bold text-amber-700 mb-3 text-lg">
-                  ⚠️ APPROACHING DEADLINE - MONITOR CLOSELY
+                <h4 className="font-semibold text-amber-700 mb-2 text-sm uppercase">
+                  Approaching Deadline ({approachingAlerts.length})
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {approachingAlerts.slice(0, 5).map((alert, index) => (
-                    <div key={alert.id} className="bg-white rounded-lg border-2 border-amber-200 hover:border-amber-400 transition-colors">
-                      <div className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            {/* Order Header */}
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="text-xl font-bold font-mono">{alert.order_number}</span>
-                              <span className="text-sm text-gray-500">#{alert.id}</span>
-                              <ChannelBadge channel={alert.channel} />
-                            </div>
-                            
-                            {/* Location and Customer Grid */}
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-500">Store:</span>
-                                <span className="ml-2 font-semibold">{alert.location}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Customer:</span>
-                                <span className="ml-2">{alert.customer_name}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Time Remaining Display */}
-                          <div className="ml-4">
-                            <div className="bg-amber-100 px-4 py-2 rounded-lg text-center">
-                              <div className="text-xs text-amber-600 font-medium uppercase">Time Left</div>
-                              <div className="text-2xl font-bold text-amber-700">
-                                {(() => {
-                                  // API returns seconds despite field name
-                                  const remainingSeconds = alert.target_minutes - alert.elapsed_minutes;
-                                  const remainingMinutes = Math.floor(remainingSeconds / 60);
-                                  if (remainingMinutes < 0) return "0m";
-                                  if (remainingMinutes < 60) {
-                                    return `${remainingMinutes}m`;
-                                  }
-                                  const hours = Math.floor(remainingMinutes / 60);
-                                  const mins = remainingMinutes % 60;
-                                  return `${hours}h ${mins}m`;
-                                })()}
-                              </div>
-                              <div className="text-xs text-amber-500">
-                                Target: {Math.floor(alert.target_minutes / 60)}m
-                              </div>
-                            </div>
-                          </div>
+                    <div key={alert.id} className="bg-white rounded border border-amber-200 hover:border-amber-400 transition-colors p-3">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold font-mono">{alert.order_number}</span>
+                          <span className="text-xs text-gray-500">#{alert.id}</span>
+                          <ChannelBadge channel={alert.channel} />
+                          <span className="text-sm text-gray-700">{alert.location}</span>
+                          <span className="text-sm text-gray-500">• {alert.customer_name}</span>
                         </div>
                         
-                        {/* Action Bar */}
-                        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-                          <div className="text-xs text-gray-500">
-                            Order placed {Math.floor(alert.elapsed_minutes / 60)} minutes ago
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="text-amber-600 hover:bg-amber-50 border-amber-300"
-                            onClick={() => {/* TODO: View order details */}}
-                          >
-                            Monitor Order →
-                          </Button>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500">
+                            {Math.floor(alert.elapsed_minutes / 60)}m ago
+                          </span>
+                          <span className="bg-amber-100 px-2 py-1 rounded text-sm font-bold text-amber-700">
+                            {(() => {
+                              const remainingSeconds = alert.target_minutes - alert.elapsed_minutes;
+                              const remainingMinutes = Math.floor(remainingSeconds / 60);
+                              if (remainingMinutes < 0) return "0m left";
+                              if (remainingMinutes < 60) {
+                                return `${remainingMinutes}m left`;
+                              }
+                              return `${Math.floor(remainingMinutes / 60)}h ${remainingMinutes % 60}m left`;
+                            })()}
+                          </span>
                         </div>
                       </div>
                     </div>
