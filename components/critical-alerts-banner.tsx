@@ -85,6 +85,20 @@ export function CriticalAlertsBanner({
                   <span>{approachingAlerts.length} approaching deadline</span>
                 )}
               </p>
+              {/* Show first breach details in collapsed view */}
+              {slaBreaches.length > 0 && !isExpanded && (
+                <div className="mt-2 flex items-center space-x-2 text-sm">
+                  <span className="font-mono font-semibold">{slaBreaches[0].order_number}</span>
+                  <span className="text-gray-600">-</span>
+                  <span className="font-mono">{slaBreaches[0].id}</span>
+                  <span className="text-gray-600">-</span>
+                  <span>{slaBreaches[0].location}</span>
+                  <ChannelBadge channel={slaBreaches[0].channel} />
+                  <span className="text-red-600 font-semibold ml-2">
+                    {formatOverTime(slaBreaches[0].elapsed_minutes, slaBreaches[0].target_minutes)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -144,9 +158,15 @@ export function CriticalAlertsBanner({
                     <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
                       <div className="flex items-center space-x-3">
                         <div>
-                          <div className="font-medium text-sm">{alert.order_number}</div>
+                          <div className="font-medium text-sm">
+                            <span className="font-mono">{alert.order_number}</span>
+                            <span className="text-gray-500 mx-1">•</span>
+                            <span className="text-xs font-mono text-gray-600">{alert.id}</span>
+                          </div>
                           <div className="text-xs text-gray-600 flex items-center space-x-2">
                             <span>{alert.customer_name}</span>
+                            <span className="text-gray-400">•</span>
+                            <span>{alert.location}</span>
                             <ChannelBadge channel={alert.channel} />
                           </div>
                         </div>
@@ -155,7 +175,6 @@ export function CriticalAlertsBanner({
                         <div className="text-xs font-medium text-red-600">
                           {formatOverTime(alert.elapsed_minutes, alert.target_minutes)}
                         </div>
-                        <div className="text-xs text-gray-500">{alert.location}</div>
                       </div>
                     </div>
                   ))}
@@ -180,8 +199,15 @@ export function CriticalAlertsBanner({
                     <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-amber-200">
                       <div className="flex items-center space-x-3">
                         <div>
-                          <div className="font-medium text-sm">{alert.order_number}</div>
-                          <div className="text-xs text-gray-600">
+                          <div className="font-medium text-sm">
+                            <span className="font-mono">{alert.order_number}</span>
+                            <span className="text-gray-500 mx-1">•</span>
+                            <span className="text-xs font-mono text-gray-600">{alert.id}</span>
+                          </div>
+                          <div className="text-xs text-gray-600 flex items-center space-x-2">
+                            <span>{alert.customer_name}</span>
+                            <span className="text-gray-400">•</span>
+                            <span>{alert.location}</span>
                             <ChannelBadge channel={alert.channel} />
                           </div>
                         </div>
