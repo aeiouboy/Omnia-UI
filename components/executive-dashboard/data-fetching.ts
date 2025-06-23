@@ -1,4 +1,4 @@
-import { ApiOrder } from './types'
+import { ApiOrder, OrderAlert } from './types'
 import { getGMT7Time } from '@/lib/utils'
 import { filterSLABreach, filterApproachingSLA } from '@/lib/sla-utils'
 
@@ -703,7 +703,11 @@ export function validateSevenDaysCoverage(
 }
 
 // Process orders for critical alerts - FILTER TO TODAY'S ORDERS ONLY (GMT+7)
-export function processOrderAlerts(orders: ApiOrder[]) {
+export function processOrderAlerts(orders: ApiOrder[]): {
+  orderAlerts: OrderAlert[]
+  approachingSla: OrderAlert[]
+  criticalAlerts: OrderAlert[]
+} {
   console.log(`🚨 Processing ${orders.length} orders for TODAY's alerts...`)
   
   // Filter to TODAY'S ORDERS ONLY for alerts - Using GMT+7 timezone
@@ -731,9 +735,32 @@ export function processOrderAlerts(orders: ApiOrder[]) {
   
   console.log(`🚨 TODAY's SLA alerts: ${slaBreaches.length} breaches, ${approachingSLA.length} approaching`)
   
+  // Map orders to OrderAlert format
+  const mapToOrderAlert = (order: ApiOrder, type: 'breach' | 'approaching'): OrderAlert => {
+    const targetSeconds = order.sla_info?.target_minutes || 300
+    const elapsedSeconds = order.sla_info?.elapsed_minutes || 0
+    const remainingSeconds = targetSeconds - elapsedSeconds
+    
+    return {
+      id: order.id,
+      order_number: order.order_no || 'N/A',
+      customer_name: order.customer?.name || 'Unknown Customer',
+      channel: order.channel || 'Unknown',
+      location: order.metadata?.store_name || 'Unknown Location',
+      remaining: type === 'approaching' ? Math.max(0, remainingSeconds) : undefined,
+      overTime: type === 'breach' ? Math.max(0, elapsedSeconds - targetSeconds) : undefined,
+      target_minutes: targetSeconds,
+      elapsed_minutes: elapsedSeconds,
+      type
+    }
+  }
+  
+  const orderAlerts = slaBreaches.map(order => mapToOrderAlert(order, 'breach'))
+  const approachingAlerts = approachingSLA.map(order => mapToOrderAlert(order, 'approaching'))
+  
   return {
-    orderAlerts: slaBreaches,
-    approachingSla: approachingSLA,
-    criticalAlerts: slaBreaches.slice(0, 5) // Top 5 critical alerts from today
+    orderAlerts,
+    approachingSla: approachingAlerts,
+    criticalAlerts: orderAlerts.slice(0, 5) // Top 5 critical alerts from today
   }
 }

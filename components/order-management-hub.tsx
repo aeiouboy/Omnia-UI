@@ -16,7 +16,7 @@ import {
   SLABadge,
 } from "./order-badges"
 import { OrderDetailView } from "./order-detail-view"
-import { RefreshCw, X, Filter, Loader2, AlertCircle } from "lucide-react"
+import { RefreshCw, X, Filter, Loader2, AlertCircle, Download } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EnhancedFilterPanel, type AdvancedFilterValues } from "./enhanced-filter-panel"
@@ -208,6 +208,13 @@ const fetchOrdersFromApi = async (
     if (filterParams?.channel && filterParams.channel !== "all-channels") {
       queryParams.set("channel", filterParams.channel)
     }
+    
+    // For Order Management Hub - fetch ALL orders by setting a very wide date range
+    // This will override the 7-day default in the API route
+    const farPastDate = new Date('2020-01-01').toISOString().split('T')[0]
+    const farFutureDate = new Date('2030-12-31').toISOString().split('T')[0]
+    queryParams.set("dateFrom", farPastDate)
+    queryParams.set("dateTo", farFutureDate)
 
     // Try server-side API route first (bypasses CORS)
     const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
@@ -232,8 +239,16 @@ const fetchOrdersFromApi = async (
         return mapApiResponseToOrders(proxyData.data)
       } else if (proxyData.fallback) {
         console.log("⚠️ Server proxy indicated fallback needed:", proxyData.error)
+        // Check for authentication error
+        if (proxyData.error?.includes('authentication') || proxyData.error?.includes('401')) {
+          throw new Error("Authentication failed. Please check API credentials in environment variables.")
+        }
         throw new Error(proxyData.error || "Server proxy fallback")
       }
+    } else if (proxyResponse.status === 401) {
+      throw new Error("Authentication failed. Please check API credentials.")
+    } else if (proxyResponse.status === 404) {
+      throw new Error("API endpoint not found. Please check the API configuration.")
     }
 
     // Fallback to direct client-side fetch
@@ -367,8 +382,110 @@ export function OrderManagementHub() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch orders from API
+  // State for fetch all mode
+  const [fetchAllMode, setFetchAllMode] = useState(false)
+  const [fetchingAllProgress, setFetchingAllProgress] = useState({ current: 0, total: 0 })
+
+  // Fetch all orders across all pages
+  const fetchAllOrders = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    setFetchingAllProgress({ current: 0, total: 0 })
+    
+    try {
+      const allOrders: Order[] = []
+      let currentFetchPage = 1
+      let hasMorePages = true
+      let totalPages = 0
+      
+      // Merge all filter values for API request
+      const mergedFilters = {
+        searchTerm,
+        status: statusFilter,
+        channel: channelFilter,
+        slaFilter: activeSlaFilter,
+        // Advanced filters (flattened for API compatibility)
+        orderNumber: advancedFilters.orderNumber,
+        customerName: advancedFilters.customerName,
+        phoneNumber: advancedFilters.phoneNumber,
+        email: advancedFilters.email,
+        orderDateFrom: advancedFilters.orderDateFrom,
+        orderDateTo: advancedFilters.orderDateTo,
+        orderStatus: advancedFilters.orderStatus,
+        exceedSLA: advancedFilters.exceedSLA,
+        sellingChannel: advancedFilters.sellingChannel,
+        paymentStatus: advancedFilters.paymentStatus,
+        fulfillmentLocationId: advancedFilters.fulfillmentLocationId,
+        items: advancedFilters.items,
+      }
+      
+      // Loop through all pages
+      while (hasMorePages) {
+        console.log(`📄 Fetching page ${currentFetchPage}...`)
+        
+        const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
+          { page: currentFetchPage, pageSize: 100 }, // Use larger page size for efficiency
+          mergedFilters,
+        )
+        
+        allOrders.push(...orders)
+        totalPages = apiPagination.totalPages
+        hasMorePages = apiPagination.hasNext
+        
+        // Update progress
+        setFetchingAllProgress({ current: currentFetchPage, total: totalPages })
+        
+        // Move to next page
+        currentFetchPage++
+        
+        // Safety check to prevent infinite loops
+        if (currentFetchPage > 1000) {
+          console.warn("⚠️ Safety limit reached: stopping at 1000 pages")
+          break
+        }
+      }
+      
+      console.log(`✅ Fetched all ${allOrders.length} orders across ${currentFetchPage - 1} pages`)
+      
+      // Update state with all orders
+      setOrdersData(allOrders)
+      setPagination({
+        page: 1,
+        pageSize: allOrders.length,
+        total: allOrders.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      })
+      
+      // Only update timestamp on client side
+      if (typeof window !== "undefined") {
+        setLastUpdated(formatGMT7TimeString())
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch all orders")
+      setOrdersData([])
+      setPagination({
+        page: 1,
+        pageSize,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      })
+    } finally {
+      setIsLoading(false)
+      setFetchingAllProgress({ current: 0, total: 0 })
+    }
+  }, [pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
+
+  // Regular single page fetch
   const fetchOrders = useCallback(async () => {
+    // If in fetch all mode, fetch all pages
+    if (fetchAllMode) {
+      return fetchAllOrders()
+    }
+    
     setIsLoading(true)
     setError(null)
     try {
@@ -417,7 +534,7 @@ export function OrderManagementHub() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters, fetchAllMode, fetchAllOrders])
 
   // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
@@ -772,13 +889,13 @@ export function OrderManagementHub() {
           <TableHeader className="bg-light-gray">
             <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
               <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-                ORDER NUMBER (ID)
+                ORDER NUMBER
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 SHORT ORDER
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                ORDER TOTAL (THB)
+                ORDER TOTAL
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
                 SELLING LOCATION ID
@@ -1003,7 +1120,11 @@ export function OrderManagementHub() {
           {isMounted && isLoading && (
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-corporate-blue" />
-              <p className="ml-2 text-steel-gray">Loading orders...</p>
+              <p className="ml-2 text-steel-gray">
+                {fetchingAllProgress.total > 0 
+                  ? `Fetching page ${fetchingAllProgress.current} of ${fetchingAllProgress.total}...` 
+                  : "Loading orders..."}
+              </p>
             </div>
           )}
 
@@ -1020,15 +1141,46 @@ export function OrderManagementHub() {
           {isMounted && !isLoading && !error && mappedOrders && pagination && (
             <div>
               {renderOrderTable(mappedOrders)}
-              <div className="mt-4">
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={pagination.totalPages}
-                  pageSize={pageSize}
-                  totalItems={pagination.total}
-                  onPageChange={handlePageChange}
-                  onPageSizeChange={handlePageSizeChange}
-                />
+              <div className="mt-4 space-y-2">
+                {/* Fetch All Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={fetchAllMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setFetchAllMode(!fetchAllMode)
+                        if (!fetchAllMode) {
+                          setCurrentPage(1)
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {fetchAllMode ? "Switch to Paginated View" : "Fetch All Pages"}
+                    </Button>
+                    {fetchAllMode && ordersData.length > 0 && (
+                      <span className="text-sm text-steel-gray">
+                        Showing all {ordersData.length} orders
+                      </span>
+                    )}
+                  </div>
+                  {lastUpdated && (
+                    <p className="text-sm text-steel-gray">Last updated: {lastUpdated}</p>
+                  )}
+                </div>
+                {/* Pagination Controls - Only show when not in fetch all mode */}
+                {!fetchAllMode && (
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={pagination.totalPages}
+                    pageSize={pageSize}
+                    totalItems={pagination.total}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                  />
+                )}
               </div>
             </div>
           )}

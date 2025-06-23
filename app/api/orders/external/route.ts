@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getAuthToken } from "@/lib/auth-client"
+import { hasValidApiCredentials } from "@/lib/env-validation"
 
 export const dynamic = "force-dynamic"
 
@@ -21,6 +22,32 @@ export async function OPTIONS(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    // Check for valid API credentials early
+    if (!hasValidApiCredentials()) {
+      console.error("❌ Missing API credentials")
+      const credentialsError = NextResponse.json({
+        success: false,
+        error: "Missing API credentials. Please set API_BASE_URL, PARTNER_CLIENT_ID, and PARTNER_CLIENT_SECRET in environment variables.",
+        fallback: true,
+        data: {
+          data: [],
+          pagination: {
+            page: 1,
+            pageSize: 10,
+            total: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+        },
+      }, { status: 500 })
+      
+      credentialsError.headers.set('Access-Control-Allow-Origin', '*')
+      credentialsError.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      credentialsError.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      
+      return credentialsError
+    }
+
     const { searchParams } = new URL(request.url)
 
     // Extract pagination parameters
@@ -102,9 +129,16 @@ export async function GET(request: Request) {
     if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
     if (search) apiUrl.searchParams.set("search", search)
     
-    // Add date filtering (YYYY-MM-DD format)
-    if (dateFrom) apiUrl.searchParams.set("dateFrom", dateFrom)
-    if (dateTo) apiUrl.searchParams.set("dateTo", dateTo)
+    // Add date filtering (YYYY-MM-DD format) - Required parameters
+    const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+    
+    const defaultDateFrom = sevenDaysAgo.toISOString().split('T')[0]
+    const defaultDateTo = today.toISOString().split('T')[0]
+    
+    apiUrl.searchParams.set("dateFrom", dateFrom || defaultDateFrom)
+    apiUrl.searchParams.set("dateTo", dateTo || defaultDateTo)
 
     console.log(`🔄 Fetching from API: ${apiUrl.toString()}`)
 

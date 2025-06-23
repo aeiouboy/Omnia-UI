@@ -21,8 +21,8 @@ export interface Order {
  * @returns Object with breach, approaching, and compliance status
  */
 export function calculateSLAStatus(order: Order) {
-  // Skip completed orders
-  if (order.status === "DELIVERED" || order.status === "FULFILLED") {
+  // Skip completed/cancelled orders - matching Order Management Hub logic
+  if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
     return {
       isBreach: false,
       isApproaching: false,
@@ -56,10 +56,11 @@ export function calculateSLAStatus(order: Order) {
   const criticalThreshold = targetSeconds * 0.2 // 20% of target
   const isApproaching = !isBreach && remainingSeconds <= criticalThreshold && remainingSeconds > 0
 
-  // Calculate compliance
+  // Calculate compliance - include CANCELLED as compliant
   const isCompliant = order.sla_info.status === "COMPLIANT" || 
                      order.status === "DELIVERED" || 
                      order.status === "FULFILLED" ||
+                     order.status === "CANCELLED" ||
                      (!isBreach && !isApproaching)
 
   return {

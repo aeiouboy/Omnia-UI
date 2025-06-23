@@ -155,7 +155,15 @@ function SLABreachSection({
             </div>
             <div>
               <p className="text-gray-600 mb-1">Order Number:</p>
-              <p className="font-mono font-semibold">{alert.order_number}</p>
+              <p className="font-mono font-semibold">{alert.order_number || '-'}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 mb-1">Customer:</p>
+              <p className="font-medium truncate">{alert.customer_name || '-'}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 mb-1">Store Location:</p>
+              <p className="font-medium truncate">{alert.location || '-'}</p>
             </div>
             <div>
               <p className="text-gray-600 mb-1">Channel:</p>
@@ -170,7 +178,7 @@ function SLABreachSection({
               <p className="font-medium text-red-600">{formatElapsedTime(alert.elapsed_minutes || 0)}</p>
             </div>
             <div>
-              <p className="text-gray-600 mb-1">Time Left:</p>
+              <p className="text-gray-600 mb-1">Time Over:</p>
               <p className="font-bold text-red-600">
                 {formatOverTime(alert.overTime || 0)}
               </p>
@@ -193,15 +201,19 @@ function ApproachingSLASection({ alerts }: { alerts: OrderAlert[] }) {
       {alerts.slice(0, 4).map((alert, index) => (
         <div key={index} className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-600" />
-              <div className="flex flex-col gap-1">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-yellow-600" />
                 <span className="font-mono text-xs font-medium text-gray-600">ID: {alert.id || '-'}</span>
-                <span className="font-mono text-sm font-medium">{alert.order_number}</span>
+                <span className="font-mono text-sm font-medium">#{alert.order_number || '-'}</span>
+                <ChannelBadge channel={alert.channel} />
               </div>
-              <ChannelBadge channel={alert.channel} />
+              <div className="flex items-center gap-4 text-xs text-gray-600">
+                <span className="truncate max-w-[150px]">{alert.customer_name || '-'}</span>
+                <span className="truncate max-w-[150px]">{alert.location || '-'}</span>
+              </div>
             </div>
-            <div className="text-right">
+            <div className="text-right ml-2">
               <p className="font-bold text-yellow-700">
                 {formatRemainingTime(alert.remaining || 0)}
               </p>
