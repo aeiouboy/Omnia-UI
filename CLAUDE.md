@@ -326,9 +326,11 @@ When completing a task, ALWAYS update status in ALL locations:
 - **ALWAYS** use `git add .` before committing to ensure no files are missed
 - Review `git status` output carefully before staging files
 - Never commit partially - all related changes must be included in the commit
+- **ALWAYS TEST BEFORE COMMITTING** - Run `npm run dev` or `npm run build` to verify no errors
 - Example workflow:
   ```bash
   git status          # Review all changes
+  npm run dev         # Test for errors (Ctrl+C after confirming it starts)
   git add .           # Stage ALL changes
   git status          # Verify all files are staged
   git commit -m "..."  # Commit with clear message
