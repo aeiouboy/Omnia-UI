@@ -668,7 +668,7 @@ export function OrderManagementHub() {
       setStatusFilter("all-status")
     } else if (filter.startsWith("Channel:")) {
       setChannelFilter("all-channels")
-    } else if (filter === "Urgent Orders" || filter === "Due Soon" || filter === "Ready to Process" || filter === "On Hold") {
+    } else if (filter === "SLA Breach" || filter === "Approaching SLA" || filter === "Ready to Process" || filter === "On Hold") {
       setQuickFilter("all")
       setActiveSlaFilter("all")
     }
@@ -685,8 +685,8 @@ export function OrderManagementHub() {
     if (channelFilter !== "all-channels") filters.push(`Channel: ${channelFilter}`)
     if (quickFilter !== "all") {
       const quickFilterLabels = {
-        "urgent": "Urgent Orders",
-        "due-soon": "Due Soon",
+        "urgent": "SLA Breach",
+        "due-soon": "Approaching SLA",
         "ready": "Ready to Process",
         "on-hold": "On Hold"
       }
@@ -1106,15 +1106,15 @@ export function OrderManagementHub() {
           <div className="mt-4 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className="text-gray-600">Critical (Breach)</span>
+              <span className="text-gray-600">SLA Breach</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-orange-500 rounded"></div>
-              <span className="text-gray-600">Warning (≤20% time)</span>
+              <span className="text-gray-600">Approaching SLA (≤20% time)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-              <span className="text-gray-600">Approaching (≤50% time)</span>
+              <span className="text-gray-600">Warning (≤50% time)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-green-500 rounded"></div>
@@ -1126,7 +1126,7 @@ export function OrderManagementHub() {
           <div className="mt-4 space-y-3">
             <div className="text-sm font-medium text-gray-700">Quick Filters</div>
             <div className="flex flex-wrap gap-2">
-              {/* Urgent Orders - SLA Breach */}
+              {/* SLA Breach */}
               <Button
                 variant={quickFilter === "urgent" ? "default" : "outline"}
                 onClick={() => {
@@ -1142,10 +1142,10 @@ export function OrderManagementHub() {
                 }`}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
-                Urgent Orders ({realTimeCounts.breach})
+                SLA Breach ({realTimeCounts.breach})
               </Button>
               
-              {/* Due Soon - Near Breach */}
+              {/* Approaching SLA */}
               <Button
                 variant={quickFilter === "due-soon" ? "default" : "outline"}
                 onClick={() => {
@@ -1161,7 +1161,7 @@ export function OrderManagementHub() {
                 }`}
               >
                 <Clock className="h-4 w-4 mr-2" />
-                Due Soon ({realTimeCounts.nearBreach})
+                Approaching SLA ({realTimeCounts.nearBreach})
               </Button>
               
               {/* Ready to Process - New/Submitted Orders */}
