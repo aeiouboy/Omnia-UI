@@ -403,150 +403,178 @@ export function EnhancedFilterPanel({
 
           {/* Advanced Filters Tab */}
           <TabsContent value="filters" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Order Number */}
-              <div className="space-y-2">
-                <Label htmlFor="orderNumber" className="text-sm font-medium text-gray-700">
-                  Order Number
-                </Label>
-                <Input
-                  id="orderNumber"
-                  value={filters.orderNumber}
-                  onChange={(e) => handleInputChange("orderNumber", e.target.value)}
-                  placeholder="Enter order number"
-                  className="min-h-[44px]"
-                />
-              </div>
-
-              {/* Customer Name */}
-              <div className="space-y-2">
-                <Label htmlFor="customerName" className="text-sm font-medium text-gray-700">
-                  Customer Name
-                </Label>
-                <Input
-                  id="customerName"
-                  value={filters.customerName}
-                  onChange={(e) => handleInputChange("customerName", e.target.value)}
-                  placeholder="Enter customer name"
-                  className="min-h-[44px]"
-                />
-              </div>
-
-              {/* Phone Number */}
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
-                  Phone Number
-                </Label>
-                <Input
-                  id="phoneNumber"
-                  value={filters.phoneNumber}
-                  onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                  placeholder="Enter phone number"
-                  className="min-h-[44px]"
-                />
-              </div>
-
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  value={filters.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="Enter email address"
-                  className="min-h-[44px]"
-                />
-              </div>
-
-              {/* Order Date From */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Order Date From</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal min-h-[44px]",
-                        !filters.orderDateFrom && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.orderDateFrom ? format(filters.orderDateFrom, "dd/MM/yyyy") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filters.orderDateFrom}
-                      onSelect={(date) => handleInputChange("orderDateFrom", date)}
-                      initialFocus
+            <div className="space-y-4">
+              {/* Customer Information Section */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Customer Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Order Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="orderNumber" className="text-sm font-medium text-gray-700">
+                      Order Number
+                    </Label>
+                    <Input
+                      id="orderNumber"
+                      value={filters.orderNumber}
+                      onChange={(e) => handleInputChange("orderNumber", e.target.value)}
+                      placeholder="Enter order number"
+                      className="min-h-[44px]"
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                  </div>
 
-              {/* Order Date To */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Order Date To</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal min-h-[44px]",
-                        !filters.orderDateTo && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {filters.orderDateTo ? format(filters.orderDateTo, "dd/MM/yyyy") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filters.orderDateTo}
-                      onSelect={(date) => handleInputChange("orderDateTo", date)}
-                      initialFocus
+                  {/* Customer Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="customerName" className="text-sm font-medium text-gray-700">
+                      Customer Name
+                    </Label>
+                    <Input
+                      id="customerName"
+                      value={filters.customerName}
+                      onChange={(e) => handleInputChange("customerName", e.target.value)}
+                      placeholder="Enter customer name"
+                      className="min-h-[44px]"
                     />
-                  </PopoverContent>
-                </Popover>
+                  </div>
+
+                  {/* Phone Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phoneNumber"
+                      value={filters.phoneNumber}
+                      onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                      placeholder="Enter phone number"
+                      className="min-h-[44px]"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      value={filters.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      placeholder="Enter email address"
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Order Status */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Order Status</Label>
-                <Select value={filters.orderStatus} onValueChange={(value) => handleInputChange("orderStatus", value)}>
-                  <SelectTrigger className="min-h-[44px]">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-status">All Status</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="PROCESSING">Processing</SelectItem>
-                    <SelectItem value="SHIPPED">Shipped</SelectItem>
-                    <SelectItem value="DELIVERED">Delivered</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Date and Location Section */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Date & Location</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Order Date From */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Order Date From</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal min-h-[44px]",
+                            !filters.orderDateFrom && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.orderDateFrom ? format(filters.orderDateFrom, "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.orderDateFrom}
+                          onSelect={(date) => handleInputChange("orderDateFrom", date)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Order Date To */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Order Date To</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal min-h-[44px]",
+                            !filters.orderDateTo && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.orderDateTo ? format(filters.orderDateTo, "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.orderDateTo}
+                          onSelect={(date) => handleInputChange("orderDateTo", date)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Fulfillment Location */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fulfillmentLocationId" className="text-sm font-medium text-gray-700">
+                      Fulfillment Location
+                    </Label>
+                    <Input
+                      id="fulfillmentLocationId"
+                      value={filters.fulfillmentLocationId}
+                      onChange={(e) => handleInputChange("fulfillmentLocationId", e.target.value)}
+                      placeholder="Enter store/location"
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Selling Channel */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Selling Channel</Label>
-                <Select value={filters.sellingChannel} onValueChange={(value) => handleInputChange("sellingChannel", value)}>
-                  <SelectTrigger className="min-h-[44px]">
-                    <SelectValue placeholder="Select channel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-channels">All Channels</SelectItem>
-                    <SelectItem value="GRAB">Grab</SelectItem>
-                    <SelectItem value="LAZADA">Lazada</SelectItem>
-                    <SelectItem value="SHOPEE">Shopee</SelectItem>
-                    <SelectItem value="TIKTOK">TikTok</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Payment and Items Section */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Payment & Items</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Payment Status */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Payment Status</Label>
+                    <Select value={filters.paymentStatus} onValueChange={(value) => handleInputChange("paymentStatus", value)}>
+                      <SelectTrigger className="min-h-[44px]">
+                        <SelectValue placeholder="Select payment status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-payment">All Payment Status</SelectItem>
+                        <SelectItem value="PAID">Paid</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="FAILED">Failed</SelectItem>
+                        <SelectItem value="REFUNDED">Refunded</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Items Search */}
+                  <div className="space-y-2">
+                    <Label htmlFor="items" className="text-sm font-medium text-gray-700">
+                      Search Items
+                    </Label>
+                    <Input
+                      id="items"
+                      value={filters.items}
+                      onChange={(e) => handleInputChange("items", e.target.value)}
+                      placeholder="Search by product name or SKU"
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 

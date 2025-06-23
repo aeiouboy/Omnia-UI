@@ -16,7 +16,7 @@ import {
   SLABadge,
 } from "./order-badges"
 import { OrderDetailView } from "./order-detail-view"
-import { RefreshCw, X, Filter, Loader2, AlertCircle, Download } from "lucide-react"
+import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EnhancedFilterPanel, type AdvancedFilterValues } from "./enhanced-filter-panel"
@@ -209,12 +209,36 @@ const fetchOrdersFromApi = async (
       queryParams.set("channel", filterParams.channel)
     }
     
+    // Add advanced filter parameters
+    if (filterParams?.advancedFilters) {
+      const af = filterParams.advancedFilters
+      if (af.orderNumber) queryParams.set("orderNumber", af.orderNumber)
+      if (af.customerName) queryParams.set("customerName", af.customerName)
+      if (af.phoneNumber) queryParams.set("phoneNumber", af.phoneNumber)
+      if (af.email) queryParams.set("email", af.email)
+      if (af.exceedSLA) queryParams.set("exceedSLA", "true")
+      if (af.fulfillmentLocationId) queryParams.set("location", af.fulfillmentLocationId)
+      if (af.items) queryParams.set("items", af.items)
+      if (af.paymentStatus && af.paymentStatus !== "all-payment") {
+        queryParams.set("paymentStatus", af.paymentStatus)
+      }
+      // Handle date filters
+      if (af.orderDateFrom && af.orderDateTo) {
+        // Override the default wide date range with user-selected dates
+        queryParams.set("dateFrom", af.orderDateFrom.toISOString().split('T')[0])
+        queryParams.set("dateTo", af.orderDateTo.toISOString().split('T')[0])
+      }
+    }
+    
     // For Order Management Hub - fetch ALL orders by setting a very wide date range
     // This will override the 7-day default in the API route
-    const farPastDate = new Date('2020-01-01').toISOString().split('T')[0]
-    const farFutureDate = new Date('2030-12-31').toISOString().split('T')[0]
-    queryParams.set("dateFrom", farPastDate)
-    queryParams.set("dateTo", farFutureDate)
+    // UNLESS user has explicitly set date filters
+    if (!filterParams?.advancedFilters?.orderDateFrom && !filterParams?.advancedFilters?.orderDateTo) {
+      const farPastDate = new Date('2020-01-01').toISOString().split('T')[0]
+      const farFutureDate = new Date('2030-12-31').toISOString().split('T')[0]
+      queryParams.set("dateFrom", farPastDate)
+      queryParams.set("dateTo", farFutureDate)
+    }
 
     // Try server-side API route first (bypasses CORS)
     const proxyResponse = await fetch(`/api/orders/external?${queryParams.toString()}`, {
@@ -399,24 +423,12 @@ export function OrderManagementHub() {
       let totalPages = 0
       
       // Merge all filter values for API request
-      const mergedFilters = {
+      const mergedFilters: FilterParams = {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
         slaFilter: activeSlaFilter,
-        // Advanced filters (flattened for API compatibility)
-        orderNumber: advancedFilters.orderNumber,
-        customerName: advancedFilters.customerName,
-        phoneNumber: advancedFilters.phoneNumber,
-        email: advancedFilters.email,
-        orderDateFrom: advancedFilters.orderDateFrom,
-        orderDateTo: advancedFilters.orderDateTo,
-        orderStatus: advancedFilters.orderStatus,
-        exceedSLA: advancedFilters.exceedSLA,
-        sellingChannel: advancedFilters.sellingChannel,
-        paymentStatus: advancedFilters.paymentStatus,
-        fulfillmentLocationId: advancedFilters.fulfillmentLocationId,
-        items: advancedFilters.items,
+        advancedFilters: advancedFilters
       }
       
       // Loop through all pages
@@ -490,24 +502,12 @@ export function OrderManagementHub() {
     setError(null)
     try {
       // Merge all filter values for API request
-      const mergedFilters = {
+      const mergedFilters: FilterParams = {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
         slaFilter: activeSlaFilter,
-        // Advanced filters (flattened for API compatibility)
-        orderNumber: advancedFilters.orderNumber,
-        customerName: advancedFilters.customerName,
-        phoneNumber: advancedFilters.phoneNumber,
-        email: advancedFilters.email,
-        orderDateFrom: advancedFilters.orderDateFrom,
-        orderDateTo: advancedFilters.orderDateTo,
-        orderStatus: advancedFilters.orderStatus,
-        exceedSLA: advancedFilters.exceedSLA,
-        sellingChannel: advancedFilters.sellingChannel,
-        paymentStatus: advancedFilters.paymentStatus,
-        fulfillmentLocationId: advancedFilters.fulfillmentLocationId,
-        items: advancedFilters.items,
+        advancedFilters: advancedFilters
       }
       const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
         { page: currentPage, pageSize },
@@ -646,7 +646,13 @@ export function OrderManagementHub() {
 
   const handleApplyAdvancedFilters = (filters: AdvancedFilterValues) => {
     setAdvancedFilters(filters)
-    // Optionally update activeFilters summary here
+    // Sync status and channel from advanced filters if they were changed there
+    if (filters.orderStatus && filters.orderStatus !== "all-status") {
+      setStatusFilter(filters.orderStatus)
+    }
+    if (filters.sellingChannel && filters.sellingChannel !== "all-channels") {
+      setChannelFilter(filters.sellingChannel)
+    }
     setCurrentPage(1)
   }
 
@@ -1013,71 +1019,125 @@ export function OrderManagementHub() {
               </Button>
             </div>
           </div>
-          {/* Quick filters section */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              variant={activeSlaFilter === "all" ? "default" : "outline"}
-              onClick={() => handleSlaFilterChange("all")}
-              className="text-xs px-2 py-1 h-auto"
-            >
-              All ({slaStats.all})
-            </Button>
-            <Button
-              variant={activeSlaFilter === "near-breach" ? "default" : "outline"}
-              onClick={() => handleSlaFilterChange("near-breach")}
-              className="text-xs px-2 py-1 h-auto bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200"
-            >
-              Near Breach ({slaStats.nearBreach})
-            </Button>
-            <Button
-              variant={activeSlaFilter === "breach" ? "default" : "outline"}
-              onClick={() => handleSlaFilterChange("breach")}
-              className="text-xs px-2 py-1 h-auto bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
-            >
-              Breach ({slaStats.breach})
-            </Button>
+          {/* Operations Quick Filters */}
+          <div className="mt-4 space-y-3">
+            <div className="text-sm font-medium text-gray-700">Quick Filters</div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={activeSlaFilter === "breach" ? "default" : "outline"}
+                onClick={() => handleSlaFilterChange("breach")}
+                className={`h-10 px-4 font-medium ${
+                  activeSlaFilter === "breach" 
+                    ? "bg-red-600 text-white hover:bg-red-700" 
+                    : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+                }`}
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                🚨 SLA Breach ({slaStats.breach})
+              </Button>
+              <Button
+                variant={activeSlaFilter === "near-breach" ? "default" : "outline"}
+                onClick={() => handleSlaFilterChange("near-breach")}
+                className={`h-10 px-4 font-medium ${
+                  activeSlaFilter === "near-breach"
+                    ? "bg-amber-600 text-white hover:bg-amber-700"
+                    : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+                }`}
+              >
+                ⚠️ Near Breach ({slaStats.nearBreach})
+              </Button>
+              <Button
+                variant={statusFilter === "PROCESSING" ? "default" : "outline"}
+                onClick={() => {
+                  setStatusFilter("PROCESSING")
+                  setActiveSlaFilter("all")
+                  setCurrentPage(1)
+                }}
+                className="h-10 px-4 font-medium"
+              >
+                📦 Processing Orders
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const today = new Date()
+                  const todayStr = today.toISOString().split('T')[0]
+                  setAdvancedFilters(prev => ({
+                    ...prev,
+                    orderDateFrom: today,
+                    orderDateTo: today
+                  }))
+                  setCurrentPage(1)
+                }}
+                className="h-10 px-4 font-medium"
+              >
+                ✓ Today's Orders
+              </Button>
+              <Button
+                variant={statusFilter === "SUBMITTED" ? "default" : "outline"}
+                onClick={() => {
+                  setStatusFilter("SUBMITTED")
+                  setActiveSlaFilter("all")
+                  setCurrentPage(1)
+                }}
+                className="h-10 px-4 font-medium"
+              >
+                🆕 New Orders
+              </Button>
+              <Button
+                variant={activeSlaFilter === "all" ? "default" : "outline"}
+                onClick={() => handleSlaFilterChange("all")}
+                className="h-10 px-4 font-medium"
+              >
+                All Orders ({slaStats.all})
+              </Button>
+            </div>
           </div>
 
-          {/* Basic filters row */}
-          <div className="mt-4 flex flex-wrap gap-2">
+          {/* Smart Search and Essential Filters */}
+          <div className="mt-4 space-y-3">
+            {/* Main Search Bar */}
             <div className="flex items-center space-x-2">
-              <Input
-                placeholder="Search orders, customers, emails..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
+              <div className="relative flex-1 max-w-md">
+                <Input
+                  placeholder="Search by order #, customer name, email, phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 h-11 text-base"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 h-11">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-status">All Status</SelectItem>
+                  <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                  <SelectItem value="PROCESSING">Processing</SelectItem>
+                  <SelectItem value="SHIPPED">Shipped</SelectItem>
+                  <SelectItem value="DELIVERED">Delivered</SelectItem>
+                  <SelectItem value="FULFILLED">Fulfilled</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
+                <SelectTrigger className="w-40 h-11">
+                  <SelectValue placeholder="All Channels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-channels">All Channels</SelectItem>
+                  <SelectItem value="GRAB">Grab</SelectItem>
+                  <SelectItem value="LAZADA">Lazada</SelectItem>
+                  <SelectItem value="SHOPEE">Shopee</SelectItem>
+                  <SelectItem value="TIKTOK">TikTok</SelectItem>
+                  <SelectItem value="SHOPIFY">Shopify</SelectItem>
+                  <SelectItem value="INSTORE">In-Store</SelectItem>
+                  <SelectItem value="FOODPANDA">FoodPanda</SelectItem>
+                  <SelectItem value="LINEMAN">LineMan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-status">All Status</SelectItem>
-                <SelectItem value="CREATED">Created</SelectItem>
-                <SelectItem value="PROCESSING">Processing</SelectItem>
-                <SelectItem value="SHIPPED">Shipped</SelectItem>
-                <SelectItem value="DELIVERED">Delivered</SelectItem>
-                <SelectItem value="FULFILLED">Fulfilled</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All Channels" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-channels">All Channels</SelectItem>
-                <SelectItem value="GRAB">Grab</SelectItem>
-                <SelectItem value="LAZADA">Lazada</SelectItem>
-                <SelectItem value="SHOPEE">Shopee</SelectItem>
-                <SelectItem value="TIKTOK">TikTok</SelectItem>
-                <SelectItem value="SHOPIFY">Shopify</SelectItem>
-                <SelectItem value="INSTORE">In-Store</SelectItem>
-                <SelectItem value="FOODPANDA">FoodPanda</SelectItem>
-                <SelectItem value="LINEMAN">LineMan</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardHeader>
 
@@ -1095,24 +1155,44 @@ export function OrderManagementHub() {
             </div>
           )}
 
-          {/* Active filters row */}
+          {/* Active filters summary */}
           {isMounted && generateActiveFilters.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {generateActiveFilters.map((filter) => (
-                <Badge
-                  key={filter}
-                  variant="outline"
-                  className="bg-light-gray text-deep-navy font-mono text-sm transition-colors duration-150 shadow-sm hover:shadow-md hover:bg-enterprise-light/70 focus-visible:ring-2 focus-visible:ring-corporate-blue focus-visible:outline-none"
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-blue-900">Active Filters ({generateActiveFilters.length})</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetAdvancedFilters}
+                  className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
                 >
-                  {filter}
-                  <button
-                    onClick={() => removeFilter(filter)}
-                    className="ml-2 text-destructive hover:text-destructive/80 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-destructive/60 focus-visible:outline-none"
+                  Clear All Filters
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {generateActiveFilters.map((filter) => (
+                  <Badge
+                    key={filter}
+                    variant="secondary"
+                    className="bg-white text-blue-800 border-blue-300 font-medium text-sm py-1 px-3"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
+                    {filter}
+                    <button
+                      onClick={() => removeFilter(filter)}
+                      className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              {/* Note about filtering limitations */}
+              {(advancedFilters.orderNumber || advancedFilters.customerName || advancedFilters.phoneNumber || 
+                advancedFilters.email || advancedFilters.fulfillmentLocationId || advancedFilters.items) && (
+                <p className="text-xs text-blue-700 mt-2">
+                  Note: Some filters are applied on current page only. Use "Fetch All Pages" for complete filtering.
+                </p>
+              )}
             </div>
           )}
 

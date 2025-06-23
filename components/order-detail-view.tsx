@@ -544,11 +544,19 @@ export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
               <CardContent className="space-y-4 px-4 sm:px-6">
                 <div>
                   <p className="text-sm text-enterprise-text-light">Target Processing Time</p>
-                  <p className="text-lg font-semibold">{order?.sla_info?.target_minutes || 'N/A'} minutes</p>
+                  <p className="text-lg font-semibold">
+                    {order?.sla_info?.target_minutes 
+                      ? `${Math.floor(order.sla_info.target_minutes / 60)} minutes`
+                      : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">Elapsed Time</p>
-                  <p className="text-lg font-semibold text-red-500">{order?.sla_info?.elapsed_minutes || 'N/A'} minutes</p>
+                  <p className="text-lg font-semibold text-red-500">
+                    {order?.sla_info?.elapsed_minutes 
+                      ? `${Math.floor(order.sla_info.elapsed_minutes / 60)} minutes`
+                      : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-enterprise-text-light">SLA Status</p>

@@ -180,7 +180,7 @@ function SLABreachSection({
             <div>
               <p className="text-gray-600 mb-1">Time Over:</p>
               <p className="font-bold text-red-600">
-                {formatOverTime(alert.overTime || 0)}
+                {formatOverTime(alert.elapsed_minutes || 0, alert.target_minutes || 300)}
               </p>
             </div>
           </div>

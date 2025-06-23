@@ -21,8 +21,8 @@ export interface Order {
  * @returns Object with breach, approaching, and compliance status
  */
 export function calculateSLAStatus(order: Order) {
-  // Skip completed/cancelled orders - matching Order Management Hub logic
-  if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+  // Only consider SUBMITTED and PROCESSING orders for SLA breach detection
+  if (order.status !== "SUBMITTED" && order.status !== "PROCESSING") {
     return {
       isBreach: false,
       isApproaching: false,
@@ -111,6 +111,10 @@ export function calculateSLAComplianceRate(orders: Order[]): number {
  * Format elapsed time for display (converts seconds to minutes)
  */
 export function formatElapsedTime(elapsedSeconds: number): string {
+  // Handle null, undefined, or NaN values
+  if (elapsedSeconds == null || isNaN(elapsedSeconds)) {
+    return '0m'
+  }
   const minutes = Math.floor(elapsedSeconds / 60)
   return `${minutes}m`
 }
@@ -119,6 +123,10 @@ export function formatElapsedTime(elapsedSeconds: number): string {
  * Format remaining time for display (converts seconds to minutes)
  */
 export function formatRemainingTime(remainingSeconds: number): string {
+  // Handle null, undefined, or NaN values
+  if (remainingSeconds == null || isNaN(remainingSeconds)) {
+    return '0m left'
+  }
   const minutes = Math.ceil(remainingSeconds / 60)
   return `${minutes}m left`
 }
@@ -127,6 +135,10 @@ export function formatRemainingTime(remainingSeconds: number): string {
  * Format time over SLA for display (converts seconds to minutes)
  */
 export function formatOverTime(elapsedSeconds: number, targetSeconds: number): string {
+  // Handle null, undefined, or NaN values
+  if (elapsedSeconds == null || isNaN(elapsedSeconds) || targetSeconds == null || isNaN(targetSeconds)) {
+    return '0m over'
+  }
   const overSeconds = elapsedSeconds - targetSeconds
   const overMinutes = Math.floor(overSeconds / 60)
   return `${overMinutes}m over`

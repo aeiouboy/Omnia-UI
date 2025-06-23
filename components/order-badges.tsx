@@ -134,20 +134,28 @@ export function ReturnStatusBadge({ status }: { status: string }) {
 }
 
 export function SLABadge({ targetMinutes, elapsedMinutes, status }: { targetMinutes: number; elapsedMinutes: number; status: string }) {
-  if (status === "DELIVERED" || status === "FULFILLED") {
+  // Only check SUBMITTED and PROCESSING orders for SLA
+  if (status !== "SUBMITTED" && status !== "PROCESSING") {
     return (
-      <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm">COMPLETE</Badge>
+      <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>
     );
   }
-  const remainingMinutes = targetMinutes - elapsedMinutes;
-  if (status === "BREACH" || remainingMinutes < 0) {
+  
+  // Convert seconds to minutes (despite parameter names, values are in seconds)
+  const targetInMinutes = Math.floor(targetMinutes / 60);
+  const elapsedInMinutes = Math.floor(elapsedMinutes / 60);
+  const remainingSeconds = targetMinutes - elapsedMinutes;
+  const remainingMinutes = Math.ceil(remainingSeconds / 60);
+  
+  if (status === "BREACH" || remainingSeconds < 0) {
+    const overMinutes = Math.floor((elapsedMinutes - targetMinutes) / 60);
     return (
       <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-sm flex items-center">
         <AlertTriangle className="h-3 w-3 mr-1" />
-        {Math.abs(remainingMinutes)}m BREACH
+        {overMinutes}m BREACH
       </Badge>
     );
-  } else if (remainingMinutes < targetMinutes * 0.2 || status === "NEAR_BREACH") {
+  } else if (remainingSeconds < targetMinutes * 0.2 || status === "NEAR_BREACH") {
     return (
       <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-sm flex items-center">
         <Clock className="h-3 w-3 mr-1" />

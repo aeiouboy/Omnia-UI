@@ -1,6 +1,7 @@
 import { ApiOrder, OrderAlert } from './types'
 import { getGMT7Time } from '@/lib/utils'
 import { filterSLABreach, filterApproachingSLA } from '@/lib/sla-utils'
+import { DEFAULT_PAGE_SIZE } from './constants'
 
 // Circuit breaker configuration
 interface CircuitBreaker {
@@ -168,7 +169,7 @@ export async function fetchOrdersFromAPIFast(
     console.log(`🚀 Complete 7-day fetch starting for ${dateFrom} to ${dateTo}`)
     
     // Fetch first page to get pagination info
-    const firstPageData = await fetchSinglePage(dateFrom, dateTo, 1, 5000)
+    const firstPageData = await fetchSinglePage(dateFrom, dateTo, 1, DEFAULT_PAGE_SIZE)
     
     if (!firstPageData.success) {
       console.error('❌ First page fetch failed')
@@ -221,8 +222,8 @@ export async function fetchOrdersFromAPIFast(
         willFetchPages: `${Math.max(pagination.page + 1, 2)} to ${Math.min(totalPages, 20)}`
       })
       
-      // Limit to reasonable number of pages with aggressive fallback  
-      const maxPages = Math.min(totalPages, 20) // Increased to 20 for better 7-day coverage
+      // Limit to reasonable number of pages
+      const maxPages = Math.min(totalPages, 10) // Reasonable limit with 2k page size
       
       let consecutiveFailures = 0
       let maxConsecutiveFailures = 2 // Will be adjusted based on data collected
@@ -251,10 +252,20 @@ export async function fetchOrdersFromAPIFast(
         console.log(`\n🚀 === STARTING PAGE ${page} FETCH ===`)
         
         // CIRCUIT BREAKER: Prevent infinite loops
-        if (page > 20) {
-          console.error(`🚫 CIRCUIT BREAKER: Page ${page} exceeds maximum allowed pages (20)`)
+        if (page > maxPages) {
+          console.error(`🚫 CIRCUIT BREAKER: Page ${page} exceeds maximum allowed pages (${maxPages})`)
+          console.log(`📊 Stopping with ${allOrders.length} orders to prevent infinite loop`)
           break
         }
+        
+        // HARD LIMIT: Stop if we have too many orders (likely stuck in loop)
+        if (allOrders.length > 25000) {
+          console.warn(`⚠️ Hard limit reached: ${allOrders.length} orders - stopping to prevent memory issues`)
+          break
+        }
+        
+        // DETECT STUCK PAGINATION: If we haven't added new orders in 3 pages
+        const ordersBeforeFetch = allOrders.length
         
         // SAFETY CHECK: If we're trying to fetch page 2 and we started from page 1, skip
         if (page === 2 && pagination.page === 1 && startPage === 2) {
@@ -273,12 +284,12 @@ export async function fetchOrdersFromAPIFast(
             dateFrom,
             dateTo,
             page,
-            pageSize: 5000,
+            pageSize: DEFAULT_PAGE_SIZE,
             consecutiveFailures,
             elapsedSinceStart: Date.now() - pageFetchStartTime
           })
           
-          const pageData = await fetchSinglePage(dateFrom, dateTo, page, 5000)
+          const pageData = await fetchSinglePage(dateFrom, dateTo, page, DEFAULT_PAGE_SIZE)
           
           console.log(`📦 Page ${page} fetch completed in ${Date.now() - pageFetchStartTime}ms`)
           console.log(`✅ Page ${page} response:`, {
@@ -318,8 +329,18 @@ export async function fetchOrdersFromAPIFast(
             } else if (currentCompleteness.coverage >= 85 && allOrders.length > 5000) {
               console.log(`🎯 Good coverage (${currentCompleteness.coverage}%) with sufficient data at page ${page}`)
               break
-            } else if (allOrders.length > 25000) {
-              console.log(`🎯 Large dataset (${allOrders.length} orders) reached at page ${page} - sufficient for analysis`)
+            }
+            
+            // DETECT NO NEW DATA: If this page added very few orders
+            const newOrdersAdded = allOrders.length - ordersBeforeFetch
+            if (newOrdersAdded < 10 && page > 3) {
+              console.log(`⚠️ Page ${page} only added ${newOrdersAdded} orders - likely reached end of data`)
+              break
+            }
+            
+            // CHECK FOR PAGINATION LOOP: If hasNext is false, stop
+            if (pageData.data?.pagination && !pageData.data.pagination.hasNext) {
+              console.log(`✅ Pagination complete - hasNext is false at page ${page}`)
               break
             }
             
@@ -353,9 +374,9 @@ export async function fetchOrdersFromAPIFast(
             consecutiveFailures++
             
             // Adjust failure tolerance based on data collected
-            if (allOrders.length > 5000) {
+            if (allOrders.length > 10000) {
               maxConsecutiveFailures = 1 // Be less tolerant when we have good data
-            } else if (allOrders.length > 1000) {
+            } else if (allOrders.length > 5000) {
               maxConsecutiveFailures = 2 // Standard tolerance
             } else {
               maxConsecutiveFailures = 3 // More tolerant when we need more data
@@ -443,10 +464,10 @@ async function fetchSinglePage(dateFrom: string, dateTo: string, page: number, p
   console.log(`🌐 [Page ${page}] FETCH START: ${proxyUrl.toString()}`)
   console.log(`🕒 [Page ${page}] Started at: ${new Date().toISOString()}`)
   
-  // Create abort controller with shorter timeout for faster failure detection
+  // Create abort controller with reasonable timeout
   const controller = new AbortController()
   // AGGRESSIVE TIMEOUT for page 2 to prevent hanging
-  const timeoutMs = page === 2 ? 5000 : 20000 // 5 seconds for page 2, 20 seconds for others
+  const timeoutMs = page === 2 ? 5000 : 30000 // 5 seconds for page 2, 30 seconds for others
   
   const timeoutId = setTimeout(() => {
     console.error(`⏱️ [Page ${page}] TIMEOUT after ${timeoutMs}ms - aborting request`)

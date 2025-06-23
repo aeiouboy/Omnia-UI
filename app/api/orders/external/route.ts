@@ -58,8 +58,21 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || ""
     const dateFrom = searchParams.get("dateFrom") || ""
     const dateTo = searchParams.get("dateTo") || ""
+    
+    // Extract advanced filter parameters
+    const orderNumber = searchParams.get("orderNumber") || ""
+    const customerName = searchParams.get("customerName") || ""
+    const phoneNumber = searchParams.get("phoneNumber") || ""
+    const email = searchParams.get("email") || ""
+    const exceedSLA = searchParams.get("exceedSLA") || ""
+    const location = searchParams.get("location") || ""
+    const items = searchParams.get("items") || ""
+    const paymentStatus = searchParams.get("paymentStatus") || ""
 
-    console.log(`🔄 External orders API request:`, { page, pageSize, status, channel, search, dateFrom, dateTo })
+    console.log(`🔄 External orders API request:`, { 
+      page, pageSize, status, channel, search, dateFrom, dateTo,
+      orderNumber, customerName, phoneNumber, email, exceedSLA, location, items, paymentStatus 
+    })
 
     // Get authentication token
     let token: string
@@ -124,10 +137,16 @@ export async function GET(request: Request) {
     apiUrl.searchParams.set("page", page)
     apiUrl.searchParams.set("pageSize", pageSize)
 
-    // Add optional filters
+    // Add filters supported by the external API
     if (status && status !== "all-status") apiUrl.searchParams.set("status", status)
     if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
     if (search) apiUrl.searchParams.set("search", search)
+    
+    // NOTE: The following filters are not yet supported by the external API
+    // They are passed through for logging but filtering happens client-side
+    // TODO: When partner API is updated, add these parameters:
+    // - orderNumber, customerName, phoneNumber, email
+    // - exceedSLA, location, items, paymentStatus
     
     // Add date filtering (YYYY-MM-DD format) - Required parameters
     const today = new Date()
