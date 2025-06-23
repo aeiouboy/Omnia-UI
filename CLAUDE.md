@@ -31,13 +31,20 @@ RIS OMS (Retail Intelligence System - Order Management System) is a Next.js 15 e
 - Server-side proxy at `/api/orders/external/route.ts` handles CORS and auth
 - Simplified single-endpoint configuration for better reliability
 
-**Real-Time Breach Counts** (Task 21 - NEW):
+**Real-Time Breach Counts** (Task 21 - COMPLETED):
 - **Requirement**: Display accurate breach counts not limited by pagination
-- **Implementation**: Create dedicated `/api/orders/counts` endpoint
+- **Implementation**: Created dedicated `/api/orders/counts` endpoint
 - **Update Frequency**: Every 10 seconds via background polling
 - **Caching**: 5-second server-side TTL, client-side stale-while-revalidate
-- **UI Display**: Show counts in parentheses on SLA filter buttons
-- **Performance**: Must not impact main dashboard data fetching
+- **UI Display**: Show counts in parentheses on quick filter buttons:
+  - Urgent Orders (breach count)
+  - Due Soon (near breach count)
+  - Ready to Process (submitted count)
+  - On Hold (on-hold count)
+- **Performance**: Background polling does not impact main dashboard data fetching
+- **Files Created**: 
+  - `/app/api/orders/counts/route.ts` - API endpoint for real-time counts
+  - `/hooks/use-order-counts.ts` - React hook for fetching counts
 
 **Dual Database Strategy**:
 - **External API**: Real-time order data (primary source)

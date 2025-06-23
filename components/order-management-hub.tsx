@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PaginationControls } from "./pagination-controls"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
+import { useOrderCounts } from "@/hooks/use-order-counts"
 
 // Exact API response types based on the actual API structure
 export interface ApiCustomer {
@@ -337,6 +338,9 @@ const fetchOrdersFromApi = async (
 export function OrderManagementHub() {
   // Track client mount to avoid hydration mismatch
   const [isMounted, setIsMounted] = useState(false)
+  
+  // Get real-time order counts across all pages
+  const { counts: realTimeCounts, isLoading: countsLoading, error: countsError } = useOrderCounts(10000) // Update every 10 seconds
   const [lastUpdated, setLastUpdated] = useState<string>("")
 
   useEffect(() => {
@@ -714,7 +718,7 @@ export function OrderManagementHub() {
 
   // Function to determine urgency level based on SLA status
   function getOrderUrgencyLevel(order: Order): "critical" | "warning" | "approaching" | "normal" {
-    if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+    if (!order.sla_info || order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED" || order.status === "COLLECTED") {
       return "normal"
     }
 
@@ -779,7 +783,8 @@ export function OrderManagementHub() {
         !order.sla_info ||
         order.status === "DELIVERED" ||
         order.status === "FULFILLED" ||
-        order.status === "CANCELLED"
+        order.status === "CANCELLED" ||
+        order.status === "COLLECTED"
       )
         return false
 
@@ -796,7 +801,8 @@ export function OrderManagementHub() {
         !order.sla_info ||
         order.status === "DELIVERED" ||
         order.status === "FULFILLED" ||
-        order.status === "CANCELLED"
+        order.status === "CANCELLED" ||
+        order.status === "COLLECTED"
       )
         return false
 
@@ -928,7 +934,7 @@ export function OrderManagementHub() {
 
     // SLA filter
     if (activeSlaFilter === "near-breach") {
-      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED" || order.status === "COLLECTED") {
         return false
       }
       if (!order.sla_info) return false
@@ -941,7 +947,7 @@ export function OrderManagementHub() {
       const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
       return (remainingSeconds <= criticalThreshold && remainingSeconds > 0) || order.sla_info.status === "NEAR_BREACH"
     } else if (activeSlaFilter === "breach") {
-      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED") {
+      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED" || order.status === "COLLECTED") {
         return false
       }
       if (!order.sla_info) return false
@@ -964,6 +970,11 @@ export function OrderManagementHub() {
 
       // Only show orders that exceed SLA (elapsed > target)
       if (elapsedSeconds <= targetSeconds && order.sla_info.status !== "BREACH") return false
+    }
+
+    // Quick filter for on-hold orders
+    if (quickFilter === "on-hold") {
+      if (!order.on_hold) return false
     }
 
     return true
@@ -1131,7 +1142,7 @@ export function OrderManagementHub() {
                 }`}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
-                Urgent Orders ({slaStats.breach})
+                Urgent Orders ({realTimeCounts.breach})
               </Button>
               
               {/* Due Soon - Near Breach */}
@@ -1150,7 +1161,7 @@ export function OrderManagementHub() {
                 }`}
               >
                 <Clock className="h-4 w-4 mr-2" />
-                Due Soon ({slaStats.nearBreach})
+                Due Soon ({realTimeCounts.nearBreach})
               </Button>
               
               {/* Ready to Process - New/Submitted Orders */}
@@ -1169,7 +1180,7 @@ export function OrderManagementHub() {
                 }`}
               >
                 <Package className="h-4 w-4 mr-2" />
-                Ready to Process
+                Ready to Process ({realTimeCounts.submitted})
               </Button>
               
               {/* On Hold Orders */}
@@ -1189,7 +1200,7 @@ export function OrderManagementHub() {
                 }`}
               >
                 <PauseCircle className="h-4 w-4 mr-2" />
-                On Hold ({filteredOrders.filter(o => o.on_hold).length})
+                On Hold ({realTimeCounts.onHold})
               </Button>
               
               {/* Reset Filters */}
