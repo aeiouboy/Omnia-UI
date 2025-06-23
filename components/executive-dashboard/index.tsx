@@ -14,7 +14,7 @@ import { useEffect, useCallback, useState, lazy, Suspense } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { ConnectionStatus } from "@/components/error-feedback"
+// import { ConnectionStatus } from "@/components/error-feedback" // Removed connection status display
 import { RealTimeStatus } from "@/components/real-time-status"
 import { CriticalAlertsBanner } from "@/components/critical-alerts-banner"
 import { OrderDetailView } from "@/components/order-detail-view"
@@ -450,7 +450,6 @@ export function ExecutiveDashboard() {
                 optimisticUpdatesCount={0}
                 onReconnect={startRealTimeUpdates}
               />
-              <ConnectionStatus className="text-xs" />
               <Button 
                 variant="outline" 
                 className="min-h-[44px] w-full sm:w-auto" 
@@ -499,7 +498,6 @@ export function ExecutiveDashboard() {
               optimisticUpdatesCount={0}
               onReconnect={startRealTimeUpdates}
             />
-            <ConnectionStatus className="text-xs" />
             <Button 
               variant="outline" 
               className="min-h-[44px] w-full sm:w-auto" 
