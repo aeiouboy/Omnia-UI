@@ -1513,7 +1513,7 @@ export function ExecutiveDashboard() {
     if (!alertOrder) {
       toast({
         title: "No alerts to escalate",
-        description: "There are no SLA alerts to escalate at this time.",
+        description: "There are no urgent orders to escalate at this time.",
         variant: "default",
       })
       return
@@ -2780,7 +2780,7 @@ export function ExecutiveDashboard() {
           icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
           value={slaBreaches}
           change={0}
-          label="SLA Breaches"
+          label="Urgent Orders"
           isLoading={kpiLoading.slaBreaches}
           inverseColor
         />
@@ -2885,7 +2885,7 @@ export function ExecutiveDashboard() {
                 <div>
                   <h4 className="font-semibold text-red-600 mb-2 flex items-center">
                     <AlertTriangle className="h-4 w-4 mr-2" />
-                    SLA Breach Alerts ({orderAlerts.length})
+                    Urgent Orders ({orderAlerts.length})
                   </h4>
                   {orderAlerts.length > 0 ? (
                     <div className="space-y-2">
@@ -2908,15 +2908,15 @@ export function ExecutiveDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 py-4">No SLA breaches detected</p>
+                    <p className="text-sm text-gray-600 py-4">No urgent orders detected</p>
                   )}
                 </div>
 
-                {/* Approaching SLA Alerts */}
+                {/* Due Soon Alerts */}
                 <div>
                   <h4 className="font-semibold text-orange-600 mb-2 flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
-                    Approaching SLA ({approachingSla.length})
+                    Due Soon ({approachingSla.length})
                   </h4>
                   {approachingSla.length > 0 ? (
                     <div className="space-y-2">
@@ -2937,7 +2937,7 @@ export function ExecutiveDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 py-4">No orders approaching SLA deadline</p>
+                    <p className="text-sm text-gray-600 py-4">No orders due soon</p>
                   )}
                 </div>
 

@@ -72,7 +72,7 @@ export function CriticalAlertsBanner({
               <h3 className={`font-semibold text-base ${
                 alertLevel === 'critical' ? 'text-red-800' : 'text-amber-800'
               }`}>
-                {hasBreaches ? 'SLA Breach Alert' : 'SLA Warning'}
+                {hasBreaches ? 'Urgent Orders Alert' : 'Due Soon Warning'}
               </h3>
               
               {/* Show first breach details in collapsed view - Compact for operations */}
@@ -111,11 +111,11 @@ export function CriticalAlertsBanner({
                   alertLevel === 'critical' ? 'text-red-700' : 'text-amber-700'
                 }`}>
                   {slaBreaches.length > 0 && (
-                    <span className="font-semibold">{slaBreaches.length} order{slaBreaches.length > 1 ? 's' : ''} breached SLA</span>
+                    <span className="font-semibold">{slaBreaches.length} urgent order{slaBreaches.length > 1 ? 's' : ''}</span>
                   )}
                   {slaBreaches.length > 0 && approachingAlerts.length > 0 && ' • '}
                   {approachingAlerts.length > 0 && (
-                    <span>{approachingAlerts.length} approaching deadline</span>
+                    <span>{approachingAlerts.length} due soon</span>
                   )}
                 </p>
               )}
@@ -166,11 +166,11 @@ export function CriticalAlertsBanner({
         {/* Expanded Details */}
         {isExpanded && (
           <div className="mt-3 space-y-2">
-            {/* SLA Breaches */}
+            {/* Urgent Orders */}
             {slaBreaches.length > 0 && (
               <div>
                 <h4 className="font-semibold text-red-700 mb-2 text-sm uppercase">
-                  Breached Orders ({slaBreaches.length})
+                  Urgent Orders ({slaBreaches.length})
                 </h4>
                 <div className="space-y-2">
                   {slaBreaches.slice(0, 5).map((alert, index) => (
@@ -205,7 +205,7 @@ export function CriticalAlertsBanner({
                   {slaBreaches.length > 5 && (
                     <div className="text-center py-3">
                       <Button variant="outline" size="sm" className="text-red-600">
-                        View All {slaBreaches.length} Breached Orders
+                        View All {slaBreaches.length} Urgent Orders
                       </Button>
                     </div>
                   )}
@@ -213,11 +213,11 @@ export function CriticalAlertsBanner({
               </div>
             )}
 
-            {/* Approaching SLA */}
+            {/* Due Soon */}
             {approachingAlerts.length > 0 && (
               <div>
                 <h4 className="font-semibold text-amber-700 mb-2 text-sm uppercase">
-                  Approaching Deadline ({approachingAlerts.length})
+                  Due Soon ({approachingAlerts.length})
                 </h4>
                 <div className="space-y-2">
                   {approachingAlerts.slice(0, 5).map((alert, index) => (
@@ -253,7 +253,7 @@ export function CriticalAlertsBanner({
                   {approachingAlerts.length > 5 && (
                     <div className="text-center py-3">
                       <Button variant="outline" size="sm" className="text-amber-600">
-                        View All {approachingAlerts.length} Approaching Orders
+                        View All {approachingAlerts.length} Due Soon Orders
                       </Button>
                     </div>
                   )}
