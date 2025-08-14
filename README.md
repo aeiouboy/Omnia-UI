@@ -1,4 +1,4 @@
-# RIS OMS - Retail Intelligence System
+# Omnia UI - Comprehensive Order Management Platform
 
 ## 🚀 Production Ready Status: ✅ READY
 
@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
 </p>
 
-**Enterprise-grade Order Management System** for Central Group's retail operations with real-time processing, SLA monitoring, and advanced analytics.
+**Modern, responsive order management platform** with real-time analytics, SLA monitoring, and comprehensive business intelligence. Built with Next.js 15 and enterprise-grade architecture.
 
 ## ✨ Key Features
 
