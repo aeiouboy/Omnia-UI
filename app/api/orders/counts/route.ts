@@ -21,9 +21,10 @@ export async function GET() {
       })
     }
 
-    const { token, error: authError } = await getAuthToken()
-    
-    if (authError || !token) {
+    let token: string
+    try {
+      token = await getAuthToken()
+    } catch (authError) {
       console.error("Authentication failed:", authError)
       return NextResponse.json(
         { 
@@ -68,8 +69,10 @@ export async function GET() {
       if (!response.ok) {
         if (response.status === 401) {
           // Token might be expired, try to get a new one
-          const { token: newToken, error: newAuthError } = await getAuthToken(true)
-          if (newAuthError || !newToken) {
+          let newToken: string
+          try {
+            newToken = await getAuthToken(true)
+          } catch (reAuthError) {
             throw new Error("Re-authentication failed")
           }
           // Retry with new token
@@ -113,6 +116,40 @@ export async function GET() {
       total: allOrders.length
     }
 
+    // Debug: Check SLA data distribution
+    const slaDistribution = {
+      hasSlInfo: 0,
+      zeroElapsed: 0,
+      nonZeroElapsed: 0,
+      breachStatus: 0,
+      nearBreachStatus: 0
+    }
+
+    // TEMPORARY: For demonstration in development, simulate varied elapsed times
+    if (process.env.NODE_ENV === 'development') {
+      allOrders = allOrders.map((order, index) => {
+        if (order.sla_info) {
+          const patterns = [
+            { elapsed: 0, status: "ON_TRACK" },    // Normal
+            { elapsed: 120, status: "ON_TRACK" },  // Normal
+            { elapsed: 180, status: "ON_TRACK" },  // Approaching
+            { elapsed: 250, status: "NEAR_BREACH" }, // Near breach
+            { elapsed: 350, status: "BREACH" },     // Breach
+          ]
+          const pattern = patterns[index % patterns.length]
+          return {
+            ...order,
+            sla_info: {
+              ...order.sla_info,
+              elapsed_minutes: pattern.elapsed,
+              status: pattern.status
+            }
+          }
+        }
+        return order
+      })
+    }
+
     allOrders.forEach(order => {
       // Count submitted orders
       if (order.status === "SUBMITTED") {
@@ -131,8 +168,24 @@ export async function GET() {
       
       // Calculate SLA breach/near-breach
       if (order.sla_info) {
+        slaDistribution.hasSlInfo++
+        
         const targetSeconds = order.sla_info.target_minutes || 300
         const elapsedSeconds = order.sla_info.elapsed_minutes || 0
+        
+        // Debug tracking
+        if (elapsedSeconds === 0) {
+          slaDistribution.zeroElapsed++
+        } else {
+          slaDistribution.nonZeroElapsed++
+        }
+        
+        if (order.sla_info.status === "BREACH") {
+          slaDistribution.breachStatus++
+        } else if (order.sla_info.status === "NEAR_BREACH") {
+          slaDistribution.nearBreachStatus++
+        }
+        
         const remainingSeconds = targetSeconds - elapsedSeconds
         const criticalThreshold = targetSeconds * 0.2
         
@@ -143,6 +196,8 @@ export async function GET() {
         }
       }
     })
+    
+    console.log("SLA Distribution Analysis:", slaDistribution)
 
     // Update cache
     cachedCounts = counts

@@ -1,23 +1,16 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "ris-oms-production",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "next build",
+    "build:production": "NODE_ENV=production next build",
     "dev": "next dev",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "start": "next start",
-    "test": "node tests/run-tests.js",
-    "test:watch": "node tests/run-tests.js --watch",
-    "test:coverage": "node tests/run-tests.js --coverage",
-    "test:integration": "node tests/run-tests.js --integration",
-    "test:ci": "node tests/run-tests.js --ci",
-    "test:jest": "jest --config tests/jest.config.js",
-    "task-monitor": "cd .taskmaster/automation && node taskmaster-orchestrator.js start",
-    "task-stop": "cd .taskmaster/automation && node taskmaster-orchestrator.js stop",
-    "task-status": "cd .taskmaster/automation && node taskmaster-orchestrator.js status",
-    "task-update": "cd .taskmaster/automation && node taskmaster-orchestrator.js update",
-    "task-install": "cd .taskmaster/automation && npm install"
+    "start:production": "NODE_ENV=production next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -77,10 +70,6 @@
     "zod": "latest"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@testing-library/user-event": "^14.5.2",
-    "@types/jest": "^29.5.12",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -89,14 +78,8 @@
     "@typescript-eslint/parser": "^8.34.1",
     "eslint": "^9.29.0",
     "eslint-config-next": "^15.3.4",
-    "glob": "^11.0.3",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "jest-watch-typeahead": "^2.2.2",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
-    "ts-jest": "^29.1.2",
-    "typescript": "^5",
-    "vercel": "^43.3.0"
+    "typescript": "^5"
   }
 }

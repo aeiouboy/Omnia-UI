@@ -1,0 +1,45 @@
+# Node modules
+node_modules
+pnpm-lock.yaml
+
+# Build output
+dist
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Temporary files
+tmp
+temp
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDE/Editor settings
+.vscode
+.idea
+*.swp
+
+# Config files
+.prettierrc
+.eslintrc
+.eslint.config.mjs
+.sequelizerc
+
+# Test files
+test
+coverage
+
+# README and documentation
+README.md
+
+# Git hooks
+.husky

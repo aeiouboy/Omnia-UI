@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-name
+  labels:
+    app: service-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-name
+  template:
+    metadata:
+      labels:
+        app: service-name
+    spec:
+      containers:
+        - name: service-name
+          image: path-to-image/service-name:version
+          ports:
+            - containerPort: 3001
+          env:
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MEMORY_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  containerName: service-name
+                  resource: limits.memory
+                  divisor: 1Mi
+            - name: MEMORY_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                  containerName: service-name
+                  resource: requests.memory
+                  divisor: 1Mi
+            - name: CPU_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                  containerName: service-name
+                  resource: requests.cpu
+                  divisor: 1m
+            - name: CPU_LIMITS
+              valueFrom:
+                resourceFieldRef:
+                  containerName: service-name
+                  resource: limits.cpu
+                  divisor: 1m
+            - name: APP_PORT
+              value: '3001'
+            - name: APP_MEMORY_HEAP
+              value: '256'
+            - name: APP_MAX_REQUEST_BODY_SIZE
+              value: '32mb'
+            - name: APP_TIMEOUT
+              value: '60'
+            - name: APP_DATE_FORMAT
+              value: 'YYYY-MM-DD'
+            - name: APP_DATETIME_FORMAT
+              value: 'YYYY-MM-DD HH:mm:ss'
+            - name: APP_TIMEZONE
+              value: 'Asia/Bangkok'
+            - name: APP_CPU_LIMIT_PERCENTAGE
+              value: '90'
+            - name: AZURE_KEY_VAULT_NAME
+              value: 'cg-daas-kv-nonprd'
+            - name: LOG_LEVEL
+              value: 'error,warn,debug'
+          resources:
+            limits:
+              memory: '512Mi'
+              cpu: '250m'
+            requests:
+              memory: '128Mi'
+              cpu: '50m'

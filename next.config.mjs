@@ -2,14 +2,57 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Production-ready configuration
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // Enable ESLint checks in production builds
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Enable TypeScript checks in production builds
   },
+  
+  // Image optimization
   images: {
-    unoptimized: true,
+    unoptimized: false, // Enable Next.js image optimization
+    domains: ['dev-pmpapis.central.co.th'], // Add external image domains if needed
+  },
+  
+  // Performance optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'] // Remove console.log but keep error/warn
+    } : false,
+  },
+  
+  // Bundle analyzer (optional)
+  ...(process.env.ANALYZE === 'true' && {
+    webpack: (config) => {
+      const { BundleAnalyzerPlugin } = require('@next/bundle-analyzer')()
+      config.plugins.push(new BundleAnalyzerPlugin())
+      return config
+    },
+  }),
+  
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
   },
 }
 
