@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { UserNav } from "@/components/user-nav"
 import { SideNav } from "@/components/side-nav"
-import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle } from "lucide-react"
+import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle, Palette } from "lucide-react"
 import { BottomNav } from "@/components/ui/bottom-nav"
 import { useSidebar } from "@/contexts/sidebar-context"
 import { cn, formatGMT7TimeString, getCurrentTimeString } from "@/lib/utils"
@@ -87,13 +87,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
       icon: <LayoutDashboard className="h-5 w-5" />
     },
     {
-      href: "/orders", 
+      href: "/orders",
       label: "Orders",
       icon: <Search className="h-5 w-5" />
     },
     {
       href: "/inventory",
-      label: "Inventory", 
+      label: "Inventory",
       icon: <Package className="h-5 w-5" />
     },
     {
@@ -101,6 +101,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
       label: "Alerts",
       icon: <AlertTriangle className="h-5 w-5" />,
       badge: escalationBadgeCount
+    },
+    {
+      href: "/style-guide",
+      label: "Style",
+      icon: <Palette className="h-5 w-5" />
     }
   ]
 
