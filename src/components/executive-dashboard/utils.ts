@@ -1,8 +1,8 @@
-import { 
-  filterSLABreach, 
-  filterApproachingSLA 
+import {
+  filterSLABreach,
+  filterApproachingSLA
 } from "@/lib/sla-utils"
-import { getGMT7Time } from "@/lib/utils"
+import { getGMT7Time, safeToISOString } from "@/lib/utils"
 import { ApiOrder } from "./types"
 import { TOPS_STORES } from "./constants"
 
@@ -223,18 +223,31 @@ export const calculateEnhancedChannelData = (orders: any[]) => {
 
 export const getCriticalAlerts = (orders: any[] = []) => {
   if (!Array.isArray(orders)) return []
-  
+
   // Filter to TODAY'S ORDERS ONLY for critical alerts (GMT+7 timezone)
   const today = getGMT7Time()
-  const todayStr = today.toISOString().split('T')[0] // YYYY-MM-DD format
-  
+  const todayStr = safeToISOString(today, undefined, 'getCriticalAlerts:today').split('T')[0] // YYYY-MM-DD format
+
   const todaysOrders = orders.filter(order => {
-    const orderDate = new Date(order.order_date).toISOString().split('T')[0]
-    return orderDate === todayStr
+    // Skip orders with missing or invalid dates
+    if (!order.order_date) {
+      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+      return false
+    }
+
+    // Validate order date before processing
+    const orderDate = new Date(order.order_date)
+    if (isNaN(orderDate.getTime())) {
+      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+      return false
+    }
+
+    const orderDateStr = safeToISOString(orderDate, undefined, `getCriticalAlerts:orderId=${order.id}`).split('T')[0]
+    return orderDateStr === todayStr
   })
-  
+
   console.log(`🚨 Critical alerts from TODAY's orders: ${todaysOrders.length}/${orders.length} (${todayStr})`)
-  
+
   return filterSLABreach(todaysOrders).slice(0, 5) // Top 5 critical alerts from today
 }
 
@@ -244,14 +257,14 @@ export const calculateDailyOrders = (orders: any[] = []) => {
     console.warn('calculateDailyOrders: Invalid input, expected array')
     return []
   }
-  
+
   console.log('📅 Calculating daily orders from', orders.length, 'orders')
-  
+
   if (orders.length === 0) {
     console.log('⚠️ No orders provided to calculateDailyOrders')
     return []
   }
-  
+
   // Group orders by day - total count only (not by channel)
   const dailyData = orders.reduce((acc, order) => {
     const orderDate = order.order_date || order.created_at || order.date
@@ -259,26 +272,33 @@ export const calculateDailyOrders = (orders: any[] = []) => {
       console.warn('⚠️ Order missing date field:', order.id)
       return acc
     }
-    
-    const date = new Date(orderDate).toISOString().split('T')[0]
-    
+
+    // Validate date before converting to ISO string
+    const dateObj = new Date(orderDate)
+    if (isNaN(dateObj.getTime())) {
+      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date/created_at/date', value: orderDate })
+      return acc
+    }
+
+    const date = safeToISOString(dateObj, undefined, `calculateDailyOrders:orderId=${order.id}`).split('T')[0]
+
     if (!acc[date]) {
-      acc[date] = { 
-        date, 
+      acc[date] = {
+        date,
         orders: 0,
-        revenue: 0 
+        revenue: 0
       }
     }
-    
+
     acc[date].orders += 1
     acc[date].revenue += (order.total_amount || 0)
     return acc
   }, {} as Record<string, any>)
-  
+
   const result = Object.values(dailyData).sort((a: any, b: any) => a.date.localeCompare(b.date))
   console.log('📈 Daily orders calculated:', result)
   console.log('📊 Sample daily data:', result.slice(0, 2))
-  
+
   return result
 }
 
@@ -639,8 +659,8 @@ export const validateOrderData = (orders: ApiOrder[]): {
 
 // Seven days coverage validation
 export const validateSevenDaysCoverage = (
-  orders: ApiOrder[], 
-  dateFrom: string, 
+  orders: ApiOrder[],
+  dateFrom: string,
   dateTo: string
 ): {
   isComplete: boolean
@@ -649,27 +669,44 @@ export const validateSevenDaysCoverage = (
   completeDays: number
 } => {
   const orderDates = new Set(
-    orders.map(order => new Date(order.order_date).toISOString().split('T')[0])
+    orders
+      .filter(order => {
+        // Skip orders with missing or invalid dates
+        if (!order.order_date) return false
+        const dateObj = new Date(order.order_date)
+        if (isNaN(dateObj.getTime())) {
+          console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+          return false
+        }
+        return true
+      })
+      .map(order => {
+        const dateObj = new Date(order.order_date)
+        return safeToISOString(dateObj, undefined, `validateSevenDaysCoverage:orderId=${order.id}`).split('T')[0]
+      })
   )
-  
+
   const startDate = new Date(dateFrom)
   const endDate = new Date(dateTo)
   const expectedDays: string[] = []
   const missingDays: string[] = []
-  
-  // Generate expected days
+
+  // Generate expected days with safe date handling
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0]
-    expectedDays.push(dateStr)
-    
-    if (!orderDates.has(dateStr)) {
-      missingDays.push(dateStr)
+    // Validate date object before converting to ISO string
+    if (!isNaN(d.getTime())) {
+      const dateStr = safeToISOString(d, undefined, 'validateSevenDaysCoverage:loopDate').split('T')[0]
+      expectedDays.push(dateStr)
+
+      if (!orderDates.has(dateStr)) {
+        missingDays.push(dateStr)
+      }
     }
   }
-  
+
   const completeDays = expectedDays.length - missingDays.length
-  const coverage = Math.round((completeDays / expectedDays.length) * 100)
-  
+  const coverage = expectedDays.length > 0 ? Math.round((completeDays / expectedDays.length) * 100) : 0
+
   return {
     isComplete: missingDays.length === 0,
     coverage,

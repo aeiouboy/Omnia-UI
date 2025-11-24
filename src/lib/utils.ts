@@ -89,3 +89,43 @@ export function formatGMT7Time(date?: Date | string, options?: Intl.DateTimeForm
     return new Date().toLocaleString("en-US")
   }
 }
+
+/**
+ * Safely converts a date value to ISO string with validation
+ * @param date - Date value to convert (string, Date, null, or undefined)
+ * @param fallback - Optional fallback ISO string to use if date is invalid
+ * @param context - Optional context for logging (e.g., "processOrderAlerts", "orderId: 12345")
+ * @returns ISO string representation of the date, or fallback/current date if invalid
+ */
+export function safeToISOString(
+  date: string | Date | null | undefined,
+  fallback?: string,
+  context?: string
+): string {
+  // Check if input exists
+  if (date === null || date === undefined) {
+    if (context) {
+      console.warn(`⚠️ Invalid date detected: null/undefined${context ? ` (${context})` : ''}`)
+    }
+    return fallback || new Date().toISOString()
+  }
+
+  // Create Date object
+  let dateObj: Date
+  if (date instanceof Date) {
+    dateObj = date
+  } else {
+    dateObj = new Date(date)
+  }
+
+  // Validate Date object
+  if (isNaN(dateObj.getTime())) {
+    if (context) {
+      console.warn(`⚠️ Invalid date detected: ${date}${context ? ` (${context})` : ''}`)
+    }
+    return fallback || new Date().toISOString()
+  }
+
+  // Return valid ISO string
+  return dateObj.toISOString()
+}

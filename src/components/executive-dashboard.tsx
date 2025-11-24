@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { TeamsWebhookService } from "@/lib/teams-webhook"
+import { DashboardService } from "@/lib/dashboard-service"
 import { useToast } from "@/components/ui/use-toast"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { getGMT7Time, formatGMT7DateString, safeParseDate } from "@/lib/utils"
@@ -1890,7 +1891,7 @@ export function ExecutiveDashboard() {
       const channelSLA = { GRAB: { total: 0, breaches: 0 }, LAZADA: { total: 0, breaches: 0 }, SHOPEE: { total: 0, breaches: 0 }, TIKTOK: { total: 0, breaches: 0 } }
       
       // Store detail data by status for drill-down
-      const statusBreakdown = {}
+      const statusBreakdown: Record<string, {channel: string, status: string, orders: number, revenue: number, drillDownId: string}> = {}
 
       orders.forEach((order) => {
         const normalizedChannel = order.channel?.toUpperCase()?.trim()
@@ -1911,8 +1912,8 @@ export function ExecutiveDashboard() {
             // Status breakdown for drill-down
             const status = order.status || 'UNKNOWN'
             const key = `${mappedChannel}_${status}`
-            if (!statusBreakdown[key as keyof typeof statusBreakdown]) {
-              statusBreakdown[key as keyof typeof statusBreakdown] = {
+            if (!statusBreakdown[key]) {
+              statusBreakdown[key] = {
                 channel: mappedChannel,
                 status: status,
                 orders: 0,
@@ -1920,21 +1921,24 @@ export function ExecutiveDashboard() {
                 drillDownId: `status_${mappedChannel}_${status}`
               }
             }
-            statusBreakdown[key as keyof typeof statusBreakdown].orders++
-            statusBreakdown[key as keyof typeof statusBreakdown].revenue += order.total_amount || 0
+            statusBreakdown[key].orders++
+            statusBreakdown[key].revenue += order.total_amount || 0
           }
         }
       })
 
-      const overview = Object.entries(channelCounts).map(([channel, orders]) => ({
-        name: channel,
-        channel: channel,
-        orders: orders,
-        revenue: channelRevenue[channel],
-        slaCompliance: channelSLA[channel].total > 0 ? 
-          ((channelSLA[channel].total - channelSLA[channel].breaches) / channelSLA[channel].total * 100).toFixed(1) : 100,
-        drillDownId: `channel_${channel}`
-      }))
+      const overview = Object.entries(channelCounts).map(([channel, orders]) => {
+        const channelKey = channel as keyof typeof channelCounts
+        return {
+          name: channel,
+          channel: channel,
+          orders: orders,
+          revenue: channelRevenue[channelKey],
+          slaCompliance: channelSLA[channelKey].total > 0 ?
+            ((channelSLA[channelKey].total - channelSLA[channelKey].breaches) / channelSLA[channelKey].total * 100).toFixed(1) : 100,
+          drillDownId: `channel_${channel}`
+        }
+      })
 
       return {
         overview,
@@ -1991,7 +1995,7 @@ export function ExecutiveDashboard() {
       const statusCounts = orders.reduce((acc, order) => {
         acc[order.status] = (acc[order.status] || 0) + 1
         return acc
-      }, {})
+      }, {} as Record<string, number>)
       console.log('📊 Order status distribution:', statusCounts)
 
       if (!breachedOrders || breachedOrders.length === 0) {
@@ -2029,13 +2033,14 @@ export function ExecutiveDashboard() {
       // Return up to 5 most critical breaches (instead of just 1)
       return breachedOrders.slice(0, 5).map((order) => {
         const slaStatus = calculateSLAStatus(order)
+        const apiOrder = order as any
 
         return {
           id: order.id,
-          order_number: order.order_no || order.id, // Use actual order number
-          customer_name: order.customer?.name || `Customer ${order.customer?.id || 'Unknown'}`,
-          channel: order.channel || "UNKNOWN",
-          location: order.metadata?.store_name || order.shipping_address?.city || "Unknown Location",
+          order_number: apiOrder.order_no || order.id, // Use actual order number
+          customer_name: apiOrder.customer?.name || `Customer ${apiOrder.customer?.id || 'Unknown'}`,
+          channel: apiOrder.channel || "UNKNOWN",
+          location: apiOrder.metadata?.store_name || apiOrder.shipping_address?.city || "Unknown Location",
           target_minutes: slaStatus.targetSeconds,
           elapsed_minutes: slaStatus.elapsedSeconds,
         }
@@ -2128,13 +2133,14 @@ export function ExecutiveDashboard() {
       // Return up to 6 approaching SLA orders (instead of 4) for better visibility
       return approaching.slice(0, 6).map((order) => {
         const slaStatus = calculateSLAStatus(order)
+        const apiOrder = order as any
 
         return {
           id: order.id,
-          order_number: order.order_no || order.id, // Use actual order number
-          customer_name: order.customer?.name || `Customer ${order.customer?.id || 'Unknown'}`,
-          channel: order.channel || "UNKNOWN",
-          location: order.metadata?.store_name || order.shipping_address?.city || "Unknown Location", 
+          order_number: apiOrder.order_no || order.id, // Use actual order number
+          customer_name: apiOrder.customer?.name || `Customer ${apiOrder.customer?.id || 'Unknown'}`,
+          channel: apiOrder.channel || "UNKNOWN",
+          location: apiOrder.metadata?.store_name || apiOrder.shipping_address?.city || "Unknown Location",
           target_minutes: slaStatus.targetSeconds,
           elapsed_minutes: slaStatus.elapsedSeconds,
           remaining: slaStatus.remainingSeconds,
@@ -2183,14 +2189,14 @@ export function ExecutiveDashboard() {
       activeOrders.forEach((order) => {
         const normalizedChannel = order.channel?.toUpperCase()?.trim()
         const mappedChannel = channelMapping[normalizedChannel as keyof typeof channelMapping] || normalizedChannel
-        
-        if (channelTimes[mappedChannel] && order.sla_info?.elapsed_minutes) {
+
+        if (mappedChannel && channelTimes[mappedChannel as keyof typeof channelTimes] && order.sla_info?.elapsed_minutes) {
           // API returns elapsed time in seconds, convert to minutes for display
           const elapsedSeconds = order.sla_info.elapsed_minutes
           const elapsedMinutes = elapsedSeconds / 60
 
-          channelTimes[mappedChannel].total += elapsedMinutes
-          channelTimes[mappedChannel].count++
+          channelTimes[mappedChannel as keyof typeof channelTimes].total += elapsedMinutes
+          channelTimes[mappedChannel as keyof typeof channelTimes].count++
         }
       })
 
@@ -2239,9 +2245,9 @@ export function ExecutiveDashboard() {
       if (orders && orders.length > 0) {
         orders.forEach((order) => {
           const channel = order.channel?.toUpperCase()
-          if (channelCompliance[channel]) {
-            channelCompliance[channel].orders.push(order)
-            channelCompliance[channel].total++
+          if (channel && channelCompliance[channel as keyof typeof channelCompliance]) {
+            channelCompliance[channel as keyof typeof channelCompliance].orders.push(order)
+            channelCompliance[channel as keyof typeof channelCompliance].total++
           }
         })
       }
@@ -2631,13 +2637,31 @@ export function ExecutiveDashboard() {
       const result = Object.values(productMap)
       result.sort((a: any, b: any) => b.revenue - a.revenue)
 
+      // If no API data, use mock data from DashboardService
       if (result.length === 0) {
-        return []
+        const mockProducts = await DashboardService.getTopProducts()
+        return mockProducts.map(p => ({
+          name: p.product,      // Transform: product → name
+          sku: p.sku,
+          units: p.units_sold,  // Transform: units_sold → units
+          revenue: p.revenue
+        }))
       }
 
       return result.slice(0, 5)
     } catch (err) {
-      return []
+      // On error, use mock data from DashboardService
+      try {
+        const mockProducts = await DashboardService.getTopProducts()
+        return mockProducts.map(p => ({
+          name: p.product,      // Transform: product → name
+          sku: p.sku,
+          units: p.units_sold,  // Transform: units_sold → units
+          revenue: p.revenue
+        }))
+      } catch {
+        return []
+      }
     }
   }
 
@@ -2674,15 +2698,28 @@ export function ExecutiveDashboard() {
       const result = Object.values(categoryMap)
       result.sort((a: any, b: any) => b.value - a.value)
 
-      // If no real data, return empty array
+      // If no real data, return mock category data
       if (result.length === 0) {
-        return []
+        return [
+          { name: 'Produce', value: 250000 },
+          { name: 'Dairy & Eggs', value: 180000 },
+          { name: 'Meat & Seafood', value: 320000 },
+          { name: 'Bakery', value: 150000 },
+          { name: 'Beverages', value: 200000 }
+        ]
       }
 
       return result.slice(0, 5)
     } catch (err) {
       console.warn("Error in fetchRevenueByCategory:", err)
-      return []
+      // On error, return mock category data
+      return [
+        { name: 'Produce', value: 250000 },
+        { name: 'Dairy & Eggs', value: 180000 },
+        { name: 'Meat & Seafood', value: 320000 },
+        { name: 'Bakery', value: 150000 },
+        { name: 'Beverages', value: 200000 }
+      ]
     }
   }
 

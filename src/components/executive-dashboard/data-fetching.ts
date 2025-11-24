@@ -1,5 +1,5 @@
 import { ApiOrder, OrderAlert } from './types'
-import { getGMT7Time } from '@/lib/utils'
+import { getGMT7Time, safeToISOString } from '@/lib/utils'
 import { filterSLABreach, filterApproachingSLA } from '@/lib/sla-utils'
 import { DEFAULT_PAGE_SIZE } from './constants'
 
@@ -671,10 +671,10 @@ export function getDefaultDateRange(): { dateFrom: string; dateTo: string } {
   const today = getGMT7Time()
   const sevenDaysAgo = getGMT7Time()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6) // 6 days ago + today = 7 days
-  
+
   return {
-    dateFrom: sevenDaysAgo.toISOString().split('T')[0],
-    dateTo: today.toISOString().split('T')[0]
+    dateFrom: safeToISOString(sevenDaysAgo, undefined, 'getDefaultDateRange:sevenDaysAgo').split('T')[0],
+    dateTo: safeToISOString(today, undefined, 'getDefaultDateRange:today').split('T')[0]
   }
 }
 
@@ -690,31 +690,42 @@ export function validateSevenDaysCoverage(
   isComplete: boolean
 } {
   const ordersByDate = new Map<string, number>()
-  
-  // Count orders by date
+
+  // Count orders by date with safe date validation
   orders.forEach(order => {
-    const date = new Date(order.order_date).toISOString().split('T')[0]
-    ordersByDate.set(date, (ordersByDate.get(date) || 0) + 1)
+    if (order.order_date) {
+      const dateObj = new Date(order.order_date)
+      // Only process valid dates
+      if (!isNaN(dateObj.getTime())) {
+        const date = safeToISOString(dateObj, undefined, `validateSevenDaysCoverage:orderId=${order.id}`).split('T')[0]
+        ordersByDate.set(date, (ordersByDate.get(date) || 0) + 1)
+      } else {
+        console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+      }
+    }
   })
-  
-  // Check each day in range
+
+  // Check each day in range with safe date handling
   const start = new Date(dateFrom)
   const end = new Date(dateTo)
   const missingDays: string[] = []
   let completeDays = 0
-  
+
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0]
-    if (ordersByDate.has(dateStr) && ordersByDate.get(dateStr)! > 0) {
-      completeDays++
-    } else {
-      missingDays.push(dateStr)
+    // Validate date object before converting to ISO string
+    if (!isNaN(d.getTime())) {
+      const dateStr = safeToISOString(d, undefined, 'validateSevenDaysCoverage:loopDate').split('T')[0]
+      if (ordersByDate.has(dateStr) && ordersByDate.get(dateStr)! > 0) {
+        completeDays++
+      } else {
+        missingDays.push(dateStr)
+      }
     }
   }
-  
+
   const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
   const coverage = Math.round((completeDays / totalDays) * 100)
-  
+
   return {
     coverage,
     completeDays,
@@ -730,38 +741,50 @@ export function processOrderAlerts(orders: ApiOrder[]): {
   criticalAlerts: OrderAlert[]
 } {
   console.log(`🚨 Processing ${orders.length} orders for TODAY's alerts...`)
-  
+
   // Filter to TODAY'S ORDERS ONLY for alerts - Using GMT+7 timezone
   const today = getGMT7Time()
-  const todayStr = today.toISOString().split('T')[0] // YYYY-MM-DD format in GMT+7
-  
+  const todayStr = safeToISOString(today, undefined, 'processOrderAlerts:today').split('T')[0] // YYYY-MM-DD format in GMT+7
+
   console.log(`📅 TODAY (GMT+7): ${todayStr}`)
-  
+
   const todaysOrders = orders.filter(order => {
-    // Convert order date to GMT+7 for proper comparison
+    // Skip orders with missing or invalid dates
+    if (!order.order_date) {
+      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+      return false
+    }
+
+    // Validate order date before processing
     const orderDate = new Date(order.order_date)
+    if (isNaN(orderDate.getTime())) {
+      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
+      return false
+    }
+
+    // Convert order date to GMT+7 for proper comparison
     const orderGMT7 = new Date(orderDate.getTime() + (7 * 60 * 60 * 1000)) // Add 7 hours for GMT+7
-    const orderDateStr = orderGMT7.toISOString().split('T')[0]
-    
+    const orderDateStr = safeToISOString(orderGMT7, undefined, `processOrderAlerts:orderId=${order.id}`).split('T')[0]
+
     console.log(`📋 Order ${order.id}: ${order.order_date} -> GMT+7: ${orderDateStr} (matches today: ${orderDateStr === todayStr})`)
-    
+
     return orderDateStr === todayStr
   })
-  
+
   console.log(`📅 TODAY's orders for alerts: ${todaysOrders.length}/${orders.length} (${todayStr})`)
-  
+
   // Apply SLA filtering to today's orders only
   const slaBreaches = filterSLABreach(todaysOrders)
   const approachingSLA = filterApproachingSLA(todaysOrders)
-  
+
   console.log(`🚨 TODAY's SLA alerts: ${slaBreaches.length} breaches, ${approachingSLA.length} approaching`)
-  
+
   // Map orders to OrderAlert format
   const mapToOrderAlert = (order: ApiOrder, type: 'breach' | 'approaching'): OrderAlert => {
     const targetSeconds = order.sla_info?.target_minutes || 300
     const elapsedSeconds = order.sla_info?.elapsed_minutes || 0
     const remainingSeconds = targetSeconds - elapsedSeconds
-    
+
     return {
       id: order.id,
       order_number: order.order_no || 'N/A',
@@ -775,10 +798,10 @@ export function processOrderAlerts(orders: ApiOrder[]): {
       type
     }
   }
-  
+
   const orderAlerts = slaBreaches.map(order => mapToOrderAlert(order, 'breach'))
   const approachingAlerts = approachingSLA.map(order => mapToOrderAlert(order, 'approaching'))
-  
+
   return {
     orderAlerts,
     approachingSla: approachingAlerts,
