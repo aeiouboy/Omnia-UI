@@ -158,8 +158,11 @@ export class TeamsWebhookService {
           markdown: true,
         },
         {
-          title: "🛠️ **Recommended Actions**",
+          activityTitle: "🛠️ Recommended Actions",
+          activitySubtitle: "Please take the following actions",
+          facts: [],
           text: actionRecommendation,
+          markdown: true,
         },
       ],
       potentialAction: [
@@ -189,7 +192,7 @@ export class TeamsWebhookService {
 
   // เพิ่มฟังก์ชันใหม่เพื่อสร้างข้อมูลเพิ่มเติมตามประเภทของ alert
   private static getAdditionalAlertInfo(data: EscalationData): Array<{ name: string; value: string }> {
-    const additionalInfo = []
+    const additionalInfo: Array<{ name: string; value: string }> = []
 
     // ข้อมูลพื้นฐานที่ต้องมีสำหรับทุก alert
     if (data.additionalInfo?.processingTime) {

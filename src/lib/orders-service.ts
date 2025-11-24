@@ -109,7 +109,7 @@ export class OrdersService {
       }
 
       // Filter for orders within 20% of SLA threshold
-      const nearBreachOrders = (data || []).filter((order) => {
+      const nearBreachOrders = (data || []).filter((order: Order) => {
         const remainingMinutes = order.sla_target_minutes - order.elapsed_minutes
         const criticalThreshold = order.sla_target_minutes * 0.2
         return remainingMinutes <= criticalThreshold && remainingMinutes > 0
@@ -124,12 +124,12 @@ export class OrdersService {
 
   static async updateOrderStatus(id: string, status: string): Promise<Order | null> {
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .update({
-          status,
-          updated_at: new Date().toISOString(),
-        })
+      // Type assertion needed due to mock client compatibility
+      const updateQuery = supabase.from("orders").update as any
+      const { data, error } = await updateQuery({
+        status,
+        updated_at: new Date().toISOString(),
+      })
         .eq("id", id)
         .select()
         .single()
@@ -152,15 +152,15 @@ export class OrdersService {
 
       if (!order) return null
 
-      const slaStatus = elapsedMinutes > order.sla_target_minutes ? "BREACH" : "COMPLIANT"
+      const slaStatus = elapsedMinutes > (order as any).sla_target_minutes ? "BREACH" : "COMPLIANT"
 
-      const { data, error } = await supabase
-        .from("orders")
-        .update({
-          elapsed_minutes: elapsedMinutes,
-          sla_status: slaStatus,
-          updated_at: new Date().toISOString(),
-        })
+      // Type assertion needed due to mock client compatibility
+      const updateQuery = supabase.from("orders").update as any
+      const { data, error } = await updateQuery({
+        elapsed_minutes: elapsedMinutes,
+        sla_status: slaStatus,
+        updated_at: new Date().toISOString(),
+      })
         .eq("id", id)
         .select()
         .single()

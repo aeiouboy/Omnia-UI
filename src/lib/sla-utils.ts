@@ -56,11 +56,9 @@ export function calculateSLAStatus(order: Order) {
   const criticalThreshold = targetSeconds * 0.2 // 20% of target
   const isApproaching = !isBreach && remainingSeconds <= criticalThreshold && remainingSeconds > 0
 
-  // Calculate compliance - include CANCELLED as compliant
-  const isCompliant = order.sla_info.status === "COMPLIANT" || 
-                     order.status === "DELIVERED" || 
-                     order.status === "FULFILLED" ||
-                     order.status === "CANCELLED" ||
+  // Calculate compliance - since we only get here for SUBMITTED/PROCESSING orders
+  // Check SLA status or if order is not breaching/approaching
+  const isCompliant = order.sla_info.status === "COMPLIANT" ||
                      (!isBreach && !isApproaching)
 
   return {
