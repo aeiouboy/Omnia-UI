@@ -734,50 +734,38 @@ export function validateSevenDaysCoverage(
   }
 }
 
-// Process orders for critical alerts - FILTER TO TODAY'S ORDERS ONLY (GMT+7)
+// Process orders for critical alerts - 7-DAY WINDOW (no today-only filtering)
 export function processOrderAlerts(orders: ApiOrder[]): {
   orderAlerts: OrderAlert[]
   approachingSla: OrderAlert[]
   criticalAlerts: OrderAlert[]
 } {
-  console.log(`🚨 Processing ${orders.length} orders for TODAY's alerts...`)
+  console.log(`📊 ALERT PIPELINE STAGE 1: Orders received`, {
+    totalOrders: orders.length,
+    windowDescription: '7-day window'
+  })
 
-  // Filter to TODAY'S ORDERS ONLY for alerts - Using GMT+7 timezone
-  const today = getGMT7Time()
-  const todayStr = safeToISOString(today, undefined, 'processOrderAlerts:today').split('T')[0] // YYYY-MM-DD format in GMT+7
-
-  console.log(`📅 TODAY (GMT+7): ${todayStr}`)
-
-  const todaysOrders = orders.filter(order => {
-    // Skip orders with missing or invalid dates
+  // Filter orders with valid dates (no today-only restriction)
+  const validOrders = orders.filter(order => {
     if (!order.order_date) {
       console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
       return false
     }
-
-    // Validate order date before processing
     const orderDate = new Date(order.order_date)
-    if (isNaN(orderDate.getTime())) {
-      console.warn(`⚠️ Invalid date detected`, { orderId: order.id, dateField: 'order_date', value: order.order_date })
-      return false
-    }
-
-    // Convert order date to GMT+7 for proper comparison
-    const orderGMT7 = new Date(orderDate.getTime() + (7 * 60 * 60 * 1000)) // Add 7 hours for GMT+7
-    const orderDateStr = safeToISOString(orderGMT7, undefined, `processOrderAlerts:orderId=${order.id}`).split('T')[0]
-
-    console.log(`📋 Order ${order.id}: ${order.order_date} -> GMT+7: ${orderDateStr} (matches today: ${orderDateStr === todayStr})`)
-
-    return orderDateStr === todayStr
+    return !isNaN(orderDate.getTime())
   })
 
-  console.log(`📅 TODAY's orders for alerts: ${todaysOrders.length}/${orders.length} (${todayStr})`)
+  console.log(`📅 Valid orders for alerts: ${validOrders.length}/${orders.length}`)
 
-  // Apply SLA filtering to today's orders only
-  const slaBreaches = filterSLABreach(todaysOrders)
-  const approachingSLA = filterApproachingSLA(todaysOrders)
+  // Apply SLA filtering to ALL orders in 7-day window
+  const slaBreaches = filterSLABreach(validOrders)
+  const approachingSLA = filterApproachingSLA(validOrders)
 
-  console.log(`🚨 TODAY's SLA alerts: ${slaBreaches.length} breaches, ${approachingSLA.length} approaching`)
+  console.log(`📊 ALERT PIPELINE STAGE 2: SLA filtering`, {
+    breaches: slaBreaches.length,
+    approaching: approachingSLA.length,
+    processedOrders: validOrders.length
+  })
 
   // Map orders to OrderAlert format
   const mapToOrderAlert = (order: ApiOrder, type: 'breach' | 'approaching'): OrderAlert => {
@@ -804,9 +792,15 @@ export function processOrderAlerts(orders: ApiOrder[]): {
   const orderAlerts = slaBreaches.map(order => mapToOrderAlert(order as ApiOrder, 'breach'))
   const approachingAlerts = approachingSLA.map(order => mapToOrderAlert(order as ApiOrder, 'approaching'))
 
+  console.log(`📊 ALERT PIPELINE STAGE 3: Alert mapping`, {
+    orderAlerts: orderAlerts.length,
+    approachingAlerts: approachingAlerts.length,
+    criticalAlerts: orderAlerts.slice(0, 5).length
+  })
+
   return {
     orderAlerts,
     approachingSla: approachingAlerts,
-    criticalAlerts: orderAlerts.slice(0, 5) // Top 5 critical alerts from today
+    criticalAlerts: orderAlerts.slice(0, 5) // Top 5 critical alerts from 7-day window
   }
 }

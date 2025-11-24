@@ -1198,19 +1198,25 @@ export function ExecutiveDashboard() {
         setSlaBreaches(slaBreachesData.count)
         setOrderAlerts(orderAlertsData)
         setApproachingSla(approachingSlaData)
-        
+
         // Clear only critical loading states
         setKpiLoading(prev => ({
           ...prev,
           ordersProcessing: false,
           slaBreaches: false,
         }))
-        setChartsLoading(prev => ({ 
-          ...prev, 
+        setChartsLoading(prev => ({
+          ...prev,
           alerts: false,
           approachingSla: false,
         }))
-        
+
+        console.log(`📊 ALERT PIPELINE FINAL: UI display`, {
+          orderAlertsCount: orderAlertsData.length,
+          approachingSlaCount: approachingSlaData.length,
+          willDisplay: (orderAlertsData.length + approachingSlaData.length) > 0
+        })
+
         console.log("✅ Real-time critical data updated:", {
           ordersProcessing: ordersProcessingData.count,
           slaBreaches: slaBreachesData.count,
@@ -2021,7 +2027,8 @@ export function ExecutiveDashboard() {
       console.log("✅ API status check passed:", {
         success: testData.success,
         mockData: testData.mockData,
-        paginationTotal: testData.data?.pagination?.total
+        testQueryPaginationTotal: testData.data?.pagination?.total,
+        note: "Test query uses today only - main fetch uses 7 days"
       })
       
       const orders = await fetchOrdersFromApi()
@@ -2131,7 +2138,8 @@ export function ExecutiveDashboard() {
       console.log("✅ Approaching SLA API status check passed:", {
         success: testData.success,
         mockData: testData.mockData,
-        paginationTotal: testData.data?.pagination?.total
+        testQueryPaginationTotal: testData.data?.pagination?.total,
+        note: "Test query uses today only - main fetch uses 7 days"
       })
       
       const orders = await fetchOrdersFromApi()

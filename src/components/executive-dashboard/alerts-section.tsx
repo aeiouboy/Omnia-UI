@@ -27,6 +27,13 @@ export function AlertsSection({
   onEscalate,
   isEscalating = false
 }: AlertsSectionProps) {
+  console.log('🎨 AlertsSection render:', {
+    orderAlertsCount: orderAlerts.length,
+    approachingSlaCount: approachingSla.length,
+    isLoading,
+    totalActiveAlerts: orderAlerts.length + approachingSla.length
+  })
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">

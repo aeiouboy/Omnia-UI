@@ -348,6 +348,23 @@ When completing a task, ALWAYS update status in ALL locations:
 
 ## Recent Fixes
 
+### Alert System 7-Day Window Fix (2025-11-24)
+- **CRITICAL FIX**: Removed today-only filtering in `processOrderAlerts()` function
+- Alerts now display for ANY order in the 7-day window with SLA issues (not just today's orders)
+- Enhanced alert pipeline logging with 4 stages: Orders received → SLA filtering → Alert mapping → UI display
+- Improved mock data detection logging with test query context notes
+- Added AlertsSection component render logging for debugging
+- All SLA breaches and approaching deadlines from the entire 7-day window now visible
+- No performance impact - same data fetching strategy, just broader alert coverage
+
+**Alert System Behavior:**
+- **7-Day Alert Window**: Alerts display for ANY order in the 7-day window with SLA issues
+- **No Today-Only Filtering**: Breaches from any day in the window trigger alerts
+- **GMT+7 Timezone**: All date/time calculations use Asia/Bangkok timezone
+- **Mock Data Protection**: Alerts NEVER display if API returns mock data flag
+- **SLA Thresholds**: Breach when elapsed > target, Approaching when remaining <= 20% of target
+- **Pipeline Logging**: Console shows all 4 stages of alert processing for debugging
+
 ### Currency Format Changes (2025-06-23)
 - Created formatCurrencyInt utility function for consistent integer display
 - Updated all monetary amounts to show as whole numbers (฿400,000 instead of ฿0.4M)
