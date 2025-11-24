@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "./database.types"
 
 // แก้ไขการสร้าง Supabase client ให้มีการตรวจสอบ environment variables
 // และใช้ค่า default หรือแสดงข้อความแจ้งเตือนที่ชัดเจน
@@ -14,7 +15,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
 // ตรวจสอบว่ามี environment variables ที่จำเป็นหรือไม่
-let supabaseClient: ReturnType<typeof createClient>
+let supabaseClient: SupabaseClient<Database>
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn("Supabase credentials missing. Using mock client.")
@@ -292,10 +293,29 @@ if (!supabaseUrl || !supabaseAnonKey) {
           }),
         }),
         update: (updateData: any) => ({
-          eq: (column: string, value: any) => ({
-            select: () => ({
+          eq: (column: string, value: any) => {
+            const existing = data.find((item: any) => item[column] === value);
+            return {
+              select: () => ({
+                single: () => {
+                  const updated = existing ? { ...existing, ...updateData } : null;
+                  return {
+                    data: updated,
+                    error: null,
+                    then: (resolve: any) => resolve({
+                      data: updated,
+                      error: null,
+                    }),
+                  };
+                },
+                data: existing ? [{ ...existing, ...updateData }] : [],
+                error: null,
+                then: (resolve: any) => resolve({
+                  data: existing ? [{ ...existing, ...updateData }] : [],
+                  error: null,
+                }),
+              }),
               single: () => {
-                const existing = data.find((item: any) => item[column] === value);
                 const updated = existing ? { ...existing, ...updateData } : null;
                 return {
                   data: updated,
@@ -312,26 +332,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
                 data: existing ? [{ ...existing, ...updateData }] : [],
                 error: null,
               }),
-            }),
-            single: () => {
-              const existing = data.find((item: any) => item[column] === value);
-              const updated = existing ? { ...existing, ...updateData } : null;
-              return {
-                data: updated,
-                error: null,
-                then: (resolve: any) => resolve({
-                  data: updated,
-                  error: null,
-                }),
-              };
-            },
-            data: existing ? [{ ...existing, ...updateData }] : [],
-            error: null,
-            then: (resolve: any) => resolve({
-              data: existing ? [{ ...existing, ...updateData }] : [],
-              error: null,
-            }),
-          }),
+            };
+          },
         }),
         delete: () => ({
           eq: (column: string, value: any) => ({
@@ -389,10 +391,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   } as any
 } else {
   // สร้าง client จริงเมื่อมี credentials
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
 }
 
-export const supabase = supabaseClient
+export const supabase = supabaseClient as SupabaseClient<Database>
 
 // Database types
 export interface Order {
