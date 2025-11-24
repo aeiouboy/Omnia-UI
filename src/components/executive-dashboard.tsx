@@ -2009,12 +2009,20 @@ export function ExecutiveDashboard() {
       })
       
       const testData = await testResponse.json()
-      
+
       // If we're getting mock data, return empty alerts - NEVER show fake alerts
-      if (testData.mockData || !testData.success || (testData.data?.pagination?.total === 0)) {
-        console.log("🚨 CRITICAL: API returning mock/no data - returning EMPTY alerts (never show fake critical alerts)")
+      // Note: Don't block on pagination.total === 0 since we fetch full data afterward
+      if (testData.mockData === true) {
+        console.log("🚨 CRITICAL: API explicitly returning mock data - returning EMPTY alerts (never show fake critical alerts)")
         return []
       }
+
+      // Log API status for debugging
+      console.log("✅ API status check passed:", {
+        success: testData.success,
+        mockData: testData.mockData,
+        paginationTotal: testData.data?.pagination?.total
+      })
       
       const orders = await fetchOrdersFromApi()
       
@@ -2025,6 +2033,10 @@ export function ExecutiveDashboard() {
 
       const breachedOrders = filterSLABreach(orders)
       console.log(`🚨 Found ${breachedOrders.length} SLA breached orders out of ${orders.length} total orders`)
+
+      if (breachedOrders.length > 0) {
+        console.log(`✅ Allowing ${breachedOrders.length} breach alert(s) through - API has real breach data`)
+      }
       
       // Debug: Show sample order data and SLA status
       if (orders.length > 0) {
@@ -2107,12 +2119,20 @@ export function ExecutiveDashboard() {
       })
       
       const testData = await testResponse.json()
-      
+
       // If we're getting mock data, return empty alerts - NEVER show fake alerts
-      if (testData.mockData || !testData.success || (testData.data?.pagination?.total === 0)) {
-        console.log("🚨 CRITICAL: API returning mock/no data - returning EMPTY approaching SLA alerts (never show fake critical alerts)")
+      // Note: Don't block on pagination.total === 0 since we fetch full data afterward
+      if (testData.mockData === true) {
+        console.log("🚨 CRITICAL: API explicitly returning mock data - returning EMPTY approaching SLA alerts (never show fake critical alerts)")
         return []
       }
+
+      // Log API status for debugging
+      console.log("✅ Approaching SLA API status check passed:", {
+        success: testData.success,
+        mockData: testData.mockData,
+        paginationTotal: testData.data?.pagination?.total
+      })
       
       const orders = await fetchOrdersFromApi()
       
@@ -2123,6 +2143,10 @@ export function ExecutiveDashboard() {
 
       const approaching = filterApproachingSLA(orders)
       console.log(`⚠️ Found ${approaching.length} orders approaching SLA deadline out of ${orders.length} total orders`)
+
+      if (approaching.length > 0) {
+        console.log(`✅ Allowing ${approaching.length} approaching SLA alert(s) through - API has real data`)
+      }
       
       // Debug: Check how many orders have SLA info
       const ordersWithSLA = orders.filter(order => order.sla_info)
