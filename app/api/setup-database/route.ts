@@ -60,9 +60,9 @@ export async function POST() {
       CREATE POLICY "Enable delete access for all users" ON escalation_history FOR DELETE USING (true);
     `
 
-    const { data, error } = await supabase.rpc('exec_sql', { 
-      sql: createTableSQL 
-    })
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql: createTableSQL
+    } as any)
 
     if (error) {
       console.error("Error creating escalation_history table:", error)
@@ -105,7 +105,7 @@ export async function POST() {
 
     const { data: insertData, error: insertError } = await supabase
       .from('escalation_history')
-      .insert(sampleData)
+      .insert(sampleData as any)
 
     if (insertError) {
       console.warn("Warning: Could not insert sample data:", insertError.message)

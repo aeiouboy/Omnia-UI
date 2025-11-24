@@ -40,12 +40,13 @@ import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, Api
 import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
 
 interface OrderDetailViewProps {
-  order: Order | null;
-  onClose: () => void;
+  order?: Order | null;
+  onClose?: () => void;
+  orderId?: string;
 }
 
 
-export function OrderDetailView({ order, onClose }: OrderDetailViewProps) {
+export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("overview")

@@ -535,7 +535,7 @@ export function EscalationManagement() {
                                   setIsEscalating(false)
                                 })
                               }}
-                              disabled={isEscalating || (retryCountdowns[record.id] && retryCountdowns[record.id] > 0)}
+                              disabled={isEscalating || Boolean(retryCountdowns[record.id] && retryCountdowns[record.id] > 0)}
                             >
                               {isEscalating ? (
                                 <span className="animate-spin mr-1">⏳</span>

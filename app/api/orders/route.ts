@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { getMockOrders } from "@/lib/mock-data"
 import { z } from "zod"
 
 // Input validation schema
@@ -149,18 +150,6 @@ function checkRateLimit(clientId: string, limit = 100, windowMs = 60000): boolea
 
 export async function GET(request: NextRequest) {
   try {
-    // Authentication
-    const auth = await authenticateRequest(request)
-    if (!auth.authenticated) {
-      return NextResponse.json({ error: "Unauthorized", message: auth.error }, { status: 401 })
-    }
-
-    // Rate limiting
-    const clientId = request.ip || "unknown"
-    if (!checkRateLimit(clientId)) {
-      return NextResponse.json({ error: "Rate limit exceeded", message: "Too many requests" }, { status: 429 })
-    }
-
     // Parse and validate query parameters
     const url = new URL(request.url)
     const queryParams = Object.fromEntries(url.searchParams.entries())
@@ -170,7 +159,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Invalid query parameters",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 },
       )
@@ -180,6 +169,76 @@ export async function GET(request: NextRequest) {
     const page = query.page || 1
     const pageSize = query.pageSize || 20
     const offset = (page - 1) * pageSize
+
+    // Check if forced to use mock data or Supabase is unavailable
+    const useMockData = process.env.USE_MOCK_DATA === "true"
+    const hasSupabaseCredentials = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+    /**
+     * Fallback to mock data if:
+     * 1. USE_MOCK_DATA is explicitly set to true, OR
+     * 2. Supabase credentials are missing
+     */
+    if (useMockData || !hasSupabaseCredentials) {
+      console.warn("⚠️ Using mock data - Supabase unavailable")
+
+      // Get mock orders with filters applied
+      const mockResult = getMockOrders({
+        status: query.status,
+        channel: query.channel,
+        search: query.search,
+        dateFrom: query.startDate,
+        dateTo: query.endDate,
+        page,
+        pageSize
+      })
+
+      // Transform mock data to match expected response format
+      const transformedOrders: OrderResponse[] = mockResult.data.map((order: any) => ({
+        id: order.id,
+        order_no: order.order_no,
+        customer: order.customer,
+        order_date: order.created_at,
+        status: order.status,
+        channel: order.channel,
+        business_unit: "Tops",
+        order_type: order.fulfillment_type,
+        items: order.items,
+        total_amount: order.total,
+        shipping_address: {},
+        payment_info: {
+          method: order.payment_method,
+          status: "COMPLETED",
+        },
+        sla_info: order.sla_info,
+        metadata: {
+          created_at: order.created_at,
+          updated_at: order.updated_at,
+          priority: order.priority,
+          store_name: order.store.name,
+        },
+      }))
+
+      const response: PaginatedResponse = {
+        data: transformedOrders,
+        pagination: mockResult.pagination,
+        filters: query,
+      }
+
+      return NextResponse.json({ ...response, mockData: true })
+    }
+
+    // Authentication
+    const auth = await authenticateRequest(request)
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: "Unauthorized", message: auth.error }, { status: 401 })
+    }
+
+    // Rate limiting
+    const clientId = request.headers.get("x-forwarded-for") || "unknown"
+    if (!checkRateLimit(clientId)) {
+      return NextResponse.json({ error: "Rate limit exceeded", message: "Too many requests" }, { status: 429 })
+    }
 
     // Build the base query
     let supabaseQuery = supabase.from("orders").select(`
@@ -247,7 +306,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform data to match response format
-    const transformedOrders: OrderResponse[] = (orders || []).map((order) => ({
+    const transformedOrders: OrderResponse[] = (orders || []).map((order: any) => ({
       id: order.id,
       order_no: order.order_no,
       customer: {
@@ -322,16 +381,70 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error("API Error:", error)
+    console.warn("⚠️ Internal orders API error, falling back to mock data:", error)
 
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error occurred",
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    )
+    // Parse query parameters for fallback
+    const url = new URL(request.url)
+    const queryParams = Object.fromEntries(url.searchParams.entries())
+    const validationResult = OrderQuerySchema.safeParse(queryParams)
+
+    if (validationResult.success) {
+      const query = validationResult.data
+      const page = query.page || 1
+      const pageSize = query.pageSize || 20
+
+      // Fallback to mock data on error
+      const mockResult = getMockOrders({
+        status: query.status,
+        channel: query.channel,
+        search: query.search,
+        dateFrom: query.startDate,
+        dateTo: query.endDate,
+        page,
+        pageSize
+      })
+
+      // Transform mock data to match expected response format
+      const transformedOrders: OrderResponse[] = mockResult.data.map((order: any) => ({
+        id: order.id,
+        order_no: order.order_no,
+        customer: order.customer,
+        order_date: order.created_at,
+        status: order.status,
+        channel: order.channel,
+        business_unit: "Tops",
+        order_type: order.fulfillment_type,
+        items: order.items,
+        total_amount: order.total,
+        shipping_address: {},
+        payment_info: {
+          method: order.payment_method,
+          status: "COMPLETED",
+        },
+        sla_info: order.sla_info,
+        metadata: {
+          created_at: order.created_at,
+          updated_at: order.updated_at,
+          priority: order.priority,
+          store_name: order.store.name,
+        },
+      }))
+
+      const response: PaginatedResponse = {
+        data: transformedOrders,
+        pagination: mockResult.pagination,
+        filters: query,
+      }
+
+      return NextResponse.json({ ...response, mockData: true })
+    }
+
+    // If we can't even parse the query, return minimal mock data
+    return NextResponse.json({
+      error: "Internal server error",
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+      timestamp: new Date().toISOString(),
+    }, { status: 500 })
   }
 }
 

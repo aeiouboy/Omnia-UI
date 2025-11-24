@@ -256,7 +256,7 @@ export function AnimatedChart({
   
   // Animation state management
   const [animatedData, setAnimatedData] = useState<any[]>([])
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
   const [animationProgress, setAnimationProgress] = useState(0)
   
   // Data animation effect
@@ -524,7 +524,6 @@ export function AnimatedChart({
               <Switch
                 checked={animationEnabled}
                 onCheckedChange={setAnimationEnabled}
-                size="sm"
               />
               <span className="text-sm text-gray-600">
                 {animationEnabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}

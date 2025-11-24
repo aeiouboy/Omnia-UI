@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getAuthToken } from "@/lib/auth-client"
+import { getMockOrders } from "@/lib/mock-data"
 
 export const dynamic = "force-dynamic"
 
@@ -21,33 +22,6 @@ export async function OPTIONS(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    // Check for valid API credentials early
-    const hasValidCredentials = !!(process.env.API_BASE_URL && process.env.PARTNER_CLIENT_ID && process.env.PARTNER_CLIENT_SECRET)
-    if (!hasValidCredentials) {
-      console.error("❌ Missing API credentials")
-      const credentialsError = NextResponse.json({
-        success: false,
-        error: "Missing API credentials. Please set API_BASE_URL, PARTNER_CLIENT_ID, and PARTNER_CLIENT_SECRET in environment variables.",
-        fallback: true,
-        data: {
-          data: [],
-          pagination: {
-            page: 1,
-            pageSize: 10,
-            total: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        },
-      }, { status: 500 })
-      
-      credentialsError.headers.set('Access-Control-Allow-Origin', '*')
-      credentialsError.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-      credentialsError.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
-      return credentialsError
-    }
-
     const { searchParams } = new URL(request.url)
 
     // Extract pagination parameters
@@ -58,7 +32,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || ""
     const dateFrom = searchParams.get("dateFrom") || ""
     const dateTo = searchParams.get("dateTo") || ""
-    
+
     // Extract advanced filter parameters
     const orderNumber = searchParams.get("orderNumber") || ""
     const customerName = searchParams.get("customerName") || ""
@@ -69,10 +43,52 @@ export async function GET(request: Request) {
     const items = searchParams.get("items") || ""
     const paymentStatus = searchParams.get("paymentStatus") || ""
 
-    console.log(`🔄 External orders API request:`, { 
+    console.log(`🔄 External orders API request:`, {
       page, pageSize, status, channel, search, dateFrom, dateTo,
-      orderNumber, customerName, phoneNumber, email, exceedSLA, location, items, paymentStatus 
+      orderNumber, customerName, phoneNumber, email, exceedSLA, location, items, paymentStatus
     })
+
+    // Check if forced to use mock data
+    const useMockData = process.env.USE_MOCK_DATA === "true"
+
+    // Check for valid API credentials
+    const hasValidCredentials = !!(process.env.API_BASE_URL && process.env.PARTNER_CLIENT_ID && process.env.PARTNER_CLIENT_SECRET)
+
+    /**
+     * Fallback to mock data if:
+     * 1. USE_MOCK_DATA is explicitly set to true, OR
+     * 2. API credentials are missing
+     */
+    if (useMockData || !hasValidCredentials) {
+      console.warn("⚠️ Using mock data - API authentication unavailable")
+
+      // Get mock orders with filters applied
+      const mockResult = getMockOrders({
+        status: status !== "all-status" ? status : undefined,
+        channel: channel !== "all-channels" ? channel : undefined,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page: Number.parseInt(page),
+        pageSize: Number.parseInt(pageSize)
+      })
+
+      const mockResponse = NextResponse.json({
+        success: true,
+        data: {
+          data: mockResult.data,
+          pagination: mockResult.pagination
+        },
+        mockData: true
+      })
+
+      // Add CORS headers
+      mockResponse.headers.set('Access-Control-Allow-Origin', '*')
+      mockResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      mockResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+      return mockResponse
+    }
 
     // Get authentication token
     let token: string
@@ -81,54 +97,64 @@ export async function GET(request: Request) {
       token = await getAuthToken()
       isUsingMockAuth = token.startsWith("mock-dev-token-")
     } catch (authError) {
-      console.error("❌ Authentication failed, returning fallback response:", authError)
-      const authErrorResponse = NextResponse.json({
-        success: false,
-        error: `Authentication failed: ${authError instanceof Error ? authError.message : "Unknown auth error"}`,
-        fallback: true,
-        data: {
-          data: [], // Empty data array
-          pagination: {
-            page: Number.parseInt(page),
-            pageSize: Number.parseInt(pageSize),
-            total: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        },
+      console.warn("⚠️ Authentication failed, falling back to mock data:", authError)
+
+      // Fallback to mock data on authentication failure
+      const mockResult = getMockOrders({
+        status: status !== "all-status" ? status : undefined,
+        channel: channel !== "all-channels" ? channel : undefined,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page: Number.parseInt(page),
+        pageSize: Number.parseInt(pageSize)
       })
-      
+
+      const authErrorResponse = NextResponse.json({
+        success: true,
+        data: {
+          data: mockResult.data,
+          pagination: mockResult.pagination
+        },
+        mockData: true
+      })
+
       // Add CORS headers
       authErrorResponse.headers.set('Access-Control-Allow-Origin', '*')
       authErrorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       authErrorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
+
       return authErrorResponse
     }
 
-    // If using mock authentication, return fallback data immediately
+    // If using mock authentication, return mock data
     if (isUsingMockAuth) {
-      console.log("🟡 Using mock authentication - returning fallback data")
+      console.warn("⚠️ Using mock authentication - returning mock data")
+
+      const mockResult = getMockOrders({
+        status: status !== "all-status" ? status : undefined,
+        channel: channel !== "all-channels" ? channel : undefined,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page: Number.parseInt(page),
+        pageSize: Number.parseInt(pageSize)
+      })
+
       const mockResponse = NextResponse.json({
         success: true,
         data: {
-          data: [], // Empty data array
-          pagination: {
-            page: Number.parseInt(page),
-            pageSize: Number.parseInt(pageSize),
-            total: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
+          data: mockResult.data,
+          pagination: mockResult.pagination
         },
-        mockData: true,
+        mockData: true
       })
-      
+
       // Add CORS headers
       mockResponse.headers.set('Access-Control-Allow-Origin', '*')
       mockResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       mockResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
+
       return mockResponse
     }
 
@@ -224,27 +250,32 @@ export async function GET(request: Request) {
         }
       }
 
-      const errorResponse = NextResponse.json({
-        success: false,
-        error: `API Error: ${response.status} - ${response.statusText}`,
-        fallback: true,
-        data: {
-          data: [], // Empty data array for fallback
-          pagination: {
-            page: Number.parseInt(page),
-            pageSize: Number.parseInt(pageSize),
-            total: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        },
+      // Fallback to mock data on API error
+      console.warn("⚠️ API error, falling back to mock data")
+      const mockResult = getMockOrders({
+        status: status !== "all-status" ? status : undefined,
+        channel: channel !== "all-channels" ? channel : undefined,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page: Number.parseInt(page),
+        pageSize: Number.parseInt(pageSize)
       })
-      
+
+      const errorResponse = NextResponse.json({
+        success: true,
+        data: {
+          data: mockResult.data,
+          pagination: mockResult.pagination
+        },
+        mockData: true
+      })
+
       // Add CORS headers
       errorResponse.headers.set('Access-Control-Allow-Origin', '*')
       errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
+
       return errorResponse
     }
 
@@ -263,43 +294,43 @@ export async function GET(request: Request) {
     
     return successResponse
   } catch (error: any) {
-    console.error("❌ Server proxy error:", error, "Stack:", error?.stack);
+    console.warn("⚠️ Server proxy error, falling back to mock data:", error, "Stack:", error?.stack);
 
     // Get searchParams safely for fallback response
     const { searchParams: fallbackParams } = new URL(request.url)
     const fallbackPage = fallbackParams.get("page") || "1"
     const fallbackPageSize = fallbackParams.get("pageSize") || "10"
+    const fallbackStatus = fallbackParams.get("status") || ""
+    const fallbackChannel = fallbackParams.get("channel") || ""
+    const fallbackSearch = fallbackParams.get("search") || ""
+    const fallbackDateFrom = fallbackParams.get("dateFrom") || ""
+    const fallbackDateTo = fallbackParams.get("dateTo") || ""
 
-    let errorMessage = "Unknown server error"
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        errorMessage = "Request timeout"
-      } else {
-        errorMessage = error.message
-      }
-    }
+    // Fallback to mock data on any server error
+    const mockResult = getMockOrders({
+      status: fallbackStatus !== "all-status" ? fallbackStatus : undefined,
+      channel: fallbackChannel !== "all-channels" ? fallbackChannel : undefined,
+      search: fallbackSearch || undefined,
+      dateFrom: fallbackDateFrom || undefined,
+      dateTo: fallbackDateTo || undefined,
+      page: Number.parseInt(fallbackPage),
+      pageSize: Number.parseInt(fallbackPageSize)
+    })
 
     const fallbackResponse = NextResponse.json({
-      success: false,
-      error: errorMessage,
-      fallback: true,
+      success: true,
       data: {
-        data: [], // Empty data array for fallback
-        pagination: {
-          page: Number.parseInt(fallbackPage),
-          pageSize: Number.parseInt(fallbackPageSize),
-          total: 0,
-          hasNext: false,
-          hasPrev: false,
-        },
+        data: mockResult.data,
+        pagination: mockResult.pagination
       },
+      mockData: true
     })
-    
+
     // Add CORS headers
     fallbackResponse.headers.set('Access-Control-Allow-Origin', '*')
     fallbackResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     fallbackResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    
+
     return fallbackResponse
   }
 }

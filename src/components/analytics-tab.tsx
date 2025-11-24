@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { DashboardService, type TopProduct, type BusinessUnitRevenue } from "@/lib/dashboard-service"
+import { DashboardService, type TopProduct, type BusinessUnitRevenue, type WeeklyTrend } from "@/lib/dashboard-service"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function AnalyticsTab() {
@@ -16,7 +16,7 @@ export function AnalyticsTab() {
     avgOrderValue: 0,
   })
   const [businessUnitRevenue, setBusinessUnitRevenue] = useState<BusinessUnitRevenue[]>([])
-  const [weeklyTrends, setWeeklyTrends] = useState([])
+  const [weeklyTrends, setWeeklyTrends] = useState<WeeklyTrend[]>([])
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
 
   useEffect(() => {

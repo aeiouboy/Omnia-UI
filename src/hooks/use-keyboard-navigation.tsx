@@ -33,7 +33,7 @@ export function useKeyboardNavigation(config: KeyboardNavigationConfig = {}) {
     trapFocus = false
   } = config
 
-  const containerRef = useRef<HTMLElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const lastFocusedElement = useRef<HTMLElement | null>(null)
 
   // Get all focusable elements within container

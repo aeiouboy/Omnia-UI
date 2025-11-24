@@ -210,7 +210,7 @@ export function DashboardCustomizer({
     }
 
     // Department-specific widgets
-    const departmentWidgets = {
+    const departmentWidgets: Record<string, string[]> = {
       operations: ['fulfillment-metrics', 'inventory-status'],
       sales: ['revenue-analytics', 'channel-performance'],
       customer_service: ['sla-monitoring', 'escalation-queue'],
@@ -388,10 +388,9 @@ export function DashboardCustomizer({
                   >
                     <div className="text-xs font-medium truncate">{widget.name}</div>
                     <div className="text-xs text-gray-500">{widget.type}</div>
-                    <Badge 
-                      size="sm" 
+                    <Badge
                       variant={widget.priority === 'critical' ? 'destructive' : 'secondary'}
-                      className="mt-1"
+                      className="mt-1 text-xs"
                     >
                       {widget.priority}
                     </Badge>
@@ -488,7 +487,7 @@ export function DashboardCustomizer({
                         <div>
                           <div className="font-medium">{widget.name}</div>
                           <div className="text-sm text-gray-500">{widget.type}</div>
-                          <Badge size="sm" variant="outline" className="mt-1">
+                          <Badge variant="outline" className="mt-1 text-xs">
                             {widget.priority}
                           </Badge>
                         </div>

@@ -60,10 +60,11 @@ export function DashboardOverview() {
       const { data: orders, error } = await supabase.from("orders").select("*")
 
       if (error) throw error
+      if (!orders) return
 
       // Check if all orders are SLA compliant
       const nonCompliantOrders = orders.filter(
-        (order) =>
+        (order: any) =>
           order.sla_status === "BREACH" ||
           (order.elapsed_minutes > order.sla_target_minutes &&
             order.status !== "DELIVERED" &&
@@ -75,7 +76,7 @@ export function DashboardOverview() {
       // Create SLA compliance by channel data
       const channelMap = new Map()
 
-      orders.forEach((order) => {
+      orders.forEach((order: any) => {
         const channel = order.channel
         if (!channelMap.has(channel)) {
           channelMap.set(channel, {
@@ -108,18 +109,18 @@ export function DashboardOverview() {
       setSlaComplianceData(slaByChannel)
 
       // Calculate processing metrics
-      const processingOrders = orders.filter((order) => order.status !== "DELIVERED" && order.status !== "FULFILLED")
+      const processingOrders = orders.filter((order: any) => order.status !== "DELIVERED" && order.status !== "FULFILLED")
 
       const avgTime =
         processingOrders.length > 0
-          ? processingOrders.reduce((sum, order) => sum + order.elapsed_minutes, 0) / processingOrders.length
+          ? processingOrders.reduce((sum: number, order: any) => sum + order.elapsed_minutes, 0) / processingOrders.length
           : 0
 
       setProcessingTime(avgTime)
 
       const rate =
         orders.length > 0
-          ? (orders.filter((order) => order.status === "DELIVERED" || order.status === "FULFILLED").length /
+          ? (orders.filter((order: any) => order.status === "DELIVERED" || order.status === "FULFILLED").length /
               orders.length) *
             100
           : 0
@@ -128,21 +129,21 @@ export function DashboardOverview() {
 
       // Get recent orders
       const recent = orders
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5)
 
       setRecentOrders(recent)
 
       // Get order alerts
       const breachedOrders = orders.filter(
-        (order) =>
+        (order: any) =>
           order.sla_status === "BREACH" ||
           (order.elapsed_minutes > order.sla_target_minutes &&
             order.status !== "DELIVERED" &&
             order.status !== "FULFILLED"),
       )
 
-      const nearBreachOrders = orders.filter((order) => {
+      const nearBreachOrders = orders.filter((order: any) => {
         const remainingMinutes = order.sla_target_minutes - order.elapsed_minutes
         const criticalThreshold = order.sla_target_minutes * 0.2
         return (
@@ -157,8 +158,8 @@ export function DashboardOverview() {
       // Group alerts by business unit
       const alertsByBU = new Map()
 
-      const processOrdersForAlerts = (ordersList, type) => {
-        ordersList.forEach((order) => {
+      const processOrdersForAlerts = (ordersList: any[], type: string) => {
+        ordersList.forEach((order: any) => {
           const bu = order.business_unit || "Unknown"
           if (!alertsByBU.has(bu)) {
             alertsByBU.set(bu, {
@@ -328,7 +329,7 @@ export function DashboardOverview() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="channel" />
                         <YAxis domain={[0, 100]} />
-                        <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, "Compliance Rate"]} />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, "Compliance Rate"]} />
                         <Bar dataKey="compliance_rate" fill="#10b981" />
                       </BarChart>
                     </ResponsiveContainer>

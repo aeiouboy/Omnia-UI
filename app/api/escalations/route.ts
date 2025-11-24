@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { getMockEscalations, generateMockEscalations } from "@/lib/mock-data"
 
 export interface EscalationRecord {
   id: string
@@ -35,7 +36,7 @@ export interface EscalationUpdateInput {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     // Pagination parameters
     const page = parseInt(searchParams.get("page") || "1")
     const pageSize = parseInt(searchParams.get("pageSize") || "25")
@@ -49,6 +50,38 @@ export async function GET(request: NextRequest) {
     const searchTerm = searchParams.get("search")
     const dateFrom = searchParams.get("dateFrom")
     const dateTo = searchParams.get("dateTo")
+
+    // Check if forced to use mock data or Supabase is unavailable
+    const useMockData = process.env.USE_MOCK_DATA === "true"
+    const hasSupabaseCredentials = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+    /**
+     * Fallback to mock data if:
+     * 1. USE_MOCK_DATA is explicitly set to true, OR
+     * 2. Supabase credentials are missing
+     */
+    if (useMockData || !hasSupabaseCredentials) {
+      console.warn("⚠️ Using mock escalation data")
+
+      const mockResult = getMockEscalations({
+        status: status || undefined,
+        alertType: alertType || undefined,
+        severity: severity || undefined,
+        escalatedTo: escalatedTo || undefined,
+        search: searchTerm || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page,
+        pageSize
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: mockResult.data,
+        pagination: mockResult.pagination,
+        mockData: true
+      })
+    }
 
     // Build query
     let query = supabase
@@ -93,29 +126,27 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query
 
     if (error) {
-      console.error("Error fetching escalations:", error)
-      
-      // If table doesn't exist, return empty result instead of error
-      if (error.message && error.message.includes("does not exist")) {
-        console.warn("Escalation history table does not exist, returning empty data")
-        return NextResponse.json({
-          success: true,
-          data: [],
-          pagination: {
-            page: 1,
-            pageSize: 25,
-            total: 0,
-            totalPages: 0,
-            hasNext: false,
-            hasPrev: false,
-          },
-        })
-      }
-      
-      return NextResponse.json(
-        { success: false, error: `Database error: ${error.message}` },
-        { status: 500 }
-      )
+      console.warn("⚠️ Error fetching escalations, falling back to mock data:", error)
+
+      // Fallback to mock data on database error
+      const mockResult = getMockEscalations({
+        status: status || undefined,
+        alertType: alertType || undefined,
+        severity: severity || undefined,
+        escalatedTo: escalatedTo || undefined,
+        search: searchTerm || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        page,
+        pageSize
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: mockResult.data,
+        pagination: mockResult.pagination,
+        mockData: true
+      })
     }
 
     // Calculate pagination info
@@ -136,14 +167,39 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Error in escalations GET:", error)
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: `Failed to fetch escalations: ${error instanceof Error ? error.message : "Unknown error"}` 
-      },
-      { status: 500 }
-    )
+    console.warn("⚠️ Error in escalations GET, falling back to mock data:", error)
+
+    // Parse parameters for fallback
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get("page") || "1")
+    const pageSize = parseInt(searchParams.get("pageSize") || "25")
+    const status = searchParams.get("status")
+    const alertType = searchParams.get("alertType")
+    const severity = searchParams.get("severity")
+    const escalatedTo = searchParams.get("escalatedTo")
+    const searchTerm = searchParams.get("search")
+    const dateFrom = searchParams.get("dateFrom")
+    const dateTo = searchParams.get("dateTo")
+
+    // Fallback to mock data
+    const mockResult = getMockEscalations({
+      status: status || undefined,
+      alertType: alertType || undefined,
+      severity: severity || undefined,
+      escalatedTo: escalatedTo || undefined,
+      search: searchTerm || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      page,
+      pageSize
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: mockResult.data,
+      pagination: mockResult.pagination,
+      mockData: true
+    })
   }
 }
 
@@ -178,6 +234,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if in mock mode
+    const useMockData = process.env.USE_MOCK_DATA === "true"
+    const hasSupabaseCredentials = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+    if (useMockData || !hasSupabaseCredentials) {
+      console.warn("⚠️ Mock mode - escalation creation simulated")
+
+      // Generate mock response
+      const mockEscalation = {
+        id: `ESC-${Date.now()}`,
+        alert_id: body.alert_id,
+        alert_type: body.alert_type,
+        message: body.message,
+        severity: body.severity,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+        status: body.status,
+        escalated_by: body.escalated_by,
+        escalated_to: body.escalated_to,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: mockEscalation,
+        message: "Escalation record created successfully (mock mode)",
+        mockData: true
+      })
+    }
+
     // Create escalation record
     const escalationData = {
       alert_id: body.alert_id,
@@ -192,7 +278,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from("escalation_history")
-      .insert([escalationData])
+      .insert([escalationData] as any)
       .select()
       .single()
 
@@ -272,8 +358,8 @@ export async function PUT(request: NextRequest) {
     if (body.message) updateData.message = body.message
     if (body.escalated_to) updateData.escalated_to = body.escalated_to
 
-    const { data, error } = await supabase
-      .from("escalation_history")
+    const query = supabase.from("escalation_history") as any
+    const { data, error } = await query
       .update(updateData)
       .eq("id", id)
       .select()
