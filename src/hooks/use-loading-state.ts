@@ -414,6 +414,3 @@ export function useLoadingState(options: LoadingStateOptions = {}) {
     clearLoadingMessages,
   }
 }
-
-// Export types for use in other components
-export type { LoadingMessage, PaginationProgress }

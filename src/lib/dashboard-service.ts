@@ -1,4 +1,4 @@
-import { supabase } from "./supabase"
+import { supabase, Order } from "./supabase"
 
 export interface BusinessUnitRevenue {
   business_unit: string
@@ -23,6 +23,20 @@ export interface TopProduct {
   growth: number
 }
 
+export interface Product {
+  id: string
+  name: string
+  sku: string
+}
+
+export interface OrderItem {
+  quantity: number
+  unit_price: number
+  total_price: number
+  product_id: string
+  order_id: string
+}
+
 export interface DailyTrend {
   date: string
   orders: number
@@ -39,11 +53,11 @@ export interface WeeklyTrend {
 export class DashboardService {
   static async getOrderSummary() {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("*")
+      const { data: orders, error } = await supabase.from("orders").select("*") as { data: Order[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for summary:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Calculate summary metrics
@@ -119,11 +133,11 @@ export class DashboardService {
   static async getBusinessUnitRevenue(): Promise<BusinessUnitRevenue[]> {
     try {
       // ใช้การคำนวณโดยตรงเลย ไม่ต้องพยายามเรียกใช้ RPC
-      const { data: orders, error } = await supabase.from("orders").select("business_unit, total")
+      const { data: orders, error } = await supabase.from("orders").select("business_unit, total") as { data: Pick<Order, 'business_unit' | 'total'>[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for business unit revenue:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Group by business unit and sum revenue
@@ -165,11 +179,11 @@ export class DashboardService {
 
   static async calculateChannelDistribution(): Promise<ChannelDistribution[]> {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("channel")
+      const { data: orders, error } = await supabase.from("orders").select("channel") as { data: Pick<Order, 'channel'>[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for channel distribution:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Count orders by channel
@@ -208,11 +222,11 @@ export class DashboardService {
 
   static async calculateOrderStatusDistribution(): Promise<OrderStatusDistribution[]> {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("status")
+      const { data: orders, error } = await supabase.from("orders").select("status") as { data: Pick<Order, 'status'>[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for status distribution:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Count orders by status
@@ -297,11 +311,11 @@ export class DashboardService {
         product_id,
         order_id
       `)
-        .limit(100)
+        .limit(100) as { data: OrderItem[] | null, error: any }
 
-      if (orderItemsError) {
+      if (orderItemsError || !orderItems) {
         console.error("Error fetching order items:", orderItemsError)
-        throw orderItemsError
+        throw orderItemsError || new Error("No order items data returned")
       }
 
       // ถ้าไม่มีข้อมูล order_items ให้ส่งอาร์เรย์ว่างกลับไป
@@ -310,11 +324,11 @@ export class DashboardService {
       }
 
       // ดึงข้อมูลสินค้า
-      const { data: products, error: productsError } = await supabase.from("products").select("id, name, sku")
+      const { data: products, error: productsError } = await supabase.from("products").select("id, name, sku") as { data: Product[] | null, error: any }
 
-      if (productsError) {
+      if (productsError || !products) {
         console.error("Error fetching products:", productsError)
-        throw productsError
+        throw productsError || new Error("No products data returned")
       }
 
       // สร้าง Map ของสินค้าเพื่อการค้นหาที่รวดเร็ว
@@ -367,7 +381,7 @@ export class DashboardService {
         .from("orders")
         .select("id, created_at")
         .lt("created_at", oneMonthAgo.toISOString())
-        .limit(500)
+        .limit(500) as { data: Pick<Order, 'id' | 'created_at'>[] | null, error: any }
 
       if (historicalError) {
         console.error("Error fetching historical orders:", historicalError)
@@ -387,7 +401,7 @@ export class DashboardService {
       const { data: historicalItems, error: histItemsError } = await supabase
         .from("order_items")
         .select("product_id, quantity")
-        .in("order_id", historicalOrderIds)
+        .in("order_id", historicalOrderIds) as { data: Pick<OrderItem, 'product_id' | 'quantity'>[] | null, error: any }
 
       if (histItemsError) {
         console.error("Error fetching historical order items:", histItemsError)
@@ -490,11 +504,11 @@ export class DashboardService {
         .from("orders")
         .select("*")
         .gte("created_at", startDate.toISOString())
-        .lte("created_at", endDate.toISOString())
+        .lte("created_at", endDate.toISOString()) as { data: Order[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for daily trends:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // สร้าง Map เพื่อเก็บข้อมูลรายวัน
@@ -560,11 +574,11 @@ export class DashboardService {
 
   static async getFulfillmentPerformance() {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("*")
+      const { data: orders, error } = await supabase.from("orders").select("*") as { data: Order[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for fulfillment performance:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Calculate fulfillment metrics
@@ -601,11 +615,11 @@ export class DashboardService {
   static async getFulfillmentByBranch() {
     try {
       // ใช้การคำนวณโดยตรงเลย ไม่ต้องพยายามเรียกใช้ RPC
-      const { data: orders, error } = await supabase.from("orders").select("store_name, status")
+      const { data: orders, error } = await supabase.from("orders").select("store_name, status") as { data: Pick<Order, 'store_name' | 'status'>[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for branch fulfillment calculation:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // จัดกลุ่มตามสาขา (store_name) และคำนวณอัตราการจัดส่งสำเร็จ
@@ -647,11 +661,11 @@ export class DashboardService {
   static async getFulfillmentByChannel() {
     try {
       // ใช้การคำนวณโดยตรงเลย ไม่ต้องพยายามเรียกใช้ RPC
-      const { data: orders, error } = await supabase.from("orders").select("channel, status")
+      const { data: orders, error } = await supabase.from("orders").select("channel, status") as { data: Pick<Order, 'channel' | 'status'>[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for channel fulfillment calculation:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // จัดกลุ่มตามช่องทาง (channel) และคำนวณอัตราการจัดส่งสำเร็จ
@@ -689,11 +703,11 @@ export class DashboardService {
 
   static async getAnalyticsSummary() {
     try {
-      const { data: orders, error } = await supabase.from("orders").select("*")
+      const { data: orders, error } = await supabase.from("orders").select("*") as { data: Order[] | null, error: any }
 
-      if (error) {
+      if (error || !orders) {
         console.error("Error fetching orders for analytics summary:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // Calculate analytics metrics
@@ -732,11 +746,11 @@ export class DashboardService {
       const { data: weeklyOrders, error } = await supabase
         .from("orders")
         .select("*")
-        .gte("created_at", startOfWeek.toISOString())
+        .gte("created_at", startOfWeek.toISOString()) as { data: Order[] | null, error: any }
 
-      if (error) {
+      if (error || !weeklyOrders) {
         console.error("Error fetching orders for weekly trends:", error)
-        throw error
+        throw error || new Error("No orders data returned")
       }
 
       // สร้าง Map เพื่อเก็บข้อมูลรายวัน
@@ -841,11 +855,11 @@ export class DashboardService {
       const { data: currentOrders, error: currentError } = await supabase
         .from("orders")
         .select("*")
-        .gte("created_at", currentPeriodStart.toISOString())
+        .gte("created_at", currentPeriodStart.toISOString()) as { data: Order[] | null, error: any }
 
-      if (currentError) {
+      if (currentError || !currentOrders) {
         console.error("Error fetching current period orders:", currentError)
-        throw currentError
+        throw currentError || new Error("No current orders data returned")
       }
 
       // ดึงข้อมูล orders ในช่วงก่อนหน้า
@@ -853,11 +867,11 @@ export class DashboardService {
         .from("orders")
         .select("*")
         .gte("created_at", previousPeriodStart.toISOString())
-        .lt("created_at", currentPeriodStart.toISOString())
+        .lt("created_at", currentPeriodStart.toISOString()) as { data: Order[] | null, error: any }
 
-      if (previousError) {
+      if (previousError || !previousOrders) {
         console.error("Error fetching previous period orders:", previousError)
-        throw previousError
+        throw previousError || new Error("No previous orders data returned")
       }
 
       // คำนวณจำนวน orders ที่กำลังประมวลผล

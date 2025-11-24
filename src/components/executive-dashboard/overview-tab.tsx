@@ -9,7 +9,7 @@ import { OrderAlert } from "./types"
 
 interface OverviewTabProps {
   enhancedChannelData: {
-    overview: Array<{ name: string; orders: number }>
+    overview: Array<{ name: string; orders: number; revenue: number }>
     drillDown: Array<{ status: string; orders: number }>
   }
   orderAlerts: OrderAlert[]

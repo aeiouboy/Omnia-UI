@@ -257,6 +257,53 @@ interface DataValidationResult {
   completenessScore: number
 }
 
+interface DailyDataEntry {
+  date: string
+  GRAB: number
+  LAZADA: number
+  SHOPEE: number
+  TIKTOK: number
+  total: number
+}
+
+interface DailyDataCollection {
+  [dateKey: string]: DailyDataEntry
+}
+
+interface ChannelDataEntry {
+  orders: ApiOrder[]
+  revenue: number
+  orderCount: number
+}
+
+interface ChannelDataCollection {
+  GRAB: ChannelDataEntry
+  LAZADA: ChannelDataEntry
+  SHOPEE: ChannelDataEntry
+  TIKTOK: ChannelDataEntry
+  [key: string]: ChannelDataEntry
+}
+
+interface ProductMapEntry {
+  name: string
+  sku: string
+  units: number
+  revenue: number
+}
+
+interface ProductMap {
+  [productKey: string]: ProductMapEntry
+}
+
+interface CategoryMapEntry {
+  name: string
+  value: number
+}
+
+interface CategoryMap {
+  [category: string]: CategoryMapEntry
+}
+
 const validateDataCompleteness = (
   fetchedOrders: ApiOrder[], 
   paginationInfo: { page: number; pageSize: number; total: number; hasNext: boolean }
@@ -2359,7 +2406,7 @@ export function ExecutiveDashboard() {
       }
 
       // Group by store/branch
-      const branchData = {}
+      const branchData: { [key: string]: { total: number; fulfilled: number } } = {}
 
       orders.forEach((order) => {
         const branchName = order.metadata?.store_name || "Unknown Store"
@@ -2403,8 +2450,8 @@ export function ExecutiveDashboard() {
       const orders = await fetchOrdersFromApi()
 
       // Task 10.1: Create today-only structure using GMT+7 dates (Performance optimization)
-      const createDailyStructure = () => {
-        const dailyData = {}
+      const createDailyStructure = (): DailyDataCollection => {
+        const dailyData: DailyDataCollection = {}
         const today = getGMT7Time()
         const dateKey = formatGMT7DateString(today).split("/").reverse().join("-") // Convert MM/DD/YYYY to YYYY-MM-DD
         dailyData[dateKey] = {
@@ -2433,7 +2480,8 @@ export function ExecutiveDashboard() {
             if (dailyData[dateKey]) {
               const channel = (order.channel || "UNKNOWN").toUpperCase()
               if (["GRAB", "LAZADA", "SHOPEE", "TIKTOK"].includes(channel)) {
-                dailyData[dateKey][channel] = (dailyData[dateKey][channel] || 0) + 1
+                const channelKey = channel as keyof Omit<DailyDataEntry, 'date' | 'total'>
+                dailyData[dateKey][channelKey] = (dailyData[dateKey][channelKey] || 0) + 1
                 dailyData[dateKey].total += 1  // Count orders, not revenue
               }
             }
@@ -2454,7 +2502,7 @@ export function ExecutiveDashboard() {
     } catch (err) {
       console.warn("Error in fetchDailyOrders:", err)
       // Task 10.1: Return today-only empty structure on error (Performance optimization)
-      const dailyData = {}
+      const dailyData: DailyDataCollection = {}
       const today = getGMT7Time()
       const dateKey = formatGMT7DateString(today).split("/").reverse().join("-") // Convert MM/DD/YYYY to YYYY-MM-DD
       dailyData[dateKey] = {
@@ -2487,11 +2535,11 @@ export function ExecutiveDashboard() {
       }
 
       // Group by channel
-      const channelData = {
-        GRAB: { orders: [] as any[], revenue: 0, orderCount: 0 },
-        LAZADA: { orders: [] as any[], revenue: 0, orderCount: 0 },
-        SHOPEE: { orders: [] as any[], revenue: 0, orderCount: 0 },
-        TIKTOK: { orders: [] as any[], revenue: 0, orderCount: 0 },
+      const channelData: ChannelDataCollection = {
+        GRAB: { orders: [], revenue: 0, orderCount: 0 },
+        LAZADA: { orders: [], revenue: 0, orderCount: 0 },
+        SHOPEE: { orders: [], revenue: 0, orderCount: 0 },
+        TIKTOK: { orders: [], revenue: 0, orderCount: 0 },
       }
 
       const channelMapping = {
@@ -2606,7 +2654,7 @@ export function ExecutiveDashboard() {
         return []
       }
 
-      const productMap = {}
+      const productMap: ProductMap = {}
 
       orders.forEach((order) => {
         if (order.items && Array.isArray(order.items)) {
@@ -2674,7 +2722,7 @@ export function ExecutiveDashboard() {
       }
 
       // Aggregate revenue by category from order items
-      const categoryMap = {}
+      const categoryMap: CategoryMap = {}
 
       orders.forEach((order) => {
         if (order.items && Array.isArray(order.items)) {
@@ -2821,7 +2869,7 @@ export function ExecutiveDashboard() {
           <AlertCircle className="h-5 w-5 mr-2" />
           <p>{error}</p>
         </div>
-        <Button variant="outline" className="mt-4" onClick={loadData}>
+        <Button variant="outline" className="mt-4" onClick={() => loadData()}>
           Retry
         </Button>
       </div>
@@ -3157,9 +3205,9 @@ export function ExecutiveDashboard() {
                       />
                       <YAxis yAxisId="left" />
                       <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value, name) => [
-                          name === 'revenue' ? `฿${(value / 1000000).toFixed(1)}M` : value,
+                          name === 'revenue' ? `฿${(Number(value) / 1000000).toFixed(1)}M` : value,
                           name === 'orders' ? 'Orders' : 'Revenue'
                         ]}
                         labelFormatter={(hour) => `Time: ${hour}`}
@@ -3244,11 +3292,11 @@ export function ExecutiveDashboard() {
                       <XAxis dataKey="channel" />
                       <YAxis yAxisId="left" />
                       <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value, name) => [
-                          name === 'revenue' ? `฿${(value / 1000000).toFixed(1)}M` : 
-                          name === 'sla_rate' ? `${value.toFixed(1)}%` : value,
-                          name === 'orders' ? 'Orders' : 
+                          name === 'revenue' ? `฿${(Number(value) / 1000000).toFixed(1)}M` :
+                          name === 'sla_rate' ? `${Number(value).toFixed(1)}%` : value,
+                          name === 'orders' ? 'Orders' :
                           name === 'revenue' ? 'Revenue' : 'SLA Rate'
                         ]}
                       />
@@ -3329,7 +3377,7 @@ export function ExecutiveDashboard() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"

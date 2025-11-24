@@ -1,7 +1,7 @@
 "use client"
 
 import React, { forwardRef, useCallback, useRef, useImperativeHandle, useMemo } from "react"
-import { FixedSizeList as List, ListChildComponentProps } from "react-window"
+import { FixedSizeList as List, ListChildComponentProps, ListOnScrollProps } from "react-window"
 import { cn } from "@/lib/utils"
 
 export interface VirtualizedTableColumn<T> {
@@ -152,16 +152,12 @@ function VirtualizedTableInner<T>(
   )
 
   // Handle scroll events
-  const handleScroll = useCallback((scrollInfo: { 
-    scrollLeft: number; 
-    scrollOffset: number; 
-    scrollDirection: 'forward' | 'backward' 
-  }) => {
+  const handleScroll = useCallback((scrollInfo: ListOnScrollProps) => {
     // Call parent's onScroll handler if provided
     if (onScroll) {
-      onScroll({ 
-        scrollOffset: scrollInfo.scrollOffset, 
-        scrollDirection: scrollInfo.scrollDirection 
+      onScroll({
+        scrollOffset: scrollInfo.scrollOffset,
+        scrollDirection: scrollInfo.scrollDirection
       })
     }
   }, [onScroll])

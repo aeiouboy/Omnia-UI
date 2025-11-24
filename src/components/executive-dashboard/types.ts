@@ -1,6 +1,10 @@
-import { ApiSLAInfo } from "@/lib/api-types"
-
 // API response types matching OrderManagementHub
+export interface ApiSLAInfo {
+  target_minutes: number
+  elapsed_minutes: number
+  status: string
+}
+
 export interface ApiCustomer {
   id: string
   name: string
@@ -62,6 +66,7 @@ export interface ApiOrder {
   metadata: ApiMetadata
   items: ApiOrderItem[]
   status: string
+  on_hold?: boolean
 }
 
 export interface ApiPagination {

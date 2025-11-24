@@ -360,7 +360,7 @@ export async function withRetry<T>(
   maxRetries: number = 3,
   delay: number = 1000
 ): Promise<T> {
-  let lastError: Error
+  let lastError: Error = new Error("Operation failed without error details")
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

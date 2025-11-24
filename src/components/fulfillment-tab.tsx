@@ -11,8 +11,12 @@ export function FulfillmentTab() {
     avgFulfillmentTime: 0,
     itemsFulfilled: 0,
   })
-  const [branchData, setBranchData] = useState([])
-  const [channelData, setChannelData] = useState([])
+  const [branchData, setBranchData] = useState<Array<{ branch: string; fulfillment_rate: number }>>(
+    []
+  )
+  const [channelData, setChannelData] = useState<Array<{ channel: string; fulfillment_rate: number }>>(
+    []
+  )
 
   useEffect(() => {
     async function loadData() {

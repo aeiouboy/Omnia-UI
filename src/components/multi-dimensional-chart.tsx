@@ -130,9 +130,9 @@ export function MultiDimensionalChart({
         return acc
       }, {})
 
-      return Object.entries(grouped).map(([name, items]: [string, any[]]) => ({
+      return (Object.entries(grouped) as [string, any[]][]).map(([name, items]) => ({
         name,
-        value: aggregation === 'count' ? items.length : 
+        value: aggregation === 'count' ? items.length :
                aggregation === 'sum' ? items.reduce((sum, item) => sum + (item[yAxis] || 0), 0) :
                aggregation === 'avg' ? items.reduce((sum, item) => sum + (item[yAxis] || 0), 0) / items.length :
                aggregation === 'min' ? Math.min(...items.map(item => item[yAxis] || 0)) :
@@ -176,7 +176,7 @@ export function MultiDimensionalChart({
       return acc
     }, {})
 
-    return Object.entries(grouped).map(([name, items]: [string, any[]]) => ({
+    return (Object.entries(grouped) as [string, any[]][]).map(([name, items]) => ({
       [xAxis]: name,
       [yAxis]: aggregation === 'count' ? items.length :
                aggregation === 'sum' ? items.reduce((sum, item) => sum + (item[yAxis] || 0), 0) :
@@ -248,10 +248,10 @@ export function MultiDimensionalChart({
                   />
                 ))
             ) : (
-              <Bar 
-                dataKey={chartConfig.yAxis} 
+              <Bar
+                dataKey={chartConfig.yAxis}
                 fill={CHART_COLORS[0]}
-                onClick={(data) => addFilter(chartConfig.xAxis, [data[chartConfig.xAxis]])}
+                onClick={(data) => addFilter(chartConfig.xAxis, [data.payload[chartConfig.xAxis]])}
               />
             )}
           </BarChart>

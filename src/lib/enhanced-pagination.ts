@@ -134,7 +134,7 @@ export async function enhancedFetchWithProgress(
                   const endDate = new Date(dateTo + 'T23:59:59.999Z')
                   return orderGMT7 >= startDate && orderGMT7 <= endDate
                 } catch (error) {
-                  logger.warning(`Invalid order date for order ${order.id}`, { error: error.message })
+                  logger.warning(`Invalid order date for order ${order.id}`, { error: error instanceof Error ? error.message : String(error) })
                   return false
                 }
               }).map((order: any) => ({
@@ -162,8 +162,8 @@ export async function enhancedFetchWithProgress(
               }))
 
               // Deduplicate orders
-              const existingIds = new Set(allOrders.map(o => o.id))
-              const newOrders = validOrders.filter(order => !existingIds.has(order.id))
+              const existingIds = new Set(allOrders.map((o: any) => o.id))
+              const newOrders = validOrders.filter((order: any) => !existingIds.has(order.id))
               
               // Accumulate orders
               allOrders.push(...newOrders)
@@ -235,13 +235,13 @@ export async function enhancedFetchWithProgress(
           }
         } catch (pageError) {
           retryAttempt++
-          
+
           loggingService.error(`Page ${currentPage} error`, {
             page: currentPage,
             attempt: retryAttempt,
             maxRetries: MAX_RETRIES,
-            error: pageError.message
-          }, pageError)
+            error: pageError instanceof Error ? pageError.message : String(pageError)
+          }, pageError instanceof Error ? pageError : undefined)
 
           if (retryAttempt < MAX_RETRIES) {
             const delayMs = BASE_RETRY_DELAY * Math.pow(2, retryAttempt - 1)
@@ -249,7 +249,7 @@ export async function enhancedFetchWithProgress(
             await new Promise(resolve => setTimeout(resolve, delayMs))
           } else {
             loadingState.addLoadingMessage(`Page ${currentPage} failed after ${MAX_RETRIES} attempts`, 'error')
-            loggingService.failPage(currentPage, pageError.message, true)
+            loggingService.failPage(currentPage, pageError instanceof Error ? pageError.message : String(pageError), true)
             consecutiveFailures++
             failedPages++
             pageSuccess = true // Exit retry loop
@@ -299,9 +299,9 @@ export async function enhancedFetchWithProgress(
 
   } catch (error) {
     clearTimeout(timeoutId)
-    
-    loadingState.addLoadingMessage(`Data fetch failed: ${error.message}`, 'error')
-    loggingService.error('Pagination failed', { error: error.message }, error)
+
+    loadingState.addLoadingMessage(`Data fetch failed: ${error instanceof Error ? error.message : String(error)}`, 'error')
+    loggingService.error('Pagination failed', { error: error instanceof Error ? error.message : String(error) }, error instanceof Error ? error : undefined)
     
     // Return partial results if available
     if (allOrders.length > 0) {

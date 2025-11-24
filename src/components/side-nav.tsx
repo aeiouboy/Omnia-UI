@@ -92,7 +92,7 @@ export function SideNav() {
 
         {/* Mobile Sidebar */}
         <div
-          ref={sidebarSwipeRef}
+          ref={sidebarSwipeRef as React.RefObject<HTMLDivElement>}
           className={cn(
             "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-enterprise-border transform transition-transform duration-300 ease-in-out md:hidden",
             isMobileOpen ? "translate-x-0" : "-translate-x-full",

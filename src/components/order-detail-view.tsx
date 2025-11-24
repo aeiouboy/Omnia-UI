@@ -565,6 +565,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     targetMinutes={order?.sla_info?.target_minutes || 0}
                     elapsedMinutes={order?.sla_info?.elapsed_minutes || 0}
                     status={order?.status || 'N/A'}
+                    slaStatus={order?.sla_info?.status}
                   />
                 </div>
                 <div>
@@ -590,34 +591,34 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-enterprise-text-light">Carrier</p>
-                      <p className="font-medium">{order.delivery.carrier || 'N/A'}</p>
+                      <p className="font-medium">{(order as any)?.delivery?.carrier || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">Tracking Number</p>
-                      <p className="font-mono text-sm">{order.delivery.trackingNumber || 'N/A'}</p>
+                      <p className="font-mono text-sm">{(order as any)?.delivery?.trackingNumber || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">Vehicle Type</p>
-                      <Badge variant="outline">{order.delivery.vehicleType || 'N/A'}</Badge>
+                      <Badge variant="outline">{(order as any)?.delivery?.vehicleType || 'N/A'}</Badge>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">License Plate</p>
-                      <p className="font-mono text-sm">{order.delivery.licensePlate || 'N/A'}</p>
+                      <p className="font-mono text-sm">{(order as any)?.delivery?.licensePlate || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-enterprise-text-light">Driver</p>
-                      <p className="font-medium">{order.delivery.driverName || 'N/A'}</p>
-                      <p className="text-sm text-enterprise-text-light">{order.delivery.driverPhone || 'N/A'}</p>
+                      <p className="font-medium">{(order as any)?.delivery?.driverName || 'N/A'}</p>
+                      <p className="text-sm text-enterprise-text-light">{(order as any)?.delivery?.driverPhone || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">Estimated Arrival</p>
-                      <p className="text-sm">{order.delivery.estimatedArrival ? new Date(order.delivery.estimatedArrival).toLocaleString() : 'N/A'}</p>
+                      <p className="text-sm">{(order as any)?.delivery?.estimatedArrival ? new Date((order as any).delivery.estimatedArrival).toLocaleString() : 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">Delivery Instructions</p>
-                      <p className="text-sm italic">{order.delivery.deliveryInstructions || 'N/A'}</p>
+                      <p className="text-sm italic">{(order as any)?.delivery?.deliveryInstructions || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -642,7 +643,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <CardContent className="px-4 sm:px-6">
               {false ? ( // No timeline info in API payload
                 <div className="space-y-4">
-                  {order.timeline.map((event: any, index: any) => (
+                  {(order as any)?.timeline?.map((event: any, index: any) => (
                     <div key={index} className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                       <div className="flex-grow">
@@ -683,7 +684,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <CardContent className="px-4 sm:px-6">
               {false ? ( // No notes info in API payload
                 <div className="space-y-4">
-                  {order.notes.map((note: any) => (
+                  {(order as any)?.notes?.map((note: any) => (
                     <div key={note.id} className="border-l-4 border-blue-200 pl-4 py-2">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">

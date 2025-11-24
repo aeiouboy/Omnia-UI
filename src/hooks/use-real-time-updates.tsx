@@ -47,8 +47,8 @@ export function useRealTimeUpdates(config: RealTimeUpdatesConfig = {}) {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('disconnected')
 
   const retryCountRef = useRef(0)
-  const intervalRef = useRef<NodeJS.Timeout>()
-  const abortControllerRef = useRef<AbortController>()
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const abortControllerRef = useRef<AbortController | undefined>(undefined)
 
   // Optimistic update function
   const applyOptimisticUpdate = useCallback((

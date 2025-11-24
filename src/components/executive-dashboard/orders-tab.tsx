@@ -337,6 +337,7 @@ function RecentOrdersTable({
                           targetMinutes={order.sla_info.target_minutes}
                           elapsedMinutes={order.sla_info.elapsed_minutes}
                           status={order.status}
+                          slaStatus={order.sla_info.status}
                         />
                       ) : (
                         <span className="text-gray-400">-</span>

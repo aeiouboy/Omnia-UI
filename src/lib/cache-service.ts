@@ -62,7 +62,9 @@ class CacheService {
     // Implement LRU eviction if cache is full
     if (this.memoryCache.size >= this.config.maxMemoryItems) {
       const oldestKey = this.memoryCache.keys().next().value
-      this.memoryCache.delete(oldestKey)
+      if (oldestKey !== undefined) {
+        this.memoryCache.delete(oldestKey)
+      }
     }
 
     this.memoryCache.set(key, {

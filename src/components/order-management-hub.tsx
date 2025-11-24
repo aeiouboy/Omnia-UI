@@ -125,6 +125,7 @@ export interface Order {
   metadata: ApiMetadata
   items: ApiOrderItem[]
   status: string
+  on_hold?: boolean
   // Optionally add derived fields for UI only if needed
 }
 
@@ -1090,6 +1091,7 @@ export function OrderManagementHub() {
                       targetMinutes={order.slaStatus?.target_minutes ?? 0}
                       elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
                       status={order.status}
+                      slaStatus={order.slaStatus?.status}
                     />
                   </TableCell>
                   <TableCell>

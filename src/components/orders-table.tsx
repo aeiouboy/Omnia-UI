@@ -227,12 +227,12 @@ export function OrdersTable() {
         <TableBody>
           {orders.map((order) => (
             <TableRow key={order.id} className="hover:bg-light-gray/50">
-              <TableCell className="font-mono text-xs text-deep-navy">{order.order_no}</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.customer?.name}</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.customer?.email}</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.customer?.phone}</TableCell>
-              <TableCell className="text-body text-deep-navy">฿{order.total_amount?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.metadata?.store_name}</TableCell>
+              <TableCell className="font-mono text-xs text-deep-navy">{order.orderNo}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.customer}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.email}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.phoneNumber}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.total}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.sellingLocationId}</TableCell>
               <TableCell>
                 <div className="flex items-center">
                   {getStatusIcon(order.status)}
@@ -241,12 +241,12 @@ export function OrdersTable() {
               </TableCell>
               <TableCell className="text-body text-deep-navy">-</TableCell>
               <TableCell className="text-body text-deep-navy">-</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.order_type}</TableCell>
-              <TableCell className="text-body text-deep-navy">{order.payment_info?.status}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.orderType}</TableCell>
+              <TableCell className="text-body text-deep-navy">{order.paymentStatus}</TableCell>
               <TableCell className="text-body text-deep-navy">-</TableCell>
               <TableCell>{order.channel}</TableCell>
               <TableCell className="text-body text-deep-navy">-</TableCell>
-              <TableCell className="text-body text-deep-navy font-mono text-xs">{order.metadata?.created_at ? new Date(order.metadata.created_at).toLocaleString() : ''}</TableCell>
+              <TableCell className="text-body text-deep-navy font-mono text-xs">{order.createdDate}</TableCell>
               <TableCell className="text-right">
                 <Button
                   size="sm"

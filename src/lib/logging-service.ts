@@ -254,16 +254,16 @@ class LoggingService {
   /**
    * Log pagination completion
    */
-  completePagination(totalOrders: number, totalPages: number, totalTime: number, avgTime: number, errors: number = 0, retries: number = 0): void {
-    const successRate = totalPages > 0 ? ((totalPages - errors) / totalPages * 100).toFixed(1) : '100'
-    
+  completePagination(totalOrders: number, totalPages: number, totalTime: number, avgTime: number, errorCount: number = 0, retries: number = 0): void {
+    const successRate = totalPages > 0 ? ((totalPages - errorCount) / totalPages * 100).toFixed(1) : '100'
+
     this.success(`Pagination completed`, {
       operation: 'pagination complete',
       totalOrders,
       totalPages,
       elapsed: totalTime,
       avgTime,
-      errors,
+      errorCount,
       retries,
       successRate: `${successRate}%`,
       progress: 100
@@ -448,6 +448,3 @@ export const loggingService = new LoggingService({
 
 // Export for custom instances
 export { LoggingService }
-
-// Export types
-export type { LogEntry, LogContext }

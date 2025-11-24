@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { RealTimeStatus } from "@/components/real-time-status"
 import { CriticalAlertsBanner } from "@/components/critical-alerts-banner"
 import { OrderDetailView } from "@/components/order-detail-view"
+import { Order } from "@/components/order-management-hub"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { useSwipeTabs } from "@/hooks/use-swipe-tabs"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -621,9 +622,8 @@ export function ExecutiveDashboard() {
           order={{
             ...selectedOrder,
             total: selectedOrder.total_amount || 0
-          }}
+          } as Order}
           onClose={handleCloseOrderDetail}
-          open={showOrderDetail}
         />
       )}
     </div>

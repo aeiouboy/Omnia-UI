@@ -799,8 +799,10 @@ export function processOrderAlerts(orders: ApiOrder[]): {
     }
   }
 
-  const orderAlerts = slaBreaches.map(order => mapToOrderAlert(order, 'breach'))
-  const approachingAlerts = approachingSLA.map(order => mapToOrderAlert(order, 'approaching'))
+  // Type assertion: The filtered orders from sla-utils are still ApiOrder objects
+  // since we passed ApiOrder[] to the filter functions
+  const orderAlerts = slaBreaches.map(order => mapToOrderAlert(order as ApiOrder, 'breach'))
+  const approachingAlerts = approachingSLA.map(order => mapToOrderAlert(order as ApiOrder, 'approaching'))
 
   return {
     orderAlerts,

@@ -145,7 +145,7 @@ export function KpiCard({
   ].join(' ')
 
   // Clone icon with status-based color and priority-based size
-  const styledIcon = React.cloneElement(icon as React.ReactElement, {
+  const styledIcon = React.cloneElement(icon as React.ReactElement<any>, {
     className: `${priorityStyles.iconSize} ${statusStyles.icon}`
   })
 

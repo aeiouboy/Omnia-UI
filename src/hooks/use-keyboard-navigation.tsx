@@ -148,13 +148,13 @@ export function useKeyboardNavigation(config: KeyboardNavigationConfig = {}) {
 
   // Set up keyboard event listener
   useEffect(() => {
-    const container = containerId 
+    const container = containerId
       ? document.getElementById(containerId)
       : containerRef.current || document
 
     if (container) {
-      container.addEventListener('keydown', handleKeyDown)
-      return () => container.removeEventListener('keydown', handleKeyDown)
+      container.addEventListener('keydown', handleKeyDown as EventListener)
+      return () => container.removeEventListener('keydown', handleKeyDown as EventListener)
     }
   }, [containerId, handleKeyDown])
 
