@@ -16,8 +16,26 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   ]
 
   const statuses = ["SUBMITTED", "PROCESSING", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"]
-  const channels = ["ONLINE", "OFFLINE", "MOBILE_APP", "WEBSITE"]
+  const channels = ["GrabMart", "LINE MAN", "FoodDelivery", "Tops Online", "ShopeeFood"]
   const priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
+  const foodCategories = ["Fresh Produce", "Meat & Seafood", "Dairy & Eggs", "Beverages", "Snacks & Confectionery", "Bakery", "Frozen Foods", "Pantry Staples"]
+  const products = [
+    { name: "Fresh Milk 1L", sku: "DAIRY-001", category: "Dairy & Eggs", price: 45 },
+    { name: "Chicken Breast 500g", sku: "MEAT-001", category: "Meat & Seafood", price: 120 },
+    { name: "Jasmine Rice 5kg", sku: "PANTRY-001", category: "Pantry Staples", price: 180 },
+    { name: "Green Apples", sku: "PRODUCE-001", category: "Fresh Produce", price: 80 },
+    { name: "Coca Cola 1.5L", sku: "BEV-001", category: "Beverages", price: 35 },
+    { name: "Chocolate Cookies", sku: "SNACK-001", category: "Snacks & Confectionery", price: 65 },
+    { name: "Whole Wheat Bread", sku: "BAKERY-001", category: "Bakery", price: 40 },
+    { name: "Frozen Pizza", sku: "FROZEN-001", category: "Frozen Foods", price: 180 },
+    { name: "Organic Eggs 10pcs", sku: "DAIRY-002", category: "Dairy & Eggs", price: 95 },
+    { name: "Fresh Salmon 300g", sku: "MEAT-002", category: "Meat & Seafood", price: 250 },
+    { name: "Potato Chips", sku: "SNACK-002", category: "Snacks & Confectionery", price: 45 },
+    { name: "Orange Juice 1L", sku: "BEV-002", category: "Beverages", price: 55 },
+    { name: "Bananas 1kg", sku: "PRODUCE-002", category: "Fresh Produce", price: 35 },
+    { name: "Croissant 6pcs", sku: "BAKERY-002", category: "Bakery", price: 120 },
+    { name: "Ice Cream Vanilla", sku: "FROZEN-002", category: "Frozen Foods", price: 150 }
+  ]
 
   const status = statuses[Math.floor(Math.random() * statuses.length)]
   const elapsedMinutes = Math.floor(Math.random() * 600)
@@ -28,6 +46,38 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   const createdDate = new Date()
   createdDate.setMinutes(createdDate.getMinutes() - elapsedMinutes)
 
+  // Generate random order date within last 7 days
+  const randomDaysAgo = Math.floor(Math.random() * 7)
+  const orderDate = new Date()
+  orderDate.setDate(orderDate.getDate() - randomDaysAgo)
+  orderDate.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0, 0)
+
+  // Generate order items with proper structure matching ApiOrderItem interface
+  const itemCount = Math.floor(Math.random() * 5) + 1
+  const orderItems = Array.from({ length: itemCount }, (_, j) => {
+    const product = products[Math.floor(Math.random() * products.length)]
+    const quantity = Math.floor(Math.random() * 3) + 1
+    const unit_price = product.price
+    const total_price = unit_price * quantity
+
+    return {
+      id: `ITEM-${id}-${j + 1}`,
+      product_id: product.sku,
+      product_name: product.name,
+      product_sku: product.sku,
+      quantity,
+      unit_price,
+      total_price,
+      product_details: {
+        description: `High quality ${product.name.toLowerCase()}`,
+        category: product.category,
+        brand: "Tops Quality"
+      }
+    }
+  })
+
+  const total_amount = orderItems.reduce((sum, item) => sum + item.total_price, 0)
+
   return {
     id,
     order_no: id,
@@ -35,38 +85,40 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
       id: `CUST-${Math.floor(Math.random() * 10000)}`,
       name: `Customer ${i + 1}`,
       email: `customer${i + 1}@example.com`,
-      phone: `+66${Math.floor(Math.random() * 9000000000) + 1000000000}`
+      phone: `+66${Math.floor(Math.random() * 900000000) + 100000000}`,
+      T1Number: `T1${Math.floor(Math.random() * 10000000)}`
     },
-    items: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, j) => ({
-      id: `ITEM-${id}-${j + 1}`,
-      name: `Product ${j + 1}`,
-      quantity: Math.floor(Math.random() * 3) + 1,
-      price: Math.floor(Math.random() * 500) + 50,
-      category: "Grocery"
-    })),
+    items: orderItems,
     status,
     channel: channels[Math.floor(Math.random() * channels.length)],
-    total: Math.floor(Math.random() * 2000) + 200,
-    created_at: createdDate.toISOString(),
-    updated_at: new Date().toISOString(),
-    store: {
-      id: `STORE-${Math.floor(Math.random() * 8) + 1}`,
-      name: topsStores[Math.floor(Math.random() * topsStores.length)],
-      location: {
-        latitude: 13.7563 + (Math.random() - 0.5) * 0.1,
-        longitude: 100.5018 + (Math.random() - 0.5) * 0.1
-      }
+    business_unit: "Retail",
+    order_type: Math.random() > 0.5 ? "DELIVERY" : "PICKUP",
+    total_amount,
+    order_date: orderDate.toISOString(),
+    shipping_address: {
+      street: `${Math.floor(Math.random() * 999) + 1} Sukhumvit Road`,
+      city: "Bangkok",
+      state: "Bangkok",
+      postal_code: `${Math.floor(Math.random() * 90000) + 10000}`,
+      country: "Thailand"
+    },
+    payment_info: {
+      method: ["CREDIT_CARD", "CASH", "WALLET", "QR_CODE"][Math.floor(Math.random() * 4)],
+      status: ["PAID", "PENDING", "FAILED"][Math.floor(Math.random() * 3)],
+      transaction_id: `TXN-${Math.floor(Math.random() * 1000000)}`
+    },
+    metadata: {
+      created_at: createdDate.toISOString(),
+      updated_at: new Date().toISOString(),
+      priority: priorities[Math.floor(Math.random() * priorities.length)],
+      store_name: topsStores[Math.floor(Math.random() * topsStores.length)]
     },
     sla_info: {
       target_minutes: targetMinutes,
       elapsed_minutes: elapsedMinutes,
       status: isBreach ? "BREACH" : isNearBreach ? "NEAR_BREACH" : "COMPLIANT"
     },
-    priority: priorities[Math.floor(Math.random() * priorities.length)],
-    payment_method: "CREDIT_CARD",
-    fulfillment_type: Math.random() > 0.5 ? "DELIVERY" : "PICKUP",
-    assigned_driver: Math.random() > 0.7 ? `Driver-${Math.floor(Math.random() * 20) + 1}` : undefined,
-    estimated_delivery_time: new Date(Date.now() + Math.floor(Math.random() * 120) * 60000).toISOString()
+    on_hold: Math.random() > 0.9
   }
 })
 
@@ -291,7 +343,7 @@ export function getMockOrders(filters: {
 
   if (filters.dateFrom || filters.dateTo) {
     filtered = filtered.filter(order => {
-      const orderDate = new Date(order.created_at).toISOString().split('T')[0]
+      const orderDate = new Date(order.order_date).toISOString().split('T')[0]
       if (filters.dateFrom && orderDate < filters.dateFrom) return false
       if (filters.dateTo && orderDate > filters.dateTo) return false
       return true

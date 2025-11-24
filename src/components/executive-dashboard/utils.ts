@@ -380,26 +380,64 @@ export const calculateChannelPerformance = (orders: any[]) => {
 
 export const calculateTopProducts = (orders: any[]) => {
   console.log('📦 Calculating top products from', orders.length, 'orders')
-  
+
+  // Log sample order structure to verify items array
+  if (orders.length > 0) {
+    const sampleOrder = orders[0]
+    console.log('🔍 Sample order for product analysis:', {
+      id: sampleOrder.id,
+      hasItems: !!sampleOrder.items,
+      itemsType: Array.isArray(sampleOrder.items) ? 'array' : typeof sampleOrder.items,
+      itemsLength: sampleOrder.items?.length || 0,
+      sampleItem: sampleOrder.items?.[0] || null
+    })
+  }
+
+  let ordersWithItems = 0
+  let ordersWithoutItems = 0
+  let totalItems = 0
+
   const productData = orders.reduce((acc, order) => {
     if (order.items && Array.isArray(order.items)) {
+      ordersWithItems++
+      totalItems += order.items.length
+
       order.items.forEach((item: any) => {
         const productName = item.product_name || 'Unknown Product'
+
+        // Log first unknown product for debugging
+        if (productName === 'Unknown Product' && Object.keys(acc).length === 0) {
+          console.warn('⚠️ Found item without product_name:', {
+            item,
+            availableFields: Object.keys(item)
+          })
+        }
+
         if (!acc[productName]) {
-          acc[productName] = { 
+          acc[productName] = {
             name: productName,
             sku: item.product_sku || item.product_id || 'N/A',
-            units: 0, 
-            revenue: 0 
+            units: 0,
+            revenue: 0
           }
         }
         acc[productName].units += item.quantity || 0
         acc[productName].revenue += (item.total_price || (item.unit_price * item.quantity)) || 0
       })
+    } else {
+      ordersWithoutItems++
     }
     return acc
   }, {} as Record<string, any>)
-  
+
+  console.log('📦 Product aggregation summary:', {
+    ordersWithItems,
+    ordersWithoutItems,
+    totalItems,
+    uniqueProducts: Object.keys(productData).length,
+    avgItemsPerOrder: ordersWithItems > 0 ? (totalItems / ordersWithItems).toFixed(1) : 0
+  })
+
   const result = Object.values(productData)
     .sort((a: any, b: any) => b.revenue - a.revenue)
     .slice(0, 10)
@@ -407,19 +445,52 @@ export const calculateTopProducts = (orders: any[]) => {
       rank: index + 1,
       ...product
     }))
-  
+
   console.log('📦 Top products calculated:', result.length, 'products')
-  
+  if (result.length > 0) {
+    console.log('📦 Top 3 products:', result.slice(0, 3).map(p => `${p.name} (฿${p.revenue})`))
+  }
+
   return result
 }
 
 export const calculateRevenueByCategory = (orders: any[]) => {
   console.log('💰 Calculating revenue by category from', orders.length, 'orders')
-  
+
+  // Log sample item structure to verify category path
+  if (orders.length > 0 && orders[0].items && orders[0].items.length > 0) {
+    const sampleItem = orders[0].items[0]
+    console.log('🔍 Sample item for category analysis:', {
+      hasProductDetails: !!sampleItem.product_details,
+      categoryPath1: sampleItem.product_details?.category,
+      categoryPath2: sampleItem.category,
+      availableFields: Object.keys(sampleItem)
+    })
+  }
+
+  let itemsWithCategory = 0
+  let itemsWithoutCategory = 0
+
   const categoryData = orders.reduce((acc, order) => {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
         const category = item.product_details?.category || item.category || 'Other'
+
+        if (category === 'Other') {
+          itemsWithoutCategory++
+          // Log first item without category for debugging
+          if (itemsWithoutCategory === 1) {
+            console.warn('⚠️ Found item without category:', {
+              item,
+              availableFields: Object.keys(item),
+              hasProductDetails: !!item.product_details,
+              productDetailsFields: item.product_details ? Object.keys(item.product_details) : []
+            })
+          }
+        } else {
+          itemsWithCategory++
+        }
+
         if (!acc[category]) {
           acc[category] = 0
         }
@@ -428,14 +499,23 @@ export const calculateRevenueByCategory = (orders: any[]) => {
     }
     return acc
   }, {} as Record<string, number>)
-  
+
+  console.log('💰 Category aggregation summary:', {
+    itemsWithCategory,
+    itemsWithoutCategory,
+    uniqueCategories: Object.keys(categoryData).length,
+    categories: Object.keys(categoryData)
+  })
+
   const result = Object.entries(categoryData)
     .map(([name, value]) => ({ name, value: value as number }))
     .sort((a, b) => b.value - a.value)
-  
+
   console.log('💰 Revenue by category calculated:', result.length, 'categories')
-  console.log('💰 Top category:', result[0] || 'None')
-  
+  if (result.length > 0) {
+    console.log('💰 Top 3 categories:', result.slice(0, 3).map(c => `${c.name} (฿${c.value.toLocaleString()})`))
+  }
+
   return result
 }
 

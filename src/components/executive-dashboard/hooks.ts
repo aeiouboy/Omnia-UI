@@ -164,31 +164,31 @@ export function useDashboardData() {
   const [currentDateRange, setCurrentDateRange] = useState<{ dateFrom: string; dateTo: string } | null>(null)
   
   // Process dashboard data with validation
-  const processDashboardData = useCallback(async (orders: ApiOrder[] = []) => {
+  const processDashboardData = useCallback(async (orders: ApiOrder[] = [], isMockData: boolean = false) => {
     try {
       // Validate input
       if (!Array.isArray(orders)) {
         console.error('❌ Invalid orders data: expected array')
         throw new Error('Invalid orders data: expected array')
       }
-      
-      console.log(`🔧 Processing ${orders.length} orders...`)
-      
+
+      console.log(`🔧 Processing ${orders.length} orders... (Mock data: ${isMockData})`)
+
       // Calculate KPIs
       const ordersProcessing = orders.filter(order => order.status === 'SUBMITTED').length
       const slaBreaches = filterSLABreach(orders).length
       const revenueToday = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
       const fulfillmentRate = calculateFulfillmentRate(orders)
-      
+
       setKpiData({
         ordersProcessing,
         slaBreaches,
         revenueToday,
         fulfillmentRate
       })
-      
-      // Process alerts
-      const alertData = processOrderAlerts(orders)
+
+      // Process alerts - CRITICAL: Pass mockData flag to protect alerts
+      const alertData = processOrderAlerts(orders, isMockData)
       setAlerts(alertData)
       
       // Process chart data

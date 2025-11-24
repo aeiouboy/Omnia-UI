@@ -735,15 +735,28 @@ export function validateSevenDaysCoverage(
 }
 
 // Process orders for critical alerts - 7-DAY WINDOW (no today-only filtering)
-export function processOrderAlerts(orders: ApiOrder[]): {
+export function processOrderAlerts(orders: ApiOrder[], isMockData: boolean = false): {
   orderAlerts: OrderAlert[]
   approachingSla: OrderAlert[]
   criticalAlerts: OrderAlert[]
 } {
   console.log(`📊 ALERT PIPELINE STAGE 1: Orders received`, {
     totalOrders: orders.length,
-    windowDescription: '7-day window'
+    windowDescription: '7-day window',
+    isMockData,
+    mockDataProtection: isMockData ? 'ACTIVE - Will return empty alerts' : 'INACTIVE - Processing real data'
   })
+
+  // CRITICAL: Mock data protection - never show alerts for mock data
+  if (isMockData) {
+    console.warn(`🚫 MOCK DATA DETECTED - Returning empty alerts per CLAUDE.md requirement`)
+    console.warn(`🚫 "Alerts NEVER display if API returns mock data flag"`)
+    return {
+      orderAlerts: [],
+      approachingSla: [],
+      criticalAlerts: []
+    }
+  }
 
   // Filter orders with valid dates (no today-only restriction)
   const validOrders = orders.filter(order => {
@@ -757,6 +770,19 @@ export function processOrderAlerts(orders: ApiOrder[]): {
 
   console.log(`📅 Valid orders for alerts: ${validOrders.length}/${orders.length}`)
 
+  // Log sample order structure for debugging
+  if (validOrders.length > 0) {
+    console.log(`🔍 Sample order structure for alert processing:`, {
+      id: validOrders[0].id,
+      order_no: validOrders[0].order_no,
+      status: validOrders[0].status,
+      order_date: validOrders[0].order_date,
+      sla_info: validOrders[0].sla_info,
+      channel: validOrders[0].channel,
+      metadata: validOrders[0].metadata
+    })
+  }
+
   // Apply SLA filtering to ALL orders in 7-day window
   const slaBreaches = filterSLABreach(validOrders)
   const approachingSLA = filterApproachingSLA(validOrders)
@@ -764,7 +790,8 @@ export function processOrderAlerts(orders: ApiOrder[]): {
   console.log(`📊 ALERT PIPELINE STAGE 2: SLA filtering`, {
     breaches: slaBreaches.length,
     approaching: approachingSLA.length,
-    processedOrders: validOrders.length
+    processedOrders: validOrders.length,
+    breachPercentage: validOrders.length > 0 ? ((slaBreaches.length / validOrders.length) * 100).toFixed(1) + '%' : '0%'
   })
 
   // Map orders to OrderAlert format
