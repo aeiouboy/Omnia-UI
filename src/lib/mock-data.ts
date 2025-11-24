@@ -1,10 +1,8 @@
 // Mock data service for development when external APIs are not configured
 // This provides realistic sample data for all dashboard components
 
-import { ApiOrder, ExecutiveKPIs, OrderMetrics, PerformanceMetrics } from "./dashboard-service"
-
 // Mock API Orders with realistic data for Tops stores
-export const mockApiOrders: ApiOrder[] = Array.from({ length: 150 }, (_, i) => {
+export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   const id = `ORD-${String(i + 1).padStart(4, "0")}`
   const topsStores = [
     "Tops Central Plaza ลาดพร้าว",
@@ -73,7 +71,7 @@ export const mockApiOrders: ApiOrder[] = Array.from({ length: 150 }, (_, i) => {
 })
 
 // Mock Executive KPIs
-export const mockExecutiveKPIs: ExecutiveKPIs = {
+export const mockExecutiveKPIs: any = {
   totalOrders: 1247,
   urgentOrders: 23,
   nearBreachOrders: 45,
@@ -91,7 +89,7 @@ export const mockExecutiveKPIs: ExecutiveKPIs = {
 }
 
 // Mock Order Metrics
-export const mockOrderMetrics: OrderMetrics = {
+export const mockOrderMetrics: any = {
   totalOrders: 1247,
   urgentOrders: 23,
   processingOrders: 89,
@@ -126,7 +124,7 @@ export const mockOrderMetrics: OrderMetrics = {
 }
 
 // Mock Performance Metrics
-export const mockPerformanceMetrics: PerformanceMetrics = {
+export const mockPerformanceMetrics: any = {
   fulfillmentByStore: [
     { storeName: "Tops Central World", fulfilled: 234, total: 250, percentage: 93.6 },
     { storeName: "Tops สุขุมวิท 39", fulfilled: 189, total: 200, percentage: 94.5 },
@@ -448,15 +446,15 @@ export function getMockEscalations(filters: {
 
   // Apply filters
   if (filters.status && filters.status !== "all") {
-    filtered = filtered.filter(esc => esc.status === filters.status.toUpperCase())
+    filtered = filtered.filter(esc => esc.status === filters.status?.toUpperCase())
   }
 
   if (filters.alertType && filters.alertType !== "all") {
-    filtered = filtered.filter(esc => esc.alert_type === filters.alertType.toUpperCase())
+    filtered = filtered.filter(esc => esc.alert_type === filters.alertType?.toUpperCase())
   }
 
   if (filters.severity && filters.severity !== "all") {
-    filtered = filtered.filter(esc => esc.severity === filters.severity.toUpperCase())
+    filtered = filtered.filter(esc => esc.severity === filters.severity?.toUpperCase())
   }
 
   if (filters.escalatedTo) {
