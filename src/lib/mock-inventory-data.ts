@@ -178,9 +178,9 @@ export const mockInventoryItems: InventoryItem[] = [
     productName: "Whole Wheat Bread",
     category: "Bakery",
     storeName: "Tops จตุจักร",
-    currentStock: 45,
-    availableStock: 32,
-    reservedStock: 13, // 45 - 32
+    currentStock: 2,
+    availableStock: 0,
+    reservedStock: 2, // 2 - 0
     safetyStock: 15, // Math.round(100 * 0.15)
     minStockLevel: 30,
     maxStockLevel: 100,
@@ -268,9 +268,9 @@ export const mockInventoryItems: InventoryItem[] = [
     productName: "Beef Sirloin 500g",
     category: "Meat",
     storeName: "Tops ทองหล่อ",
-    currentStock: 38,
-    availableStock: 25,
-    reservedStock: 13, // 38 - 25
+    currentStock: 3,
+    availableStock: 0,
+    reservedStock: 3, // 3 - 0
     safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
@@ -498,9 +498,9 @@ export const mockInventoryItems: InventoryItem[] = [
     productName: "Mixed Nuts 500g",
     category: "Snacks",
     storeName: "Tops เอกมัย",
-    currentStock: 43,
-    availableStock: 28,
-    reservedStock: 15, // 43 - 28
+    currentStock: 1,
+    availableStock: 0,
+    reservedStock: 1, // 1 - 0
     safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
