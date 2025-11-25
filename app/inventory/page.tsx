@@ -34,6 +34,7 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronRight as ChevronRightIcon,
+  Scale,
 } from "lucide-react"
 import {
   fetchInventoryData,
@@ -411,6 +412,9 @@ export default function InventoryPage() {
                         <SortIcon field="category" />
                       </div>
                     </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Type
+                    </TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50 text-center"
                       onClick={() => handleSort("currentStock")}
@@ -444,7 +448,7 @@ export default function InventoryPage() {
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -477,6 +481,25 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className="text-sm">
                           {item.category}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            {item.itemType === "weight" ? (
+                              <Scale className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Package className="h-4 w-4 text-gray-600" />
+                            )}
+                            <Badge
+                              variant="outline"
+                              className={`${
+                                item.itemType === "weight"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                              } text-xs`}
+                            >
+                              {item.itemType === "weight" ? "Weight" : "Unit"}
+                            </Badge>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">
                           {item.availableStock}/{item.currentStock}

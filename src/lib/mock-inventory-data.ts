@@ -13,7 +13,8 @@ import type {
   ProductCategory,
   StockTransaction,
   StockHistoryPoint,
-  TransactionType
+  TransactionType,
+  ItemType
 } from "@/types/inventory"
 
 /**
@@ -53,6 +54,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 320,
     imageUrl: "https://placehold.co/400x400/228B22/white/png?text=Fresh+Vegetables",
     barcode: "8850123456789",
+    itemType: "weight",
   },
   {
     id: "INV-002",
@@ -72,6 +74,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 200,
     imageUrl: "https://placehold.co/400x400/32CD32/white/png?text=Organic+Apples",
     barcode: "8850123456790",
+    itemType: "weight",
   },
   {
     id: "INV-003",
@@ -91,6 +94,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 150,
     imageUrl: "https://placehold.co/400x400/DC143C/white/png?text=Fresh+Tomatoes",
     barcode: "8850123456791",
+    itemType: "weight",
   },
 
   // Dairy
@@ -112,6 +116,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 150,
     imageUrl: "https://placehold.co/400x400/4169E1/white/png?text=Organic+Milk",
     barcode: "8850123456792",
+    itemType: "unit",
   },
   {
     id: "INV-005",
@@ -131,6 +136,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 180,
     imageUrl: "https://placehold.co/400x400/87CEEB/white/png?text=Greek+Yogurt",
     barcode: "8850123456793",
+    itemType: "unit",
   },
   {
     id: "INV-006",
@@ -150,6 +156,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 280,
     imageUrl: "https://placehold.co/400x400/FFD700/333333/png?text=Cheese+Slices",
     barcode: "8850123456794",
+    itemType: "unit",
   },
 
   // Bakery
@@ -171,6 +178,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 85,
     imageUrl: "https://placehold.co/400x400/8B4513/white/png?text=Wheat+Bread",
     barcode: "8850123456795",
+    itemType: "unit",
   },
   {
     id: "INV-008",
@@ -190,6 +198,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 120,
     imageUrl: "https://placehold.co/400x400/DAA520/white/png?text=Croissants",
     barcode: "8850123456796",
+    itemType: "unit",
   },
 
   // Meat
@@ -211,6 +220,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 200,
     imageUrl: "https://placehold.co/400x400/FF6347/white/png?text=Chicken+Breast",
     barcode: "8850123456797",
+    itemType: "weight",
   },
   {
     id: "INV-010",
@@ -230,6 +240,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 140,
     imageUrl: "https://placehold.co/400x400/CD5C5C/white/png?text=Pork+Tenderloin",
     barcode: "8850123456798",
+    itemType: "weight",
   },
   {
     id: "INV-011",
@@ -249,6 +260,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 100,
     imageUrl: "https://placehold.co/400x400/8B0000/white/png?text=Beef+Sirloin",
     barcode: "8850123456799",
+    itemType: "weight",
   },
 
   // Seafood
@@ -270,6 +282,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 90,
     imageUrl: "https://placehold.co/400x400/FF8C00/white/png?text=Salmon+Fillet",
     barcode: "8850123456800",
+    itemType: "weight",
   },
   {
     id: "INV-013",
@@ -289,6 +302,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 150,
     imageUrl: "https://placehold.co/400x400/1E90FF/white/png?text=Prawns",
     barcode: "8850123456801",
+    itemType: "weight",
   },
 
   // Pantry
@@ -310,6 +324,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 250,
     imageUrl: "https://placehold.co/400x400/D2691E/white/png?text=Pasta",
     barcode: "8850123456802",
+    itemType: "unit",
   },
   {
     id: "INV-015",
@@ -329,6 +344,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 200,
     imageUrl: "https://placehold.co/400x400/F5DEB3/333333/png?text=Premium+Rice",
     barcode: "8850123456803",
+    itemType: "unit",
   },
 
   // Frozen
@@ -350,6 +366,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 130,
     imageUrl: "https://placehold.co/400x400/FF4500/white/png?text=Frozen+Pizza",
     barcode: "8850123456804",
+    itemType: "unit",
   },
   {
     id: "INV-017",
@@ -369,6 +386,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 110,
     imageUrl: "https://placehold.co/400x400/FFB6C1/333333/png?text=Ice+Cream",
     barcode: "8850123456805",
+    itemType: "unit",
   },
 
   // Beverages
@@ -390,6 +408,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 220,
     imageUrl: "https://placehold.co/400x400/FFA500/white/png?text=Orange+Juice",
     barcode: "8850123456806",
+    itemType: "unit",
   },
   {
     id: "INV-019",
@@ -409,6 +428,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 380,
     imageUrl: "https://placehold.co/400x400/00BFFF/white/png?text=Mineral+Water",
     barcode: "8850123456807",
+    itemType: "unit",
   },
 
   // Snacks
@@ -430,6 +450,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 180,
     imageUrl: "https://placehold.co/400x400/FFD700/333333/png?text=Potato+Chips",
     barcode: "8850123456808",
+    itemType: "unit",
   },
   {
     id: "INV-021",
@@ -449,6 +470,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 95,
     imageUrl: "https://placehold.co/400x400/A0522D/white/png?text=Mixed+Nuts",
     barcode: "8850123456809",
+    itemType: "unit",
   },
 
   // Household
@@ -470,6 +492,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 210,
     imageUrl: "https://placehold.co/400x400/4682B4/white/png?text=Detergent",
     barcode: "8850123456810",
+    itemType: "unit",
   },
   {
     id: "INV-023",
@@ -489,6 +512,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 140,
     imageUrl: "https://placehold.co/400x400/98FB98/333333/png?text=Dish+Soap",
     barcode: "8850123456811",
+    itemType: "unit",
   },
   {
     id: "INV-024",
@@ -508,6 +532,7 @@ export const mockInventoryItems: InventoryItem[] = [
     demandForecast: 160,
     imageUrl: "https://placehold.co/400x400/F0F8FF/333333/png?text=Toilet+Paper",
     barcode: "8850123456812",
+    itemType: "unit",
   },
 ]
 

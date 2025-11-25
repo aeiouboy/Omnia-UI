@@ -16,6 +16,13 @@ export type InventoryStatus = "healthy" | "low" | "critical"
 export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household"
 
 /**
+ * Item type indicating how items are measured and sold
+ * - "weight": Items sold by weight (kg) such as produce, meat, seafood
+ * - "unit": Items sold by piece/unit such as packaged goods, dairy, beverages
+ */
+export type ItemType = "weight" | "unit"
+
+/**
  * Tops store locations
  * Must match the official store names from CLAUDE.md
  */
@@ -51,6 +58,8 @@ export interface InventoryItem {
   demandForecast: number
   imageUrl: string // Product image URL
   barcode?: string // Optional barcode
+  /** Item type indicating measurement method (weight or unit) */
+  itemType: ItemType
 }
 
 /**
@@ -175,6 +184,7 @@ export interface StockHistoryPoint {
  *   demand_forecast INTEGER,
  *   image_url VARCHAR(500),
  *   barcode VARCHAR(100),
+ *   item_type VARCHAR(50) CHECK (item_type IN ('weight', 'unit')),
  *   created_at TIMESTAMP DEFAULT NOW(),
  *   updated_at TIMESTAMP DEFAULT NOW()
  * );
@@ -197,6 +207,7 @@ export interface InventoryItemDB {
   demand_forecast: number
   image_url?: string
   barcode?: string
+  item_type?: string
   created_at?: string
   updated_at?: string
 }

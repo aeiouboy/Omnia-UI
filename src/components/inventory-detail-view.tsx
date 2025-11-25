@@ -29,6 +29,7 @@ import {
   Edit,
   RefreshCw,
   ChevronRight,
+  Scale,
 } from "lucide-react"
 import { StockHistoryChart } from "./stock-history-chart"
 import { RecentTransactionsTable } from "./recent-transactions-table"
@@ -225,6 +226,29 @@ export function InventoryDetailView({
                     <span>Unit Price</span>
                   </div>
                   <p className="text-lg font-semibold">฿{item.unitPrice.toFixed(2)}</p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {item.itemType === "weight" ? (
+                      <Scale className="h-4 w-4" />
+                    ) : (
+                      <Package className="h-4 w-4" />
+                    )}
+                    <span>Item Type</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={`${
+                        item.itemType === "weight"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      } text-sm`}
+                    >
+                      {item.itemType === "weight" ? "Weight Item (kg)" : "Unit Item (pieces)"}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 

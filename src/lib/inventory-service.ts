@@ -65,6 +65,7 @@ function convertDBItemToInventoryItem(dbItem: InventoryItemDB): InventoryItem {
     demandForecast: dbItem.demand_forecast,
     imageUrl: dbItem.image_url || "/images/placeholder-product.svg",
     barcode: dbItem.barcode,
+    itemType: (dbItem.item_type as InventoryItem["itemType"]) || "unit", // Default to "unit" if not specified
   }
 }
 
