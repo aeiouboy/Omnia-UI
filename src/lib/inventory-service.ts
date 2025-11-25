@@ -47,16 +47,24 @@ function isSupabaseAvailable(): boolean {
  * Convert database inventory item to application format
  */
 function convertDBItemToInventoryItem(dbItem: InventoryItemDB): InventoryItem {
+  const currentStock = dbItem.current_stock
+  const availableStock = dbItem.available_stock ?? currentStock
+  const maxStockLevel = dbItem.max_stock_level
+
   return {
     id: dbItem.id,
     productId: dbItem.product_id,
     productName: dbItem.product_name,
     category: dbItem.category as InventoryItem["category"],
     storeName: dbItem.store_name as InventoryItem["storeName"],
-    currentStock: dbItem.current_stock,
-    availableStock: dbItem.available_stock ?? dbItem.current_stock, // Fallback to currentStock if not present
+    currentStock,
+    availableStock, // Fallback to currentStock if not present
+    // Calculate reserved stock if not present: currentStock - availableStock
+    reservedStock: dbItem.reserved_stock ?? (currentStock - availableStock),
+    // Calculate safety stock if not present: 15% of max stock level
+    safetyStock: dbItem.safety_stock ?? Math.round(maxStockLevel * 0.15),
     minStockLevel: dbItem.min_stock_level,
-    maxStockLevel: dbItem.max_stock_level,
+    maxStockLevel,
     unitPrice: dbItem.unit_price,
     lastRestocked: dbItem.last_restocked,
     status: dbItem.status as InventoryItem["status"],

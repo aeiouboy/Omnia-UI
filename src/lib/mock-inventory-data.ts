@@ -44,6 +44,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central World",
     currentStock: 245,
     availableStock: 220,
+    reservedStock: 25, // 245 - 220
+    safetyStock: 75, // Math.round(500 * 0.15)
     minStockLevel: 100,
     maxStockLevel: 500,
     unitPrice: 89.50,
@@ -64,6 +66,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สุขุมวิท 39",
     currentStock: 189,
     availableStock: 165,
+    reservedStock: 24, // 189 - 165
+    safetyStock: 45, // Math.round(300 * 0.15)
     minStockLevel: 80,
     maxStockLevel: 300,
     unitPrice: 125.00,
@@ -84,6 +88,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops ทองหล่อ",
     currentStock: 67,
     availableStock: 52,
+    reservedStock: 15, // 67 - 52
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 45.00,
@@ -106,6 +112,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สีลม คอมเพล็กซ์",
     currentStock: 78,
     availableStock: 60,
+    reservedStock: 18, // 78 - 60
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 65.00,
@@ -126,6 +134,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops เอกมัย",
     currentStock: 145,
     availableStock: 130,
+    reservedStock: 15, // 145 - 130
+    safetyStock: 38, // Math.round(250 * 0.15)
     minStockLevel: 60,
     maxStockLevel: 250,
     unitPrice: 89.00,
@@ -146,6 +156,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops พร้อมพงษ์",
     currentStock: 234,
     availableStock: 210,
+    reservedStock: 24, // 234 - 210
+    safetyStock: 60, // Math.round(400 * 0.15)
     minStockLevel: 100,
     maxStockLevel: 400,
     unitPrice: 125.00,
@@ -168,6 +180,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops จตุจักร",
     currentStock: 45,
     availableStock: 32,
+    reservedStock: 13, // 45 - 32
+    safetyStock: 15, // Math.round(100 * 0.15)
     minStockLevel: 30,
     maxStockLevel: 100,
     unitPrice: 55.00,
@@ -188,6 +202,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central Plaza ลาดพร้าว",
     currentStock: 89,
     availableStock: 78,
+    reservedStock: 11, // 89 - 78
+    safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
     unitPrice: 95.00,
@@ -210,6 +226,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central World",
     currentStock: 156,
     availableStock: 140,
+    reservedStock: 16, // 156 - 140
+    safetyStock: 45, // Math.round(300 * 0.15)
     minStockLevel: 80,
     maxStockLevel: 300,
     unitPrice: 125.00,
@@ -230,6 +248,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สุขุมวิท 39",
     currentStock: 92,
     availableStock: 80,
+    reservedStock: 12, // 92 - 80
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 60,
     maxStockLevel: 200,
     unitPrice: 165.00,
@@ -250,6 +270,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops ทองหล่อ",
     currentStock: 38,
     availableStock: 25,
+    reservedStock: 13, // 38 - 25
+    safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
     unitPrice: 295.00,
@@ -272,6 +294,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สีลม คอมเพล็กซ์",
     currentStock: 67,
     availableStock: 54,
+    reservedStock: 13, // 67 - 54
+    safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 50,
     maxStockLevel: 150,
     unitPrice: 385.00,
@@ -292,6 +316,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops เอกมัย",
     currentStock: 124,
     availableStock: 110,
+    reservedStock: 14, // 124 - 110
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 60,
     maxStockLevel: 200,
     unitPrice: 285.00,
@@ -314,6 +340,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops พร้อมพงษ์",
     currentStock: 289,
     availableStock: 260,
+    reservedStock: 29, // 289 - 260
+    safetyStock: 60, // Math.round(400 * 0.15)
     minStockLevel: 100,
     maxStockLevel: 400,
     unitPrice: 89.00,
@@ -334,6 +362,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops จตุจักร",
     currentStock: 178,
     availableStock: 155,
+    reservedStock: 23, // 178 - 155
+    safetyStock: 45, // Math.round(300 * 0.15)
     minStockLevel: 80,
     maxStockLevel: 300,
     unitPrice: 245.00,
@@ -356,6 +386,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central Plaza ลาดพร้าว",
     currentStock: 95,
     availableStock: 82,
+    reservedStock: 13, // 95 - 82
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 149.00,
@@ -376,6 +408,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central World",
     currentStock: 56,
     availableStock: 44,
+    reservedStock: 12, // 56 - 44
+    safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
     unitPrice: 195.00,
@@ -398,6 +432,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สุขุมวิท 39",
     currentStock: 167,
     availableStock: 150,
+    reservedStock: 17, // 167 - 150
+    safetyStock: 45, // Math.round(300 * 0.15)
     minStockLevel: 80,
     maxStockLevel: 300,
     unitPrice: 75.00,
@@ -418,6 +454,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops ทองหล่อ",
     currentStock: 312,
     availableStock: 280,
+    reservedStock: 32, // 312 - 280
+    safetyStock: 75, // Math.round(500 * 0.15)
     minStockLevel: 150,
     maxStockLevel: 500,
     unitPrice: 95.00,
@@ -440,6 +478,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops สีลม คอมเพล็กซ์",
     currentStock: 134,
     availableStock: 118,
+    reservedStock: 16, // 134 - 118
+    safetyStock: 38, // Math.round(250 * 0.15)
     minStockLevel: 60,
     maxStockLevel: 250,
     unitPrice: 65.00,
@@ -460,6 +500,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops เอกมัย",
     currentStock: 43,
     availableStock: 28,
+    reservedStock: 15, // 43 - 28
+    safetyStock: 23, // Math.round(150 * 0.15)
     minStockLevel: 40,
     maxStockLevel: 150,
     unitPrice: 185.00,
@@ -482,6 +524,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops พร้อมพงษ์",
     currentStock: 198,
     availableStock: 175,
+    reservedStock: 23, // 198 - 175
+    safetyStock: 45, // Math.round(300 * 0.15)
     minStockLevel: 80,
     maxStockLevel: 300,
     unitPrice: 145.00,
@@ -502,6 +546,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops จตุจักร",
     currentStock: 87,
     availableStock: 75,
+    reservedStock: 12, // 87 - 75
+    safetyStock: 30, // Math.round(200 * 0.15)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 55.00,
@@ -522,6 +568,8 @@ export const mockInventoryItems: InventoryItem[] = [
     storeName: "Tops Central Plaza ลาดพร้าว",
     currentStock: 62,
     availableStock: 48,
+    reservedStock: 14, // 62 - 48
+    safetyStock: 38, // Math.round(250 * 0.15)
     minStockLevel: 60,
     maxStockLevel: 250,
     unitPrice: 125.00,

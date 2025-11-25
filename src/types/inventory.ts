@@ -48,6 +48,10 @@ export interface InventoryItem {
   currentStock: number
   /** Stock available for sale (not reserved/allocated). Must be ≤ currentStock */
   availableStock: number
+  /** Stock quantity allocated to pending orders (calculated as currentStock - availableStock) */
+  reservedStock: number
+  /** Minimum buffer quantity to prevent stockouts (typically 10-20% of max stock level) */
+  safetyStock: number
   minStockLevel: number
   maxStockLevel: number
   unitPrice: number
@@ -174,6 +178,9 @@ export interface StockHistoryPoint {
  *   category VARCHAR(100),
  *   store_name VARCHAR(255),
  *   current_stock INTEGER,
+ *   available_stock INTEGER,
+ *   reserved_stock INTEGER,
+ *   safety_stock INTEGER,
  *   min_stock_level INTEGER,
  *   max_stock_level INTEGER,
  *   unit_price DECIMAL(10,2),
@@ -197,6 +204,8 @@ export interface InventoryItemDB {
   store_name: string
   current_stock: number
   available_stock: number
+  reserved_stock?: number
+  safety_stock?: number
   min_stock_level: number
   max_stock_level: number
   unit_price: number
