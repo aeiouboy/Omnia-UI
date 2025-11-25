@@ -198,7 +198,7 @@ function traverseObject(
   const entries = Array.isArray(obj) ? obj.entries() : Object.entries(obj)
 
   for (const [key, value] of entries) {
-    const path = prefix ? `${prefix}.${key}` : key
+    const path = prefix ? `${prefix}.${key}` : String(key)
     if (value && typeof value === 'object' && !Array.isArray(value)) {
       traverseObject(value, path, callback, maxDepth - 1)
     } else {
