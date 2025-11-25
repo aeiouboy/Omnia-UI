@@ -39,6 +39,8 @@ export interface InventoryItem {
   category: ProductCategory
   storeName: TopsStore
   currentStock: number
+  /** Stock available for sale (not reserved/allocated). Must be ≤ currentStock */
+  availableStock: number
   minStockLevel: number
   maxStockLevel: number
   unitPrice: number
@@ -184,6 +186,7 @@ export interface InventoryItemDB {
   category: string
   store_name: string
   current_stock: number
+  available_stock: number
   min_stock_level: number
   max_stock_level: number
   unit_price: number

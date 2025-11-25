@@ -54,6 +54,7 @@ function convertDBItemToInventoryItem(dbItem: InventoryItemDB): InventoryItem {
     category: dbItem.category as InventoryItem["category"],
     storeName: dbItem.store_name as InventoryItem["storeName"],
     currentStock: dbItem.current_stock,
+    availableStock: dbItem.available_stock ?? dbItem.current_stock, // Fallback to currentStock if not present
     minStockLevel: dbItem.min_stock_level,
     maxStockLevel: dbItem.max_stock_level,
     unitPrice: dbItem.unit_price,

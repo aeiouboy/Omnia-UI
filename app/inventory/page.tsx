@@ -416,7 +416,7 @@ export default function InventoryPage() {
                       onClick={() => handleSort("currentStock")}
                     >
                       <div className="flex items-center justify-center">
-                        Stock
+                        Available / Total
                         <SortIcon field="currentStock" />
                       </div>
                     </TableHead>
@@ -479,7 +479,7 @@ export default function InventoryPage() {
                           {item.category}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.currentStock} / {item.minStockLevel}
+                          {item.availableStock}/{item.currentStock}
                         </TableCell>
                         <TableCell>
                           <Badge

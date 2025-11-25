@@ -252,11 +252,11 @@ export function InventoryDetailView({
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Current Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Available / Total Stock</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{item.currentStock}</div>
-            <p className="text-xs text-muted-foreground mt-1">units in stock</p>
+            <div className="text-3xl font-bold">{item.availableStock} / {item.currentStock}</div>
+            <p className="text-xs text-muted-foreground mt-1">available / total units in stock</p>
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-muted-foreground">Stock Level</span>
