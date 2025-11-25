@@ -237,7 +237,7 @@ export function RulePreview({ config }: RulePreviewProps) {
             <div className="flex items-center justify-between">
               <span>Sync Frequency</span>
               <span className="text-muted-foreground">
-                {atc_rules.views.network.sync_frequency} min
+                {atc_rules.views.network.sync_frequency.interval_minutes} min
               </span>
             </div>
           </div>

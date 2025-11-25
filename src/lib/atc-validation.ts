@@ -164,21 +164,21 @@ export function validateConfiguration(config: ATCConfiguration): {
 
   // Validate network view configuration
   const networkView = config.atc_rules.views.network
-  if (networkView.sync_frequency && networkView.sync_frequency <= 0) {
+  if (networkView.sync_frequency && networkView.sync_frequency.interval_minutes <= 0) {
     errors.push({
-      field: 'atc_rules.views.network.sync_frequency',
+      field: 'atc_rules.views.network.sync_frequency.interval_minutes',
       message: 'Sync frequency must be positive',
     })
   }
-  if (networkView.batch_size && networkView.batch_size <= 0) {
+  if (networkView.sync_frequency && networkView.sync_frequency.batch_size <= 0) {
     errors.push({
-      field: 'atc_rules.views.network.batch_size',
+      field: 'atc_rules.views.network.sync_frequency.batch_size',
       message: 'Batch size must be positive',
     })
   }
-  if (networkView.retry_attempts && networkView.retry_attempts < 0) {
+  if (networkView.sync_frequency && networkView.sync_frequency.retry_attempts < 0) {
     errors.push({
-      field: 'atc_rules.views.network.retry_attempts',
+      field: 'atc_rules.views.network.sync_frequency.retry_attempts',
       message: 'Retry attempts cannot be negative',
     })
   }

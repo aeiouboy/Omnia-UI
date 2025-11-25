@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Globe, MapPin } from "lucide-react"
 import { ItemConditionCard, LocationConditionCard, SupplyTypeConditionCard } from "./condition-cards"
+import { NetworkViewConfig as NetworkViewConfigComponent } from "./network-view-config"
+import { LocationViewConfig as LocationViewConfigComponent } from "./location-view-config"
 import type {
   ItemCondition,
   LocationCondition,
@@ -123,67 +125,11 @@ export function ATCRuleSection({
               Configure network-wide sync and threshold settings
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="network-full-sync">Full Sync</Label>
-              <Switch
-                id="network-full-sync"
-                checked={networkView.full_sync}
-                onCheckedChange={(checked) =>
-                  onNetworkViewChange({ ...networkView, full_sync: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="network-threshold-alert">Threshold Alert</Label>
-              <Switch
-                id="network-threshold-alert"
-                checked={networkView.threshold_alert}
-                onCheckedChange={(checked) =>
-                  onNetworkViewChange({ ...networkView, threshold_alert: checked })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="network-threshold-value">Threshold Value</Label>
-              <Input
-                id="network-threshold-value"
-                type="number"
-                min={0}
-                value={networkView.threshold_value}
-                onChange={(e) =>
-                  onNetworkViewChange({
-                    ...networkView,
-                    threshold_value: parseInt(e.target.value) || 0,
-                  })
-                }
-                disabled={!networkView.threshold_alert}
-              />
-              <p className="text-sm text-muted-foreground">
-                Alert when inventory falls below this value
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="network-sync-frequency">Sync Frequency (minutes)</Label>
-              <Input
-                id="network-sync-frequency"
-                type="number"
-                min={1}
-                value={networkView.sync_frequency}
-                onChange={(e) =>
-                  onNetworkViewChange({
-                    ...networkView,
-                    sync_frequency: parseInt(e.target.value) || 5,
-                  })
-                }
-              />
-              <p className="text-sm text-muted-foreground">
-                How often to sync inventory data across the network
-              </p>
-            </div>
+          <CardContent>
+            <NetworkViewConfigComponent
+              value={networkView}
+              onChange={onNetworkViewChange}
+            />
           </CardContent>
         </Card>
 
@@ -198,40 +144,11 @@ export function ATCRuleSection({
               Configure location-specific sync and override settings
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="location-full-sync">Full Sync</Label>
-              <Switch
-                id="location-full-sync"
-                checked={locationView.full_sync}
-                onCheckedChange={(checked) =>
-                  onLocationViewChange({ ...locationView, full_sync: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="location-delta-sync">Delta Sync</Label>
-              <Switch
-                id="location-delta-sync"
-                checked={locationView.delta_sync}
-                onCheckedChange={(checked) =>
-                  onLocationViewChange({ ...locationView, delta_sync: checked })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Location Overrides</Label>
-              <p className="text-sm text-muted-foreground">
-                {locationView.location_overrides.length} override(s) configured
-              </p>
-              {/* TODO: Add location overrides editor in Phase 2 */}
-            </div>
-
-            <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-              Location-specific overrides can be configured in Phase 2
-            </div>
+          <CardContent>
+            <LocationViewConfigComponent
+              value={locationView}
+              onChange={onLocationViewChange}
+            />
           </CardContent>
         </Card>
       </div>

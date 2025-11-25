@@ -157,8 +157,13 @@ export interface CommerceCharacteristic {
 export interface LocationOverride {
   id: string
   location_id: string
+  location_name: string
+  override_type: 'enable' | 'disable' | 'custom'
   sync_enabled: boolean
   threshold: number
+  effective_from: string
+  effective_until?: string
+  custom_rules?: Partial<ATCConfiguration>
 }
 
 /**
@@ -212,15 +217,22 @@ export interface RegionalAvailability {
  */
 export interface NetworkViewConfig {
   full_sync: boolean
-  threshold_alert: boolean
-  threshold_value: number
-  sync_frequency: number // minutes
-  // Enhanced fields for Phase 2
-  threshold_type?: 'percentage' | 'absolute'
-  alert_channels?: ('email' | 'sms' | 'teams')[]
-  batch_size?: number
-  retry_attempts?: number
-  monitoring_enabled?: boolean
+  threshold_alert: {
+    enabled: boolean
+    threshold_value: number
+    threshold_type: 'percentage' | 'absolute'
+    alert_channels: string[]
+  }
+  sync_frequency: {
+    interval_minutes: number
+    batch_size: number
+    retry_attempts: number
+  }
+  monitoring: {
+    enabled: boolean
+    track_sync_duration: boolean
+    alert_on_failure: boolean
+  }
 }
 
 /**

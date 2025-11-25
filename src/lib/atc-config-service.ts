@@ -103,9 +103,22 @@ export function getDefaultATCConfiguration(): Omit<
       views: {
         network: {
           full_sync: true,
-          threshold_alert: true,
-          threshold_value: 10,
-          sync_frequency: 5,
+          threshold_alert: {
+            enabled: true,
+            threshold_value: 10,
+            threshold_type: 'absolute',
+            alert_channels: ['email'],
+          },
+          sync_frequency: {
+            interval_minutes: 5,
+            batch_size: 100,
+            retry_attempts: 3,
+          },
+          monitoring: {
+            enabled: false,
+            track_sync_duration: false,
+            alert_on_failure: false,
+          },
         },
         location: {
           full_sync: false,

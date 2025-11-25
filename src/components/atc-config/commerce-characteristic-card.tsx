@@ -20,7 +20,7 @@ interface CommerceCharacteristicCardProps {
 
 const ORDER_TYPES = ['delivery', 'pickup', 'dine-in', 'curbside', 'ship-to-store']
 const CUSTOMER_SEGMENTS = ['VIP', 'Regular', 'New', 'B2B', 'Employee']
-const AVAILABLE_CHANNELS = ['GrabMart', 'Line Man', 'Shopee', 'Lazada', 'Website', 'Mobile App']
+const AVAILABLE_CHANNELS = ['Tops Online', 'Lazada', 'Shopee', 'Grab', 'LINE MAN', 'Gookoo']
 
 /**
  * CommerceCharacteristicCard Component
