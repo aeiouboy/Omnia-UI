@@ -107,10 +107,24 @@ function applyFilters(
   if (filters.searchQuery && filters.searchQuery.trim() !== "") {
     const query = filters.searchQuery.toLowerCase()
     filtered = filtered.filter(
-      (item) =>
-        item.productName.toLowerCase().includes(query) ||
-        item.productId.toLowerCase().includes(query) ||
-        item.supplier.toLowerCase().includes(query)
+      (item) => {
+        // Search in product name, ID, supplier
+        const basicMatch =
+          item.productName.toLowerCase().includes(query) ||
+          item.productId.toLowerCase().includes(query) ||
+          item.supplier.toLowerCase().includes(query) ||
+          (item.barcode && item.barcode.toLowerCase().includes(query)) ||
+          item.category.toLowerCase().includes(query)
+
+        // Also search in warehouse locations
+        const warehouseMatch = item.warehouseLocations?.some(
+          (location) =>
+            location.warehouseCode.toLowerCase().includes(query) ||
+            location.locationCode.toLowerCase().includes(query)
+        )
+
+        return basicMatch || warehouseMatch
+      }
     )
   }
 

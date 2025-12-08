@@ -35,7 +35,10 @@ import {
   ArrowDown,
   ChevronRight as ChevronRightIcon,
   Scale,
+  MapPin,
 } from "lucide-react"
+import WarehouseLocationCell from "@/components/inventory/warehouse-location-cell"
+import StockAvailabilityIndicator from "@/components/inventory/stock-availability-indicator"
 import {
   fetchInventoryData,
   fetchInventorySummary,
@@ -347,7 +350,7 @@ export default function InventoryPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products, barcode, category..."
+                placeholder="Search products, barcode, category, warehouse..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-9"
@@ -385,6 +388,12 @@ export default function InventoryPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
+                    <TableHead className="hidden lg:table-cell min-w-[180px]">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        Warehouse & Location
+                      </div>
+                    </TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("productName")}
@@ -416,11 +425,11 @@ export default function InventoryPage() {
                       Type
                     </TableHead>
                     <TableHead
-                      className="cursor-pointer hover:bg-muted/50 text-center"
+                      className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("currentStock")}
                     >
-                      <div className="flex items-center justify-center">
-                        Available / Total
+                      <div className="flex items-center">
+                        Stock Available / Total
                         <SortIcon field="currentStock" />
                       </div>
                     </TableHead>
@@ -448,7 +457,7 @@ export default function InventoryPage() {
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -472,6 +481,9 @@ export default function InventoryPage() {
                               target.src = "/images/placeholder-product.svg"
                             }}
                           />
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <WarehouseLocationCell stockLocations={item.warehouseLocations} />
                         </TableCell>
                         <TableCell className="font-semibold">
                           {item.productName}
@@ -501,8 +513,16 @@ export default function InventoryPage() {
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
-                          {item.availableStock}/{item.currentStock}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <StockAvailabilityIndicator
+                              isAvailable={item.availableStock > 0}
+                              stockCount={item.availableStock}
+                            />
+                            <span className="text-sm">
+                              {item.availableStock}/{item.currentStock}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge

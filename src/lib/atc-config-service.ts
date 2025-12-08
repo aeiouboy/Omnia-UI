@@ -209,7 +209,7 @@ export async function fetchATCConfigurations(): Promise<ATCConfiguration[]> {
       .order("updated_at", { ascending: false })
 
     if (error) {
-      console.error("[ATC Config Service] Error fetching configurations:", error)
+      console.warn("[ATC Config Service] Database error, using mock data:", error.message)
       return generateMockConfigurations()
     }
 
@@ -228,7 +228,7 @@ export async function fetchATCConfigurations(): Promise<ATCConfiguration[]> {
 
     return configurations
   } catch (err) {
-    console.error("[ATC Config Service] Exception fetching configurations:", err)
+    console.warn("[ATC Config Service] Exception fetching configurations, using mock data:", err)
     return generateMockConfigurations()
   }
 }
@@ -255,7 +255,7 @@ export async function fetchATCConfiguration(
       .single()
 
     if (error) {
-      console.error("[ATC Config Service] Error fetching configuration:", error)
+      console.warn("[ATC Config Service] Database error fetching configuration:", error.message)
       return null
     }
 
@@ -273,7 +273,7 @@ export async function fetchATCConfiguration(
 
     return configuration
   } catch (err) {
-    console.error("[ATC Config Service] Exception fetching configuration:", err)
+    console.warn("[ATC Config Service] Exception fetching configuration:", err)
     return null
   }
 }
@@ -323,7 +323,7 @@ export async function saveATCConfiguration(
         .single()
 
       if (error) {
-        console.error("[ATC Config Service] Error updating configuration:", error)
+        console.warn("[ATC Config Service] Database error updating configuration:", error.message)
         return null
       }
 
@@ -345,7 +345,7 @@ export async function saveATCConfiguration(
         .single()
 
       if (error) {
-        console.error("[ATC Config Service] Error creating configuration:", error)
+        console.warn("[ATC Config Service] Database error creating configuration:", error.message)
         return null
       }
 
@@ -360,7 +360,7 @@ export async function saveATCConfiguration(
       }
     }
   } catch (err) {
-    console.error("[ATC Config Service] Exception saving configuration:", err)
+    console.warn("[ATC Config Service] Exception saving configuration:", err)
     return null
   }
 }
@@ -385,13 +385,13 @@ export async function deleteATCConfiguration(id: string): Promise<boolean> {
       .eq("id", id)
 
     if (error) {
-      console.error("[ATC Config Service] Error deleting configuration:", error)
+      console.warn("[ATC Config Service] Database error deleting configuration:", error.message)
       return false
     }
 
     return true
   } catch (err) {
-    console.error("[ATC Config Service] Exception deleting configuration:", err)
+    console.warn("[ATC Config Service] Exception deleting configuration:", err)
     return false
   }
 }
@@ -421,7 +421,7 @@ async function createConfigurationHistory(
       change_description: changeDescription,
     })
   } catch (err) {
-    console.error("[ATC Config Service] Error creating history entry:", err)
+    console.warn("[ATC Config Service] Database error creating history entry:", err)
   }
 }
 
@@ -445,13 +445,13 @@ export async function fetchConfigurationHistory(
       .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("[ATC Config Service] Error fetching history:", error)
+      console.warn("[ATC Config Service] Database error fetching history:", error.message)
       return []
     }
 
     return data || []
   } catch (err) {
-    console.error("[ATC Config Service] Exception fetching history:", err)
+    console.warn("[ATC Config Service] Exception fetching history:", err)
     return []
   }
 }

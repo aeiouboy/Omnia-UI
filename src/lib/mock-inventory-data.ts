@@ -14,7 +14,10 @@ import type {
   StockTransaction,
   StockHistoryPoint,
   TransactionType,
-  ItemType
+  ItemType,
+  StockLocation,
+  StockLocationBreakdown,
+  StockStatus
 } from "@/types/inventory"
 
 /**
@@ -32,9 +35,136 @@ export const TOPS_STORES: TopsStore[] = [
 ]
 
 /**
+ * Warehouse codes used for location tracking
+ * Representing different distribution centers, regional hubs, and store warehouses
+ */
+export const WAREHOUSE_CODES = [
+  // Central Distribution Centers
+  "CDC-BKK01",  // Bangkok Central DC
+  "CDC-BKK02",  // Bangkok Central DC 2
+  "CDC-NTH01",  // Northern Distribution Center
+  "CDC-STH01",  // Southern Distribution Center
+
+  // Regional Warehouses
+  "RWH-LP",     // Lat Phrao Regional Warehouse
+  "RWH-CW",     // Central World Regional Warehouse
+  "RWH-SK",     // Sukhumvit Regional Warehouse
+  "RWH-SL",     // Silom Regional Warehouse
+
+  // Store Warehouses (Tops Locations)
+  "STW-001",    // Store Warehouse 001
+  "STW-002",    // Store Warehouse 002
+  "STW-003",    // Store Warehouse 003
+  "STW-005",    // Store Warehouse 005
+  "STW-008",    // Store Warehouse 008
+  "STW-010",    // Store Warehouse 010
+
+  // Fresh Food Distribution Centers
+  "FDC-BKK",    // Fresh Food DC Bangkok
+  "FDC-PRV",    // Fresh Food DC Provincial
+
+  // Legacy Codes (for compatibility)
+  "CMG",        // Central Mega
+  "TPS-1005",   // Tops 1005
+  "TPS-1055",   // Tops 1055
+  "TPS-2001",   // Tops 2001
+  "TPS-2002",   // Tops 2002
+]
+
+/**
+ * Generate mock warehouse locations for a product
+ * @param productId - Product identifier
+ * @returns Array of stock locations with realistic data
+ */
+export function generateMockWarehouseLocations(productId: string): StockLocation[] {
+  // Use product ID to seed deterministic but varied results
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const locationCount = (seed % 3) + 1 // 1-3 locations per product
+
+  const locations: StockLocation[] = []
+
+  for (let i = 0; i < locationCount; i++) {
+    const warehouseCode = WAREHOUSE_CODES[(seed + i) % WAREHOUSE_CODES.length]
+
+    // Generate realistic warehouse location codes in format: A##-R##-S##
+    // A = Aisle (A01-A99), R = Rack (R01-R20), S = Shelf (S01-S10)
+    const aisle = String((seed + i * 7) % 99 + 1).padStart(2, '0')
+    const rack = String((seed + i * 3) % 20 + 1).padStart(2, '0')
+    const shelf = String((seed + i * 2) % 10 + 1).padStart(2, '0')
+    const locationCode = `A${aisle}-R${rack}-S${shelf}`
+
+    // First location is always default
+    const isDefaultLocation = i === 0
+
+    // Generate realistic stock numbers
+    const baseStock = 50 + (seed % 150) // 50-200
+    const stockAvailable = Math.max(0, baseStock + (i * 20) - (seed % 30))
+    const stockInProcess = (seed % 20) + 10 // 10-30
+    const stockSold = seed % 50 // 0-50
+    const stockOnHold = (seed % 15) + 5 // 5-20
+    const stockPending = seed % 40 // 0-40
+    const stockUnusable = seed % 10 // 0-10
+
+    locations.push({
+      warehouseCode,
+      locationCode,
+      isDefaultLocation,
+      stockAvailable,
+      stockInProcess,
+      stockSold,
+      stockOnHold,
+      stockPending,
+      stockUnusable
+    })
+  }
+
+  return locations
+}
+
+/**
+ * Generate mock stock breakdown for a specific location
+ * @param productId - Product identifier
+ * @param warehouseCode - Warehouse code
+ * @returns Stock breakdown by status
+ */
+export function generateMockStockBreakdown(productId: string, warehouseCode: string): StockLocationBreakdown {
+  const seed = (productId + warehouseCode).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+
+  const stockStatus: Record<StockStatus, number> = {
+    stock: 100 + (seed % 100), // 100-200
+    in_process: 10 + (seed % 40), // 10-50
+    sold: seed % 100, // 0-100
+    on_hold: seed % 30, // 0-30
+    pending: seed % 40 // 0-40
+  }
+
+  // Generate realistic location code matching the format in generateMockWarehouseLocations
+  const aisle = String((seed * 7) % 99 + 1).padStart(2, '0')
+  const rack = String((seed * 3) % 20 + 1).padStart(2, '0')
+  const shelf = String((seed * 2) % 10 + 1).padStart(2, '0')
+  const locationCode = `A${aisle}-R${rack}-S${shelf}`
+
+  return {
+    warehouseCode,
+    locationCode,
+    stockStatus
+  }
+}
+
+/**
+ * Helper function to ensure all mock items have warehouse locations
+ */
+function ensureWarehouseLocations(items: InventoryItem[]): InventoryItem[] {
+  return items.map(item => ({
+    ...item,
+    warehouseLocations: item.warehouseLocations || generateMockWarehouseLocations(item.productId)
+  }))
+}
+
+/**
  * Mock inventory items (20+ items across different categories and stores)
  */
-export const mockInventoryItems: InventoryItem[] = [
+const mockInventoryItemsBase: InventoryItem[] = [
   // Produce
   {
     id: "INV-001",
@@ -57,6 +187,7 @@ export const mockInventoryItems: InventoryItem[] = [
     imageUrl: "https://placehold.co/400x400/228B22/white/png?text=Fresh+Vegetables",
     barcode: "8850123456789",
     itemType: "weight",
+    warehouseLocations: generateMockWarehouseLocations("PROD-001"),
   },
   {
     id: "INV-002",
@@ -585,6 +716,11 @@ export const mockInventoryItems: InventoryItem[] = [
 ]
 
 /**
+ * Export mock inventory items with warehouse locations applied
+ */
+export const mockInventoryItems = ensureWarehouseLocations(mockInventoryItemsBase)
+
+/**
  * Mock store performance data for all 8 Tops stores
  */
 export const mockStorePerformance: StorePerformance[] = [
@@ -764,6 +900,11 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
 
     const user = users[Math.floor(Math.random() * users.length)]
 
+    // Pick a random warehouse location from the item's locations
+    const location = item.warehouseLocations && item.warehouseLocations.length > 0
+      ? item.warehouseLocations[Math.floor(Math.random() * item.warehouseLocations.length)]
+      : undefined
+
     transactions.push({
       id: `TXN-${item.productId}-${i.toString().padStart(3, '0')}`,
       productId: item.productId,
@@ -775,6 +916,8 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       user,
       notes: generateTransactionNotes(type),
       referenceId: type === "stock_out" ? `ORD-${Math.floor(Math.random() * 10000)}` : undefined,
+      warehouseCode: location?.warehouseCode,
+      locationCode: location?.locationCode,
     })
 
     // Update balance for previous transactions (going backwards in time)

@@ -18,8 +18,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowUp, ArrowDown, RefreshCw, AlertTriangle, RotateCcw } from "lucide-react"
+import { ArrowUp, ArrowDown, RefreshCw, AlertTriangle, RotateCcw, MapPin } from "lucide-react"
 import type { StockTransaction } from "@/types/inventory"
+import { formatWarehouseCode } from "@/lib/warehouse-utils"
 
 interface RecentTransactionsTableProps {
   transactions: StockTransaction[]
@@ -142,6 +143,7 @@ export function RecentTransactionsTable({
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead className="text-right">Balance After</TableHead>
                 <TableHead>User</TableHead>
+                <TableHead className="hidden lg:table-cell">Location</TableHead>
                 <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
@@ -172,6 +174,21 @@ export function RecentTransactionsTable({
                   </TableCell>
                   <TableCell className="text-sm">
                     {transaction.user}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {transaction.warehouseCode && transaction.locationCode ? (
+                      <div className="flex items-center gap-1.5">
+                        <Badge
+                          variant="outline"
+                          className="text-xs px-2 py-1 h-6 font-mono bg-blue-50 text-blue-700 border-blue-200"
+                        >
+                          <MapPin className="h-3 w-3 mr-1 inline" />
+                          {formatWarehouseCode(transaction.warehouseCode, transaction.locationCode)}
+                        </Badge>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                     {transaction.notes}

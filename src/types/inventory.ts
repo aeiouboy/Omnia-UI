@@ -23,6 +23,46 @@ export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood
 export type ItemType = "weight" | "unit"
 
 /**
+ * Stock status types for warehouse location tracking
+ * - "stock": Available for immediate sale
+ * - "in_process": Currently being picked/packed for orders
+ * - "sold": Already sold but not yet shipped
+ * - "on_hold": Reserved for future orders or pending quality checks
+ * - "pending": Incoming stock or pending restocking
+ */
+export type StockStatus = "stock" | "in_process" | "sold" | "on_hold" | "pending"
+
+/**
+ * Warehouse location information
+ */
+export interface WarehouseLocation {
+  warehouseCode: string
+  locationCode: string
+  isDefaultLocation: boolean
+}
+
+/**
+ * Stock breakdown by status for a specific warehouse location
+ */
+export interface StockLocationBreakdown {
+  warehouseCode: string
+  locationCode: string
+  stockStatus: Record<StockStatus, number>
+}
+
+/**
+ * Stock location combining warehouse info and stock counts
+ */
+export interface StockLocation extends WarehouseLocation {
+  stockAvailable: number
+  stockInProcess: number
+  stockSold: number
+  stockOnHold: number
+  stockPending: number
+  stockUnusable?: number
+}
+
+/**
  * Tops store locations
  * Must match the official store names from CLAUDE.md
  */
@@ -64,6 +104,8 @@ export interface InventoryItem {
   barcode?: string // Optional barcode
   /** Item type indicating measurement method (weight or unit) */
   itemType: ItemType
+  /** Warehouse locations with stock breakdown */
+  warehouseLocations?: StockLocation[]
 }
 
 /**
@@ -156,6 +198,8 @@ export interface StockTransaction {
   user: string
   notes?: string
   referenceId?: string // Order ID or PO ID
+  warehouseCode?: string // Warehouse location code
+  locationCode?: string // Specific location within warehouse
 }
 
 /**

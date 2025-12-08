@@ -39,7 +39,7 @@
 2. Select **"Session Pooler"** tab
 3. Copy the connection string:
    ```
-   postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+   postgresql://postgres.njkpcvqtbpmjqxtxkaht:eUyukiHeWWReW1iw@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
    ```
 4. **Replace `[PASSWORD]`** with the password from Step 2
 
