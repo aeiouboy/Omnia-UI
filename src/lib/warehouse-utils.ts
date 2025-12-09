@@ -91,7 +91,7 @@ export function getStockStatusColor(status: StockStatus): string {
 export function getStockStatusLabel(status: StockStatus): string {
   const labelMap: Record<StockStatus, string> = {
     stock: "Available",
-    in_process: "In Process",
+    in_process: "Reserved",
     sold: "Sold",
     on_hold: "On Hold",
     pending: "Pending"
