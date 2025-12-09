@@ -212,7 +212,7 @@ export default function InventoryPage() {
   if (loading) {
     return (
       <DashboardShell>
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <div className="h-8 w-64 bg-gray-200 rounded animate-pulse" />
@@ -240,7 +240,7 @@ export default function InventoryPage() {
   if (error) {
     return (
       <DashboardShell>
-        <div className="container mx-auto p-6">
+        <div>
           <Card className="border-red-200">
             <CardHeader>
               <CardTitle className="text-red-600">Error Loading Data</CardTitle>
@@ -260,7 +260,7 @@ export default function InventoryPage() {
 
   return (
     <DashboardShell>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

@@ -7,7 +7,7 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { StockLocation, StockStatus } from "@/types/inventory"
+import { StockLocation } from "@/types/inventory"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -16,8 +16,6 @@ import { Info, Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   formatWarehouseCode,
-  getStockStatusColor,
-  getStockStatusLabel,
   getTotalStockForLocation
 } from "@/lib/warehouse-utils"
 
@@ -152,34 +150,28 @@ export default function StockLocationPopover({ locations, trigger, className }: 
                     </span>
                   </div>
 
-                  {/* Stock Status Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <StockStatusBadge
-                      status="stock"
-                      count={location.stockAvailable}
-                    />
-                    <StockStatusBadge
-                      status="in_process"
-                      count={location.stockInProcess}
-                    />
-                    <StockStatusBadge
-                      status="on_hold"
-                      count={location.stockOnHold}
-                    />
-                    <StockStatusBadge
-                      status="pending"
-                      count={location.stockPending}
-                    />
-                    <StockStatusBadge
-                      status="sold"
-                      count={location.stockSold}
-                    />
-                    {location.stockUnusable !== undefined && location.stockUnusable > 0 && (
-                      <div className="text-xs text-gray-600 bg-gray-50 border border-gray-200 px-2 py-1 rounded flex items-center justify-between">
-                        <span>Unusable:</span>
-                        <span className="font-semibold">{location.stockUnusable}</span>
-                      </div>
-                    )}
+                  {/* Stock Status Grid - Matching product-level breakdown */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Available Stock */}
+                    <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-green-600 bg-green-50 border-green-200">
+                      <span className="font-medium">Available</span>
+                      <span className="font-bold text-base">{location.stockAvailable}</span>
+                    </div>
+                    {/* Reserved Stock */}
+                    <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-orange-600 bg-orange-50 border-orange-200">
+                      <span className="font-medium">Reserved</span>
+                      <span className="font-bold text-base">{location.stockInProcess}</span>
+                    </div>
+                    {/* Safety Stock */}
+                    <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-blue-600 bg-blue-50 border-blue-200">
+                      <span className="font-medium">Safety Stock</span>
+                      <span className="font-bold text-base">{location.stockSafetyStock ?? 0}</span>
+                    </div>
+                    {/* Total Stock */}
+                    <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-gray-600 bg-gray-50 border-gray-200">
+                      <span className="font-medium">Total Stock</span>
+                      <span className="font-bold text-base">{locationTotal}</span>
+                    </div>
                   </div>
                 </div>
               )
@@ -201,29 +193,5 @@ export default function StockLocationPopover({ locations, trigger, className }: 
         </Card>
       </PopoverContent>
     </Popover>
-  )
-}
-
-/**
- * Stock Status Badge Component
- * Displays a colored badge for a specific stock status
- */
-interface StockStatusBadgeProps {
-  status: StockStatus
-  count: number
-}
-
-function StockStatusBadge({ status, count }: StockStatusBadgeProps) {
-  const colorClass = getStockStatusColor(status)
-  const label = getStockStatusLabel(status)
-
-  return (
-    <div className={cn(
-      "text-xs px-2 py-1 rounded border flex items-center justify-between",
-      colorClass
-    )}>
-      <span>{label}:</span>
-      <span className="font-semibold ml-1">{count}</span>
-    </div>
   )
 }
