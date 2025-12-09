@@ -728,42 +728,28 @@ export function InventoryDetailView({
 
                         <Separator />
 
-                        {/* Stock Status Breakdown */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          <div className={`text-xs px-2 py-1.5 rounded border flex flex-col ${getStockStatusColor("stock")}`}>
-                            <span className="font-medium">{getStockStatusLabel("stock")}</span>
+                        {/* Stock Status Breakdown - Matching product-level labels */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Available Stock */}
+                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-green-600 bg-green-50 border-green-200">
+                            <span className="font-medium">Available</span>
                             <span className="font-bold text-base">{location.stockAvailable}</span>
                           </div>
-                          <div className={`text-xs px-2 py-1.5 rounded border flex flex-col ${getStockStatusColor("in_process")}`}>
-                            <span className="font-medium">{getStockStatusLabel("in_process")}</span>
+                          {/* Reserved Stock */}
+                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-orange-600 bg-orange-50 border-orange-200">
+                            <span className="font-medium">Reserved</span>
                             <span className="font-bold text-base">{location.stockInProcess}</span>
                           </div>
-                          <div className={`text-xs px-2 py-1.5 rounded border flex flex-col ${getStockStatusColor("sold")}`}>
-                            <span className="font-medium">{getStockStatusLabel("sold")}</span>
-                            <span className="font-bold text-base">{location.stockSold}</span>
+                          {/* Safety Stock */}
+                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-blue-600 bg-blue-50 border-blue-200">
+                            <span className="font-medium">Safety Stock</span>
+                            <span className="font-bold text-base">{location.stockSafetyStock ?? 0}</span>
                           </div>
-                          <div className={`text-xs px-2 py-1.5 rounded border flex flex-col ${getStockStatusColor("on_hold")}`}>
-                            <span className="font-medium">{getStockStatusLabel("on_hold")}</span>
-                            <span className="font-bold text-base">{location.stockOnHold}</span>
+                          {/* Total Stock */}
+                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-gray-600 bg-gray-50 border-gray-200">
+                            <span className="font-medium">Total Stock</span>
+                            <span className="font-bold text-base">{totalLocationStock}</span>
                           </div>
-                          <div className={`text-xs px-2 py-1.5 rounded border flex flex-col ${getStockStatusColor("pending")}`}>
-                            <span className="font-medium">{getStockStatusLabel("pending")}</span>
-                            <span className="font-bold text-base">{location.stockPending}</span>
-                          </div>
-                          {location.stockUnusable !== undefined && location.stockUnusable > 0 && (
-                            <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-gray-600 bg-gray-50 border-gray-200">
-                              <span className="font-medium">Unusable</span>
-                              <span className="font-bold text-base">{location.stockUnusable}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <Separator />
-
-                        {/* Total Stock Footer */}
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground font-medium">Total:</span>
-                          <span className="font-bold">{totalLocationStock} units</span>
                         </div>
                       </CardContent>
                     </Card>

@@ -60,6 +60,7 @@ export interface StockLocation extends WarehouseLocation {
   stockOnHold: number
   stockPending: number
   stockUnusable?: number
+  stockSafetyStock?: number
 }
 
 /**

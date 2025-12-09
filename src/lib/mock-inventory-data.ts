@@ -99,11 +99,12 @@ export function generateMockWarehouseLocations(productId: string): StockLocation
     // Generate realistic stock numbers
     const baseStock = 50 + (seed % 150) // 50-200
     const stockAvailable = Math.max(0, baseStock + (i * 20) - (seed % 30))
-    const stockInProcess = (seed % 20) + 10 // 10-30
+    const stockInProcess = (seed % 20) + 10 // 10-30 (used as Reserved)
     const stockSold = seed % 50 // 0-50
     const stockOnHold = (seed % 15) + 5 // 5-20
     const stockPending = seed % 40 // 0-40
     const stockUnusable = seed % 10 // 0-10
+    const stockSafetyStock = 10 + (seed % 30) // 10-40 (Safety stock for this location)
 
     locations.push({
       warehouseCode,
@@ -114,7 +115,8 @@ export function generateMockWarehouseLocations(productId: string): StockLocation
       stockSold,
       stockOnHold,
       stockPending,
-      stockUnusable
+      stockUnusable,
+      stockSafetyStock
     })
   }
 
