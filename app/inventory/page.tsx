@@ -19,17 +19,13 @@ import {
 } from "@/components/ui/table"
 import {
   Package,
-  TrendingUp,
   AlertTriangle,
-  CheckCircle,
   Clock,
   Search,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Upload,
   Download,
-  Plus,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -48,7 +44,7 @@ import type {
   InventoryFilters,
 } from "@/types/inventory"
 
-type SortField = "productName" | "productId" | "category" | "currentStock" | "status" | "unitPrice"
+type SortField = "productName" | "productId" | "currentStock" | "status"
 type SortOrder = "asc" | "desc"
 
 function getStatusBadgeVariant(status: string) {
@@ -193,19 +189,9 @@ export default function InventoryPage() {
   }
 
   // Action button handlers
-  const handleImport = () => {
-    // TODO: Implement import functionality
-    console.log("Import clicked")
-  }
-
   const handleExport = () => {
     // TODO: Implement export functionality
     console.log("Export clicked")
-  }
-
-  const handleAddProduct = () => {
-    // TODO: Implement add product functionality
-    console.log("Add Product clicked")
   }
 
   // Loading skeleton
@@ -219,8 +205,8 @@ export default function InventoryPage() {
               <div className="h-4 w-96 bg-gray-200 rounded animate-pulse" />
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
               <Card key={i}>
                 <CardHeader>
                   <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
@@ -270,23 +256,15 @@ export default function InventoryPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleImport}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
             <Button variant="outline" onClick={handleExport}>
               <Download className="h-4 w-4 mr-2" />
               Export
-            </Button>
-            <Button onClick={handleAddProduct}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
             </Button>
           </div>
         </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -319,19 +297,6 @@ export default function InventoryPage() {
               {summary.criticalStockItems}
             </div>
             <p className="text-xs text-muted-foreground">Immediate attention required</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ฿{Math.round(summary.totalInventoryValue).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Current inventory value</p>
           </CardContent>
         </Card>
       </div>
@@ -412,15 +377,6 @@ export default function InventoryPage() {
                         <SortIcon field="productId" />
                       </div>
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort("category")}
-                    >
-                      <div className="flex items-center">
-                        Category
-                        <SortIcon field="category" />
-                      </div>
-                    </TableHead>
                     <TableHead className="hidden md:table-cell">
                       Type
                     </TableHead>
@@ -442,22 +398,13 @@ export default function InventoryPage() {
                         <SortIcon field="status" />
                       </div>
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50 text-right"
-                      onClick={() => handleSort("unitPrice")}
-                    >
-                      <div className="flex items-center justify-end">
-                        Price
-                        <SortIcon field="unitPrice" />
-                      </div>
-                    </TableHead>
                     <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -490,9 +437,6 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {item.barcode || item.productId}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {item.category}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex items-center gap-2">
@@ -531,9 +475,6 @@ export default function InventoryPage() {
                           >
                             {getStatusLabel(item.status)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ฿{item.unitPrice.toFixed(2)}
                         </TableCell>
                         <TableCell className="w-[40px]">
                           <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
