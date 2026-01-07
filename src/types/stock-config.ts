@@ -113,6 +113,8 @@ export interface StockConfigFile {
   invalidRecords: number
   folder: FileFolder
   errorMessage?: string
+  // User who uploaded the file (optional for backward compatibility)
+  uploadedBy?: string
   // Extended fields for DaaS processing workflow
   processingStatus?: ProcessingStatus
   processingProgress?: number // 0-100

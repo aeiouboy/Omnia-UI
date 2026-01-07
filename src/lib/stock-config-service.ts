@@ -113,6 +113,7 @@ const mockFileHistory: StockConfigFile[] = [
     validRecords: 148,
     invalidRecords: 2,
     folder: "arch",
+    uploadedBy: "Sarah Johnson",
   },
   {
     id: "FILE002",
@@ -123,6 +124,7 @@ const mockFileHistory: StockConfigFile[] = [
     validRecords: 50,
     invalidRecords: 0,
     folder: "arch",
+    uploadedBy: "Mike Chen",
   },
   {
     id: "FILE003",
@@ -134,6 +136,7 @@ const mockFileHistory: StockConfigFile[] = [
     invalidRecords: 15,
     folder: "err",
     errorMessage: "Too many validation errors",
+    uploadedBy: "Alex Rodriguez",
   },
   {
     id: "FILE004",
@@ -144,6 +147,7 @@ const mockFileHistory: StockConfigFile[] = [
     validRecords: 0,
     invalidRecords: 0,
     folder: "pending",
+    uploadedBy: "Current User",
   },
 ]
 
@@ -638,7 +642,8 @@ export async function createFileRecord(
   filename: string,
   recordCount: number,
   validRecords: number,
-  invalidRecords: number
+  invalidRecords: number,
+  uploadedBy?: string
 ): Promise<StockConfigFile> {
   // Simulate async operation
   await new Promise((resolve) => setTimeout(resolve, 100))
@@ -652,6 +657,7 @@ export async function createFileRecord(
     validRecords,
     invalidRecords,
     folder: "pending",
+    uploadedBy,
   }
 
   // In a real implementation, this would save to the database
