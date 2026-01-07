@@ -35,6 +35,7 @@ import { StockConfigTable } from "@/components/stock-config/stock-config-table"
 import { ProcessingProgressModal } from "@/components/stock-config/processing-progress-modal"
 import { PostProcessingReport } from "@/components/stock-config/post-processing-report"
 import { UploadHistoryTable } from "@/components/stock-config/upload-history-table"
+import { FileDetailModal } from "@/components/stock-config/file-detail-modal"
 import {
   getStockConfigs,
   getFileHistory,
@@ -90,6 +91,10 @@ export default function StockConfigPage() {
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [reportFile, setReportFile] = useState<StockConfigFile | null>(null)
   const [reportResults, setReportResults] = useState<ProcessingResult[]>([])
+
+  // File detail modal state
+  const [selectedFile, setSelectedFile] = useState<StockConfigFile | null>(null)
+  const [isFileDetailOpen, setIsFileDetailOpen] = useState(false)
 
   // Filter state
   const [activeTab, setActiveTab] = useState<SupplyTab>("all")
@@ -457,6 +462,11 @@ export default function StockConfigPage() {
     uploadHistorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
+  const handleViewFileDetails = (file: StockConfigFile) => {
+    setSelectedFile(file)
+    setIsFileDetailOpen(true)
+  }
+
   // Summary stats
   const summaryStats = useMemo(() => {
     const totalConfigs = totalItems
@@ -642,130 +652,12 @@ export default function StockConfigPage() {
 
         {/* Tabs and Stock Config Table */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-          <div className="flex flex-col gap-4">
-            {/* Filters row - search + date range + frequency + supply type tabs */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-end">
-              {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by Location ID, Item ID..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="w-[240px] pl-9 pr-8 h-9"
-                />
-                {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Clear search</span>
-                  </Button>
-                )}
-              </div>
-
-              {/* Date Range Filter */}
-              <div className="flex items-center gap-2">
-                {/* From Date Popover */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-[130px] justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {configDateRange.startDate
-                        ? format(configDateRange.startDate, "MMM d, yyyy")
-                        : "From"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={configDateRange.startDate}
-                      onSelect={(date) =>
-                        setConfigDateRange((prev) => ({ ...prev, startDate: date }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <span className="text-muted-foreground">-</span>
-
-                {/* To Date Popover */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-[130px] justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {configDateRange.endDate
-                        ? format(configDateRange.endDate, "MMM d, yyyy")
-                        : "To"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={configDateRange.endDate}
-                      onSelect={(date) =>
-                        setConfigDateRange((prev) => ({ ...prev, endDate: date }))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                {/* Clear Button (show only when dates are set) */}
-                {(configDateRange.startDate || configDateRange.endDate) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setConfigDateRange({ startDate: undefined, endDate: undefined })
-                    }
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Clear date filter</span>
-                  </Button>
-                )}
-              </div>
-
-              {/* Frequency Dropdown */}
-              <Select value={frequencyFilter} onValueChange={handleFrequencyChange}>
-                <SelectTrigger className="w-[180px] h-9">
-                  <SelectValue placeholder="All Frequencies" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Frequencies</SelectItem>
-                  <SelectItem value="Daily">Daily</SelectItem>
-                  <SelectItem value="One-time">One-time</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Supply Type Tabs */}
-              <TabsList>
-                <TabsTrigger value="all">All Configs</TabsTrigger>
-                <TabsTrigger value="PreOrder">PreOrder</TabsTrigger>
-                <TabsTrigger value="OnHand">OnHand</TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
-
           <TabsContent value={activeTab} className="space-y-4">
 
             {/* Stock Config Table */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <CardTitle>
                       {activeTab === "all" && "All Stock Configurations"}
@@ -775,6 +667,122 @@ export default function StockConfigPage() {
                     <CardDescription>
                       Showing {filteredStockConfigs.length} of {totalItems} configurations
                     </CardDescription>
+                  </div>
+
+                  {/* Filters row - search + date range + frequency + supply type tabs */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    {/* Search Input */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by Location ID, Item ID..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        className="w-[240px] pl-9 pr-8 h-9"
+                      />
+                      {searchQuery && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Clear search</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Date Range Filter */}
+                    <div className="flex items-center gap-2">
+                      {/* From Date Popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-[130px] justify-start text-left font-normal"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {configDateRange.startDate
+                              ? format(configDateRange.startDate, "MMM d, yyyy")
+                              : "From"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={configDateRange.startDate}
+                            onSelect={(date) =>
+                              setConfigDateRange((prev) => ({ ...prev, startDate: date }))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <span className="text-muted-foreground">-</span>
+
+                      {/* To Date Popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-[130px] justify-start text-left font-normal"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {configDateRange.endDate
+                              ? format(configDateRange.endDate, "MMM d, yyyy")
+                              : "To"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={configDateRange.endDate}
+                            onSelect={(date) =>
+                              setConfigDateRange((prev) => ({ ...prev, endDate: date }))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Clear Button (show only when dates are set) */}
+                      {(configDateRange.startDate || configDateRange.endDate) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setConfigDateRange({ startDate: undefined, endDate: undefined })
+                          }
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Clear date filter</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Frequency Dropdown */}
+                    <Select value={frequencyFilter} onValueChange={handleFrequencyChange}>
+                      <SelectTrigger className="w-[180px] h-9">
+                        <SelectValue placeholder="All Frequencies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Frequencies</SelectItem>
+                        <SelectItem value="Daily">Daily</SelectItem>
+                        <SelectItem value="One-time">One-time</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {/* Supply Type Tabs */}
+                    <TabsList>
+                      <TabsTrigger value="all">All Configs</TabsTrigger>
+                      <TabsTrigger value="PreOrder">PreOrder</TabsTrigger>
+                      <TabsTrigger value="OnHand">OnHand</TabsTrigger>
+                    </TabsList>
                   </div>
                 </div>
               </CardHeader>
@@ -959,7 +967,10 @@ export default function StockConfigPage() {
           <CardContent>
             <Tabs value={uploadHistoryFilter} onValueChange={(value) => setUploadHistoryFilter(value as "all" | "pending" | "processed" | "error")} className="space-y-4">
               <TabsContent value={uploadHistoryFilter}>
-                <UploadHistoryTable fileHistory={filteredFileHistory.slice(0, 10)} />
+                <UploadHistoryTable
+                  fileHistory={filteredFileHistory.slice(0, 10)}
+                  onViewDetails={handleViewFileDetails}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -1001,6 +1012,12 @@ export default function StockConfigPage() {
         filename={reportFile?.filename || ""}
         results={reportResults}
         onRetryFailed={handleRetryFailedRows}
+      />
+
+      <FileDetailModal
+        open={isFileDetailOpen}
+        onOpenChange={setIsFileDetailOpen}
+        file={selectedFile}
       />
     </DashboardShell>
   )

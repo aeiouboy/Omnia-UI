@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   FileSpreadsheet,
@@ -19,17 +20,20 @@ import {
   CheckCircle,
   Clock,
   User,
+  Eye,
 } from "lucide-react"
 import type { StockConfigFile } from "@/types/stock-config"
 
 interface UploadHistoryTableProps {
   fileHistory: StockConfigFile[]
   loading?: boolean
+  onViewDetails?: (file: StockConfigFile) => void
 }
 
 export function UploadHistoryTable({
   fileHistory,
   loading = false,
+  onViewDetails = () => {},
 }: UploadHistoryTableProps) {
   const getFileStatusBadge = (file: StockConfigFile) => {
     // Use processingStatus if available
@@ -185,7 +189,11 @@ export function UploadHistoryTable({
         </TableHeader>
         <TableBody>
           {fileHistory.map((file) => (
-            <TableRow key={file.id} className="hover:bg-muted/50">
+            <TableRow
+              key={file.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => onViewDetails(file)}
+            >
               {/* File Name */}
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -238,7 +246,23 @@ export function UploadHistoryTable({
               </TableCell>
 
               {/* Status */}
-              <TableCell>{getFileStatusBadge(file)}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {getFileStatusBadge(file)}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onViewDetails(file)
+                    }}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="sr-only">View details</span>
+                  </Button>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
