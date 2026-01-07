@@ -421,7 +421,7 @@ export function InventoryDetailView({
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-gray-900 mb-1">
-                      {formatStockQuantity(item.currentStock, item.itemType, false)}
+                      {formatStockQuantity(item.availableStock + item.reservedStock + item.safetyStock, item.itemType, false)}
                     </div>
                     <div className="text-xs text-gray-700">
                       {stockPercentage.toFixed(0)}% of max capacity
@@ -433,7 +433,7 @@ export function InventoryDetailView({
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Total physical stock on hand (Available + Reserved)</p>
+                  <p className="max-w-xs">Total stock including safety buffer (Available + Reserved + Safety)</p>
                 </TooltipContent>
               </Tooltip>
             </div>

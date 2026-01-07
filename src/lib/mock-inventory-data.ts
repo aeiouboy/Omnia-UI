@@ -78,16 +78,19 @@ export const WAREHOUSE_CODES = [
  * location-level breakdowns. The stock is distributed proportionally across locations:
  * - sum(location.stockAvailable) = product.availableStock
  * - sum(location.stockInProcess) = product.reservedStock
+ * - sum(location.stockSafetyStock) = product.safetyStock
  *
  * @param productId - Product identifier
  * @param availableStock - Product's total available stock (optional, for backwards compatibility)
  * @param reservedStock - Product's total reserved stock (optional, for backwards compatibility)
+ * @param safetyStock - Product's total safety stock (optional, for backwards compatibility)
  * @returns Array of stock locations with realistic data
  */
 export function generateMockWarehouseLocations(
   productId: string,
   availableStock?: number,
-  reservedStock?: number
+  reservedStock?: number,
+  safetyStock?: number
 ): StockLocation[] {
   // Use product ID to seed deterministic but varied results
   const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
@@ -108,6 +111,7 @@ export function generateMockWarehouseLocations(
   // Track remaining stock to distribute (to handle rounding)
   let remainingAvailable = availableStock ?? 0
   let remainingReserved = reservedStock ?? 0
+  let remainingSafety = safetyStock ?? 0
 
   for (let i = 0; i < locationCount; i++) {
     const warehouseCode = WAREHOUSE_CODES[(seed + i) % WAREHOUSE_CODES.length]
@@ -125,6 +129,7 @@ export function generateMockWarehouseLocations(
     // Calculate stock for this location based on weight ratio
     let stockAvailable: number
     let stockInProcess: number
+    let stockSafetyStock: number
 
     if (availableStock !== undefined && reservedStock !== undefined) {
       // Distribute product stock proportionally across locations
@@ -134,20 +139,24 @@ export function generateMockWarehouseLocations(
         // Last location gets remaining stock (handles rounding)
         stockAvailable = remainingAvailable
         stockInProcess = remainingReserved
+        stockSafetyStock = remainingSafety
       } else {
         // Calculate proportional stock based on weight
         const ratio = weights[i] / totalWeight
         stockAvailable = Math.floor(availableStock * ratio)
         stockInProcess = Math.floor(reservedStock * ratio)
+        stockSafetyStock = Math.floor((safetyStock ?? 0) * ratio)
 
         remainingAvailable -= stockAvailable
         remainingReserved -= stockInProcess
+        remainingSafety -= stockSafetyStock
       }
     } else {
       // Fallback to original random generation for backwards compatibility
       const baseStock = 50 + (seed % 150) // 50-200
       stockAvailable = Math.max(0, baseStock + (i * 20) - (seed % 30))
       stockInProcess = (seed % 20) + 10 // 10-30 (used as Reserved)
+      stockSafetyStock = 10 + (seed % 30) // 10-40 (Safety threshold for this location)
     }
 
     // Generate supplementary tracking data (not part of core stock relationship)
@@ -155,7 +164,6 @@ export function generateMockWarehouseLocations(
     const stockOnHold = (seed % 15) + 5 // 5-20
     const stockPending = seed % 40 // 0-40
     const stockUnusable = seed % 10 // 0-10
-    const stockSafetyStock = 10 + (seed % 30) // 10-40 (Safety threshold for this location)
 
     locations.push({
       warehouseCode,
@@ -207,7 +215,7 @@ export function generateMockStockBreakdown(productId: string, warehouseCode: str
 /**
  * Helper function to ensure all mock items have warehouse locations
  *
- * Passes product-level availableStock and reservedStock to the location generator
+ * Passes product-level availableStock, reservedStock, and safetyStock to the location generator
  * to ensure location sums match product totals for data consistency.
  */
 function ensureWarehouseLocations(items: InventoryItem[]): InventoryItem[] {
@@ -216,7 +224,8 @@ function ensureWarehouseLocations(items: InventoryItem[]): InventoryItem[] {
     warehouseLocations: item.warehouseLocations || generateMockWarehouseLocations(
       item.productId,
       item.availableStock,
-      item.reservedStock
+      item.reservedStock,
+      item.safetyStock
     )
   }))
 }
@@ -247,7 +256,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     imageUrl: "https://placehold.co/400x400/228B22/white/png?text=Fresh+Vegetables",
     barcode: "8850123456789",
     itemType: "weight",
-    warehouseLocations: generateMockWarehouseLocations("PROD-001", 220, 25),
+    warehouseLocations: generateMockWarehouseLocations("PROD-001", 220, 25, 75),
   },
   {
     id: "INV-002",
