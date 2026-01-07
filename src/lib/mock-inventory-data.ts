@@ -73,15 +73,41 @@ export const WAREHOUSE_CODES = [
 
 /**
  * Generate mock warehouse locations for a product
+ *
+ * This function ensures data consistency between product-level stock values and
+ * location-level breakdowns. The stock is distributed proportionally across locations:
+ * - sum(location.stockAvailable) = product.availableStock
+ * - sum(location.stockInProcess) = product.reservedStock
+ *
  * @param productId - Product identifier
+ * @param availableStock - Product's total available stock (optional, for backwards compatibility)
+ * @param reservedStock - Product's total reserved stock (optional, for backwards compatibility)
  * @returns Array of stock locations with realistic data
  */
-export function generateMockWarehouseLocations(productId: string): StockLocation[] {
+export function generateMockWarehouseLocations(
+  productId: string,
+  availableStock?: number,
+  reservedStock?: number
+): StockLocation[] {
   // Use product ID to seed deterministic but varied results
   const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const locationCount = (seed % 3) + 1 // 1-3 locations per product
 
   const locations: StockLocation[] = []
+
+  // Calculate distribution ratios for each location
+  // Using a weighted distribution based on seed to make it deterministic but varied
+  const weights: number[] = []
+  let totalWeight = 0
+  for (let i = 0; i < locationCount; i++) {
+    const weight = 1 + ((seed + i * 7) % 5) // Weight between 1-5
+    weights.push(weight)
+    totalWeight += weight
+  }
+
+  // Track remaining stock to distribute (to handle rounding)
+  let remainingAvailable = availableStock ?? 0
+  let remainingReserved = reservedStock ?? 0
 
   for (let i = 0; i < locationCount; i++) {
     const warehouseCode = WAREHOUSE_CODES[(seed + i) % WAREHOUSE_CODES.length]
@@ -96,15 +122,40 @@ export function generateMockWarehouseLocations(productId: string): StockLocation
     // First location is always default
     const isDefaultLocation = i === 0
 
-    // Generate realistic stock numbers
-    const baseStock = 50 + (seed % 150) // 50-200
-    const stockAvailable = Math.max(0, baseStock + (i * 20) - (seed % 30))
-    const stockInProcess = (seed % 20) + 10 // 10-30 (used as Reserved)
+    // Calculate stock for this location based on weight ratio
+    let stockAvailable: number
+    let stockInProcess: number
+
+    if (availableStock !== undefined && reservedStock !== undefined) {
+      // Distribute product stock proportionally across locations
+      const isLastLocation = i === locationCount - 1
+
+      if (isLastLocation) {
+        // Last location gets remaining stock (handles rounding)
+        stockAvailable = remainingAvailable
+        stockInProcess = remainingReserved
+      } else {
+        // Calculate proportional stock based on weight
+        const ratio = weights[i] / totalWeight
+        stockAvailable = Math.floor(availableStock * ratio)
+        stockInProcess = Math.floor(reservedStock * ratio)
+
+        remainingAvailable -= stockAvailable
+        remainingReserved -= stockInProcess
+      }
+    } else {
+      // Fallback to original random generation for backwards compatibility
+      const baseStock = 50 + (seed % 150) // 50-200
+      stockAvailable = Math.max(0, baseStock + (i * 20) - (seed % 30))
+      stockInProcess = (seed % 20) + 10 // 10-30 (used as Reserved)
+    }
+
+    // Generate supplementary tracking data (not part of core stock relationship)
     const stockSold = seed % 50 // 0-50
     const stockOnHold = (seed % 15) + 5 // 5-20
     const stockPending = seed % 40 // 0-40
     const stockUnusable = seed % 10 // 0-10
-    const stockSafetyStock = 10 + (seed % 30) // 10-40 (Safety stock for this location)
+    const stockSafetyStock = 10 + (seed % 30) // 10-40 (Safety threshold for this location)
 
     locations.push({
       warehouseCode,
@@ -155,11 +206,18 @@ export function generateMockStockBreakdown(productId: string, warehouseCode: str
 
 /**
  * Helper function to ensure all mock items have warehouse locations
+ *
+ * Passes product-level availableStock and reservedStock to the location generator
+ * to ensure location sums match product totals for data consistency.
  */
 function ensureWarehouseLocations(items: InventoryItem[]): InventoryItem[] {
   return items.map(item => ({
     ...item,
-    warehouseLocations: item.warehouseLocations || generateMockWarehouseLocations(item.productId)
+    warehouseLocations: item.warehouseLocations || generateMockWarehouseLocations(
+      item.productId,
+      item.availableStock,
+      item.reservedStock
+    )
   }))
 }
 
@@ -189,7 +247,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     imageUrl: "https://placehold.co/400x400/228B22/white/png?text=Fresh+Vegetables",
     barcode: "8850123456789",
     itemType: "weight",
-    warehouseLocations: generateMockWarehouseLocations("PROD-001"),
+    warehouseLocations: generateMockWarehouseLocations("PROD-001", 220, 25),
   },
   {
     id: "INV-002",
@@ -257,7 +315,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 150,
     imageUrl: "https://placehold.co/400x400/4169E1/white/png?text=Organic+Milk",
     barcode: "8850123456792",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-005",
@@ -279,7 +337,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 180,
     imageUrl: "https://placehold.co/400x400/87CEEB/white/png?text=Greek+Yogurt",
     barcode: "8850123456793",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-006",
@@ -301,7 +359,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 280,
     imageUrl: "https://placehold.co/400x400/FFD700/333333/png?text=Cheese+Slices",
     barcode: "8850123456794",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Bakery
@@ -325,7 +383,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 85,
     imageUrl: "https://placehold.co/400x400/8B4513/white/png?text=Wheat+Bread",
     barcode: "8850123456795",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-008",
@@ -347,7 +405,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 120,
     imageUrl: "https://placehold.co/400x400/DAA520/white/png?text=Croissants",
     barcode: "8850123456796",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Meat
@@ -485,7 +543,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 250,
     imageUrl: "https://placehold.co/400x400/D2691E/white/png?text=Pasta",
     barcode: "8850123456802",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-015",
@@ -507,7 +565,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 200,
     imageUrl: "https://placehold.co/400x400/F5DEB3/333333/png?text=Premium+Rice",
     barcode: "8850123456803",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Frozen
@@ -531,7 +589,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 130,
     imageUrl: "https://placehold.co/400x400/FF4500/white/png?text=Frozen+Pizza",
     barcode: "8850123456804",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-017",
@@ -553,7 +611,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 110,
     imageUrl: "https://placehold.co/400x400/FFB6C1/333333/png?text=Ice+Cream",
     barcode: "8850123456805",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Beverages
@@ -577,7 +635,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 220,
     imageUrl: "https://placehold.co/400x400/FFA500/white/png?text=Orange+Juice",
     barcode: "8850123456806",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-019",
@@ -599,7 +657,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 380,
     imageUrl: "https://placehold.co/400x400/00BFFF/white/png?text=Mineral+Water",
     barcode: "8850123456807",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Snacks
@@ -623,7 +681,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 180,
     imageUrl: "https://placehold.co/400x400/FFD700/333333/png?text=Potato+Chips",
     barcode: "8850123456808",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-021",
@@ -645,7 +703,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 95,
     imageUrl: "https://placehold.co/400x400/A0522D/white/png?text=Mixed+Nuts",
     barcode: "8850123456809",
-    itemType: "unit",
+    itemType: "normal",
   },
 
   // Household
@@ -669,7 +727,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 210,
     imageUrl: "https://placehold.co/400x400/4682B4/white/png?text=Detergent",
     barcode: "8850123456810",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-023",
@@ -691,7 +749,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 140,
     imageUrl: "https://placehold.co/400x400/98FB98/333333/png?text=Dish+Soap",
     barcode: "8850123456811",
-    itemType: "unit",
+    itemType: "normal",
   },
   {
     id: "INV-024",
@@ -713,7 +771,7 @@ const mockInventoryItemsBase: InventoryItem[] = [
     demandForecast: 160,
     imageUrl: "https://placehold.co/400x400/F0F8FF/333333/png?text=Toilet+Paper",
     barcode: "8850123456812",
-    itemType: "unit",
+    itemType: "normal",
   },
 ]
 
@@ -723,74 +781,69 @@ const mockInventoryItemsBase: InventoryItem[] = [
 export const mockInventoryItems = ensureWarehouseLocations(mockInventoryItemsBase)
 
 /**
- * Mock store performance data for all 8 Tops stores
+ * Generate store performance metrics dynamically from inventory items
+ * This ensures data consistency between store overview and detail views
+ * @returns Array of StorePerformance objects for all 8 Tops stores
  */
-export const mockStorePerformance: StorePerformance[] = [
-  {
-    storeName: "Tops Central World",
-    totalProducts: 1245,
-    lowStockItems: 12,
-    criticalStockItems: 3,
-    totalValue: 2847500,
-    healthScore: 94.5,
-  },
-  {
-    storeName: "Tops สุขุมวิท 39",
-    totalProducts: 987,
-    lowStockItems: 18,
-    criticalStockItems: 5,
-    totalValue: 2156300,
-    healthScore: 89.2,
-  },
-  {
-    storeName: "Tops ทองหล่อ",
-    totalProducts: 856,
-    lowStockItems: 24,
-    criticalStockItems: 8,
-    totalValue: 1874500,
-    healthScore: 85.3,
-  },
-  {
-    storeName: "Tops สีลม คอมเพล็กซ์",
-    totalProducts: 743,
-    lowStockItems: 15,
-    criticalStockItems: 4,
-    totalValue: 1642300,
-    healthScore: 91.1,
-  },
-  {
-    storeName: "Tops เอกมัย",
-    totalProducts: 1089,
-    lowStockItems: 14,
-    criticalStockItems: 6,
-    totalValue: 2534800,
-    healthScore: 92.3,
-  },
-  {
-    storeName: "Tops พร้อมพงษ์",
-    totalProducts: 678,
-    lowStockItems: 21,
-    criticalStockItems: 7,
-    totalValue: 1487600,
-    healthScore: 87.8,
-  },
-  {
-    storeName: "Tops จตุจักร",
-    totalProducts: 923,
-    lowStockItems: 16,
-    criticalStockItems: 5,
-    totalValue: 2034700,
-    healthScore: 90.5,
-  },
-  {
-    storeName: "Tops Central Plaza ลาดพร้าว",
-    totalProducts: 1134,
-    lowStockItems: 19,
-    criticalStockItems: 4,
-    totalValue: 2645900,
-    healthScore: 88.9,
-  },
-]
+export function generateStorePerformanceFromInventory(): StorePerformance[] {
+  // Group inventory items by store
+  const itemsByStore = new Map<TopsStore, InventoryItem[]>()
+
+  // Initialize all 8 stores with empty arrays
+  TOPS_STORES.forEach(store => {
+    itemsByStore.set(store, [])
+  })
+
+  // Group items by their store
+  mockInventoryItems.forEach(item => {
+    const storeItems = itemsByStore.get(item.storeName) || []
+    storeItems.push(item)
+    itemsByStore.set(item.storeName, storeItems)
+  })
+
+  // Calculate performance metrics for each store
+  const storePerformance: StorePerformance[] = []
+
+  TOPS_STORES.forEach(storeName => {
+    const items = itemsByStore.get(storeName) || []
+
+    // Calculate metrics
+    const totalProducts = items.length
+    const lowStockItems = items.filter(item => item.status === "low").length
+    const criticalStockItems = items.filter(item => item.status === "critical").length
+    const healthyItems = items.filter(item => item.status === "healthy").length
+
+    // Calculate total value (sum of currentStock * unitPrice)
+    const totalValue = items.reduce((sum, item) => {
+      return sum + (item.currentStock * item.unitPrice)
+    }, 0)
+
+    // Calculate health score as percentage of healthy items
+    // Health score = (healthy items / total items) * 100
+    // For stores with 0 products, default to 0
+    let healthScore = 0
+    if (totalProducts > 0) {
+      healthScore = parseFloat(((healthyItems / totalProducts) * 100).toFixed(1))
+    }
+
+    storePerformance.push({
+      storeName,
+      totalProducts,
+      lowStockItems,
+      criticalStockItems,
+      totalValue: Math.round(totalValue), // Round to nearest baht
+      healthScore,
+    })
+  })
+
+  return storePerformance
+}
+
+/**
+ * Mock store performance data for all 8 Tops stores
+ * Dynamically generated from mockInventoryItems to ensure data consistency
+ */
+export const mockStorePerformance: StorePerformance[] = generateStorePerformanceFromInventory()
 
 /**
  * Generate stock alerts from inventory items
@@ -865,7 +918,7 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
   const transactionCount = 10 + Math.floor(Math.random() * 10) // 10-20 transactions
   const today = new Date()
 
-  const transactionTypes: TransactionType[] = ["stock_in", "stock_out", "adjustment", "spoilage", "return"]
+  const transactionTypes: TransactionType[] = ["stock_in", "stock_out", "adjustment", "return"]
   const users = ["John Smith", "Sarah Johnson", "Mike Chen", "Lisa Wong", "David Kim"]
 
   let currentBalance = item.currentStock
@@ -890,9 +943,6 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       case "adjustment":
         quantity = Math.floor(Math.random() * 20) - 10 // -10 to +10 units
         break
-      case "spoilage":
-        quantity = -(Math.floor(Math.random() * 10) + 1) // -1 to -10 units
-        break
       case "return":
         quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units
         break
@@ -907,6 +957,21 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       ? item.warehouseLocations[Math.floor(Math.random() * item.warehouseLocations.length)]
       : undefined
 
+    // Determine channel and referenceId for stock_out and return transactions
+    const channels: ("Grab" | "Lineman" | "Gokoo")[] = ["Grab", "Lineman", "Gokoo"]
+    const channelWeights = [0.6, 0.3, 0.1] // 60% Grab, 30% Lineman, 10% Gokoo
+    const randomChannel = () => {
+      const rand = Math.random()
+      if (rand < channelWeights[0]) return channels[0]
+      if (rand < channelWeights[0] + channelWeights[1]) return channels[1]
+      return channels[2]
+    }
+
+    const channel = (type === "stock_out" || type === "return") ? randomChannel() : undefined
+    const referenceId = (type === "stock_out" || type === "return")
+      ? `ORD-${Math.floor(Math.random() * 10000)}`
+      : undefined
+
     transactions.push({
       id: `TXN-${item.productId}-${i.toString().padStart(3, '0')}`,
       productId: item.productId,
@@ -917,9 +982,11 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       timestamp: timestamp.toISOString(),
       user,
       notes: generateTransactionNotes(type),
-      referenceId: type === "stock_out" ? `ORD-${Math.floor(Math.random() * 10000)}` : undefined,
+      referenceId,
       warehouseCode: location?.warehouseCode,
       locationCode: location?.locationCode,
+      channel,
+      itemType: item.itemType,
     })
 
     // Update balance for previous transactions (going backwards in time)
@@ -953,17 +1020,11 @@ function generateTransactionNotes(type: TransactionType): string {
       "Physical count discrepancy",
       "Audit adjustment",
     ],
-    spoilage: [
-      "Expired items removed",
-      "Quality control rejection",
-      "Damaged goods",
-      "Best before date passed",
-    ],
     return: [
-      "Customer return",
-      "Supplier return credit",
       "Order cancellation",
-      "Defective item return",
+      "Customer return",
+      "Product expired",
+      "Wrong item received",
     ],
   }
 

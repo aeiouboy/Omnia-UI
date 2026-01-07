@@ -3,10 +3,26 @@
  *
  * These types define the structure of inventory data used throughout the application.
  * They support both database (Supabase) and mock data sources following the dual data strategy.
+ *
+ * @remarks
+ * Terminology follows industry-standard inventory management conventions.
+ * Field names are chosen to be self-documenting and align with user-facing labels.
+ * For detailed terminology guidelines, see docs/inventory-terminology-standards.md
  */
 
 /**
- * Status levels for inventory items
+ * Status levels for inventory items based on available stock vs safety stock
+ *
+ * @remarks
+ * Status is determined by comparing availableStock to safetyStock and zero:
+ * - "healthy": availableStock > safetyStock (stock is above safety buffer)
+ * - "low": 0 < availableStock <= safetyStock (stock below safety threshold)
+ * - "critical": availableStock === 0 (out of stock)
+ *
+ * User-facing labels:
+ * - healthy → "In Stock" (green badge)
+ * - low → "Low Stock" (yellow badge)
+ * - critical → "Out of Stock" (red badge)
  */
 export type InventoryStatus = "healthy" | "low" | "critical"
 
@@ -17,18 +33,30 @@ export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood
 
 /**
  * Item type indicating how items are measured and sold
- * - "weight": Items sold by weight (kg) such as produce, meat, seafood
- * - "unit": Items sold by piece/unit such as packaged goods, dairy, beverages
+ * - "weight": Items sold by weight (kg) - displayed with 3 decimals (e.g., loose produce, bulk goods)
+ * - "pack_weight": Pre-packed items sold by weight (kg) - displayed with 3 decimals (e.g., pre-packed meat, cheese)
+ * - "pack": Pre-packed items sold by unit - displayed as integers (e.g., boxes, cartons)
+ * - "normal": Standard items sold by piece/unit - displayed as integers (e.g., bottles, cans)
  */
-export type ItemType = "weight" | "unit"
+export type ItemType = "weight" | "pack_weight" | "pack" | "normal"
 
 /**
  * Stock status types for warehouse location tracking
- * - "stock": Available for immediate sale
- * - "in_process": Currently being picked/packed for orders
- * - "sold": Already sold but not yet shipped
+ *
+ * @remarks
+ * These are INTERNAL statuses for granular warehouse management and should NOT be
+ * exposed directly in user-facing UI. Instead, aggregate these into user-friendly terms:
+ * - User-facing "Available Stock" = stock
+ * - User-facing "Reserved Stock" = in_process + sold + on_hold
+ *
+ * Status Details:
+ * - "stock": Available for immediate sale (ready to pick)
+ * - "in_process": Currently being picked/packed for orders (allocated but not shipped)
+ * - "sold": Sold but not yet shipped (order confirmed, awaiting pickup/delivery)
  * - "on_hold": Reserved for future orders or pending quality checks
- * - "pending": Incoming stock or pending restocking
+ * - "pending": Incoming stock or pending restocking (not yet available)
+ *
+ * @see {@link StockLocation} for how these statuses are used in warehouse locations
  */
 export type StockStatus = "stock" | "in_process" | "sold" | "on_hold" | "pending"
 
@@ -51,15 +79,34 @@ export interface StockLocationBreakdown {
 }
 
 /**
- * Stock location combining warehouse info and stock counts
+ * Stock location combining warehouse info and stock counts by status
+ *
+ * @remarks
+ * Represents stock breakdown for a specific warehouse location (e.g., WH01-A-05-12).
+ *
+ * Stock Calculation Rules:
+ * - Total Stock at Location = stockAvailable + stockInProcess + stockSold + stockOnHold + stockPending
+ * - Active Stock (for picking) = stockAvailable only
+ * - Reserved Stock = stockInProcess + stockSold + stockOnHold
+ *
+ * Default Location:
+ * - isDefaultLocation=true indicates the primary picking location for this product
+ * - Used for optimizing pick routes and stock allocation
  */
 export interface StockLocation extends WarehouseLocation {
+  /** Stock available for immediate sale - maps to "Available Stock" in UI */
   stockAvailable: number
+  /** Stock currently being picked/packed - part of "Reserved Stock" */
   stockInProcess: number
+  /** Stock sold but not yet shipped - part of "Reserved Stock" */
   stockSold: number
+  /** Stock reserved for future orders - part of "Reserved Stock" */
   stockOnHold: number
+  /** Incoming stock not yet available - shown separately */
   stockPending: number
+  /** Damaged/expired stock - not available for sale */
   stockUnusable?: number
+  /** Safety stock threshold for this location - minimum buffer level */
   stockSafetyStock?: number
 }
 
@@ -79,33 +126,81 @@ export type TopsStore =
 
 /**
  * Main inventory item structure
+ *
+ * @remarks
+ * Core inventory object representing a product at a specific store location.
+ *
+ * Key Field Relationships:
+ * - currentStock = availableStock + reservedStock (total physical stock)
+ * - reservedStock = currentStock - availableStock (calculated field)
+ * - status is determined by comparing availableStock to safetyStock
+ * - reorderPoint triggers replenishment when currentStock falls below it
+ *
+ * Stock Level Thresholds:
+ * - maxStockLevel: Maximum capacity (e.g., shelf space limit)
+ * - reorderPoint: Trigger for reordering (typically safetyStock + lead time demand)
+ * - safetyStock: Minimum buffer (typically 10-20% of maxStockLevel)
+ * - minStockLevel: Absolute minimum before critical alerts
  */
 export interface InventoryItem {
   id: string
+  /** Internal product identifier (also known as SKU - Stock Keeping Unit) */
   productId: string
   productName: string
   category: ProductCategory
   storeName: TopsStore
+
+  /** Total physical stock on hand (Available + Reserved). Also known as "Stock on Hand" */
   currentStock: number
-  /** Stock available for sale (not reserved/allocated). Must be ≤ currentStock */
+
+  /** Stock available for sale (not reserved/allocated). Must be ≤ currentStock.
+   * Displayed in UI as "Available Stock" with green indicator. */
   availableStock: number
-  /** Stock quantity allocated to pending orders (calculated as currentStock - availableStock) */
+
+  /** Stock allocated to pending orders (calculated as currentStock - availableStock).
+   * Also known as "Allocated Stock" or "Committed Stock".
+   * Displayed in UI as "Reserved Stock" with orange indicator. */
   reservedStock: number
-  /** Minimum buffer quantity to prevent stockouts (typically 10-20% of max stock level) */
+
+  /** Minimum buffer quantity to prevent stockouts (typically 10-20% of max stock level).
+   * Triggers "Low Stock" status when availableStock falls below this threshold.
+   * Displayed in UI as "Safety Stock" with blue indicator. */
   safetyStock: number
+
+  /** Absolute minimum stock level before critical alerts */
   minStockLevel: number
+
+  /** Maximum stock capacity (shelf space, storage limit) */
   maxStockLevel: number
+
   unitPrice: number
   lastRestocked: string // ISO 8601 timestamp
+
+  /** Inventory status based on available stock vs safety threshold
+   * @see {@link InventoryStatus} for status determination rules */
   status: InventoryStatus
+
   supplier: string
+
+  /** Stock level that triggers replenishment order
+   * Formula: (Average Daily Usage × Lead Time) + Safety Stock
+   * Also known as "ROP" (Reorder Point) */
   reorderPoint: number
+
   demandForecast: number
-  imageUrl: string // Product image URL
-  barcode?: string // Optional barcode
-  /** Item type indicating measurement method (weight or unit) */
+
+  /** Product image URL */
+  imageUrl: string
+
+  /** Physical barcode on product (EAN-13, UPC, etc.). Optional - falls back to productId */
+  barcode?: string
+
+  /** Item type indicating measurement method (weight or unit)
+   * @see {@link ItemType} for formatting rules */
   itemType: ItemType
-  /** Warehouse locations with stock breakdown */
+
+  /** Warehouse locations with detailed stock breakdown by status
+   * @see {@link StockLocation} for location-level stock details */
   warehouseLocations?: StockLocation[]
 }
 
@@ -182,25 +277,71 @@ export interface StockAlertsResponse {
 
 /**
  * Transaction types for stock movements
+ *
+ * @remarks
+ * Standard inventory transaction types following industry conventions:
+ *
+ * - "stock_in": Inbound stock (receiving, restocking). Also known as "Goods Receipt"
+ * - "stock_out": Outbound stock (sales, shipments). Also known as "Goods Issue"
+ * - "adjustment": Inventory corrections (recount, damage, expiry, theft)
+ * - "return": Customer or supplier returns (reverse transaction)
  */
-export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "spoilage" | "return"
+export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
 
 /**
  * Stock transaction record
+ *
+ * @remarks
+ * Represents a single stock movement with full audit trail.
+ *
+ * Transaction Impact:
+ * - stock_in: Increases availableStock by quantity
+ * - stock_out: Decreases availableStock by quantity
+ * - adjustment: Can increase or decrease (quantity can be negative)
+ * - return: Increases availableStock (reverses previous stock_out)
+ *
+ * Reference IDs:
+ * - For stock_out with referenceId: Links to order (e.g., "ORD-12345")
+ * - For return with referenceId: Links to original order
+ * - For stock_in with referenceId: Links to PO or supplier invoice
  */
 export interface StockTransaction {
   id: string
   productId: string
   productName: string
+
+  /** Transaction type - determines stock impact direction */
   type: TransactionType
+
+  /** Quantity moved (always positive; direction determined by type) */
   quantity: number
+
+  /** Available stock balance after this transaction */
   balanceAfter: number
-  timestamp: string // ISO 8601
+
+  /** Transaction timestamp in ISO 8601 format */
+  timestamp: string
+
+  /** User who performed the transaction */
   user: string
+
+  /** Optional transaction notes or reason */
   notes?: string
-  referenceId?: string // Order ID or PO ID
-  warehouseCode?: string // Warehouse location code
-  locationCode?: string // Specific location within warehouse
+
+  /** Reference to related order, PO, or document */
+  referenceId?: string
+
+  /** Warehouse location code where transaction occurred */
+  warehouseCode?: string
+
+  /** Specific location within warehouse (bin location) */
+  locationCode?: string
+
+  /** Sales channel for stock_out transactions (Grab, Lineman, Gokoo) */
+  channel?: "Grab" | "Lineman" | "Gokoo"
+
+  /** Item type for proper quantity formatting in UI */
+  itemType?: ItemType
 }
 
 /**

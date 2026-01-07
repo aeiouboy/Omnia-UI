@@ -13,6 +13,7 @@ import {
   generateStockAlerts,
   generateMockStockHistory,
   generateMockTransactions,
+  generateStorePerformanceFromInventory,
 } from "./mock-inventory-data"
 import type {
   InventoryItem,
@@ -290,10 +291,13 @@ export async function fetchStorePerformance(): Promise<StorePerformanceResponse>
     console.warn("Failed to fetch store performance from database:", error)
   }
 
-  // Use mock data (for now, always)
+  // Generate store performance dynamically from inventory items
+  // This ensures data consistency between store overview and detail views
+  const stores = generateStorePerformanceFromInventory()
+
   return {
-    stores: mockStorePerformance,
-    total: mockStorePerformance.length,
+    stores,
+    total: stores.length,
   }
 }
 
@@ -392,10 +396,32 @@ export async function fetchStockAlerts(
 
 /**
  * Get inventory summary statistics
+ *
+ * This function calculates summary KPIs across ALL inventory items, not just
+ * a single page. For mock data, we use mockInventoryItems directly for efficiency.
+ * For Supabase, we fetch all items by setting a large pageSize.
  */
 export async function fetchInventorySummary() {
   try {
-    const data = await fetchInventoryData()
+    // For efficiency, use mockInventoryItems directly when Supabase is not available
+    // This ensures we count ALL items, not just the first page (default pageSize: 25)
+    if (!isSupabaseAvailable()) {
+      const items = mockInventoryItems
+
+      return {
+        totalProducts: items.length,
+        healthyItems: items.filter((item) => item.status === "healthy").length,
+        lowStockItems: items.filter((item) => item.status === "low").length,
+        criticalStockItems: items.filter((item) => item.status === "critical").length,
+        totalInventoryValue: items.reduce(
+          (sum, item) => sum + item.currentStock * item.unitPrice,
+          0
+        ),
+      }
+    }
+
+    // For Supabase, fetch all items by setting a large pageSize
+    const data = await fetchInventoryData({ pageSize: 1000 })
     const items = data.items
 
     // Handle empty data gracefully

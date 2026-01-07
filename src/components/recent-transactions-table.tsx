@@ -1,12 +1,6 @@
-/**
- * Recent Transactions Table Component
- *
- * Displays a table of recent stock transactions with color-coded transaction types.
- */
-
 "use client"
 
-import { useMemo } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -16,11 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowUp, ArrowDown, RefreshCw, AlertTriangle, RotateCcw, MapPin } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin } from "lucide-react"
+import Link from "next/link"
 import type { StockTransaction } from "@/types/inventory"
-import { formatWarehouseCode } from "@/lib/warehouse-utils"
+import { formatWarehouseCode, formatStockQuantity } from "@/lib/warehouse-utils"
 
 interface RecentTransactionsTableProps {
   transactions: StockTransaction[]
@@ -35,8 +38,6 @@ function getTransactionIcon(type: StockTransaction["type"]) {
       return <ArrowDown className="h-4 w-4 text-red-600" />
     case "adjustment":
       return <RefreshCw className="h-4 w-4 text-blue-600" />
-    case "spoilage":
-      return <AlertTriangle className="h-4 w-4 text-orange-600" />
     case "return":
       return <RotateCcw className="h-4 w-4 text-purple-600" />
     default:
@@ -52,8 +53,6 @@ function getTransactionBadgeClass(type: StockTransaction["type"]) {
       return "bg-red-100 text-red-800"
     case "adjustment":
       return "bg-blue-100 text-blue-800"
-    case "spoilage":
-      return "bg-orange-100 text-orange-800"
     case "return":
       return "bg-purple-100 text-purple-800"
     default:
@@ -69,8 +68,6 @@ function getTransactionLabel(type: StockTransaction["type"]) {
       return "Stock Out"
     case "adjustment":
       return "Adjustment"
-    case "spoilage":
-      return "Spoilage"
     case "return":
       return "Return"
     default:
@@ -89,16 +86,55 @@ function formatDateTime(timestamp: string) {
   })
 }
 
+function getChannelBadge(channel?: "Grab" | "Lineman" | "Gokoo") {
+  if (!channel) {
+    return <span className="text-xs text-muted-foreground">—</span>
+  }
+
+  const channelConfig = {
+    Grab: { label: "GB", bg: "#0a9830", color: "#ffffff" },
+    Lineman: { label: "LM", bg: "#06C755", color: "#ffffff" },
+    Gokoo: { label: "GK", bg: "#FD4D2B", color: "#ffffff" },
+  }
+
+  const config = channelConfig[channel]
+
+  return (
+    <Badge
+      variant="outline"
+      className="text-xs px-2 py-1 h-6 font-semibold border-0"
+      style={{ backgroundColor: config.bg, color: config.color }}
+    >
+      {config.label}
+    </Badge>
+  )
+}
+
 export function RecentTransactionsTable({
   transactions,
   loading = false,
 }: RecentTransactionsTableProps) {
+  const [filter, setFilter] = useState<"all" | "sold" | "movement" | "return">("all")
+
+  // Filter transactions based on selected filter
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (filter === "all") return true
+    if (filter === "sold") return transaction.type === "stock_out" && transaction.referenceId
+    if (filter === "movement") return transaction.type === "stock_in" || transaction.type === "adjustment"
+    if (filter === "return") return transaction.type === "return"
+    return true
+  })
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Last 10 stock movements</CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Last 10 stock movements</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -115,8 +151,12 @@ export function RecentTransactionsTable({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Last 10 stock movements</CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Last 10 stock movements</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -128,82 +168,157 @@ export function RecentTransactionsTable({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        <CardDescription>Last {transactions.length} stock movements</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[180px]">Date & Time</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Balance After</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead className="hidden lg:table-cell">Location</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-mono text-sm">
-                    {formatDateTime(transaction.timestamp)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getTransactionIcon(transaction.type)}
-                      <Badge
-                        variant="outline"
-                        className={getTransactionBadgeClass(transaction.type)}
-                      >
-                        {getTransactionLabel(transaction.type)}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-semibold">
-                    {transaction.type === "stock_out" || transaction.type === "spoilage"
-                      ? `-${transaction.quantity}`
-                      : `+${transaction.quantity}`}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {transaction.balanceAfter}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {transaction.user}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {transaction.warehouseCode && transaction.locationCode ? (
-                      <div className="flex items-center gap-1.5">
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Last {transactions.length} stock movements</CardDescription>
+            </div>
+            <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter transactions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Transactions</SelectItem>
+                <SelectItem value="sold">Sold Items</SelectItem>
+                <SelectItem value="movement">Stock Movement</SelectItem>
+                <SelectItem value="return">Return/Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[180px]">Date & Time</TableHead>
+                  <TableHead>Transaction Type</TableHead>
+                  <TableHead>Channel</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Available</TableHead>
+                  <TableHead className="hidden lg:table-cell">Location</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-mono text-sm">
+                      {formatDateTime(transaction.timestamp)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getTransactionIcon(transaction.type)}
                         <Badge
                           variant="outline"
-                          className="text-xs px-2 py-1 h-6 font-mono bg-blue-50 text-blue-700 border-blue-200"
+                          className={getTransactionBadgeClass(transaction.type)}
                         >
-                          <MapPin className="h-3 w-3 mr-1 inline" />
-                          {formatWarehouseCode(transaction.warehouseCode, transaction.locationCode)}
+                          {getTransactionLabel(transaction.type)}
                         </Badge>
                       </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                    {transaction.notes}
-                    {transaction.referenceId && (
-                      <span className="ml-2 font-mono text-xs">
-                        ({transaction.referenceId})
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                    </TableCell>
+                    <TableCell>
+                      {getChannelBadge(transaction.channel)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {transaction.type === "stock_out"
+                        ? `-${transaction.itemType ? formatStockQuantity(transaction.quantity, transaction.itemType, false) : transaction.quantity}`
+                        : `+${transaction.itemType ? formatStockQuantity(transaction.quantity, transaction.itemType, false) : transaction.quantity}`}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {transaction.itemType ? formatStockQuantity(transaction.balanceAfter, transaction.itemType, false) : transaction.balanceAfter}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {transaction.warehouseCode && transaction.locationCode ? (
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className="text-xs px-2 py-1 h-6 font-mono bg-blue-50 text-blue-700 border-blue-200"
+                          >
+                            <MapPin className="h-3 w-3 mr-1 inline" />
+                            {formatWarehouseCode(transaction.warehouseCode, transaction.locationCode)}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[200px]">
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <div className="truncate">
+                            {/* Only show user name if no referenceId exists for stock_out/return */}
+                            {transaction.user &&
+                              !((transaction.type === "stock_out" || transaction.type === "return") && transaction.referenceId) &&
+                              <span className="font-medium">{transaction.user}: </span>
+                            }
+                            {transaction.notes}
+                            {transaction.referenceId && (() => {
+                              // Extract numeric ID from ORD-{number} format for stock_out and return transactions
+                              const match = transaction.referenceId.match(/ORD-(\d+)/)
+                              const numericId = match ? match[1] : null
+
+                              if ((transaction.type === "stock_out" || transaction.type === "return") && numericId) {
+                                return (
+                                  <Link
+                                    href={`/orders/${numericId}`}
+                                    className="ml-2 font-mono text-xs text-primary underline hover:text-primary/80"
+                                  >
+                                    ({transaction.referenceId})
+                                  </Link>
+                                )
+                              }
+
+                              return (
+                                <span className="ml-2 font-mono text-xs">
+                                  ({transaction.referenceId})
+                                </span>
+                              )
+                            })()}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[300px] whitespace-normal break-words">
+                          {/* Only show user name if no referenceId exists for stock_out/return */}
+                          {transaction.user &&
+                            !((transaction.type === "stock_out" || transaction.type === "return") && transaction.referenceId) &&
+                            <span className="font-medium">{transaction.user}: </span>
+                          }
+                          {transaction.notes}
+                          {transaction.referenceId && (() => {
+                            // Extract numeric ID from ORD-{number} format for stock_out and return transactions
+                            const match = transaction.referenceId.match(/ORD-(\d+)/)
+                            const numericId = match ? match[1] : null
+
+                            if ((transaction.type === "stock_out" || transaction.type === "return") && numericId) {
+                              return (
+                                <Link
+                                  href={`/orders/${numericId}`}
+                                  className="ml-2 font-mono text-xs text-primary underline hover:text-primary/80"
+                                >
+                                  ({transaction.referenceId})
+                                </Link>
+                              )
+                            }
+
+                            return (
+                              <span className="ml-2 font-mono text-xs">
+                                ({transaction.referenceId})
+                              </span>
+                            )
+                          })()}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   )
 }

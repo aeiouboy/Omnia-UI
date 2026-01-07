@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Search, Package, Menu, X, AlertTriangle, Palette, Scale } from "lucide-react"
+import { LayoutDashboard, Search, Package, Menu, X, AlertTriangle, Palette, Scale, FileSpreadsheet } from "lucide-react"
 import { useSidebar } from "@/contexts/sidebar-context"
 import { useSwipe } from "@/hooks/use-swipe"
 import { useEdgeSwipe } from "@/hooks/use-edge-swipe"
@@ -32,6 +32,11 @@ export function SideNav() {
       title: "ATC Config",
       href: "/atc-config",
       icon: Scale,
+    },
+    {
+      title: "Stock Config",
+      href: "/stock-config",
+      icon: FileSpreadsheet,
     },
     {
       title: "Escalations",
