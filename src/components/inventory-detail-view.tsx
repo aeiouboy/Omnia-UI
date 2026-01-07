@@ -34,8 +34,6 @@ import {
   Store,
   TrendingUp,
   AlertTriangle,
-  Edit,
-  RefreshCw,
   ChevronRight,
   Scale,
   CheckCircle,
@@ -60,8 +58,9 @@ import {
   formatWarehouseCode,
   getStockStatusColor,
   getStockStatusLabel,
-  getTotalStockForLocation,
+  getActiveStockForLocation,
   hasAvailableStock,
+  formatStockQuantity,
 } from "@/lib/warehouse-utils"
 import type {
   InventoryItem,
@@ -75,8 +74,6 @@ interface InventoryDetailViewProps {
   stockHistory: StockHistoryPoint[]
   transactions: StockTransaction[]
   onBack?: () => void
-  onEdit?: (item: InventoryItem) => void
-  onReorder?: (item: InventoryItem) => void
 }
 
 function getStatusBadgeVariant(status: string) {
@@ -110,8 +107,6 @@ export function InventoryDetailView({
   stockHistory,
   transactions,
   onBack,
-  onEdit,
-  onReorder,
 }: InventoryDetailViewProps) {
   const router = useRouter()
 
@@ -123,9 +118,6 @@ export function InventoryDetailView({
 
   // Calculate stock percentage
   const stockPercentage = (item.currentStock / item.maxStockLevel) * 100
-
-  // Calculate total inventory value
-  const totalValue = item.currentStock * item.unitPrice
 
   // Extract unique warehouse codes
   const uniqueWarehouseCodes = useMemo(() => {
@@ -200,26 +192,6 @@ export function InventoryDetailView({
     }
   }
 
-  // Handle edit action
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(item)
-    } else {
-      // TODO: Implement edit functionality
-      console.log("Edit product:", item.id)
-    }
-  }
-
-  // Handle reorder action
-  const handleReorder = () => {
-    if (onReorder) {
-      onReorder(item)
-    } else {
-      // TODO: Implement reorder functionality
-      console.log("Reorder product:", item.id)
-    }
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with Back Button */}
@@ -232,25 +204,6 @@ export function InventoryDetailView({
           <ArrowLeft className="h-4 w-4" />
           Back to Inventory
         </Button>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleEdit}
-            className="gap-2"
-          >
-            <Edit className="h-4 w-4" />
-            Edit
-          </Button>
-          {item.status !== "healthy" && (
-            <Button
-              onClick={handleReorder}
-              className="gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Reorder
-            </Button>
-          )}
-        </div>
       </div>
 
       {/* Product Header */}
@@ -307,31 +260,7 @@ export function InventoryDetailView({
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Store className="h-4 w-4" />
-                    <span>Store</span>
-                  </div>
-                  <p className="text-lg">{item.storeName}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Package className="h-4 w-4" />
-                    <span>Supplier</span>
-                  </div>
-                  <p className="text-lg">{item.supplier}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Unit Price</span>
-                  </div>
-                  <p className="text-lg font-semibold">฿{item.unitPrice.toFixed(2)}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {item.itemType === "weight" ? (
+                    {item.itemType === "weight" || item.itemType === "pack_weight" ? (
                       <Scale className="h-4 w-4" />
                     ) : (
                       <Package className="h-4 w-4" />
@@ -342,12 +271,15 @@ export function InventoryDetailView({
                     <Badge
                       variant="outline"
                       className={`${
-                        item.itemType === "weight"
+                        item.itemType === "weight" || item.itemType === "pack_weight"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-gray-100 text-gray-800"
                       } text-sm`}
                     >
-                      {item.itemType === "weight" ? "Weight Item (kg)" : "Unit Item (pieces)"}
+                      {item.itemType === "weight" && "Weight Item (kg)"}
+                      {item.itemType === "pack_weight" && "Pack Weight (kg)"}
+                      {item.itemType === "pack" && "Pack Item (pieces)"}
+                      {item.itemType === "normal" && "Unit Item (pieces)"}
                     </Badge>
                   </div>
                 </div>
@@ -399,7 +331,7 @@ export function InventoryDetailView({
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-green-900 mb-1">
-                      {item.availableStock}
+                      {formatStockQuantity(item.availableStock, item.itemType, false)}
                     </div>
                     <div className="text-xs text-green-700">
                       {((item.availableStock / item.currentStock) * 100).toFixed(0)}% of total
@@ -429,7 +361,7 @@ export function InventoryDetailView({
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-orange-900 mb-1">
-                      {item.reservedStock}
+                      {formatStockQuantity(item.reservedStock, item.itemType, false)}
                     </div>
                     <div className="text-xs text-orange-700">
                       {((item.reservedStock / item.currentStock) * 100).toFixed(0)}% of total
@@ -459,7 +391,7 @@ export function InventoryDetailView({
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-blue-900 mb-1">
-                      {item.safetyStock}
+                      {formatStockQuantity(item.safetyStock, item.itemType, false)}
                     </div>
                     <div className="text-xs text-blue-700">
                       {((item.safetyStock / item.maxStockLevel) * 100).toFixed(0)}% of max
@@ -489,7 +421,7 @@ export function InventoryDetailView({
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-gray-900 mb-1">
-                      {item.currentStock}
+                      {formatStockQuantity(item.currentStock, item.itemType, false)}
                     </div>
                     <div className="text-xs text-gray-700">
                       {stockPercentage.toFixed(0)}% of max capacity
@@ -501,7 +433,7 @@ export function InventoryDetailView({
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-xs">Complete inventory including available and reserved stock</p>
+                  <p className="max-w-xs">Total physical stock on hand (Available + Reserved)</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -536,25 +468,6 @@ export function InventoryDetailView({
                 </div>
               </div>
             )}
-
-            {/* Additional Stock Info */}
-            <Separator className="my-6" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Min / Max Stock</p>
-                <p className="text-lg font-semibold">
-                  {item.minStockLevel} / {item.maxStockLevel}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Reorder Point</p>
-                <p className="text-lg font-semibold">{item.reorderPoint} units</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Value</p>
-                <p className="text-lg font-semibold">฿{Math.round(totalValue).toLocaleString()}</p>
-              </div>
-            </div>
           </TooltipProvider>
         </CardContent>
       </Card>
@@ -687,7 +600,7 @@ export function InventoryDetailView({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredLocations.map((location, index) => {
-                  const totalLocationStock = getTotalStockForLocation(location)
+                  const totalLocationStock = getActiveStockForLocation(location)
                   const isAvailable = hasAvailableStock(location)
 
                   return (
@@ -732,23 +645,23 @@ export function InventoryDetailView({
                         <div className="grid grid-cols-2 gap-2">
                           {/* Available Stock */}
                           <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-green-600 bg-green-50 border-green-200">
-                            <span className="font-medium">Available</span>
-                            <span className="font-bold text-base">{location.stockAvailable}</span>
+                            <span className="font-medium">Available Stock</span>
+                            <span className="font-bold text-base">{formatStockQuantity(location.stockAvailable, item.itemType, false)}</span>
                           </div>
                           {/* Reserved Stock */}
                           <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-orange-600 bg-orange-50 border-orange-200">
-                            <span className="font-medium">Reserved</span>
-                            <span className="font-bold text-base">{location.stockInProcess}</span>
+                            <span className="font-medium">Reserved Stock</span>
+                            <span className="font-bold text-base">{formatStockQuantity(location.stockInProcess, item.itemType, false)}</span>
                           </div>
                           {/* Safety Stock */}
                           <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-blue-600 bg-blue-50 border-blue-200">
                             <span className="font-medium">Safety Stock</span>
-                            <span className="font-bold text-base">{location.stockSafetyStock ?? 0}</span>
+                            <span className="font-bold text-base">{formatStockQuantity(location.stockSafetyStock ?? 0, item.itemType, false)}</span>
                           </div>
                           {/* Total Stock */}
                           <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-gray-600 bg-gray-50 border-gray-200">
                             <span className="font-medium">Total Stock</span>
-                            <span className="font-bold text-base">{totalLocationStock}</span>
+                            <span className="font-bold text-base">{formatStockQuantity(totalLocationStock, item.itemType, false)}</span>
                           </div>
                         </div>
                       </CardContent>

@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -19,23 +19,22 @@ import {
 } from "@/components/ui/table"
 import {
   Package,
-  TrendingUp,
   AlertTriangle,
-  CheckCircle,
   Clock,
   Search,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Upload,
   Download,
-  Plus,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   ChevronRight as ChevronRightIcon,
   Scale,
   MapPin,
+  Store,
+  ArrowLeft,
+  X,
 } from "lucide-react"
 import WarehouseLocationCell from "@/components/inventory/warehouse-location-cell"
 import StockAvailabilityIndicator from "@/components/inventory/stock-availability-indicator"
@@ -46,9 +45,10 @@ import {
 import type {
   InventoryItem,
   InventoryFilters,
+  TopsStore,
 } from "@/types/inventory"
 
-type SortField = "productName" | "productId" | "category" | "currentStock" | "status" | "unitPrice"
+type SortField = "productName" | "productId" | "currentStock" | "status"
 type SortOrder = "asc" | "desc"
 
 function getStatusBadgeVariant(status: string) {
@@ -79,6 +79,7 @@ function getStatusLabel(status: string) {
 
 export default function InventoryPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // State management
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
@@ -93,6 +94,7 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sortField, setSortField] = useState<SortField>("productName")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
+  const [activeStoreFilter, setActiveStoreFilter] = useState<TopsStore | null>(null)
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -109,6 +111,22 @@ export default function InventoryPage() {
     totalInventoryValue: 0,
   })
 
+  // Read store filter from URL
+  useEffect(() => {
+    const storeParam = searchParams.get("store")
+    if (storeParam) {
+      try {
+        const decodedStore = decodeURIComponent(storeParam) as TopsStore
+        setActiveStoreFilter(decodedStore)
+      } catch (error) {
+        console.error("Failed to decode store parameter:", error)
+        setActiveStoreFilter(null)
+      }
+    } else {
+      setActiveStoreFilter(null)
+    }
+  }, [searchParams])
+
   // Build filters based on current state
   const filters: InventoryFilters = useMemo(() => ({
     status: activeTab === "all" ? "all" : activeTab,
@@ -117,7 +135,8 @@ export default function InventoryPage() {
     pageSize,
     sortBy: sortField as any,
     sortOrder,
-  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder])
+    storeName: activeStoreFilter || "all",
+  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter])
 
   // Fetch data function
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -183,6 +202,10 @@ export default function InventoryPage() {
     setPage(newPage)
   }
 
+  const handleClearStoreFilter = () => {
+    router.push("/inventory")
+  }
+
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
       return <ArrowUpDown className="h-4 w-4 ml-1 opacity-40" />
@@ -193,19 +216,9 @@ export default function InventoryPage() {
   }
 
   // Action button handlers
-  const handleImport = () => {
-    // TODO: Implement import functionality
-    console.log("Import clicked")
-  }
-
   const handleExport = () => {
     // TODO: Implement export functionality
     console.log("Export clicked")
-  }
-
-  const handleAddProduct = () => {
-    // TODO: Implement add product functionality
-    console.log("Add Product clicked")
   }
 
   // Loading skeleton
@@ -219,8 +232,8 @@ export default function InventoryPage() {
               <div className="h-4 w-96 bg-gray-200 rounded animate-pulse" />
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
               <Card key={i}>
                 <CardHeader>
                   <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
@@ -263,30 +276,58 @@ export default function InventoryPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-            <p className="text-muted-foreground">
-              Monitor stock levels and manage inventory across all Tops stores
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              {activeStoreFilter && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/inventory/stores")}
+                  className="hover:bg-muted"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to Store Overview
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-2">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {activeStoreFilter ? `Inventory - ${activeStoreFilter}` : "Inventory Management"}
+              </h1>
+              {activeStoreFilter && (
+                <Badge
+                  variant="outline"
+                  className="bg-blue-100 text-blue-800 border-blue-300 cursor-pointer hover:bg-blue-200"
+                  onClick={handleClearStoreFilter}
+                >
+                  <Store className="h-3 w-3 mr-1" />
+                  {activeStoreFilter}
+                  <X className="h-3 w-3 ml-1" />
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground mt-1">
+              {activeStoreFilter
+                ? `Viewing products from ${activeStoreFilter}`
+                : "Monitor stock levels and manage inventory across all Tops stores"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleImport}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
+            {!activeStoreFilter && (
+              <Button variant="outline" onClick={() => router.push("/inventory/stores")}>
+                <Store className="h-4 w-4 mr-2" />
+                Stock by Store
+              </Button>
+            )}
             <Button variant="outline" onClick={handleExport}>
               <Download className="h-4 w-4 mr-2" />
               Export
-            </Button>
-            <Button onClick={handleAddProduct}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
             </Button>
           </div>
         </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -300,7 +341,7 @@ export default function InventoryPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
@@ -311,7 +352,7 @@ export default function InventoryPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Out of Stock Items</CardTitle>
+            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -321,51 +362,30 @@ export default function InventoryPage() {
             <p className="text-xs text-muted-foreground">Immediate attention required</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ฿{Math.round(summary.totalInventoryValue).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Current inventory value</p>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Tabs and Table */}
+      {/* Filters */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Products</TabsTrigger>
-          <TabsTrigger value="low">Low Stock</TabsTrigger>
-          <TabsTrigger value="critical">Out of Stock</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="space-y-4">
-          {/* Search Bar */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products, barcode, category, warehouse..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="pl-9"
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+        <div className="flex items-center justify-between gap-4">
+          <TabsList>
+            <TabsTrigger value="all">All Products</TabsTrigger>
+            <TabsTrigger value="low">Low Stock</TabsTrigger>
+            <TabsTrigger value="critical">Out of Stock</TabsTrigger>
+          </TabsList>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products, barcode, category, warehouse..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="pl-9"
+            />
           </div>
+        </div>
+      </Tabs>
+
+      {/* Products Table */}
+      <div className="space-y-4">
 
           {/* Products Table */}
           <Card>
@@ -374,8 +394,8 @@ export default function InventoryPage() {
                 <div>
                   <CardTitle>
                     {activeTab === "all" && "All Products"}
-                    {activeTab === "low" && "Low Stock Items"}
-                    {activeTab === "critical" && "Out of Stock Items"}
+                    {activeTab === "low" && "Low Stock"}
+                    {activeTab === "critical" && "Out of Stock"}
                   </CardTitle>
                   <CardDescription>
                     Showing {inventoryItems.length} of {totalItems} products
@@ -388,6 +408,12 @@ export default function InventoryPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
+                    <TableHead className="hidden md:table-cell min-w-[150px]">
+                      <div className="flex items-center gap-1">
+                        <Store className="h-4 w-4 text-muted-foreground" />
+                        Store
+                      </div>
+                    </TableHead>
                     <TableHead className="hidden lg:table-cell min-w-[180px]">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -412,17 +438,8 @@ export default function InventoryPage() {
                         <SortIcon field="productId" />
                       </div>
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort("category")}
-                    >
-                      <div className="flex items-center">
-                        Category
-                        <SortIcon field="category" />
-                      </div>
-                    </TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Type
+                      Item Type
                     </TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
@@ -442,22 +459,13 @@ export default function InventoryPage() {
                         <SortIcon field="status" />
                       </div>
                     </TableHead>
-                    <TableHead
-                      className="cursor-pointer hover:bg-muted/50 text-right"
-                      onClick={() => handleSort("unitPrice")}
-                    >
-                      <div className="flex items-center justify-end">
-                        Price
-                        <SortIcon field="unitPrice" />
-                      </div>
-                    </TableHead>
                     <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -482,6 +490,11 @@ export default function InventoryPage() {
                             }}
                           />
                         </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="text-sm truncate max-w-[150px]" title={item.storeName}>
+                            {item.storeName}
+                          </div>
+                        </TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <WarehouseLocationCell stockLocations={item.warehouseLocations} />
                         </TableCell>
@@ -490,9 +503,6 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {item.barcode || item.productId}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {item.category}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex items-center gap-2">
@@ -531,9 +541,6 @@ export default function InventoryPage() {
                           >
                             {getStatusLabel(item.status)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ฿{item.unitPrice.toFixed(2)}
                         </TableCell>
                         <TableCell className="w-[40px]">
                           <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
@@ -574,8 +581,7 @@ export default function InventoryPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
       </div>
     </DashboardShell>
   )

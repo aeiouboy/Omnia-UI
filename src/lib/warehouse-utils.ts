@@ -2,7 +2,7 @@
  * Utility functions for warehouse location formatting and management
  */
 
-import { StockLocation, StockStatus } from "@/types/inventory"
+import { StockLocation, StockStatus, ItemType } from "@/types/inventory"
 
 /**
  * Formats warehouse code and location code into display string
@@ -101,9 +101,22 @@ export function getStockStatusLabel(status: StockStatus): string {
 }
 
 /**
- * Calculates total stock across all statuses for a location
- * @param location - Stock location
- * @returns Total stock count
+ * Calculates total physical stock for a specific warehouse location.
+ *
+ * This function returns the sum of all physical inventory at a location.
+ * The calculation includes:
+ * - stockAvailable: Ready-to-sell inventory
+ * - stockInProcess: Reserved/allocated for orders (same as reservedStock at product level)
+ * - stockSold: Items sold but not yet removed from location
+ * - stockOnHold: Items temporarily held (quality check, disputes, etc.)
+ * - stockPending: Items pending receipt or processing
+ *
+ * IMPORTANT: stockSafetyStock is intentionally EXCLUDED because it represents
+ * a MINIMUM THRESHOLD for reordering, NOT physical inventory. Safety stock is
+ * a policy setting that triggers alerts when available stock drops below it.
+ *
+ * @param location - Stock location to calculate total for
+ * @returns Total physical stock count at this location
  */
 export function getTotalStockForLocation(location: StockLocation): number {
   return (
@@ -116,10 +129,53 @@ export function getTotalStockForLocation(location: StockLocation): number {
 }
 
 /**
+ * Calculates active stock for a specific warehouse location.
+ *
+ * This function returns stock that aligns with the product-level Total Stock concept:
+ * - stockAvailable: Ready-to-sell inventory (maps to product availableStock)
+ * - stockInProcess: Reserved/allocated for orders (maps to product reservedStock)
+ *
+ * The sum of getActiveStockForLocation() across all locations should equal
+ * the product's currentStock (which is availableStock + reservedStock).
+ *
+ * Use this for UI display where location totals must sum to product total.
+ * Use getTotalStockForLocation() for true physical inventory counting.
+ *
+ * @param location - Stock location to calculate active stock for
+ * @returns Active stock count (Available + Reserved) at this location
+ */
+export function getActiveStockForLocation(location: StockLocation): number {
+  return location.stockAvailable + location.stockInProcess
+}
+
+/**
  * Checks if a location has available stock
  * @param location - Stock location
  * @returns True if stock is available
  */
 export function hasAvailableStock(location: StockLocation): boolean {
   return location.stockAvailable > 0
+}
+
+/**
+ * Formats stock quantity based on item type
+ * @param quantity - Stock quantity to format
+ * @param itemType - Item type indicating measurement method
+ * @param includeUnit - Whether to include the unit suffix (default: true)
+ * @returns Formatted quantity string with appropriate unit
+ * @example
+ * formatStockQuantity(12.5, "weight") => "12.500 kg"
+ * formatStockQuantity(12.5, "weight", false) => "12.500"
+ * formatStockQuantity(42.678, "pack_weight") => "42.678 kg"
+ * formatStockQuantity(50, "normal") => "50"
+ * formatStockQuantity(25, "pack") => "25"
+ */
+export function formatStockQuantity(quantity: number, itemType: ItemType, includeUnit: boolean = true): string {
+  // Weight-based items: display with 3 decimal places
+  if (itemType === "weight" || itemType === "pack_weight") {
+    return includeUnit ? `${quantity.toFixed(3)} kg` : quantity.toFixed(3)
+  }
+
+  // Unit-based items: display as integer without decimals
+  return Math.round(quantity).toString()
 }

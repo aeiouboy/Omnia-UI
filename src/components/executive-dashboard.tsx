@@ -3418,7 +3418,7 @@ export function ExecutiveDashboard() {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`฿${value.toLocaleString()}`, 'Revenue']} />
+                      <Tooltip formatter={(value) => [`฿${(value as number)?.toLocaleString() ?? '0'}`, 'Revenue']} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
