@@ -13,20 +13,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  MoreHorizontal,
-  Eye,
-  Trash2,
   Package,
-  AlertTriangle,
 } from "lucide-react"
 import type { StockConfigItem, StockConfigFilters } from "@/types/stock-config"
 
@@ -112,14 +102,11 @@ export function StockConfigTable({
             <TableRow>
               <TableHead>Location ID</TableHead>
               <TableHead>Item ID</TableHead>
-              <TableHead>SKU</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
               <TableHead>Supply Type</TableHead>
               <TableHead>Frequency</TableHead>
-              <TableHead className="text-right">Safety Stock</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
-              <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,14 +114,11 @@ export function StockConfigTable({
               <TableRow key={i}>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                <TableCell><Skeleton className="h-8 w-8" /></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -179,7 +163,6 @@ export function StockConfigTable({
                 <SortIcon field="itemId" />
               </div>
             </TableHead>
-            <TableHead>SKU</TableHead>
             <TableHead
               className="cursor-pointer hover:bg-muted/50 text-right"
               onClick={() => handleSort("quantity")}
@@ -199,10 +182,8 @@ export function StockConfigTable({
               </div>
             </TableHead>
             <TableHead>Frequency</TableHead>
-            <TableHead className="text-right">Safety Stock</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
-            <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -210,7 +191,6 @@ export function StockConfigTable({
             <TableRow key={item.id} className="hover:bg-muted/50">
               <TableCell className="font-mono text-sm">{item.locationId}</TableCell>
               <TableCell className="font-mono text-sm">{item.itemId}</TableCell>
-              <TableCell className="font-medium">{item.sku}</TableCell>
               <TableCell className="text-right">
                 <span className={item.quantity === 999999 ? "text-red-600 font-medium" : ""}>
                   {item.quantity.toLocaleString()}
@@ -218,43 +198,8 @@ export function StockConfigTable({
               </TableCell>
               <TableCell>{getSupplyTypeBadge(item.supplyTypeId)}</TableCell>
               <TableCell>{getFrequencyBadge(item.frequency)}</TableCell>
-              <TableCell className="text-right">
-                <span className="inline-flex items-center gap-1">
-                  {item.safetyStock === 999999 ? (
-                    <>
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                      <span className="text-red-600 font-medium">Blocked</span>
-                    </>
-                  ) : (
-                    item.safetyStock.toLocaleString()
-                  )}
-                </span>
-              </TableCell>
               <TableCell>{formatDate(item.startDate)}</TableCell>
               <TableCell>{formatDate(item.endDate)}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Actions</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onView?.(item)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onDelete?.(item)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>

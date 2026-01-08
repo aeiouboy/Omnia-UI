@@ -134,18 +134,19 @@ export function getTotalStockForLocation(location: StockLocation): number {
  * This function returns stock that aligns with the product-level Total Stock concept:
  * - stockAvailable: Ready-to-sell inventory (maps to product availableStock)
  * - stockInProcess: Reserved/allocated for orders (maps to product reservedStock)
+ * - stockSafetyStock: Safety buffer (maps to product safetyStock)
  *
  * The sum of getActiveStockForLocation() across all locations should equal
- * the product's currentStock (which is availableStock + reservedStock).
+ * the product's Total Stock (which is availableStock + reservedStock + safetyStock).
  *
  * Use this for UI display where location totals must sum to product total.
  * Use getTotalStockForLocation() for true physical inventory counting.
  *
  * @param location - Stock location to calculate active stock for
- * @returns Active stock count (Available + Reserved) at this location
+ * @returns Active stock + Safety stock (Available + Reserved + Safety) at this location
  */
 export function getActiveStockForLocation(location: StockLocation): number {
-  return location.stockAvailable + location.stockInProcess
+  return location.stockAvailable + location.stockInProcess + (location.stockSafetyStock ?? 0)
 }
 
 /**

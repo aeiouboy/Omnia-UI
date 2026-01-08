@@ -129,11 +129,9 @@ export function ValidationResultsTable({
                     <TableHead className="w-16">Row #</TableHead>
                     <TableHead>Location ID</TableHead>
                     <TableHead>Item ID</TableHead>
-                    <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead>Supply Type</TableHead>
                     <TableHead>Frequency</TableHead>
-                    <TableHead className="text-right">Safety Stock</TableHead>
                     <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
                     <TableHead className="w-24 text-center">Status</TableHead>
@@ -142,7 +140,7 @@ export function ValidationResultsTable({
                 <TableBody>
                   {paginatedRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                         No records to display
                       </TableCell>
                     </TableRow>
@@ -165,9 +163,6 @@ export function ValidationResultsTable({
                         <TableCell>
                           <CellWithValidation value={row.itemId} errors={row.errors} field="itemId" />
                         </TableCell>
-                        <TableCell>
-                          <CellWithValidation value={row.sku} errors={row.errors} field="sku" />
-                        </TableCell>
                         <TableCell className="text-right">
                           <CellWithValidation
                             value={row.quantity !== null ? row.quantity.toLocaleString() : "-"}
@@ -180,14 +175,6 @@ export function ValidationResultsTable({
                         </TableCell>
                         <TableCell>
                           <CellWithValidation value={row.frequency || "-"} errors={row.errors} field="frequency" />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <CellWithValidation
-                            value={row.safetyStock !== null ? row.safetyStock.toLocaleString() : "-"}
-                            errors={row.errors}
-                            warnings={row.warnings}
-                            field="safetyStock"
-                          />
                         </TableCell>
                         <TableCell>
                           <CellWithValidation value={row.startDate || "-"} errors={row.errors} field="startDate" warnings={row.warnings} />

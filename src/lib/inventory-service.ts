@@ -99,6 +99,28 @@ function applyFilters(
     filtered = filtered.filter((item) => item.storeName === filters.storeName)
   }
 
+  // Filter by warehouse code
+  if (filters.warehouseCode && filters.warehouseCode !== "all") {
+    filtered = filtered.filter((item) =>
+      item.warehouseLocations?.some(
+        (loc) => loc.warehouseCode === filters.warehouseCode
+      )
+    )
+  }
+
+  // Filter by item type
+  if (filters.itemType && filters.itemType !== "all") {
+    if (filters.itemType === "weight") {
+      filtered = filtered.filter((item) =>
+        item.itemType === "weight" || item.itemType === "pack_weight"
+      )
+    } else {
+      filtered = filtered.filter((item) =>
+        item.itemType === "pack" || item.itemType === "normal"
+      )
+    }
+  }
+
   // Filter by status
   if (filters.status && filters.status !== "all") {
     filtered = filtered.filter((item) => item.status === filters.status)

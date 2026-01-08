@@ -1,0 +1,5 @@
+ItemId,LocationId,SupplyTypeId,Frequency,Quantity,StartDate,EndDate,Error
+8850590937002,CFM0102,PreOrder,One-time,200,,,Item 8850590937002 does not exist in the system
+8850590937006,CFM0106,On Hand Available,Daily,300,2023-12-31 07:00:04,2024-12-30 07:00:04,Location CFM0106 is not valid
+8850590937009,CFM0109,On Hand Available,Daily,400,2023-12-31 07:00:04,2024-12-30 07:00:04,Item 8850590937009 does not exist in the system
+invalid_item,CFM0112,InvalidType,Invalid,NaN,,,Quantity must be a valid number
