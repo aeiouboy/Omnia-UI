@@ -30,11 +30,9 @@ export interface StockConfigItem {
   id: string
   locationId: string
   itemId: string
-  sku: string // Auto-generated from ItemId if not provided in CSV
   quantity: number
   supplyTypeId: SupplyTypeID
   frequency: Frequency
-  safetyStock: number // Defaults to 0 if not provided in CSV
   startDate?: string // ISO 8601 date or YYYY-MM-DD HH:MM:SS (only for OnHand type)
   endDate?: string // ISO 8601 date or YYYY-MM-DD HH:MM:SS (only for OnHand type)
   createdAt: string // ISO 8601 timestamp
@@ -123,6 +121,8 @@ export interface StockConfigFile {
   processedAt?: string // ISO 8601 timestamp
   errorReportUrl?: string
   processingResults?: ProcessingResult[]
+  // File URL for download functionality
+  fileUrl?: string
 }
 
 /**
@@ -148,11 +148,9 @@ export interface ParsedStockConfigRow {
   rowNumber: number
   locationId: string
   itemId: string
-  sku: string
   quantity: number | null
   supplyTypeId: string
   frequency: string
-  safetyStock: number | null
   startDate: string
   endDate: string
   isValid: boolean
@@ -180,6 +178,8 @@ export interface StockConfigFilters {
   supplyType?: SupplyTypeID | "all"
   frequency?: Frequency | "all"
   searchQuery?: string
+  locationIdFilter?: string
+  itemIdFilter?: string
   page?: number
   pageSize?: number
   sortBy?: "locationId" | "itemId" | "quantity" | "supplyTypeId" | "createdAt"

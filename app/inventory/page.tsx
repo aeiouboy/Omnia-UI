@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -42,10 +43,12 @@ import {
   fetchInventoryData,
   fetchInventorySummary,
 } from "@/lib/inventory-service"
+import { WAREHOUSE_CODES } from "@/lib/mock-inventory-data"
 import type {
   InventoryItem,
   InventoryFilters,
   TopsStore,
+  ProductCategory,
 } from "@/types/inventory"
 
 type SortField = "productName" | "productId" | "currentStock" | "status"
@@ -95,6 +98,9 @@ export default function InventoryPage() {
   const [sortField, setSortField] = useState<SortField>("productName")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [activeStoreFilter, setActiveStoreFilter] = useState<TopsStore | null>(null)
+  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
+  const [itemTypeFilter, setItemTypeFilter] = useState<"weight" | "unit" | "all">("all")
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -136,7 +142,10 @@ export default function InventoryPage() {
     sortBy: sortField as any,
     sortOrder,
     storeName: activeStoreFilter || "all",
-  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter])
+    warehouseCode: warehouseFilter,
+    category: categoryFilter,
+    itemType: itemTypeFilter,
+  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter, warehouseFilter, categoryFilter, itemTypeFilter])
 
   // Fetch data function
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -204,6 +213,21 @@ export default function InventoryPage() {
 
   const handleClearStoreFilter = () => {
     router.push("/inventory")
+  }
+
+  const handleWarehouseChange = (value: string) => {
+    setWarehouseFilter(value)
+    setPage(1)
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value as ProductCategory | "all")
+    setPage(1)
+  }
+
+  const handleItemTypeChange = (value: string) => {
+    setItemTypeFilter(value as "weight" | "unit" | "all")
+    setPage(1)
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -364,33 +388,12 @@ export default function InventoryPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <TabsList>
-            <TabsTrigger value="all">All Products</TabsTrigger>
-            <TabsTrigger value="low">Low Stock</TabsTrigger>
-            <TabsTrigger value="critical">Out of Stock</TabsTrigger>
-          </TabsList>
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products, barcode, category, warehouse..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-9"
-            />
-          </div>
-        </div>
-      </Tabs>
-
       {/* Products Table */}
-      <div className="space-y-4">
-
-          {/* Products Table */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+        <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <CardTitle>
                     {activeTab === "all" && "All Products"}
@@ -401,6 +404,72 @@ export default function InventoryPage() {
                     Showing {inventoryItems.length} of {totalItems} products
                   </CardDescription>
                 </div>
+
+                {/* Filters row - search, dropdowns, and tabs */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {/* Search Box */}
+                  <div className="relative max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search products, barcode, category..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="w-[240px] pl-9 h-9 text-sm"
+                    />
+                  </div>
+
+                  {/* Warehouse Filter */}
+                  <Select value={warehouseFilter} onValueChange={handleWarehouseChange}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="All Warehouses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Warehouses</SelectItem>
+                      {WAREHOUSE_CODES.map((code) => (
+                        <SelectItem key={code} value={code}>{code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Category Filter */}
+                  <Select value={categoryFilter} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="Produce">Produce</SelectItem>
+                      <SelectItem value="Dairy">Dairy</SelectItem>
+                      <SelectItem value="Bakery">Bakery</SelectItem>
+                      <SelectItem value="Meat">Meat</SelectItem>
+                      <SelectItem value="Seafood">Seafood</SelectItem>
+                      <SelectItem value="Pantry">Pantry</SelectItem>
+                      <SelectItem value="Frozen">Frozen</SelectItem>
+                      <SelectItem value="Beverages">Beverages</SelectItem>
+                      <SelectItem value="Snacks">Snacks</SelectItem>
+                      <SelectItem value="Household">Household</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Item Type Filter */}
+                  <Select value={itemTypeFilter} onValueChange={handleItemTypeChange}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="weight">Weight Items</SelectItem>
+                      <SelectItem value="unit">Unit Items</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Tabs */}
+                  <TabsList>
+                    <TabsTrigger value="all">All Products</TabsTrigger>
+                    <TabsTrigger value="low">Low Stock</TabsTrigger>
+                    <TabsTrigger value="critical">Out of Stock</TabsTrigger>
+                  </TabsList>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -408,18 +477,6 @@ export default function InventoryPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
-                    <TableHead className="hidden md:table-cell min-w-[150px]">
-                      <div className="flex items-center gap-1">
-                        <Store className="h-4 w-4 text-muted-foreground" />
-                        Store
-                      </div>
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell min-w-[180px]">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        Warehouse & Location
-                      </div>
-                    </TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleSort("productName")}
@@ -436,6 +493,12 @@ export default function InventoryPage() {
                       <div className="flex items-center">
                         Barcode
                         <SortIcon field="productId" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell min-w-[180px]">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        Warehouse & Location
                       </div>
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
@@ -465,7 +528,7 @@ export default function InventoryPage() {
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -490,19 +553,14 @@ export default function InventoryPage() {
                             }}
                           />
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div className="text-sm truncate max-w-[150px]" title={item.storeName}>
-                            {item.storeName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <WarehouseLocationCell stockLocations={item.warehouseLocations} />
-                        </TableCell>
                         <TableCell className="font-semibold">
                           {item.productName}
                         </TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {item.barcode || item.productId}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <WarehouseLocationCell stockLocations={item.warehouseLocations} />
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex items-center gap-2">
@@ -581,7 +639,8 @@ export default function InventoryPage() {
               )}
             </CardContent>
           </Card>
-      </div>
+        </div>
+      </Tabs>
       </div>
     </DashboardShell>
   )

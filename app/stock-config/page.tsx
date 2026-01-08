@@ -25,6 +25,7 @@ import {
   List,
   Calendar as CalendarIcon,
   X,
+  Download,
 } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -35,7 +36,6 @@ import { StockConfigTable } from "@/components/stock-config/stock-config-table"
 import { ProcessingProgressModal } from "@/components/stock-config/processing-progress-modal"
 import { PostProcessingReport } from "@/components/stock-config/post-processing-report"
 import { UploadHistoryTable } from "@/components/stock-config/upload-history-table"
-import { FileDetailModal } from "@/components/stock-config/file-detail-modal"
 import {
   getStockConfigs,
   getFileHistory,
@@ -92,13 +92,10 @@ export default function StockConfigPage() {
   const [reportFile, setReportFile] = useState<StockConfigFile | null>(null)
   const [reportResults, setReportResults] = useState<ProcessingResult[]>([])
 
-  // File detail modal state
-  const [selectedFile, setSelectedFile] = useState<StockConfigFile | null>(null)
-  const [isFileDetailOpen, setIsFileDetailOpen] = useState(false)
-
   // Filter state
   const [activeTab, setActiveTab] = useState<SupplyTab>("all")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [locationIdFilter, setLocationIdFilter] = useState("")
+  const [itemIdFilter, setItemIdFilter] = useState("")
   const [frequencyFilter, setFrequencyFilter] = useState<"all" | "Daily" | "One-time">("all")
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -132,13 +129,14 @@ export default function StockConfigPage() {
     return {
       supplyType,
       frequency: frequencyFilter === "all" ? "all" : frequencyFilter,
-      searchQuery,
+      locationIdFilter,
+      itemIdFilter,
       page,
       pageSize,
       sortBy: sortField,
       sortOrder,
     }
-  }, [activeTab, frequencyFilter, searchQuery, page, pageSize, sortField, sortOrder])
+  }, [activeTab, frequencyFilter, locationIdFilter, itemIdFilter, page, pageSize, sortField, sortOrder])
 
   // Load data
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -206,8 +204,13 @@ export default function StockConfigPage() {
     loadData(false)
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
+  const handleLocationIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocationIdFilter(e.target.value)
+    setPage(1)
+  }
+
+  const handleItemIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setItemIdFilter(e.target.value)
     setPage(1)
   }
 
@@ -236,11 +239,9 @@ export default function StockConfigPage() {
       const items = validRows.map((row) => ({
         locationId: row.locationId,
         itemId: row.itemId,
-        sku: row.sku,
         quantity: row.quantity!,
         supplyTypeId: row.supplyTypeId as SupplyTypeID,
         frequency: row.frequency as "Onetime" | "Daily",
-        safetyStock: row.safetyStock!,
         startDate: row.startDate || undefined,
         endDate: row.endDate || undefined,
       }))
@@ -462,9 +463,40 @@ export default function StockConfigPage() {
     uploadHistorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
-  const handleViewFileDetails = (file: StockConfigFile) => {
-    setSelectedFile(file)
-    setIsFileDetailOpen(true)
+  const handleDownloadFile = async (file: StockConfigFile) => {
+    try {
+      // Fetch the file from the API
+      const response = await fetch(`/api/stock-config/files/${file.id}/download`)
+
+      if (!response.ok) {
+        throw new Error("Failed to download file")
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob()
+
+      // Create a download link and trigger the download
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = file.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: "Download Started",
+        description: `Downloading ${file.filename}`,
+      })
+    } catch (error) {
+      console.error("Error downloading file:", error)
+      toast({
+        title: "Download Failed",
+        description: "Failed to download the file. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   // Summary stats
@@ -553,7 +585,7 @@ export default function StockConfigPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Stock Configuration</h1>
             <p className="text-muted-foreground">
-              Manage PreOrder, Override OnHand, and Safety Stock configurations
+              Manage PreOrder and Override OnHand configurations
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -669,26 +701,54 @@ export default function StockConfigPage() {
                     </CardDescription>
                   </div>
 
-                  {/* Filters row - search + date range + frequency + supply type tabs */}
+                  {/* Filters row - location/item filters + date range + frequency + supply type tabs */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    {/* Search Input */}
+                    {/* Location ID Filter */}
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search by Location ID, Item ID..."
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        className="w-[240px] pl-9 pr-8 h-9"
+                        placeholder="Filter by Location ID"
+                        value={locationIdFilter}
+                        onChange={handleLocationIdChange}
+                        className="w-40 pl-9 pr-8 h-9 text-sm"
                       />
-                      {searchQuery && (
+                      {locationIdFilter && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setSearchQuery("")}
+                          onClick={() => {
+                            setLocationIdFilter("")
+                            setPage(1)
+                          }}
                           className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
                         >
                           <X className="h-4 w-4" />
-                          <span className="sr-only">Clear search</span>
+                          <span className="sr-only">Clear location filter</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Item ID Filter */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Filter by Item ID"
+                        value={itemIdFilter}
+                        onChange={handleItemIdChange}
+                        className="w-40 pl-9 pr-8 h-9 text-sm"
+                      />
+                      {itemIdFilter && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setItemIdFilter("")
+                            setPage(1)
+                          }}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Clear item filter</span>
                         </Button>
                       )}
                     </div>
@@ -969,7 +1029,7 @@ export default function StockConfigPage() {
               <TabsContent value={uploadHistoryFilter}>
                 <UploadHistoryTable
                   fileHistory={filteredFileHistory.slice(0, 10)}
-                  onViewDetails={handleViewFileDetails}
+                  onDownload={handleDownloadFile}
                 />
               </TabsContent>
             </Tabs>
@@ -1012,12 +1072,6 @@ export default function StockConfigPage() {
         filename={reportFile?.filename || ""}
         results={reportResults}
         onRetryFailed={handleRetryFailedRows}
-      />
-
-      <FileDetailModal
-        open={isFileDetailOpen}
-        onOpenChange={setIsFileDetailOpen}
-        file={selectedFile}
       />
     </DashboardShell>
   )

@@ -17,7 +17,6 @@ import {
   ArrowUp,
   ArrowDown,
   Package,
-  AlertTriangle,
 } from "lucide-react"
 import type { StockConfigItem, StockConfigFilters } from "@/types/stock-config"
 
@@ -106,7 +105,6 @@ export function StockConfigTable({
               <TableHead className="text-right">Quantity</TableHead>
               <TableHead>Supply Type</TableHead>
               <TableHead>Frequency</TableHead>
-              <TableHead className="text-right">Safety Stock</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
             </TableRow>
@@ -119,7 +117,6 @@ export function StockConfigTable({
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
               </TableRow>
@@ -185,7 +182,6 @@ export function StockConfigTable({
               </div>
             </TableHead>
             <TableHead>Frequency</TableHead>
-            <TableHead className="text-right">Safety Stock</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
           </TableRow>
@@ -202,18 +198,6 @@ export function StockConfigTable({
               </TableCell>
               <TableCell>{getSupplyTypeBadge(item.supplyTypeId)}</TableCell>
               <TableCell>{getFrequencyBadge(item.frequency)}</TableCell>
-              <TableCell className="text-right">
-                <span className="inline-flex items-center gap-1">
-                  {item.safetyStock === 999999 ? (
-                    <>
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                      <span className="text-red-600 font-medium">Blocked</span>
-                    </>
-                  ) : (
-                    item.safetyStock.toLocaleString()
-                  )}
-                </span>
-              </TableCell>
               <TableCell>{formatDate(item.startDate)}</TableCell>
               <TableCell>{formatDate(item.endDate)}</TableCell>
             </TableRow>

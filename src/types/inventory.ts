@@ -238,6 +238,8 @@ export interface StockAlert {
 export interface InventoryFilters {
   category?: ProductCategory | "all"
   storeName?: TopsStore | "all"
+  warehouseCode?: string | "all"
+  itemType?: "weight" | "unit" | "all"
   status?: InventoryStatus | "all"
   searchQuery?: string
   page?: number

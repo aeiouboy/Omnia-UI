@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   FileSpreadsheet,
   Calendar,
@@ -15,6 +17,7 @@ import {
   AlertCircle,
   Clock,
   Loader2,
+  Download,
 } from "lucide-react"
 import type { StockConfigFile } from "@/types/stock-config"
 
@@ -22,16 +25,31 @@ interface FileDetailModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   file: StockConfigFile | null
+  onDownload?: (file: StockConfigFile) => void
 }
 
 export function FileDetailModal({
   open,
   onOpenChange,
   file,
+  onDownload,
 }: FileDetailModalProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+
   // Early return if no file selected
   if (!file) {
     return null
+  }
+
+  const handleDownload = async () => {
+    if (!onDownload) return
+
+    setIsDownloading(true)
+    try {
+      await onDownload(file)
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   // Use processingStatus if available, otherwise fallback to status
@@ -129,10 +147,32 @@ export function FileDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5 text-blue-600" />
-            {file.filename}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+              {file.filename}
+            </DialogTitle>
+            {onDownload && (
+              <Button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                variant="outline"
+                size="sm"
+              >
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download File
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">

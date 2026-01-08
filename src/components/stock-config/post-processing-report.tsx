@@ -253,10 +253,6 @@ export function PostProcessingReport({
                                 <h4 className="font-medium text-sm">Full Row Data</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                   <div>
-                                    <span className="text-muted-foreground">SKU:</span>{" "}
-                                    <span className="font-medium">{result.originalData.sku || "-"}</span>
-                                  </div>
-                                  <div>
                                     <span className="text-muted-foreground">Quantity:</span>{" "}
                                     <span className="font-medium">
                                       {result.originalData.quantity?.toLocaleString() || "-"}
@@ -269,12 +265,6 @@ export function PostProcessingReport({
                                   <div>
                                     <span className="text-muted-foreground">Frequency:</span>{" "}
                                     <span className="font-medium">{result.originalData.frequency || "-"}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">Safety Stock:</span>{" "}
-                                    <span className="font-medium">
-                                      {result.originalData.safetyStock?.toLocaleString() || "-"}
-                                    </span>
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">Start Date:</span>{" "}

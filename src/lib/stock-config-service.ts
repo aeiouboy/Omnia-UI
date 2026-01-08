@@ -36,25 +36,21 @@ import type {
 const mockStockConfigs: StockConfigItem[] = [
   {
     id: "SC001",
-    locationId: "CFM0103",
-    itemId: "8850590937000",
-    sku: "SKU-APPLE-001",
+    locationId: "CFM6686",
+    itemId: "48705813",
     quantity: 100,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
-    safetyStock: 10,
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
   {
     id: "SC002",
-    locationId: "CFM0104",
-    itemId: "8850590937001",
-    sku: "SKU-BANANA-001",
+    locationId: "CFM7234",
+    itemId: "48705814",
     quantity: 50,
     supplyTypeId: "On Hand Available",
     frequency: "Daily",
-    safetyStock: 5,
     startDate: "2024-01-20 10:00:00",
     endDate: "2024-02-20 18:00:00",
     createdAt: "2024-01-16T11:00:00Z",
@@ -62,25 +58,21 @@ const mockStockConfigs: StockConfigItem[] = [
   },
   {
     id: "SC003",
-    locationId: "CFM0105",
-    itemId: "8850590937002",
-    sku: "SKU-ORANGE-001",
+    locationId: "CFM8901",
+    itemId: "48705815",
     quantity: 200,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
-    safetyStock: 20,
     createdAt: "2024-01-17T09:00:00Z",
     updatedAt: "2024-01-17T09:00:00Z",
   },
   {
     id: "SC004",
-    locationId: "CFM0106",
-    itemId: "8850590937003",
-    sku: "SKU-MILK-001",
+    locationId: "CFM4521",
+    itemId: "48705816",
     quantity: 999999,
     supplyTypeId: "On Hand Available",
     frequency: "Daily",
-    safetyStock: 999999,
     startDate: "2024-01-01 00:00:00",
     endDate: "2024-12-31 23:59:59",
     createdAt: "2024-01-18T14:00:00Z",
@@ -88,13 +80,11 @@ const mockStockConfigs: StockConfigItem[] = [
   },
   {
     id: "SC005",
-    locationId: "CFM0107",
-    itemId: "8850590937004",
-    sku: "SKU-BREAD-001",
+    locationId: "CFM3345",
+    itemId: "48705817",
     quantity: 75,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
-    safetyStock: 8,
     createdAt: "2024-01-19T08:00:00Z",
     updatedAt: "2024-01-19T08:00:00Z",
   },
@@ -235,11 +225,9 @@ function mapHeaders(headers: string[]): Record<string, number> {
   const fieldMappings: Record<string, string[]> = {
     locationId: ["locationid", "location_id", "location", "loc_id"],
     itemId: ["itemid", "item_id", "item", "product_id", "productid"],
-    sku: ["sku", "sku_code", "product_sku"],
     quantity: ["quantity", "qty", "amount"],
     supplyTypeId: ["supplytypeid", "supply_type_id", "supplytype", "supply_type", "type"],
     frequency: ["frequency", "freq"],
-    safetyStock: ["safetystock", "safety_stock", "safety"],
     startDate: ["startdate", "start_date", "start"],
     endDate: ["enddate", "end_date", "end"],
   }
@@ -315,17 +303,14 @@ function parseRow(
 
   const locationId = getValue("locationId")
   const itemId = getValue("itemId")
-  const sku = getValue("sku")
   const quantityStr = getValue("quantity")
   const supplyTypeId = getValue("supplyTypeId")
   const frequency = getValue("frequency")
-  const safetyStockStr = getValue("safetyStock")
   const startDate = getValue("startDate")
   const endDate = getValue("endDate")
 
   // Parse numeric values
   const quantity = quantityStr ? parseInt(quantityStr, 10) : null
-  const safetyStock = safetyStockStr ? parseInt(safetyStockStr, 10) : null
 
   // Validate required fields
   if (!locationId) {
@@ -335,9 +320,6 @@ function parseRow(
   if (!itemId) {
     errors.push({ row: rowNumber, field: "itemId", value: "", message: "ItemID is required", severity: "error" })
   }
-
-  // SKU is optional - auto-generate from ItemId if missing
-  const skuValue = sku || `SKU-${itemId}`
 
   if (quantity === null || isNaN(quantity)) {
     errors.push({ row: rowNumber, field: "quantity", value: quantityStr, message: "Quantity must be a valid number", severity: "error" })
@@ -359,12 +341,6 @@ function parseRow(
     errors.push({ row: rowNumber, field: "frequency", value: "", message: "Frequency is required", severity: "error" })
   } else if (!validFrequencies.includes(frequency as Frequency)) {
     errors.push({ row: rowNumber, field: "frequency", value: frequency, message: "Frequency must be 'One-time' or 'Daily'", severity: "error" })
-  }
-
-  // Validate safety stock - optional field, defaults to 0 if not provided
-  const safetyStockValue = safetyStock ?? 0
-  if (safetyStockStr && (isNaN(safetyStock!) || safetyStock! < 0)) {
-    errors.push({ row: rowNumber, field: "safetyStock", value: safetyStockStr, message: "SafetyStock must be a non-negative number", severity: "error" })
   }
 
   // Validate date fields for OnHand/On Hand Available type
@@ -389,20 +365,13 @@ function parseRow(
     }
   }
 
-  // Check for blocking safety stock (999999)
-  if (safetyStock === 999999) {
-    warnings.push({ row: rowNumber, field: "safetyStock", value: safetyStockStr, message: "SafetyStock of 999999 will effectively block sales", severity: "warning" })
-  }
-
   return {
     rowNumber,
     locationId,
     itemId,
-    sku: skuValue,
     quantity,
     supplyTypeId,
     frequency,
-    safetyStock: safetyStockValue,
     startDate,
     endDate,
     isValid: errors.length === 0,
@@ -496,13 +465,26 @@ export async function getStockConfigs(
     filtered = filtered.filter((item) => item.frequency === filters.frequency)
   }
 
+  if (filters?.locationIdFilter) {
+    const query = filters.locationIdFilter.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.locationId.toLowerCase().includes(query)
+    )
+  }
+
+  if (filters?.itemIdFilter) {
+    const query = filters.itemIdFilter.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.itemId.toLowerCase().includes(query)
+    )
+  }
+
   if (filters?.searchQuery) {
     const query = filters.searchQuery.toLowerCase()
     filtered = filtered.filter(
       (item) =>
         item.locationId.toLowerCase().includes(query) ||
-        item.itemId.toLowerCase().includes(query) ||
-        item.sku.toLowerCase().includes(query)
+        item.itemId.toLowerCase().includes(query)
     )
   }
 
@@ -672,13 +654,13 @@ export async function createFileRecord(
 
 /**
  * Mock valid items list for simulating backend validation
+ * Uses numeric ItemId format matching actual file schema
  */
 const VALID_ITEMS = [
+  "48705813", "48705814", "48705815", "48705816", "48705817",
+  "48705818", "48705819", "48705820", "48705821", "48705822",
   "ITEM001", "ITEM002", "ITEM003", "ITEM004", "ITEM005",
   "ITEM006", "ITEM007", "ITEM008", "ITEM009", "ITEM010",
-  "ITEM100", "ITEM101", "ITEM102", "ITEM103", "ITEM104",
-  "SKU-APPLE-001", "SKU-BANANA-001", "SKU-ORANGE-001",
-  "SKU-MILK-001", "SKU-BREAD-001", "SKU-CHEESE-001",
 ]
 
 /**
@@ -747,7 +729,7 @@ export function validateFilePreSubmission(rows: ParsedStockConfigRow[]): PreSubm
   rows.forEach((row) => {
     const rowErrors: ValidationResult[] = []
 
-    // Check mandatory fields (SKU is optional - auto-generated from ItemId if missing)
+    // Check mandatory fields
     if (!row.locationId) {
       rowErrors.push({ row: row.rowNumber, field: "locationId", value: "", message: getErrorMessage("MISSING_REQUIRED_FIELD", ["LocationID"]), severity: "error" })
     }
@@ -874,7 +856,7 @@ function processRow(row: ParsedStockConfigRow): ProcessingResult {
   }
 
   // Simulate backend validation: Check if item exists
-  if (!VALID_ITEMS.includes(row.itemId) && !VALID_ITEMS.includes(row.sku)) {
+  if (!VALID_ITEMS.includes(row.itemId)) {
     // 20% chance of item not found for simulation
     if (Math.random() < 0.2) {
       return {
@@ -953,11 +935,9 @@ export function generateErrorReport(results: ProcessingResult[]): Blob {
     "Row #",
     "Item ID",
     "Location ID",
-    "SKU",
     "Quantity",
     "Supply Type",
     "Frequency",
-    "Safety Stock",
     "Start Date",
     "End Date",
     "Status",
@@ -973,11 +953,9 @@ export function generateErrorReport(results: ProcessingResult[]): Blob {
       result.rowNumber,
       escapeCSV(row.itemId),
       escapeCSV(row.locationId),
-      escapeCSV(row.sku),
       row.quantity ?? "",
       escapeCSV(row.supplyTypeId),
       escapeCSV(row.frequency),
-      row.safetyStock ?? "",
       escapeCSV(row.startDate),
       escapeCSV(row.endDate),
       result.status,

@@ -20,20 +20,20 @@ import {
   CheckCircle,
   Clock,
   User,
-  Eye,
+  Download,
 } from "lucide-react"
 import type { StockConfigFile } from "@/types/stock-config"
 
 interface UploadHistoryTableProps {
   fileHistory: StockConfigFile[]
   loading?: boolean
-  onViewDetails?: (file: StockConfigFile) => void
+  onDownload?: (file: StockConfigFile) => void
 }
 
 export function UploadHistoryTable({
   fileHistory,
   loading = false,
-  onViewDetails = () => {},
+  onDownload,
 }: UploadHistoryTableProps) {
   const getFileStatusBadge = (file: StockConfigFile) => {
     // Use processingStatus if available
@@ -132,6 +132,7 @@ export function UploadHistoryTable({
               <TableHead className="hidden lg:table-cell">Records</TableHead>
               <TableHead className="hidden md:table-cell">Uploaded By</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-20 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -151,6 +152,9 @@ export function UploadHistoryTable({
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-6 w-24" />
+                </TableCell>
+                <TableCell className="text-center">
+                  <Skeleton className="h-8 w-8 mx-auto" />
                 </TableCell>
               </TableRow>
             ))}
@@ -185,14 +189,13 @@ export function UploadHistoryTable({
             <TableHead className="hidden lg:table-cell">Records</TableHead>
             <TableHead className="hidden md:table-cell">Uploaded By</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="w-20 text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {fileHistory.map((file) => (
             <TableRow
               key={file.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => onViewDetails(file)}
             >
               {/* File Name */}
               <TableCell>
@@ -247,21 +250,25 @@ export function UploadHistoryTable({
 
               {/* Status */}
               <TableCell>
-                <div className="flex items-center gap-2">
-                  {getFileStatusBadge(file)}
+                {getFileStatusBadge(file)}
+              </TableCell>
+
+              {/* Actions */}
+              <TableCell className="text-center">
+                {onDownload && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation()
-                      onViewDetails(file)
+                      onDownload(file)
                     }}
                     className="h-8 w-8 p-0"
                   >
-                    <Eye className="h-4 w-4" />
-                    <span className="sr-only">View details</span>
+                    <Download className="h-4 w-4" />
+                    <span className="sr-only">Download file</span>
                   </Button>
-                </div>
+                )}
               </TableCell>
             </TableRow>
           ))}
