@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
 import { formatBangkokTime, formatBangkokDateTime } from "@/lib/timezone-utils"
+import { useOrganization } from "@/contexts/organization-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -215,6 +216,7 @@ interface FilterParams {
   searchTerm?: string
   status?: string
   channel?: string
+  businessUnit?: string
   priority?: string
   slaFilter?: "all" | "near-breach" | "breach"
   advancedFilters?: AdvancedFilterValues
@@ -311,7 +313,10 @@ const fetchOrdersFromApi = async (
     if (filterParams?.channel && filterParams.channel !== "all-channels") {
       queryParams.set("channel", filterParams.channel)
     }
-    
+    if (filterParams?.businessUnit && filterParams.businessUnit !== "ALL") {
+      queryParams.set("businessUnit", filterParams.businessUnit)
+    }
+
     // Add advanced filter parameters
     if (filterParams?.advancedFilters) {
       const af = filterParams.advancedFilters
@@ -424,9 +429,12 @@ const fetchOrdersFromApi = async (
 export function OrderManagementHub() {
   // Track client mount to avoid hydration mismatch
   const [isMounted, setIsMounted] = useState(false)
-  
-  // Get real-time order counts across all pages
-  const { counts: realTimeCounts, isLoading: countsLoading, error: countsError } = useOrderCounts(10000) // Update every 10 seconds
+
+  // Get organization context for filtering
+  const { selectedOrganization } = useOrganization()
+
+  // Get real-time order counts across all pages (filtered by organization)
+  const { counts: realTimeCounts, isLoading: countsLoading, error: countsError } = useOrderCounts(10000, selectedOrganization) // Update every 10 seconds
   const [lastUpdated, setLastUpdated] = useState<string>("")
 
   useEffect(() => {
@@ -627,6 +635,7 @@ export function OrderManagementHub() {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
+        businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
         slaFilter: activeSlaFilter,
         advancedFilters: advancedFilters
       }
@@ -689,7 +698,7 @@ export function OrderManagementHub() {
       setIsLoading(false)
       setFetchingAllProgress({ current: 0, total: 0 })
     }
-  }, [pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters])
+  }, [pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, activeSlaFilter, advancedFilters])
 
   // Regular single page fetch
   const fetchOrders = useCallback(async () => {
@@ -706,6 +715,7 @@ export function OrderManagementHub() {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
+        businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
         slaFilter: activeSlaFilter,
         advancedFilters: advancedFilters
       }
@@ -734,7 +744,7 @@ export function OrderManagementHub() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, activeSlaFilter, advancedFilters, fetchAllMode, fetchAllOrders])
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, activeSlaFilter, advancedFilters, fetchAllMode, fetchAllOrders])
 
   // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
@@ -1372,41 +1382,41 @@ export function OrderManagementHub() {
           <TableHeader className="bg-light-gray">
             <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
               <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-                ORDER NUMBER
+                Order Number
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                SHORT ORDER
+                Short Order
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                ORDER TOTAL
+                Order Total
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-                SELLING LOCATION ID
+                Selling Location ID
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                ORDER STATUS
+                Order Status
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                SLA STATUS
+                SLA Status
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                RETURN STATUS
+                Return Status
               </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">ON HOLD</TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">On Hold</TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                PAYMENT STATUS
+                Payment Status
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-                CONFIRMED
+                Confirmed
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                SELLING CHANNEL
+                Selling Channel
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-                ALLOW SUBSTITUTION
+                Allow Substitution
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-                CREATED DATE
+                Created Date
               </TableHead>
             </TableRow>
           </TableHeader>

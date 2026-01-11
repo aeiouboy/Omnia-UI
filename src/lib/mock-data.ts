@@ -697,6 +697,7 @@ export const mockAnalyticsData = {
 export function getMockOrders(filters: {
   status?: string
   channel?: string
+  businessUnit?: string
   search?: string
   page?: number
   pageSize?: number

@@ -11,7 +11,6 @@
 
 "use client"
 
-import { useState, useMemo } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,14 +18,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   ArrowLeft,
   Package,
@@ -40,10 +31,7 @@ import {
   ShoppingCart,
   Shield,
   Info,
-  Search,
-  X,
-  MapPin,
-  ArrowUpDown,
+  Minus,
 } from "lucide-react"
 import {
   Tooltip,
@@ -54,6 +42,7 @@ import {
 import { StockHistoryChart } from "./stock-history-chart"
 import { RecentTransactionsTable } from "./recent-transactions-table"
 import StockAvailabilityIndicator from "./inventory/stock-availability-indicator"
+import { StockByStoreTable } from "./inventory/stock-by-store-table"
 import {
   formatWarehouseCode,
   getStockStatusColor,
@@ -110,78 +99,8 @@ export function InventoryDetailView({
 }: InventoryDetailViewProps) {
   const router = useRouter()
 
-  // State for location filtering and sorting
-  const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [sortBy, setSortBy] = useState<"warehouse" | "location" | "stock">("warehouse")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-
   // Calculate stock percentage
   const stockPercentage = (item.currentStock / item.maxStockLevel) * 100
-
-  // Extract unique warehouse codes
-  const uniqueWarehouseCodes = useMemo(() => {
-    if (!item.warehouseLocations || item.warehouseLocations.length === 0) {
-      return []
-    }
-    const codes = item.warehouseLocations.map(loc => loc.warehouseCode)
-    return Array.from(new Set(codes)).sort()
-  }, [item.warehouseLocations])
-
-  // Filter and sort warehouse locations
-  const filteredLocations = useMemo(() => {
-    if (!item.warehouseLocations || item.warehouseLocations.length === 0) {
-      return []
-    }
-
-    let filtered = [...item.warehouseLocations]
-
-    // Apply warehouse filter
-    if (warehouseFilter !== "all") {
-      filtered = filtered.filter(loc => loc.warehouseCode === warehouseFilter)
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(loc =>
-        loc.warehouseCode.toLowerCase().includes(query) ||
-        loc.locationCode.toLowerCase().includes(query)
-      )
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let compareValue = 0
-
-      switch (sortBy) {
-        case "warehouse":
-          compareValue = a.warehouseCode.localeCompare(b.warehouseCode)
-          break
-        case "location":
-          compareValue = a.locationCode.localeCompare(b.locationCode)
-          break
-        case "stock":
-          compareValue = a.stockAvailable - b.stockAvailable
-          break
-      }
-
-      return sortOrder === "asc" ? compareValue : -compareValue
-    })
-
-    return filtered
-  }, [item.warehouseLocations, warehouseFilter, searchQuery, sortBy, sortOrder])
-
-  // Check if filters are active
-  const hasActiveFilters = warehouseFilter !== "all" || searchQuery.trim() !== ""
-
-  // Clear all filters
-  const clearFilters = () => {
-    setWarehouseFilter("all")
-    setSearchQuery("")
-    setSortBy("warehouse")
-    setSortOrder("asc")
-  }
 
   // Handle back navigation
   const handleBack = () => {
@@ -249,7 +168,7 @@ export function InventoryDetailView({
               <Separator />
 
               {/* Product Details Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
@@ -282,6 +201,79 @@ export function InventoryDetailView({
                       {item.itemType === "normal" && "Unit Item (pieces)"}
                     </Badge>
                   </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span>Supply Type</span>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-help">
+                          <Badge
+                            variant="outline"
+                            className={`${
+                              item.supplyType === "On Hand Available"
+                                ? "bg-green-100 text-green-800 border-green-300"
+                                : "bg-blue-100 text-blue-800 border-blue-300"
+                            } text-sm`}
+                          >
+                            {item.supplyType || "On Hand Available"}
+                          </Badge>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          {item.supplyType === "Pre-Order"
+                            ? "This product requires pre-ordering and may not be immediately available"
+                            : "This product is available from current inventory stock"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Shield className="h-4 w-4" />
+                    <span>Stock Config</span>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-help">
+                          {item.stockConfigStatus === "valid" && (
+                            <>
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <span className="text-sm text-green-700">Valid</span>
+                            </>
+                          )}
+                          {item.stockConfigStatus === "invalid" && (
+                            <>
+                              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                              <span className="text-sm text-yellow-700">Invalid</span>
+                            </>
+                          )}
+                          {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && (
+                            <>
+                              <Minus className="h-5 w-5 text-gray-400" />
+                              <span className="text-sm text-gray-500">Unconfigured</span>
+                            </>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          {item.stockConfigStatus === "valid" && "Stock configuration is correct and all settings are properly configured"}
+                          {item.stockConfigStatus === "invalid" && "Stock configuration has errors that need attention"}
+                          {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && "Stock configuration has not been set up yet"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
 
@@ -472,204 +464,20 @@ export function InventoryDetailView({
         </CardContent>
       </Card>
 
-      {/* Stock by Location Section */}
+      {/* Stock by Store Section */}
       {item.warehouseLocations && item.warehouseLocations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Stock by Location</CardTitle>
+            <CardTitle>Stock by Store</CardTitle>
             <CardDescription>
-              View and filter stock distribution across warehouse locations
+              View and filter stock distribution across store locations
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Filter Controls */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              {/* Warehouse Filter */}
-              <div className="flex-1 min-w-0">
-                <Select
-                  value={warehouseFilter}
-                  onValueChange={setWarehouseFilter}
-                >
-                  <SelectTrigger className="w-full" aria-label="Filter by warehouse">
-                    <SelectValue placeholder="Filter by warehouse" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Warehouses</SelectItem>
-                    {uniqueWarehouseCodes.map((code) => (
-                      <SelectItem key={code} value={code}>
-                        {code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Search Input */}
-              <div className="flex-1 min-w-0 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  type="text"
-                  placeholder="Search warehouse or location..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8"
-                  aria-label="Search locations"
-                />
-                {searchQuery.length > 0 && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground hover:bg-gray-100 rounded p-0.5 transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Sort Dropdown */}
-              <div className="flex-1 min-w-0">
-                <Select
-                  value={`${sortBy}-${sortOrder}`}
-                  onValueChange={(value) => {
-                    const [newSortBy, newSortOrder] = value.split("-") as [typeof sortBy, typeof sortOrder]
-                    setSortBy(newSortBy)
-                    setSortOrder(newSortOrder)
-                  }}
-                >
-                  <SelectTrigger className="w-full" aria-label="Sort locations">
-                    <div className="flex items-center gap-2">
-                      <ArrowUpDown className="h-4 w-4" />
-                      <SelectValue placeholder="Sort by" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="warehouse-asc">Warehouse (A-Z)</SelectItem>
-                    <SelectItem value="warehouse-desc">Warehouse (Z-A)</SelectItem>
-                    <SelectItem value="location-asc">Location (A-Z)</SelectItem>
-                    <SelectItem value="location-desc">Location (Z-A)</SelectItem>
-                    <SelectItem value="stock-desc">Stock (High to Low)</SelectItem>
-                    <SelectItem value="stock-asc">Stock (Low to High)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Results Count and Clear Filters */}
-            <div className="flex items-center justify-between text-sm" role="status" aria-live="polite">
-              <span className="text-muted-foreground">
-                {hasActiveFilters
-                  ? `Showing ${filteredLocations.length} of ${item.warehouseLocations.length} locations`
-                  : `All ${item.warehouseLocations.length} locations`}
-              </span>
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Location Cards Grid */}
-            {filteredLocations.length === 0 ? (
-              <div className="py-8 text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <MapPin className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {hasActiveFilters ? "No locations match your filters" : "No warehouse location data available"}
-                  </p>
-                  {hasActiveFilters && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="gap-2 mt-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredLocations.map((location, index) => {
-                  const totalLocationStock = getActiveStockForLocation(location)
-                  const isAvailable = hasAvailableStock(location)
-
-                  return (
-                    <Card
-                      key={`${location.warehouseCode}-${location.locationCode}-${index}`}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-4 space-y-3">
-                        {/* Location Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-blue-700 border-blue-200 font-medium"
-                              >
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {location.warehouseCode}
-                              </Badge>
-                              {location.isDefaultLocation && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs px-1.5 py-0 h-5 bg-green-50 text-green-700 border-green-200"
-                                >
-                                  dl
-                                </Badge>
-                              )}
-                            </div>
-                            <code className="text-sm font-mono font-semibold block">
-                              {location.locationCode}
-                            </code>
-                          </div>
-                          <StockAvailabilityIndicator
-                            isAvailable={isAvailable}
-                            stockCount={location.stockAvailable}
-                          />
-                        </div>
-
-                        <Separator />
-
-                        {/* Stock Status Breakdown - Matching product-level labels */}
-                        <div className="grid grid-cols-2 gap-2">
-                          {/* Available Stock */}
-                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-green-600 bg-green-50 border-green-200">
-                            <span className="font-medium">Available Stock</span>
-                            <span className="font-bold text-base">{formatStockQuantity(location.stockAvailable, item.itemType, false)}</span>
-                          </div>
-                          {/* Reserved Stock */}
-                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-orange-600 bg-orange-50 border-orange-200">
-                            <span className="font-medium">Reserved Stock</span>
-                            <span className="font-bold text-base">{formatStockQuantity(location.stockInProcess, item.itemType, false)}</span>
-                          </div>
-                          {/* Safety Stock */}
-                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-blue-600 bg-blue-50 border-blue-200">
-                            <span className="font-medium">Safety Stock</span>
-                            <span className="font-bold text-base">{formatStockQuantity(location.stockSafetyStock ?? 0, item.itemType, false)}</span>
-                          </div>
-                          {/* Total Stock */}
-                          <div className="text-xs px-2 py-1.5 rounded border flex flex-col text-gray-600 bg-gray-50 border-gray-200">
-                            <span className="font-medium">Total Stock</span>
-                            <span className="font-bold text-base">{formatStockQuantity(totalLocationStock, item.itemType, false)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            )}
+          <CardContent>
+            <StockByStoreTable
+              locations={item.warehouseLocations}
+              itemType={item.itemType}
+            />
           </CardContent>
         </Card>
       )}

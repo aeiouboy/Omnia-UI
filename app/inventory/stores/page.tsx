@@ -7,6 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   Store,
   Package,
@@ -16,11 +26,31 @@ import {
   RefreshCw,
   MapPin,
   ArrowLeft,
+  LayoutGrid,
+  List,
+  ChevronRight,
+  TrendingUp,
+  Activity,
 } from "lucide-react"
 import { fetchStorePerformance } from "@/lib/inventory-service"
 import type { StorePerformance } from "@/types/inventory"
 
 type FilterType = "all" | "critical" | "low"
+type ViewMode = "cards" | "table"
+type SortField = "storeName" | "totalProducts" | "lowStockItems" | "criticalStockItems" | "healthScore" | "storeStatus"
+type SortOrder = "asc" | "desc"
+
+function getHealthScoreColor(score: number): string {
+  if (score >= 80) return "text-green-600"
+  if (score >= 60) return "text-yellow-600"
+  return "text-red-600"
+}
+
+function getHealthScoreBackground(score: number): string {
+  if (score >= 80) return "bg-green-100"
+  if (score >= 60) return "bg-yellow-100"
+  return "bg-red-100"
+}
 
 export default function StockByStorePage() {
   const router = useRouter()
@@ -34,6 +64,11 @@ export default function StockByStorePage() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState<FilterType>("all")
+  const [viewMode, setViewMode] = useState<ViewMode>("cards")
+
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>("criticalStockItems")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
   // Load store performance data
   const loadData = async (showLoadingState = true) => {
@@ -89,11 +124,32 @@ export default function StockByStorePage() {
       filtered = filtered.filter((store) => store.lowStockItems > 0)
     }
 
-    // Sort by critical items descending (default)
-    filtered.sort((a, b) => b.criticalStockItems - a.criticalStockItems)
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const multiplier = sortOrder === "asc" ? 1 : -1
+
+      switch (sortField) {
+        case "storeName":
+          return multiplier * a.storeName.localeCompare(b.storeName)
+        case "totalProducts":
+          return multiplier * (a.totalProducts - b.totalProducts)
+        case "lowStockItems":
+          return multiplier * (a.lowStockItems - b.lowStockItems)
+        case "criticalStockItems":
+          return multiplier * (a.criticalStockItems - b.criticalStockItems)
+        case "healthScore":
+          return multiplier * (a.healthScore - b.healthScore)
+        case "storeStatus":
+          const statusA = a.storeStatus || 'Active'
+          const statusB = b.storeStatus || 'Active'
+          return multiplier * statusA.localeCompare(statusB)
+        default:
+          return 0
+      }
+    })
 
     return filtered
-  }, [storeData, searchQuery, filterType])
+  }, [storeData, searchQuery, filterType, sortField, sortOrder])
 
   // Handler functions
   const handleRefresh = () => {
@@ -107,6 +163,25 @@ export default function StockByStorePage() {
   const handleStoreClick = (storeName: string) => {
     // Navigate to main inventory page with store filter
     router.push(`/inventory?store=${encodeURIComponent(storeName)}`)
+  }
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("desc")
+    }
+  }
+
+  // Sort icon component
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return null
+    return (
+      <span className="ml-1">
+        {sortOrder === "asc" ? "↑" : "↓"}
+      </span>
+    )
   }
 
   // Loading skeleton
@@ -238,98 +313,295 @@ export default function StockByStorePage() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search stores..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant={filterType === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterType("all")}
-            >
-              All Stores
-            </Button>
-            <Button
-              variant={filterType === "low" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterType("low")}
-            >
-              Low Stock
-            </Button>
-            <Button
-              variant={filterType === "critical" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterType("critical")}
-            >
-              Out of Stock
-            </Button>
-          </div>
-        </div>
-
-        {/* Store Cards Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredAndSortedStores.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              No stores found matching your search.
+        {/* Filters and View Toggle */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search stores..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="pl-9 w-[240px]"
+              />
             </div>
-          ) : (
-            filteredAndSortedStores.map((store) => (
-              <Card
-                key={store.storeName}
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary"
-                onClick={() => handleStoreClick(store.storeName)}
+            <div className="flex gap-2">
+              <Button
+                variant={filterType === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterType("all")}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-base line-clamp-2">
-                        {store.storeName}
-                      </CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Total Products */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Total Products</span>
-                    <span className="font-semibold">{store.totalProducts.toLocaleString()}</span>
-                  </div>
-
-                  {/* Low Stock Items */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Low Stock</span>
-                    <Badge
-                      variant="outline"
-                      className={store.lowStockItems > 0 ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"}
-                    >
-                      {store.lowStockItems}
-                    </Badge>
-                  </div>
-
-                  {/* Out of Stock Items */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Out of Stock</span>
-                    <Badge
-                      variant="outline"
-                      className={store.criticalStockItems > 0 ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"}
-                    >
-                      {store.criticalStockItems}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                All Stores ({summary.totalStores})
+              </Button>
+              <Button
+                variant={filterType === "low" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterType("low")}
+              >
+                Low Stock ({summary.totalLowStock})
+              </Button>
+              <Button
+                variant={filterType === "critical" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterType("critical")}
+              >
+                Out of Stock ({summary.totalOutOfStock})
+              </Button>
+            </div>
+          </div>
+          {/* View Toggle */}
+          <div className="flex gap-1 border rounded-md p-1">
+            <Button
+              variant={viewMode === "cards" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("cards")}
+              className="h-8 px-3"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "table" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="h-8 px-3"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+
+        {/* Store Cards Grid View */}
+        {viewMode === "cards" && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredAndSortedStores.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No stores found matching your search.
+              </div>
+            ) : (
+              filteredAndSortedStores.map((store) => (
+                <Card
+                  key={store.storeName}
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary"
+                  onClick={() => handleStoreClick(store.storeName)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-base line-clamp-2">
+                          {store.storeName}
+                        </CardTitle>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={
+                            (store.storeStatus || 'Active') === 'Active'
+                              ? "bg-green-100 text-green-800 border-green-300 text-xs"
+                              : "bg-gray-100 text-gray-600 border-gray-300 text-xs"
+                          }
+                        >
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${
+                            (store.storeStatus || 'Active') === 'Active'
+                              ? "bg-green-500"
+                              : "bg-gray-400"
+                          }`} />
+                          {store.storeStatus || 'Active'}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`${getHealthScoreBackground(store.healthScore)} ${getHealthScoreColor(store.healthScore)} border-0`}
+                        >
+                          {store.healthScore}%
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Health Score Progress */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Health Score</span>
+                        <span className={getHealthScoreColor(store.healthScore)}>{store.healthScore}%</span>
+                      </div>
+                      <Progress
+                        value={store.healthScore}
+                        className={`h-2 ${store.healthScore >= 80 ? "[&>div]:bg-green-500" : store.healthScore >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"}`}
+                      />
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="text-center p-2 rounded-lg bg-gray-50">
+                        <div className="text-lg font-bold">{store.totalProducts}</div>
+                        <div className="text-xs text-muted-foreground">Total SKUs</div>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-yellow-50">
+                        <div className="text-lg font-bold text-yellow-700">{store.lowStockItems}</div>
+                        <div className="text-xs text-yellow-600">Low Stock</div>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-red-50">
+                        <div className="text-lg font-bold text-red-700">{store.criticalStockItems}</div>
+                        <div className="text-xs text-red-600">Out of Stock</div>
+                      </div>
+                    </div>
+
+                    {/* View Store Button */}
+                    <Button variant="outline" className="w-full" size="sm">
+                      View Inventory
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Store Table View */}
+        {viewMode === "table" && (
+          <Card>
+            <CardContent className="p-0">
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        className="w-[300px] cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("storeName")}
+                      >
+                        <div className="flex items-center">
+                          Store Name
+                          <SortIcon field="storeName" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-center cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("totalProducts")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Total SKUs
+                          <SortIcon field="totalProducts" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-center cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("lowStockItems")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Low Stock
+                          <SortIcon field="lowStockItems" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-center cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("criticalStockItems")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Out of Stock
+                          <SortIcon field="criticalStockItems" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-center cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("healthScore")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Health Score
+                          <SortIcon field="healthScore" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-center cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("storeStatus")}
+                      >
+                        <div className="flex items-center justify-center">
+                          Store Status
+                          <SortIcon field="storeStatus" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAndSortedStores.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                          No stores found matching your search.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredAndSortedStores.map((store) => (
+                        <TableRow
+                          key={store.storeName}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleStoreClick(store.storeName)}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-primary" />
+                              <span className="font-medium">{store.storeName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-semibold">
+                            {store.totalProducts}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="outline"
+                              className={store.lowStockItems > 0 ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"}
+                            >
+                              {store.lowStockItems}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="outline"
+                              className={store.criticalStockItems > 0 ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-600"}
+                            >
+                              {store.criticalStockItems}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Progress
+                                value={store.healthScore}
+                                className={`h-2 w-20 ${store.healthScore >= 80 ? "[&>div]:bg-green-500" : store.healthScore >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"}`}
+                              />
+                              <span className={`text-sm font-medium ${getHealthScoreColor(store.healthScore)}`}>
+                                {store.healthScore}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="outline"
+                              className={
+                                (store.storeStatus || 'Active') === 'Active'
+                                  ? "bg-green-100 text-green-800 border-green-300"
+                                  : "bg-gray-100 text-gray-600 border-gray-300"
+                              }
+                            >
+                              <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
+                                (store.storeStatus || 'Active') === 'Active'
+                                  ? "bg-green-500"
+                                  : "bg-gray-400"
+                              }`} />
+                              {store.storeStatus || 'Active'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardShell>
   )

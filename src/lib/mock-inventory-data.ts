@@ -17,8 +17,108 @@ import type {
   ItemType,
   StockLocation,
   StockLocationBreakdown,
-  StockStatus
+  StockStatus,
+  Channel,
+  SupplyType,
+  StockConfigStatus,
 } from "@/types/inventory"
+
+/**
+ * Available brands for inventory items
+ * Common Thai/international food and household brands
+ */
+export const BRANDS = [
+  "CP",
+  "Betagro",
+  "Thai Union",
+  "Nestle",
+  "S&P",
+  "Dutch Mill",
+  "Tipco",
+  "Oishi",
+  "Lay's",
+  "Meiji",
+  "Farm House",
+  "HomeMart",
+] as const
+
+/**
+ * Get a deterministic brand based on product characteristics
+ */
+function getBrandForProduct(productId: string, category: ProductCategory): string {
+  const categoryBrands: Record<ProductCategory, string[]> = {
+    Produce: ["CP", "Thai Union", "Farm House"],
+    Dairy: ["Dutch Mill", "Meiji", "Nestle"],
+    Bakery: ["S&P", "Farm House", "Nestle"],
+    Meat: ["CP", "Betagro", "Thai Union"],
+    Seafood: ["Thai Union", "CP", "Betagro"],
+    Pantry: ["Nestle", "Tipco", "Oishi"],
+    Frozen: ["CP", "Betagro", "S&P"],
+    Beverages: ["Tipco", "Oishi", "Dutch Mill"],
+    Snacks: ["Lay's", "Oishi", "Nestle"],
+    Household: ["HomeMart", "Nestle", "S&P"],
+  }
+  const brands = categoryBrands[category] || BRANDS
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return brands[seed % brands.length]
+}
+
+/**
+ * Get deterministic channels based on product characteristics
+ */
+function getChannelsForProduct(productId: string, category: ProductCategory): Channel[] {
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const allChannels: Channel[] = ["store", "website", "Grab", "LINE MAN", "Gokoo"]
+
+  // Always include store
+  const channels: Channel[] = ["store"]
+
+  // Add website for most products
+  if (seed % 3 !== 0) {
+    channels.push("website")
+  }
+
+  // Fresh products (Produce, Dairy, Bakery, Meat, Seafood) available on delivery apps
+  const freshCategories: ProductCategory[] = ["Produce", "Dairy", "Bakery", "Meat", "Seafood"]
+  if (freshCategories.includes(category)) {
+    if (seed % 2 === 0) channels.push("Grab")
+    if (seed % 3 === 0) channels.push("LINE MAN")
+    if (seed % 5 === 0) channels.push("Gokoo")
+  } else {
+    // Non-fresh items have different channel distribution
+    if (seed % 4 === 0) channels.push("Grab")
+    if (seed % 5 === 0) channels.push("LINE MAN")
+  }
+
+  return channels
+}
+
+/**
+ * Get deterministic supply type based on product
+ */
+function getSupplyTypeForProduct(productId: string, status: string): SupplyType {
+  // Products with critical stock often require pre-order
+  if (status === "critical") {
+    return "Pre-Order"
+  }
+  // Most products are on-hand available
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return seed % 10 === 0 ? "Pre-Order" : "On Hand Available"
+}
+
+/**
+ * Get deterministic stock config status
+ */
+function getStockConfigStatus(productId: string, hasWarehouseLocations: boolean): StockConfigStatus {
+  if (!hasWarehouseLocations) {
+    return "unconfigured"
+  }
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  // 80% valid, 15% invalid, 5% unconfigured
+  if (seed % 20 === 0) return "unconfigured"
+  if (seed % 7 === 0) return "invalid"
+  return "valid"
+}
 
 /**
  * Tops store locations (from CLAUDE.md requirements)
@@ -165,6 +265,9 @@ export function generateMockWarehouseLocations(
     const stockPending = seed % 40 // 0-40
     const stockUnusable = seed % 10 // 0-10
 
+    // Determine location status: approximately 85% Active, 15% Inactive
+    const locationStatus: 'Active' | 'Inactive' = (seed + i) % 7 === 0 ? 'Inactive' : 'Active'
+
     locations.push({
       warehouseCode,
       locationCode,
@@ -175,7 +278,8 @@ export function generateMockWarehouseLocations(
       stockOnHold,
       stockPending,
       stockUnusable,
-      stockSafetyStock
+      stockSafetyStock,
+      locationStatus,
     })
   }
 
@@ -213,21 +317,29 @@ export function generateMockStockBreakdown(productId: string, warehouseCode: str
 }
 
 /**
- * Helper function to ensure all mock items have warehouse locations
+ * Helper function to ensure all mock items have warehouse locations and new fields
  *
  * Passes product-level availableStock, reservedStock, and safetyStock to the location generator
  * to ensure location sums match product totals for data consistency.
+ * Also adds brand, channels, supplyType, and stockConfigStatus fields.
  */
-function ensureWarehouseLocations(items: InventoryItem[]): InventoryItem[] {
-  return items.map(item => ({
-    ...item,
-    warehouseLocations: item.warehouseLocations || generateMockWarehouseLocations(
+function ensureWarehouseLocationsAndNewFields(items: InventoryItem[]): InventoryItem[] {
+  return items.map(item => {
+    const warehouseLocations = item.warehouseLocations || generateMockWarehouseLocations(
       item.productId,
       item.availableStock,
       item.reservedStock,
       item.safetyStock
     )
-  }))
+    return {
+      ...item,
+      warehouseLocations,
+      brand: item.brand || getBrandForProduct(item.productId, item.category),
+      channels: item.channels || getChannelsForProduct(item.productId, item.category),
+      supplyType: item.supplyType || getSupplyTypeForProduct(item.productId, item.status),
+      stockConfigStatus: item.stockConfigStatus || getStockConfigStatus(item.productId, warehouseLocations.length > 0),
+    }
+  })
 }
 
 /**
@@ -785,9 +897,9 @@ const mockInventoryItemsBase: InventoryItem[] = [
 ]
 
 /**
- * Export mock inventory items with warehouse locations applied
+ * Export mock inventory items with warehouse locations and new fields applied
  */
-export const mockInventoryItems = ensureWarehouseLocations(mockInventoryItemsBase)
+export const mockInventoryItems = ensureWarehouseLocationsAndNewFields(mockInventoryItemsBase)
 
 /**
  * Generate store performance metrics dynamically from inventory items
@@ -835,6 +947,9 @@ export function generateStorePerformanceFromInventory(): StorePerformance[] {
       healthScore = parseFloat(((healthyItems / totalProducts) * 100).toFixed(1))
     }
 
+    // Determine store status - make "Tops จตุจักร" Inactive for testing
+    const storeStatus: 'Active' | 'Inactive' = storeName === "Tops จตุจักร" ? 'Inactive' : 'Active'
+
     storePerformance.push({
       storeName,
       totalProducts,
@@ -842,6 +957,7 @@ export function generateStorePerformanceFromInventory(): StorePerformance[] {
       criticalStockItems,
       totalValue: Math.round(totalValue), // Round to nearest baht
       healthScore,
+      storeStatus,
     })
   })
 

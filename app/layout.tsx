@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { SidebarProvider } from "@/contexts/sidebar-context"
+import { OrganizationProvider } from "@/contexts/organization-context"
 import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SidebarProvider>{children}</SidebarProvider>
+        <SidebarProvider>
+          <OrganizationProvider>{children}</OrganizationProvider>
+        </SidebarProvider>
         <Toaster />
       </body>
     </html>

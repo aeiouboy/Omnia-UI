@@ -18,12 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin } from "lucide-react"
+import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin, Download } from "lucide-react"
 import Link from "next/link"
 import type { StockTransaction } from "@/types/inventory"
 import { formatWarehouseCode, formatStockQuantity } from "@/lib/warehouse-utils"
+import { exportTransactionsToCSV } from "@/lib/export-utils"
 
 interface RecentTransactionsTableProps {
   transactions: StockTransaction[]
@@ -167,6 +169,13 @@ export function RecentTransactionsTable({
     )
   }
 
+  const handleExport = () => {
+    if (transactions.length > 0) {
+      const productName = transactions[0].productName || "inventory"
+      exportTransactionsToCSV(filteredTransactions, productName)
+    }
+  }
+
   return (
     <TooltipProvider>
       <Card>
@@ -176,17 +185,28 @@ export function RecentTransactionsTable({
               <CardTitle>Recent Transactions</CardTitle>
               <CardDescription>Last {transactions.length} stock movements</CardDescription>
             </div>
-            <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter transactions" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Transactions</SelectItem>
-                <SelectItem value="sold">Sold Items</SelectItem>
-                <SelectItem value="movement">Stock Movement</SelectItem>
-                <SelectItem value="return">Return/Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                disabled={filteredTransactions.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter transactions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Transactions</SelectItem>
+                  <SelectItem value="sold">Sold Items</SelectItem>
+                  <SelectItem value="movement">Stock Movement</SelectItem>
+                  <SelectItem value="return">Return/Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

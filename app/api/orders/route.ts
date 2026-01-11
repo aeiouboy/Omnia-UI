@@ -186,6 +186,7 @@ export async function GET(request: NextRequest) {
       const mockResult = getMockOrders({
         status: query.status,
         channel: query.channel,
+        businessUnit: query.businessUnit,
         search: query.search,
         dateFrom: query.startDate,
         dateTo: query.endDate,

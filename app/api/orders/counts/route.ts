@@ -9,14 +9,20 @@ let cachedCounts: any = null
 let cacheTimestamp = 0
 const CACHE_TTL = 5000 // 5 seconds
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const businessUnit = searchParams.get("businessUnit") || ""
+
+    // Create cache key based on businessUnit filter
+    const cacheKey = businessUnit || "ALL"
+
     // Check cache
     const now = Date.now()
-    if (cachedCounts && (now - cacheTimestamp) < CACHE_TTL) {
-      return NextResponse.json({ 
-        success: true, 
-        data: cachedCounts,
+    if (cachedCounts?.[cacheKey] && (now - cacheTimestamp) < CACHE_TTL) {
+      return NextResponse.json({
+        success: true,
+        data: cachedCounts[cacheKey],
         cached: true
       })
     }
@@ -49,6 +55,11 @@ export async function GET() {
       page: "1",
       pageSize: "100" // We'll iterate through pages
     })
+
+    // Add businessUnit filter if provided and not "ALL"
+    if (businessUnit && businessUnit !== "ALL") {
+      queryParams.set("businessUnit", businessUnit)
+    }
 
     let allOrders: any[] = []
     let currentPage = 1
@@ -200,11 +211,14 @@ export async function GET() {
     console.log("SLA Distribution Analysis:", slaDistribution)
 
     // Update cache
-    cachedCounts = counts
+    if (!cachedCounts) {
+      cachedCounts = {}
+    }
+    cachedCounts[cacheKey] = counts
     cacheTimestamp = now
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data: counts,
       cached: false,
       timestamp: new Date().toISOString()

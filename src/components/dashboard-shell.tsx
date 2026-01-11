@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { UserNav } from "@/components/user-nav"
 import { SideNav } from "@/components/side-nav"
+import { OrganizationSelector } from "@/components/organization-selector"
 import { RefreshCw, Menu, LayoutDashboard, Search, Package, AlertTriangle, Palette } from "lucide-react"
 import { BottomNav } from "@/components/ui/bottom-nav"
 import { useSidebar } from "@/contexts/sidebar-context"
@@ -153,14 +154,23 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <p className="text-xs text-white/90 drop-shadow-sm">Enterprise Command Center</p>
               </div>
             </div>
-            <div className="ml-auto flex items-center gap-4">
+            <div className="ml-auto flex items-center gap-6">
               <button className="flex items-center justify-center w-8 h-8 text-white/90 hover:text-white hover:bg-white/10 rounded transition-colors" title="Refresh">
                 <RefreshCw className="h-4 w-4" />
               </button>
               <div className="text-sm hidden sm:block text-white/80">
                 <span className="text-white/70">Last updated:</span> <span className="text-white/90">{isMounted ? currentTime : "--:--:--"}</span>
               </div>
-              <UserNav />
+              {/* Organization selector with label */}
+              <div className="hidden sm:flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60 mb-1">Organization</span>
+                <OrganizationSelector />
+              </div>
+              {/* Profile section with label */}
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60 mb-1 hidden sm:block">Profile</span>
+                <UserNav />
+              </div>
             </div>
           </div>
         </header>

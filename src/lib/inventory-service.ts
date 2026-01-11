@@ -14,6 +14,7 @@ import {
   generateMockStockHistory,
   generateMockTransactions,
   generateStorePerformanceFromInventory,
+  BRANDS,
 } from "./mock-inventory-data"
 import type {
   InventoryItem,
@@ -126,18 +127,36 @@ function applyFilters(
     filtered = filtered.filter((item) => item.status === filters.status)
   }
 
+  // Filter by brand
+  if (filters.brand && filters.brand !== "all") {
+    filtered = filtered.filter((item) => item.brand === filters.brand)
+  }
+
+  // Filter by business unit
+  if (filters.businessUnit) {
+    filtered = filtered.filter((item) => item.businessUnit === filters.businessUnit)
+  }
+
+  // Filter by channels
+  if (filters.channels && filters.channels.length > 0) {
+    filtered = filtered.filter((item) =>
+      filters.channels!.some((channel) => item.channels?.includes(channel))
+    )
+  }
+
   // Filter by search query
   if (filters.searchQuery && filters.searchQuery.trim() !== "") {
     const query = filters.searchQuery.toLowerCase()
     filtered = filtered.filter(
       (item) => {
-        // Search in product name, ID, supplier
+        // Search in product name, ID, supplier, brand
         const basicMatch =
           item.productName.toLowerCase().includes(query) ||
           item.productId.toLowerCase().includes(query) ||
           item.supplier.toLowerCase().includes(query) ||
           (item.barcode && item.barcode.toLowerCase().includes(query)) ||
-          item.category.toLowerCase().includes(query)
+          item.category.toLowerCase().includes(query) ||
+          (item.brand && item.brand.toLowerCase().includes(query))
 
         // Also search in warehouse locations
         const warehouseMatch = item.warehouseLocations?.some(
@@ -161,6 +180,10 @@ function applyFilters(
         case "productName":
           aVal = a.productName
           bVal = b.productName
+          break
+        case "brand":
+          aVal = a.brand || ""
+          bVal = b.brand || ""
           break
         case "currentStock":
           aVal = a.currentStock
@@ -239,6 +262,9 @@ export async function fetchInventoryData(
     if (filters?.status && filters.status !== "all") {
       query = query.eq("status", filters.status)
     }
+    if (filters?.businessUnit) {
+      query = query.eq("business_unit", filters.businessUnit)
+    }
     if (filters?.searchQuery) {
       query = query.or(
         `product_name.ilike.%${filters.searchQuery}%,product_id.ilike.%${filters.searchQuery}%,supplier.ilike.%${filters.searchQuery}%`
@@ -247,7 +273,10 @@ export async function fetchInventoryData(
 
     // Apply sorting
     if (filters?.sortBy) {
-      const column = filters.sortBy === "productName" ? "product_name" : filters.sortBy
+      let column: string = filters.sortBy
+      if (filters.sortBy === "productName") column = "product_name"
+      else if (filters.sortBy === "brand") column = "brand"
+      else if (filters.sortBy === "currentStock") column = "current_stock"
       query = query.order(column, { ascending: filters.sortOrder === "asc" })
     }
 
@@ -578,4 +607,32 @@ export async function fetchRecentTransactions(
   // Use mock data generator
   const allTransactions = generateMockTransactions(productId)
   return allTransactions.slice(0, limit)
+}
+
+/**
+ * Get unique brands from inventory data
+ * Used for brand filter dropdown
+ *
+ * @returns Promise<string[]> - Array of unique brand names
+ */
+export async function getUniqueBrands(): Promise<string[]> {
+  try {
+    if (isSupabaseAvailable()) {
+      // TODO: Implement database query for unique brands
+      // For now, fall through to mock data
+      console.info("Brand list from database not yet implemented, using mock data")
+    }
+  } catch (error) {
+    console.warn("Failed to fetch brands from database:", error)
+  }
+
+  // Extract unique brands from mock inventory items
+  const brands = new Set<string>()
+  mockInventoryItems.forEach((item) => {
+    if (item.brand) {
+      brands.add(item.brand)
+    }
+  })
+
+  return Array.from(brands).sort()
 }
