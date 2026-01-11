@@ -10,16 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
   ArrowLeft,
-  ChevronDown, // Added from the removed line
-  PackageOpen, // Added from the removed line
+  ChevronDown,
+  PackageOpen,
   Search,
   Package,
   Truck,
   MapPin,
   User,
   CreditCard,
-  Phone,
-  Mail,
   AlertTriangle,
   CheckCircle,
   RefreshCw,
@@ -31,13 +29,20 @@ import {
   ShoppingBag,
   X,
   Copy,
-  Check
+  Check,
+  History,
+  Home,
+  Store,
 } from "lucide-react";
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, ApiMetadata, ApiOrderItem } from "./order-management-hub" // Assuming Order and its sub-types are exported
+import { DeliveryMethod } from "@/types/delivery"
 import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
+import { AuditTrailTab } from "./order-detail/audit-trail-tab"
+import { FulfillmentTimeline } from "./order-detail/fulfillment-timeline"
+import { TrackingTab } from "./order-detail/tracking-tab"
 
 interface OrderDetailViewProps {
   order?: Order | null;
@@ -45,6 +50,130 @@ interface OrderDetailViewProps {
   orderId?: string;
 }
 
+// Home Delivery Section Component
+interface HomeDeliverySectionProps {
+  delivery: DeliveryMethod;
+}
+
+function HomeDeliverySection({ delivery }: HomeDeliverySectionProps) {
+  const details = delivery.homeDelivery;
+  if (!details) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Home className="h-5 w-5 text-blue-600" />
+          <h4 className="font-medium text-gray-900">Home Delivery</h4>
+          <Badge className="bg-blue-100 text-blue-800 border-blue-300">DELIVERY</Badge>
+        </div>
+        <span className="text-sm text-gray-500">{delivery.itemCount} item{delivery.itemCount !== 1 ? 's' : ''}</span>
+      </div>
+
+      {/* Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <p className="text-sm text-enterprise-text-light">Recipient</p>
+          <p className="font-medium">{details.recipient}</p>
+        </div>
+        <div>
+          <p className="text-sm text-enterprise-text-light">Phone</p>
+          <p className="text-sm">{details.phone}</p>
+        </div>
+        <div className="sm:col-span-2">
+          <p className="text-sm text-enterprise-text-light">Address</p>
+          <p className="text-sm">{details.address}</p>
+        </div>
+        <div>
+          <p className="text-sm text-enterprise-text-light">District</p>
+          <p className="text-sm">{details.district}</p>
+        </div>
+        <div>
+          <p className="text-sm text-enterprise-text-light">City / Postal Code</p>
+          <p className="text-sm">{details.city}, {details.postalCode}</p>
+        </div>
+        {details.specialInstructions && (
+          <div className="sm:col-span-2">
+            <p className="text-sm text-enterprise-text-light">Special Instructions</p>
+            <p className="text-sm italic">{details.specialInstructions}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Click & Collect Section Component
+interface ClickCollectSectionProps {
+  delivery: DeliveryMethod;
+}
+
+function ClickCollectSection({ delivery }: ClickCollectSectionProps) {
+  const details = delivery.clickCollect;
+  if (!details) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Store className="h-5 w-5 text-purple-600" />
+          <h4 className="font-medium text-gray-900">Click & Collect</h4>
+          <Badge className="bg-purple-100 text-purple-800 border-purple-300">PICKUP</Badge>
+        </div>
+        <span className="text-sm text-gray-500">{delivery.itemCount} item{delivery.itemCount !== 1 ? 's' : ''}</span>
+      </div>
+
+      {/* Details - Simplified single-column layout with 5 essential fields */}
+      <div className="grid grid-cols-1 gap-4">
+        {/* 1. Recipient Name */}
+        <div>
+          <p className="text-sm text-enterprise-text-light">Recipient Name</p>
+          <p className="font-medium">{details.recipientName}</p>
+        </div>
+        {/* 2. Phone */}
+        <div>
+          <p className="text-sm text-enterprise-text-light">Phone</p>
+          <p className="text-sm">{details.phone}</p>
+        </div>
+        {/* 3. Rel No. */}
+        <div>
+          <p className="text-sm text-enterprise-text-light">Rel No.</p>
+          <p className="font-mono text-sm">{details.relNo}</p>
+        </div>
+        {/* 4. Store Pickup */}
+        <div>
+          <p className="text-sm text-enterprise-text-light">Store Pickup</p>
+          <p className="font-medium">{details.storeName}</p>
+        </div>
+        {/* 5. Store Contact */}
+        <div>
+          <p className="text-sm text-enterprise-text-light">Store Contact</p>
+          <p className="text-sm">{details.storePhone}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// Helper function to format order created timestamp
+const formatOrderCreatedDate = (dateString?: string): string => {
+  if (!dateString) return '-'
+  try {
+    const date = new Date(dateString)
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+  } catch {
+    return '-'
+  }
+}
 
 export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProps) {
   const router = useRouter()
@@ -53,12 +182,26 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [itemSearchTerm, setItemSearchTerm] = useState("")
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const [copiedOrderId, setCopiedOrderId] = useState(false)
+  const [allItemsExpanded, setAllItemsExpanded] = useState(false)
 
   const toggleItemExpansion = (sku: string) => {
     setExpandedItems((prev) => ({
       ...prev,
       [sku]: !prev[sku],
     }))
+  }
+
+  const toggleAllItems = () => {
+    if (allItemsExpanded) {
+      setExpandedItems({})
+    } else {
+      const allExpanded: Record<string, boolean> = {}
+      order?.items?.forEach((item: ApiOrderItem) => {
+        allExpanded[item.product_sku] = true
+      })
+      setExpandedItems(allExpanded)
+    }
+    setAllItemsExpanded(!allItemsExpanded)
   }
 
   const copyOrderIdToClipboard = async () => {
@@ -197,12 +340,17 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5">
-        <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto p-1">
+        <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto p-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Overview</TabsTrigger>
           <TabsTrigger value="items" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Items ({order?.items?.length || 0})</TabsTrigger>
           <TabsTrigger value="fulfillment" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Fulfillment</TabsTrigger>
           <TabsTrigger value="delivery" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Delivery</TabsTrigger>
+          <TabsTrigger value="tracking" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Tracking</TabsTrigger>
           <TabsTrigger value="timeline" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Timeline</TabsTrigger>
+          <TabsTrigger value="audit" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap flex items-center gap-1">
+            <History className="h-3 w-3 hidden sm:inline" />
+            Audit Trail
+          </TabsTrigger>
           <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Notes</TabsTrigger>
         </TabsList>
 
@@ -216,30 +364,36 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   Customer Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Name</p>
-                  <p className="font-medium">{order?.customer.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Customer ID</p>
-                  <p className="font-mono text-sm">{order?.customer.id}</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-enterprise-text-light" />
-                    <span className="text-sm">{order?.customer?.email || 'N/A'}</span>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Name</p>
+                    <p className="font-medium">{order?.customer?.name || '-'}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-enterprise-text-light" />
-                    <span className="text-sm">{order?.customer?.phone || 'N/A'}</span>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Customer ID</p>
+                    <p className="font-mono text-sm">{order?.customer?.id || '-'}</p>
                   </div>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">T1 Number</p>
-                  <p className="font-mono text-sm">{order?.customer?.T1Number || 'N/A'}</p>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Customer Type</p>
+                    <p className="text-sm">{order?.customer?.customerType || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Cust Ref</p>
+                    <p className="font-mono text-sm">{order?.customer?.custRef || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Email</p>
+                    <p className="text-sm">{order?.customer?.email || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Phone Number</p>
+                    <p className="text-sm">{order?.customer?.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">The1 Member</p>
+                    <p className="font-mono text-sm">{order?.customer?.T1Number || '-'}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -252,75 +406,136 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   Order Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Order Number (ID)</p>
-                  <div className="flex items-center gap-2">
-                    <p className="font-mono text-sm">{order?.id}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={copyOrderIdToClipboard}
-                      className="h-6 px-2"
-                      title="Copy Order ID to clipboard"
-                    >
-                      {copiedOrderId ? (
-                        <Check className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </Button>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Order ID</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-sm">{order?.id || '-'}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={copyOrderIdToClipboard}
+                        className="h-6 px-2"
+                        title="Copy Order ID to clipboard"
+                      >
+                        {copiedOrderId ? (
+                          <Check className="h-3 w-3 text-green-600" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Short Order</p>
-                  <p className="font-mono text-sm">{order?.order_no}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Business Unit</p>
-                  <p className="font-medium">{order?.business_unit}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Store</p>
-                  <p className="font-medium">{order?.metadata?.store_name || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Order Type</p>
-                  <Badge variant="outline">{order?.order_type}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Order Date</p>
-                  <p className="text-sm">{order?.order_date ? new Date(order.order_date).toLocaleString() : 'N/A'}</p>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Payment Status</p>
+                    <PaymentStatusBadge status={order?.payment_info?.status || '-'} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Short Order ID</p>
+                    <p className="font-mono text-sm">{order?.order_no || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Store No.</p>
+                    <p className="font-medium">{order?.metadata?.store_no || order?.metadata?.store_name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Order Created</p>
+                    <p className="text-sm">{formatOrderCreatedDate(order?.metadata?.order_created)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Order Date</p>
+                    <p className="text-sm">{order?.order_date ? new Date(order.order_date).toLocaleString() : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Business Unit</p>
+                    <p className="font-medium">{order?.business_unit || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Order Type</p>
+                    <Badge variant="outline">{order?.order_type || '-'}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Full Tax Invoice</p>
+                    <p className="text-sm">{order?.fullTaxInvoice ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Customer Type ID</p>
+                    <p className="font-mono text-sm">{order?.customerTypeId || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Selling Channel</p>
+                    <p className="text-sm">{order?.sellingChannel || order?.channel || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Allow Substitution</p>
+                    <p className="text-sm">{order?.allowSubstitution ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Tax ID</p>
+                    <p className="font-mono text-sm">{order?.taxId || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Company Name</p>
+                    <p className="text-sm">{order?.companyName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-enterprise-text-light">Branch No.</p>
+                    <p className="font-mono text-sm">{order?.branchNo || '-'}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Delivery Address */}
+            {/* Delivery Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Delivery Address
+                  Delivery Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Recipient</p>
-                  <p className="font-medium">{order?.customer?.name || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Phone</p>
-                  <p className="text-sm">{order?.customer?.phone || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Address</p>
-                  <p className="text-sm">{order?.shipping_address?.street || 'N/A'}</p>
-                  <p className="text-sm">{[order?.shipping_address?.city, order?.shipping_address?.state, order?.shipping_address?.postal_code].filter(Boolean).join(', ') || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Special Instructions</p>
-                  <p className="text-sm italic">{'N/A' /* Field not in payload/type */}</p>
-                </div>
+                {order?.deliveryMethods && order.deliveryMethods.length > 0 ? (
+                  <>
+                    {/* Find home delivery and click collect methods */}
+                    {(() => {
+                      const homeDelivery = order.deliveryMethods.find(d => d.type === 'HOME_DELIVERY');
+                      const clickCollect = order.deliveryMethods.find(d => d.type === 'CLICK_COLLECT');
+                      const isMixed = homeDelivery && clickCollect;
+
+                      return (
+                        <>
+                          {/* Home Delivery Section */}
+                          {homeDelivery && (
+                            <div className={isMixed ? 'border-b border-gray-200 pb-4 mb-4' : ''}>
+                              <HomeDeliverySection delivery={homeDelivery} />
+                            </div>
+                          )}
+
+                          {/* AND Divider for Mixed Orders */}
+                          {isMixed && (
+                            <div className="flex items-center gap-3 py-2">
+                              <div className="flex-1 h-px bg-gray-300" />
+                              <span className="text-sm font-medium text-gray-500">AND</span>
+                              <div className="flex-1 h-px bg-gray-300" />
+                            </div>
+                          )}
+
+                          {/* Click & Collect Section */}
+                          {clickCollect && (
+                            <ClickCollectSection delivery={clickCollect} />
+                          )}
+                        </>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <MapPin className="mx-auto h-8 w-8 text-gray-300" />
+                    <p className="mt-2 text-sm text-muted-foreground">No delivery information available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -330,25 +545,45 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
                   Payment Information
+                  <Badge
+                    variant="outline"
+                    className={order?.payment_info?.status === 'PAID'
+                      ? 'bg-green-100 text-green-800 border-green-300'
+                      : 'bg-gray-100 text-gray-800 border-gray-300'}
+                  >
+                    {order?.payment_info?.status === 'PAID' ? 'PAID' : 'PENDING'}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Payment Method</p>
-                  <Badge variant="outline">{order?.payment_info?.method || 'N/A'}</Badge>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Subtotal</span>
+                  <span className="text-sm font-mono">฿{order?.payment_info?.subtotal?.toFixed(2) || '0.00'}</span>
                 </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Payment Status</p>
-                  <PaymentStatusBadge status={order?.payment_info?.status || 'N/A'} />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Discounts</span>
+                  <span className="text-sm font-mono">-฿{order?.payment_info?.discounts?.toFixed(2) || '0.00'}</span>
                 </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Transaction ID</p>
-                  <p className="font-mono text-sm">{order?.payment_info?.transaction_id || 'N/A'}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Charges</span>
+                  <span className="text-sm font-mono">฿{order?.payment_info?.charges?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Amount Included Taxes</span>
+                  <span className="text-sm font-mono">฿{order?.payment_info?.amountIncludedTaxes?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Amount Excluded Taxes</span>
+                  <span className="text-sm font-mono">฿{order?.payment_info?.amountExcludedTaxes?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Taxes</span>
+                  <span className="text-sm font-mono">฿{order?.payment_info?.taxes?.toFixed(2) || '0.00'}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-semibold">
+                <div className="flex justify-between items-center font-semibold">
                   <span>Total</span>
-                  <span>฿{order?.total_amount?.toFixed(2) || '0.00'}</span>
+                  <span className="text-lg font-mono">฿{order?.total_amount?.toFixed(2) || '0.00'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -364,15 +599,25 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     <CardTitle className="text-lg sm:text-xl">Order Items</CardTitle>
                     <CardDescription className="text-sm">{order?.items?.length || 0} items in this order</CardDescription>
                   </div>
-                  <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="search"
-                      placeholder="Search items..."
-                      className="pl-10 h-10 text-sm w-full"
-                      value={itemSearchTerm}
-                      onChange={(e) => setItemSearchTerm(e.target.value)}
-                    />
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-72">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="search"
+                        placeholder="Search items..."
+                        className="pl-10 h-10 text-sm w-full"
+                        value={itemSearchTerm}
+                        onChange={(e) => setItemSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleAllItems}
+                      className="whitespace-nowrap"
+                    >
+                      {allItemsExpanded ? 'Collapse All' : 'Expand All'}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -380,102 +625,289 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <CardContent className="px-3 sm:px-6">
               {filteredItems.length > 0 ? (
                 <div className="space-y-3">
-                  {filteredItems.map((item: ApiOrderItem) => (
-                    <Card key={item.product_sku} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
-                      {/* Mobile-optimized Item Header */}
-                      <div
-                        className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => toggleItemExpansion(item.product_sku)}
-                      >
-                        <div className="flex gap-3">
-                          {/* Product Image */}
-                          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
-                            <img
-                              src={`https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=${encodeURIComponent('📦')}`}
-                              alt={item.product_name || 'Product image'}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                          
-                          {/* Product Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start gap-2">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm sm:text-base text-gray-900 leading-tight" style={{
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden'
-                                }}>
-                                  {item.product_name || 'N/A'}
-                                </h4>
-                                <p className="text-xs sm:text-sm text-gray-500 mt-1 font-mono">
-                                  SKU: {item.product_sku || 'N/A'}
-                                </p>
-                              </div>
-                              <ChevronDown
-                                className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 mt-1 ${
-                                  expandedItems[item.product_sku] ? "rotate-180" : ""
-                                }`}
+                  {filteredItems.map((item: ApiOrderItem) => {
+                    // Helper function to get fulfillment status badge color
+                    const getFulfillmentBadgeClass = (status?: string) => {
+                      switch (status) {
+                        case 'Picked': return 'bg-green-100 text-green-800 border-green-300'
+                        case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                        case 'Shipped': return 'bg-blue-100 text-blue-800 border-blue-300'
+                        case 'Packed': return 'bg-purple-100 text-purple-800 border-purple-300'
+                        default: return 'bg-gray-100 text-gray-800 border-gray-300'
+                      }
+                    }
+
+                    return (
+                      <Card key={item.product_sku} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
+                        {/* Enhanced Item Header */}
+                        <div
+                          className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => toggleItemExpansion(item.product_sku)}
+                        >
+                          <div className="flex gap-3 sm:gap-4">
+                            {/* Product Image - Larger on desktop */}
+                            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                              <img
+                                src={`https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=${encodeURIComponent('📦')}`}
+                                alt={item.product_name || 'Product image'}
+                                className="object-cover w-full h-full"
                               />
                             </div>
-                            
-                            {/* Price and Quantity */}
-                            <div className="flex justify-between items-center mt-3">
-                              <div className="flex items-center gap-4">
-                                <div className="text-center">
-                                  <p className="text-xs text-gray-500">Qty</p>
-                                  <p className="text-sm font-medium">{item.quantity}</p>
+
+                            {/* Product Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  {/* Fulfillment Status Badge */}
+                                  {item.fulfillmentStatus && (
+                                    <Badge className={`mb-1 text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
+                                      {item.fulfillmentStatus}
+                                    </Badge>
+                                  )}
+                                  {/* Product Name */}
+                                  <h4 className="font-medium text-sm sm:text-base text-gray-900 leading-tight" style={{
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                  }}>
+                                    {item.thaiName ? `${item.thaiName} ${item.product_name}` : item.product_name || 'N/A'}
+                                  </h4>
+                                  {/* SKU and Barcode */}
+                                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    <p className="text-xs text-gray-500 font-mono">
+                                      SKU: {item.product_sku || 'N/A'}
+                                    </p>
+                                    {item.barcode && (
+                                      <p className="text-xs text-gray-400 font-mono">
+                                        | Barcode: {item.barcode}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="text-center">
-                                  <p className="text-xs text-gray-500">Unit Price</p>
-                                  <p className="text-sm font-medium">฿{(item.unit_price || 0).toFixed(2)}</p>
-                                </div>
+                                <ChevronDown
+                                  className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 mt-1 ${
+                                    expandedItems[item.product_sku] ? "rotate-180" : ""
+                                  }`}
+                                />
                               </div>
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500">Total</p>
-                                <p className="text-base font-semibold text-green-600">
-                                  ฿{(item.total_price || 0).toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Collapsible Item Details */}
-                      {expandedItems[item.product_sku] && (
-                        <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-gray-100 bg-gray-50">
-                          <div className="pt-3 space-y-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                              <div className="space-y-2">
-                                <div>
-                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Product ID</p>
-                                  <p className="text-gray-900 font-mono text-sm">{item.product_id}</p>
+
+                              {/* Price and Quantity */}
+                              <div className="flex justify-between items-end mt-3">
+                                <div className="flex items-center gap-4">
+                                  <div>
+                                    <p className="text-xs text-gray-500">Qty:</p>
+                                    <p className="text-sm font-medium">{item.quantity}</p>
+                                  </div>
+                                  {item.bundleRef && (
+                                    <div>
+                                      <p className="text-xs text-gray-500">Bundle Ref:</p>
+                                      <p className="text-sm font-mono">{item.bundleRef}</p>
+                                    </div>
+                                  )}
                                 </div>
-                                <div>
-                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Category</p>
-                                  <p className="text-gray-900">{item.product_details?.category || 'N/A'}</p>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <div>
-                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Brand</p>
-                                  <p className="text-gray-900">{item.product_details?.brand || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-600 text-xs uppercase tracking-wide">Description</p>
-                                  <p className="text-gray-900 text-sm leading-relaxed">
-                                    {item.product_details?.description || 'No description available'}
+                                <div className="text-right">
+                                  <p className="text-lg sm:text-xl font-bold text-green-600">
+                                    ฿{((item.unit_price || 0) * item.quantity).toFixed(2)}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    ฿{(item.unit_price || 0).toFixed(2)} each
                                   </p>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      )}
-                    </Card>
-                  ))}
+
+                        {/* Collapsible Item Details - 3 Column Layout */}
+                        {expandedItems[item.product_sku] && (
+                          <div className="border-t border-gray-100 bg-gray-50">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-4">
+                              {/* Column 1 - Product Details */}
+                              <div className="p-3 sm:p-4">
+                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Product Details</h5>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">UOM</span>
+                                    <span className="text-gray-900 font-medium">{item.uom || 'EA'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Supply Type ID</span>
+                                    <span className="text-gray-900 font-medium">{item.supplyTypeId || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Packed Ordered Qty</span>
+                                    <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Location</span>
+                                    <span className="text-gray-900 font-mono text-xs">{item.location || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Barcode</span>
+                                    <span className="text-gray-900 font-mono text-xs">{item.barcode || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Gift Wrapped</span>
+                                    <span className="text-gray-900 font-medium">{item.giftWrapped ? 'Yes' : 'No'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Gift Message</span>
+                                    <span className="text-gray-900 font-medium italic">
+                                      {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Substitution</span>
+                                    <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Brand</span>
+                                    <span className="text-gray-900 font-medium">{item.product_details?.brand || 'N/A'}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Column 2 - Pricing & Promotions */}
+                              <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
+                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Pricing & Promotions</h5>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Price</span>
+                                    <span className="text-gray-900 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Total</span>
+                                    <span className="text-gray-900 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Qty</span>
+                                    <span className="text-gray-900 font-medium">{item.quantity}</span>
+                                  </div>
+
+                                  {/* Promotions & Coupons Section */}
+                                  <div className="pt-2 border-t border-gray-200">
+                                    <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Promotions & Coupons</p>
+                                    {item.promotions && item.promotions.length > 0 ? (
+                                      <div className="space-y-2">
+                                        {item.promotions.map((promo, idx) => (
+                                          <div key={idx} className="bg-white p-2 rounded border border-gray-200 text-xs">
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500">Discount</span>
+                                              <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500">Promo ID</span>
+                                              <span className="text-gray-900 font-mono">{promo.promotionId}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span className="text-gray-500">Type</span>
+                                              <span className="text-gray-900">{promo.promotionType}</span>
+                                            </div>
+                                            {promo.secretCode && (
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500">Code</span>
+                                                <span className="text-gray-900 font-mono">{promo.secretCode}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-gray-400 text-xs">No promotions applied</p>
+                                    )}
+                                  </div>
+
+                                  <div className="flex justify-between pt-2">
+                                    <span className="text-gray-500">Gift with Purchase</span>
+                                    <span className="text-gray-900 font-medium">{item.giftWithPurchase || 'None'}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Column 3 - Fulfillment & Shipping */}
+                              <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
+                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Fulfillment & Shipping</h5>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Shipping Method</span>
+                                    <span className="text-gray-900 font-medium">{item.shippingMethod || 'Standard'}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-500">Fulfillment Status</span>
+                                    {item.fulfillmentStatus && (
+                                      <Badge className={`text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
+                                        {item.fulfillmentStatus}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Bundle</span>
+                                    <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
+                                  </div>
+                                  {item.bundleRef && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle Ref</span>
+                                      <span className="text-gray-900 font-mono text-xs">{item.bundleRef}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">ETA</span>
+                                    <span className="text-gray-900 text-xs text-right">
+                                      {item.eta ? `${item.eta.from.split(' ').slice(0, 3).join(' ')} - ${item.eta.to.split(' ').slice(0, 3).join(' ')}` : 'N/A'}
+                                    </span>
+                                  </div>
+
+                                  {/* Price Breakdown Section */}
+                                  {item.priceBreakdown && (
+                                    <div className="pt-2 border-t border-gray-200">
+                                      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Price Breakdown</p>
+                                      <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Subtotal</span>
+                                          <span className="text-gray-900">฿{item.priceBreakdown.subtotal.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Discount</span>
+                                          <span className="text-red-600">-฿{item.priceBreakdown.discount.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Charges</span>
+                                          <span className="text-gray-900">฿{item.priceBreakdown.charges.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Amount Excl. Tax</span>
+                                          <span className="text-gray-900">฿{item.priceBreakdown.amountExcludedTaxes.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Taxes (7%)</span>
+                                          <span className="text-gray-900">฿{item.priceBreakdown.taxes.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Amount Incl. Tax</span>
+                                          <span className="text-gray-900">฿{item.priceBreakdown.amountIncludedTaxes.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between pt-1 border-t border-gray-300">
+                                          <span className="text-gray-700 font-semibold">Total</span>
+                                          <span className="text-green-600 font-semibold">฿{item.priceBreakdown.total.toFixed(2)}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Card>
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -485,10 +917,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     {itemSearchTerm ? 'No items match your search. Try different keywords.' : 'This order has no items to display.'}
                   </p>
                   {itemSearchTerm && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-4" 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
                       onClick={() => setItemSearchTerm('')}
                     >
                       Clear search
@@ -501,80 +933,8 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         </TabsContent>
 
         <TabsContent value="fulfillment" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg sm:text-xl">Fulfillment Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 px-4 sm:px-6">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Fulfillment Method</p>
-                  <Badge variant="outline">{'N/A' /* No fulfillment_info in payload */}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Assigned Picker</p>
-                  <p className="font-medium">{'N/A' /* No fulfillment_info in payload */}</p>
-                  <p className="text-sm text-enterprise-text-light">{'N/A' /* No fulfillment_info in payload */}</p>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Picking Started</p>
-                    <p className="text-sm">{'N/A' /* No fulfillment_info in payload */}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Picking Completed</p>
-                    <p className="text-sm">{'N/A' /* No fulfillment_info in payload */}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Packing Started</p>
-                    <p className="text-sm">{'N/A' /* No fulfillment_info in payload */}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Packing Status</p>
-                    <Badge variant="outline">{'N/A' /* No fulfillment_info in payload */}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg sm:text-xl">SLA Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 px-4 sm:px-6">
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Target Processing Time</p>
-                  <p className="text-lg font-semibold">
-                    {order?.sla_info?.target_minutes 
-                      ? `${Math.floor(order.sla_info.target_minutes / 60)} minutes`
-                      : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Elapsed Time</p>
-                  <p className="text-lg font-semibold text-red-500">
-                    {order?.sla_info?.elapsed_minutes 
-                      ? `${Math.floor(order.sla_info.elapsed_minutes / 60)} minutes`
-                      : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">SLA Status</p>
-                  <SLABadge
-                    targetMinutes={order?.sla_info?.target_minutes || 0}
-                    elapsedMinutes={order?.sla_info?.elapsed_minutes || 0}
-                    status={order?.status || 'N/A'}
-                    slaStatus={order?.sla_info?.status}
-                  />
-                </div>
-                <div>
-                  <p className="text-sm text-enterprise-text-light">Escalation Level</p>
-                  <Badge variant="outline">{'N/A' /* No escalation_level in sla_info */}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Fulfillment Timeline */}
+          <FulfillmentTimeline orderId={order?.id || ""} orderData={order} />
         </TabsContent>
 
         <TabsContent value="delivery" className="space-y-4">
@@ -632,6 +992,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </Card>
         </TabsContent>
 
+        <TabsContent value="tracking" className="space-y-4">
+          <TrackingTab orderId={order?.id || ""} orderData={order} />
+        </TabsContent>
+
         <TabsContent value="timeline" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
@@ -671,6 +1035,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <AuditTrailTab
+            orderId={order?.id || ""}
+            orderData={order}
+          />
         </TabsContent>
 
         <TabsContent value="notes" className="space-y-4">

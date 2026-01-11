@@ -1,7 +1,6 @@
 "use client"
 
 import { CCTrackingShipment } from "@/types/audit"
-import { ProductCard } from "./product-card"
 
 interface CCShipmentDetailsSectionProps {
   shipment: CCTrackingShipment
@@ -66,16 +65,14 @@ export function CCShipmentDetailsSection({ shipment }: CCShipmentDetailsSectionP
             </div>
           </div>
 
-          {/* Tracking Number - Only show for Merge */}
-          {isMerge && (
-            <div className="flex items-start gap-2">
-              <span className="text-sm text-muted-foreground w-24">Tracking No:</span>
-              <span className="text-sm font-mono">{shipment.trackingNumber}</span>
-            </div>
-          )}
+          {/* Tracking Number - Show for both Pickup and Merge */}
+          <div className="flex items-start gap-2">
+            <span className="text-sm text-muted-foreground w-24">Tracking No:</span>
+            <span className="text-sm font-mono">{shipment.trackingNumber}</span>
+          </div>
 
-          {/* ETA - Only show for Merge */}
-          {isMerge && shipment.eta && (
+          {/* ETA - Show for both Pickup and Merge */}
+          {shipment.eta && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground w-24">ETA:</span>
               <span className="text-sm">{shipment.eta}</span>
@@ -151,17 +148,6 @@ export function CCShipmentDetailsSection({ shipment }: CCShipmentDetailsSectionP
         </div>
       </div>
 
-      {/* Product Cards - Only for Merge allocation */}
-      {isMerge && shipment.productItems && shipment.productItems.length > 0 && (
-        <div className="space-y-3">
-          <div className="text-sm font-medium text-muted-foreground">Products Being Shipped:</div>
-          <div className="space-y-2">
-            {shipment.productItems.map((product, index) => (
-              <ProductCard key={`${product.sku}-${index}`} product={product} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

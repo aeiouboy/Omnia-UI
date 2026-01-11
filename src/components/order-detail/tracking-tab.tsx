@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Truck, Package, ExternalLink } from "lucide-react"
+import { Truck, Package, ExternalLink, Store } from "lucide-react"
 import { TrackingShipment, TrackingEvent, ShipmentStatus, CCTrackingShipment } from "@/types/audit"
 import { generateTrackingData } from "@/lib/mock-data"
 import { CCShipmentDetailsSection } from "./cc-shipment-details-section"
@@ -164,8 +164,10 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
     return generateTrackingData(orderId, orderData) as CCTrackingShipment[]
   }, [orderId, orderData])
 
-  // Check if order has Click & Collect delivery method
-  const isClickCollect = orderData?.deliveryMethods?.some((dm: any) => dm.type === 'CLICK_COLLECT') || false
+  // Check if order has Click & Collect and/or Home Delivery methods
+  const hasClickCollect = orderData?.deliveryMethods?.some((dm: any) => dm.type === 'CLICK_COLLECT') || false
+  const hasHomeDelivery = orderData?.deliveryMethods?.some((dm: any) => dm.type === 'HOME_DELIVERY') || false
+  const isMixedDelivery = hasClickCollect && hasHomeDelivery
 
   if (shipments.length === 0) {
     return (
@@ -203,6 +205,7 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
             const isPickup = allocationType === 'Pickup'
             const isMerge = allocationType === 'Merge'
             const isClickCollectShipment = isPickup || isMerge
+            const shipmentType = (shipment as any).shipmentType as 'HOME_DELIVERY' | 'CLICK_COLLECT' | undefined
 
             // Determine header text based on allocation type
             let headerText = `Tracking Number - ${shipment.trackingNumber}`
@@ -212,13 +215,33 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
               headerText = 'Ship to Store'
             }
 
+            // Get the appropriate icon for the shipment type
+            const ShipmentIcon = isClickCollectShipment ? Store : Truck
+
             return (
               <div key={shipment.trackingNumber} className="space-y-3">
+                {/* Section Header for Mixed Delivery - show delivery type label */}
+                {isMixedDelivery && (
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    {isClickCollectShipment ? (
+                      <>
+                        <Store className="h-5 w-5 text-purple-600" />
+                        <span className="text-base font-semibold text-purple-600">Click & Collect Tracking</span>
+                      </>
+                    ) : (
+                      <>
+                        <Truck className="h-5 w-5 text-blue-600" />
+                        <span className="text-base font-semibold text-blue-600">Home Delivery Tracking</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Header with gray background */}
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-md p-3">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-gray-500" />
+                      <ShipmentIcon className="h-4 w-4 text-gray-500" />
                       <span className="text-sm font-medium">
                         {headerText}
                       </span>

@@ -286,10 +286,10 @@ const mockInventoryItemsBase: InventoryItem[] = [
     productName: "Fresh Tomatoes",
     category: "Produce",
     storeName: "Tops ทองหล่อ",
-    currentStock: 67,
-    availableStock: 52,
-    reservedStock: 15, // 67 - 52
-    safetyStock: 30, // Math.round(200 * 0.15)
+    currentStock: 33,
+    availableStock: 18,
+    reservedStock: 15, // 33 - 18
+    safetyStock: 35, // Math.round(200 * 0.175)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 45.00,
@@ -310,10 +310,10 @@ const mockInventoryItemsBase: InventoryItem[] = [
     productName: "Organic Milk 1L",
     category: "Dairy",
     storeName: "Tops สีลม คอมเพล็กซ์",
-    currentStock: 78,
-    availableStock: 60,
-    reservedStock: 18, // 78 - 60
-    safetyStock: 30, // Math.round(200 * 0.15)
+    currentStock: 40,
+    availableStock: 22,
+    reservedStock: 18, // 40 - 22
+    safetyStock: 35, // Math.round(200 * 0.175)
     minStockLevel: 50,
     maxStockLevel: 200,
     unitPrice: 65.00,
@@ -492,10 +492,10 @@ const mockInventoryItemsBase: InventoryItem[] = [
     productName: "Fresh Salmon Fillet 500g",
     category: "Seafood",
     storeName: "Tops สีลม คอมเพล็กซ์",
-    currentStock: 67,
-    availableStock: 54,
-    reservedStock: 13, // 67 - 54
-    safetyStock: 23, // Math.round(150 * 0.15)
+    currentStock: 28,
+    availableStock: 15,
+    reservedStock: 13, // 28 - 15
+    safetyStock: 25, // Math.round(150 * 0.167)
     minStockLevel: 50,
     maxStockLevel: 150,
     unitPrice: 385.00,
@@ -606,10 +606,10 @@ const mockInventoryItemsBase: InventoryItem[] = [
     productName: "Ice Cream Variety Pack",
     category: "Frozen",
     storeName: "Tops Central World",
-    currentStock: 56,
-    availableStock: 44,
-    reservedStock: 12, // 56 - 44
-    safetyStock: 23, // Math.round(150 * 0.15)
+    currentStock: 24,
+    availableStock: 12,
+    reservedStock: 12, // 24 - 12
+    safetyStock: 25, // Math.round(150 * 0.167)
     minStockLevel: 40,
     maxStockLevel: 150,
     unitPrice: 195.00,
@@ -766,10 +766,10 @@ const mockInventoryItemsBase: InventoryItem[] = [
     productName: "Toilet Paper 12 Pack",
     category: "Household",
     storeName: "Tops Central Plaza ลาดพร้าว",
-    currentStock: 62,
-    availableStock: 48,
-    reservedStock: 14, // 62 - 48
-    safetyStock: 38, // Math.round(250 * 0.15)
+    currentStock: 44,
+    availableStock: 30,
+    reservedStock: 14, // 44 - 30
+    safetyStock: 42, // Math.round(250 * 0.168)
     minStockLevel: 60,
     maxStockLevel: 250,
     unitPrice: 125.00,

@@ -586,6 +586,8 @@ export default function InventoryPage() {
                             <StockAvailabilityIndicator
                               isAvailable={item.availableStock > 0}
                               stockCount={item.availableStock}
+                              safetyStock={item.safetyStock}
+                              status={item.status}
                             />
                             <span className="text-sm">
                               {item.availableStock}/{item.currentStock}

@@ -192,21 +192,21 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   const priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
   const foodCategories = ["Fresh Produce", "Meat & Seafood", "Dairy & Eggs", "Beverages", "Snacks & Confectionery", "Bakery", "Frozen Foods", "Pantry Staples"]
   const products = [
-    { name: "Fresh Milk 1L", sku: "DAIRY-001", category: "Dairy & Eggs", price: 45 },
-    { name: "Chicken Breast 500g", sku: "MEAT-001", category: "Meat & Seafood", price: 120 },
-    { name: "Jasmine Rice 5kg", sku: "PANTRY-001", category: "Pantry Staples", price: 180 },
-    { name: "Green Apples", sku: "PRODUCE-001", category: "Fresh Produce", price: 80 },
-    { name: "Coca Cola 1.5L", sku: "BEV-001", category: "Beverages", price: 35 },
-    { name: "Chocolate Cookies", sku: "SNACK-001", category: "Snacks & Confectionery", price: 65 },
-    { name: "Whole Wheat Bread", sku: "BAKERY-001", category: "Bakery", price: 40 },
-    { name: "Frozen Pizza", sku: "FROZEN-001", category: "Frozen Foods", price: 180 },
-    { name: "Organic Eggs 10pcs", sku: "DAIRY-002", category: "Dairy & Eggs", price: 95 },
-    { name: "Fresh Salmon 300g", sku: "MEAT-002", category: "Meat & Seafood", price: 250 },
-    { name: "Potato Chips", sku: "SNACK-002", category: "Snacks & Confectionery", price: 45 },
-    { name: "Orange Juice 1L", sku: "BEV-002", category: "Beverages", price: 55 },
-    { name: "Bananas 1kg", sku: "PRODUCE-002", category: "Fresh Produce", price: 35 },
-    { name: "Croissant 6pcs", sku: "BAKERY-002", category: "Bakery", price: 120 },
-    { name: "Ice Cream Vanilla", sku: "FROZEN-002", category: "Frozen Foods", price: 150 }
+    { name: "Fresh Milk 1L", thaiName: "นมสด 1ลิตร", sku: "DAIRY-001", category: "Dairy & Eggs", price: 45 },
+    { name: "Chicken Breast 500g", thaiName: "อกไก่ 500กรัม", sku: "MEAT-001", category: "Meat & Seafood", price: 120 },
+    { name: "Jasmine Rice 5kg", thaiName: "ข้าวหอมมะลิ 5กิโลกรัม", sku: "PANTRY-001", category: "Pantry Staples", price: 180 },
+    { name: "Green Apples", thaiName: "แอปเปิ้ลเขียว", sku: "PRODUCE-001", category: "Fresh Produce", price: 80 },
+    { name: "Coca Cola 1.5L", thaiName: "โค้ก 1.5ลิตร", sku: "BEV-001", category: "Beverages", price: 35 },
+    { name: "Chocolate Cookies", thaiName: "คุกกี้ช็อกโกแลต", sku: "SNACK-001", category: "Snacks & Confectionery", price: 65 },
+    { name: "Whole Wheat Bread", thaiName: "ขนมปังโฮลวีท", sku: "BAKERY-001", category: "Bakery", price: 40 },
+    { name: "Frozen Pizza", thaiName: "พิซซ่าแช่แข็ง", sku: "FROZEN-001", category: "Frozen Foods", price: 180 },
+    { name: "Organic Eggs 10pcs", thaiName: "ไข่ออร์แกนิค 10ฟอง", sku: "DAIRY-002", category: "Dairy & Eggs", price: 95 },
+    { name: "Fresh Salmon 300g", thaiName: "ปลาแซลมอนสด 300กรัม", sku: "MEAT-002", category: "Meat & Seafood", price: 250 },
+    { name: "Potato Chips", thaiName: "มันฝรั่งทอด", sku: "SNACK-002", category: "Snacks & Confectionery", price: 45 },
+    { name: "Orange Juice 1L", thaiName: "น้ำส้ม 1ลิตร", sku: "BEV-002", category: "Beverages", price: 55 },
+    { name: "Bananas 1kg", thaiName: "กล้วย 1กิโลกรัม", sku: "PRODUCE-002", category: "Fresh Produce", price: 35 },
+    { name: "Croissant 6pcs", thaiName: "ครัวซองต์ 6ชิ้น", sku: "BAKERY-002", category: "Bakery", price: 120 },
+    { name: "Ice Cream Vanilla", thaiName: "ไอศกรีมวานิลลา", sku: "FROZEN-002", category: "Frozen Foods", price: 150 }
   ]
 
   const status = statuses[Math.floor(Math.random() * statuses.length)]
@@ -224,18 +224,119 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   orderDate.setDate(orderDate.getDate() - randomDaysAgo)
   orderDate.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60), 0, 0)
 
-  // Generate order items with proper structure matching ApiOrderItem interface
+  // Generate customer and shipping address data first
   const itemCount = Math.floor(Math.random() * 5) + 1
+
+  const customerData = {
+    id: `CUST-${Math.floor(Math.random() * 10000)}`,
+    name: `Customer ${i + 1}`,
+    email: `customer${i + 1}@example.com`,
+    phone: `+66${Math.floor(Math.random() * 900000000) + 100000000}`,
+    T1Number: `T1${Math.floor(Math.random() * 10000000)}`,
+    customerType: "",  // Will be set later
+    custRef: `CREF-${Math.floor(Math.random() * 90000) + 10000}`
+  }
+
+  const shippingAddressData = {
+    street: `${Math.floor(Math.random() * 999) + 1} Sukhumvit Road`,
+    city: "Bangkok",
+    state: "Bangkok",
+    postal_code: `${Math.floor(Math.random() * 90000) + 10000}`,
+    country: "Thailand"
+  }
+
+  // Generate delivery methods BEFORE order items so we know the delivery type
+  const deliveryMethods = generateDeliveryMethods(
+    itemCount,
+    { name: customerData.name, phone: customerData.phone, email: customerData.email },
+    { street: shippingAddressData.street, city: shippingAddressData.city, postal_code: shippingAddressData.postal_code }
+  )
+
+  // Manhattan OMS field options
+  const uomOptions = ['PACK', 'SCAN', 'SBOX', 'EA', 'KG', 'PCS', 'BOX', 'BTL']
+  const fulfillmentStatusOptions: ('Picked' | 'Pending' | 'Shipped' | 'Packed')[] = ['Picked', 'Pending', 'Shipped', 'Packed']
+  // Updated shipping methods for Click & Collect and Home Delivery scenarios
+  const clickCollectShippingOptions = ['Standard Pickup', '1H Delivery']
+  const homeDeliveryShippingOptions = ['Standard Delivery', '3H Delivery', 'Next Day', 'Express']
+  const promotionTypes = ['Discount', 'Product Discount Promotion', 'Bundle Discount', 'Member Discount']
+  const giftMessages = ['Happy Birthday!', 'Congratulations!', 'Best Wishes!', 'With Love', 'Thank You!']
+
+  // Determine shipping method options based on delivery methods
+  const hasHomeDelivery = deliveryMethods.some(dm => dm.type === 'HOME_DELIVERY')
+  const hasClickCollect = deliveryMethods.some(dm => dm.type === 'CLICK_COLLECT')
+  const homeDeliveryItemCount = deliveryMethods.find(dm => dm.type === 'HOME_DELIVERY')?.itemCount || 0
+
   const orderItems = Array.from({ length: itemCount }, (_, j) => {
     const product = products[Math.floor(Math.random() * products.length)]
     const quantity = Math.floor(Math.random() * 3) + 1
     const unit_price = product.price
     const total_price = unit_price * quantity
 
+    // Generate Manhattan OMS enhanced fields
+    const uom = uomOptions[Math.floor(Math.random() * uomOptions.length)]
+    const packedOrderedQty = quantity
+    const location = `CFM${Math.floor(Math.random() * 9000 + 1000)}`
+    const barcode = String(Math.floor(Math.random() * 9000000000000) + 1000000000000)
+    const giftWrapped = Math.random() < 0.15  // 15% chance
+    const giftWrappedMessage = giftWrapped ? giftMessages[Math.floor(Math.random() * giftMessages.length)] : undefined
+    const supplyTypeId: 'On Hand Available' | 'Pre-Order' = Math.random() < 0.8 ? 'On Hand Available' : 'Pre-Order'
+    const substitution = Math.random() < 0.1  // 10% chance
+    const fulfillmentStatus = fulfillmentStatusOptions[Math.floor(Math.random() * fulfillmentStatusOptions.length)]
+
+    // Determine shipping method based on delivery methods and item index
+    let shippingMethod: string
+    if (hasHomeDelivery && hasClickCollect) {
+      // Mixed delivery: first N items are home delivery, rest are click & collect
+      if (j < homeDeliveryItemCount) {
+        shippingMethod = homeDeliveryShippingOptions[Math.floor(Math.random() * homeDeliveryShippingOptions.length)]
+      } else {
+        shippingMethod = clickCollectShippingOptions[Math.floor(Math.random() * clickCollectShippingOptions.length)]
+      }
+    } else if (hasClickCollect) {
+      // Click & Collect only
+      shippingMethod = clickCollectShippingOptions[Math.floor(Math.random() * clickCollectShippingOptions.length)]
+    } else {
+      // Home Delivery only
+      shippingMethod = homeDeliveryShippingOptions[Math.floor(Math.random() * homeDeliveryShippingOptions.length)]
+    }
+
+    const bundle = Math.random() < 0.05  // 5% chance
+    const bundleRef = bundle ? `BDL-${Math.floor(Math.random() * 10000)}` : undefined
+
+    // Generate ETA (1-7 days from now)
+    const etaFrom = new Date()
+    etaFrom.setDate(etaFrom.getDate() + Math.floor(Math.random() * 3) + 1)
+    const etaTo = new Date(etaFrom)
+    etaTo.setDate(etaTo.getDate() + Math.floor(Math.random() * 4) + 1)
+    const formatEtaDate = (d: Date) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+    }
+
+    // Generate promotions (0-2 random promotions)
+    const promotionCount = Math.floor(Math.random() * 3)  // 0, 1, or 2
+    const promotions = promotionCount > 0 ? Array.from({ length: promotionCount }, (_, k) => ({
+      discountAmount: -Math.round(Math.random() * 50 * 100) / 100,  // -0.01 to -50.00
+      promotionId: `PROMO-${Math.floor(Math.random() * 100000)}`,
+      promotionType: promotionTypes[Math.floor(Math.random() * promotionTypes.length)],
+      secretCode: Math.random() < 0.3 ? `CODE${Math.floor(Math.random() * 1000)}` : undefined
+    })) : undefined
+
+    // Calculate price breakdown
+    const itemSubtotal = total_price
+    const itemDiscount = promotions ? promotions.reduce((sum, p) => sum + Math.abs(p.discountAmount), 0) : 0
+    const itemCharges = Math.round(Math.random() * 10 * 100) / 100  // 0-10 baht charges
+    const itemAmountExcludedTaxes = itemSubtotal - itemDiscount + itemCharges
+    const itemTaxes = Math.round(itemAmountExcludedTaxes * 0.07 * 100) / 100  // 7% VAT
+    const itemAmountIncludedTaxes = itemAmountExcludedTaxes + itemTaxes
+
+    const giftWithPurchase = Math.random() < 0.1 ? 'Free Sample Gift' : null
+
     return {
       id: `ITEM-${id}-${j + 1}`,
       product_id: product.sku,
       product_name: product.name,
+      thaiName: product.thaiName,
       product_sku: product.sku,
       quantity,
       unit_price,
@@ -244,6 +345,34 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
         description: `High quality ${product.name.toLowerCase()}`,
         category: product.category,
         brand: "Tops Quality"
+      },
+      // Manhattan OMS Enhanced Fields
+      uom,
+      packedOrderedQty,
+      location,
+      barcode,
+      giftWrapped,
+      giftWrappedMessage,
+      supplyTypeId,
+      substitution,
+      fulfillmentStatus,
+      shippingMethod,
+      bundle,
+      bundleRef,
+      eta: {
+        from: formatEtaDate(etaFrom),
+        to: formatEtaDate(etaTo)
+      },
+      promotions,
+      giftWithPurchase,
+      priceBreakdown: {
+        subtotal: itemSubtotal,
+        discount: itemDiscount,
+        charges: itemCharges,
+        amountIncludedTaxes: itemAmountIncludedTaxes,
+        amountExcludedTaxes: itemAmountExcludedTaxes,
+        taxes: itemTaxes,
+        total: itemAmountIncludedTaxes
       }
     }
   })
@@ -268,31 +397,8 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   const selectedStore = topsStores[Math.floor(Math.random() * topsStores.length)]
   const storeNo = `STR-${Math.floor(Math.random() * 9000) + 1000}`
 
-  // Create customer and shipping address for delivery methods generation
-  const customerData = {
-    id: `CUST-${Math.floor(Math.random() * 10000)}`,
-    name: `Customer ${i + 1}`,
-    email: `customer${i + 1}@example.com`,
-    phone: `+66${Math.floor(Math.random() * 900000000) + 100000000}`,
-    T1Number: `T1${Math.floor(Math.random() * 10000000)}`,
-    customerType,
-    custRef: `CREF-${Math.floor(Math.random() * 90000) + 10000}`
-  }
-
-  const shippingAddressData = {
-    street: `${Math.floor(Math.random() * 999) + 1} Sukhumvit Road`,
-    city: "Bangkok",
-    state: "Bangkok",
-    postal_code: `${Math.floor(Math.random() * 90000) + 10000}`,
-    country: "Thailand"
-  }
-
-  // Generate delivery methods based on order items
-  const deliveryMethods = generateDeliveryMethods(
-    itemCount,
-    { name: customerData.name, phone: customerData.phone, email: customerData.email },
-    { street: shippingAddressData.street, city: shippingAddressData.city, postal_code: shippingAddressData.postal_code }
-  )
+  // Update customer type that was set earlier
+  customerData.customerType = customerType
 
   return {
     id,
@@ -376,6 +482,26 @@ if (mixedDeliveryOrder) {
       }
     }
   ]
+
+  // Update items to match delivery methods - ensure 4 items total with correct shipping methods
+  const homeDeliveryShippingOptions = ['Standard Delivery', '3H Delivery', 'Next Day', 'Express']
+  const clickCollectShippingOptions = ['Standard Pickup', '1H Delivery']
+
+  // Ensure we have at least 4 items, pad if necessary
+  while (mixedDeliveryOrder.items.length < 4) {
+    const lastItem = mixedDeliveryOrder.items[mixedDeliveryOrder.items.length - 1]
+    mixedDeliveryOrder.items.push({ ...lastItem, id: `ITEM-ORD-0100-${mixedDeliveryOrder.items.length + 1}` })
+  }
+
+  // Update shipping methods for first 2 items (Home Delivery)
+  mixedDeliveryOrder.items.slice(0, 2).forEach((item: any) => {
+    item.shippingMethod = homeDeliveryShippingOptions[Math.floor(Math.random() * homeDeliveryShippingOptions.length)]
+  })
+
+  // Update shipping methods for remaining items (Click & Collect)
+  mixedDeliveryOrder.items.slice(2).forEach((item: any) => {
+    item.shippingMethod = clickCollectShippingOptions[Math.floor(Math.random() * clickCollectShippingOptions.length)]
+  })
 }
 
 // Mock Executive KPIs
@@ -576,6 +702,16 @@ export function getMockOrders(filters: {
   pageSize?: number
   dateFrom?: string
   dateTo?: string
+  // New filter parameters
+  storeNo?: string
+  paymentStatus?: string
+  paymentMethod?: string
+  orderType?: string
+  itemName?: string
+  customerName?: string
+  email?: string
+  phone?: string
+  itemStatus?: string
 }) {
   let filtered = [...mockApiOrders]
 
@@ -593,7 +729,10 @@ export function getMockOrders(filters: {
     filtered = filtered.filter(order =>
       order.order_no.toLowerCase().includes(searchLower) ||
       order.customer.name.toLowerCase().includes(searchLower) ||
-      order.customer.email.toLowerCase().includes(searchLower)
+      order.customer.email.toLowerCase().includes(searchLower) ||
+      order.items?.some((item: { product_sku?: string }) =>
+        item.product_sku?.toLowerCase().includes(searchLower)
+      )
     )
   }
 
@@ -604,6 +743,76 @@ export function getMockOrders(filters: {
       if (filters.dateTo && orderDate > filters.dateTo) return false
       return true
     })
+  }
+
+  // Store No filter
+  if (filters.storeNo) {
+    filtered = filtered.filter(order =>
+      order.metadata?.store_no?.toUpperCase() === filters.storeNo?.toUpperCase()
+    )
+  }
+
+  // Payment Status filter
+  if (filters.paymentStatus && filters.paymentStatus !== "all-payment") {
+    filtered = filtered.filter(order =>
+      order.payment_info?.status?.toUpperCase() === filters.paymentStatus?.toUpperCase()
+    )
+  }
+
+  // Payment Method filter
+  if (filters.paymentMethod && filters.paymentMethod !== "all-payment-method") {
+    filtered = filtered.filter(order =>
+      order.payment_info?.method?.toUpperCase() === filters.paymentMethod?.toUpperCase()
+    )
+  }
+
+  // Order Type filter
+  if (filters.orderType && filters.orderType !== "all-order-type") {
+    filtered = filtered.filter(order =>
+      order.order_type?.toUpperCase() === filters.orderType?.toUpperCase()
+    )
+  }
+
+  // Item Name filter
+  if (filters.itemName) {
+    const itemNameLower = filters.itemName.toLowerCase()
+    filtered = filtered.filter(order =>
+      order.items?.some((item: { product_name?: string }) =>
+        item.product_name?.toLowerCase().includes(itemNameLower)
+      )
+    )
+  }
+
+  // Customer Name filter
+  if (filters.customerName) {
+    const customerNameLower = filters.customerName.toLowerCase()
+    filtered = filtered.filter(order =>
+      order.customer?.name?.toLowerCase().includes(customerNameLower)
+    )
+  }
+
+  // Email filter
+  if (filters.email) {
+    const emailLower = filters.email.toLowerCase()
+    filtered = filtered.filter(order =>
+      order.customer?.email?.toLowerCase().includes(emailLower)
+    )
+  }
+
+  // Phone filter
+  if (filters.phone) {
+    filtered = filtered.filter(order =>
+      order.customer?.phone?.includes(filters.phone!)
+    )
+  }
+
+  // Item Status filter
+  if (filters.itemStatus && filters.itemStatus !== "all-item-status") {
+    filtered = filtered.filter(order =>
+      order.items?.some((item: { fulfillmentStatus?: string }) =>
+        item.fulfillmentStatus?.toUpperCase() === filters.itemStatus?.toUpperCase()
+      )
+    )
   }
 
   // Pagination
@@ -1754,18 +1963,44 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
     return items
   }
 
-  // Generate 1-3 shipments (or 1 shipment for C&C)
-  const shipmentCount = isClickCollect ? 1 : Math.floor(Math.random() * 3) + 1
+  // Check for mixed delivery (both Home Delivery and Click & Collect)
+  const hasHomeDelivery = orderData?.deliveryMethods?.some((dm: any) => dm.type === 'HOME_DELIVERY') || false
+  const hasBothMethods = hasHomeDelivery && isClickCollect
+
+  // Generate shipments:
+  // - Mixed delivery: 2 shipments (1 Home Delivery + 1 C&C)
+  // - C&C only: 1 shipment
+  // - Home delivery only: 1-3 shipments
+  const shipmentCount = hasBothMethods ? 2 : (isClickCollect ? 1 : Math.floor(Math.random() * 3) + 1)
   const now = new Date()
 
   for (let s = 0; s < shipmentCount; s++) {
-    // For Click & Collect, determine allocation type: 70% Pickup, 30% Merge
-    const allocationType = isClickCollect
-      ? (Math.random() < 0.7 ? 'Pickup' : 'Merge')
-      : 'Delivery'
+    // For mixed delivery: first shipment is Home Delivery, second is C&C
+    // For Click & Collect only, determine allocation type: 70% Pickup, 30% Merge
+    // For home delivery only: always 'Delivery'
+    let allocationType: 'Delivery' | 'Pickup' | 'Merge'
+    let shipmentType: 'HOME_DELIVERY' | 'CLICK_COLLECT' = 'HOME_DELIVERY'
+
+    if (hasBothMethods) {
+      if (s === 0) {
+        // First shipment: Home Delivery
+        allocationType = 'Delivery'
+        shipmentType = 'HOME_DELIVERY'
+      } else {
+        // Second shipment: Click & Collect
+        allocationType = Math.random() < 0.7 ? 'Pickup' : 'Merge'
+        shipmentType = 'CLICK_COLLECT'
+      }
+    } else if (isClickCollect) {
+      allocationType = Math.random() < 0.7 ? 'Pickup' : 'Merge'
+      shipmentType = 'CLICK_COLLECT'
+    } else {
+      allocationType = 'Delivery'
+      shipmentType = 'HOME_DELIVERY'
+    }
 
     // For Pickup scenario, minimal tracking info needed
-    if (isClickCollect && allocationType === 'Pickup') {
+    if (shipmentType === 'CLICK_COLLECT' && allocationType === 'Pickup') {
       // Generate release number
       const relNo = `REL-${now.getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
 
@@ -1778,13 +2013,16 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
       const recipientName = clickCollectData?.recipientName || thaiRecipientNames[Math.floor(Math.random() * thaiRecipientNames.length)]
       const recipientPhone = clickCollectData?.phone || generateThaiPhone()
 
+      // Generate ETA for Pickup (1-3 days from now)
+      const pickupEtaDate = new Date(now.getTime() + (Math.floor(Math.random() * 3) + 1) * 24 * 60 * 60 * 1000)
+
       // Minimal tracking data for Pickup
       shipments.push({
         trackingNumber: `CC-${String(Math.floor(Math.random() * 900000000) + 100000000)}`,
         carrier: 'CRC Logistics', // Default carrier for C&C
         events: [], // No events for Pickup
         status: 'PICKED_UP', // Always PICKED_UP for Pickup scenario
-        eta: '', // No ETA for Pickup
+        eta: formatDateDDMMYYYY(pickupEtaDate), // Generate ETA for Pickup
         shippedOn: '', // No shipped date for Pickup
         relNo,
         shippedFrom: storeName, // Actually "Picked from" for Pickup
@@ -1797,16 +2035,126 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
           allocationType: 'Pickup',
           phone: recipientPhone
         },
-        trackingUrl: '' // No tracking URL for Pickup
+        trackingUrl: '', // No tracking URL for Pickup
+        shipmentType: 'CLICK_COLLECT' // C&C shipment type
       })
       continue
     }
 
-    // For Merge (Ship to Store) or Home Delivery, generate full tracking
+    // For Merge (Ship to Store), generate TWO shipments:
+    // 1. Merge shipment: From origin store to destination store
+    // 2. Pickup shipment: Customer picks up from destination store
+    if (allocationType === 'Merge' && shipmentType === 'CLICK_COLLECT') {
+      // Helper to format timestamp as YYYY-MM-DDTHH:mm:ss
+      const formatTimestamp = (date: Date): string => {
+        return date.toISOString().substring(0, 19)
+      }
+
+      // Get store info from Click & Collect details
+      const clickCollectData = orderData?.deliveryMethods?.find((dm: any) => dm.type === 'CLICK_COLLECT')?.clickCollect
+      const originStore = orderData?.metadata?.store_name || thaiStores[Math.floor(Math.random() * thaiStores.length)]
+      const destinationStore = clickCollectData?.storeName || thaiStores[Math.floor(Math.random() * thaiStores.length)]
+      const destinationAddress = clickCollectData?.storeAddress || thaiAddresses[Math.floor(Math.random() * thaiAddresses.length)]
+      const recipientName = clickCollectData?.recipientName || thaiRecipientNames[Math.floor(Math.random() * thaiRecipientNames.length)]
+      const recipientPhone = clickCollectData?.phone || generateThaiPhone()
+
+      // --- FIRST SHIPMENT: Merge (Ship to Store) ---
+      const mergeTrackingNumber = `CC-${String(Math.floor(Math.random() * 900000000) + 100000000)}`
+      const mergeRelNo = `REL-${now.getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
+
+      // Generate tracking events for Merge shipment
+      const mergeEvents: any[] = []
+      let currentTime = new Date(now.getTime() - (Math.floor(Math.random() * 48) + 12) * 60 * 60 * 1000)
+      const shippedOnDate = new Date(currentTime)
+
+      // 1. Shipment picked up from origin store
+      mergeEvents.push({
+        status: 'Shipment pickedup',
+        timestamp: formatTimestamp(currentTime),
+        location: originStore
+      })
+
+      // 2. Hub transit events (1-2 transit stops)
+      const transitStops = Math.floor(Math.random() * 2) + 1
+      for (let t = 0; t < transitStops; t++) {
+        currentTime = new Date(currentTime.getTime() + (Math.floor(Math.random() * 8) + 4) * 60 * 60 * 1000)
+        mergeEvents.push({
+          status: 'Hub / Intransit - destination arrived',
+          timestamp: formatTimestamp(currentTime),
+          location: hubs[Math.floor(Math.random() * hubs.length)]
+        })
+      }
+
+      // 3. Delivered to destination store (always delivered for Merge)
+      currentTime = new Date(currentTime.getTime() + (Math.floor(Math.random() * 4) + 2) * 60 * 60 * 1000)
+      mergeEvents.push({
+        status: 'Delivered',
+        timestamp: formatTimestamp(currentTime),
+        location: destinationStore
+      })
+
+      // Calculate ETA for Merge (based on delivery time)
+      const mergeEtaDate = currentTime
+
+      // Push Merge shipment (Ship to Store)
+      shipments.push({
+        trackingNumber: mergeTrackingNumber,
+        carrier: 'CRC Logistics',
+        events: mergeEvents,
+        status: 'DELIVERED', // Shows as FULFILLED in UI
+        eta: formatDateDDMMYYYY(mergeEtaDate),
+        shippedOn: formatDateDDMMYYYY(shippedOnDate),
+        relNo: mergeRelNo,
+        shippedFrom: originStore,
+        subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
+        shipToAddress: {
+          email: generateEmail(recipientName),
+          name: destinationStore, // Destination store for Merge
+          address: destinationAddress,
+          fullAddress: thaiDistrictAddresses[Math.floor(Math.random() * thaiDistrictAddresses.length)],
+          allocationType: 'Merge' as const,
+          phone: recipientPhone
+        },
+        trackingUrl: 'https://crc.central.co.th/tracking',
+        shipmentType: 'CLICK_COLLECT' as const
+      })
+
+      // --- SECOND SHIPMENT: Pickup (Customer picks up from destination store) ---
+      const pickupTrackingNumber = `CC-${String(Math.floor(Math.random() * 900000000) + 100000000)}`
+      const pickupRelNo = `REL-${now.getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
+
+      // Calculate ETA for Pickup (same day or next day after Merge delivered)
+      const pickupEtaDate = new Date(currentTime.getTime() + (Math.floor(Math.random() * 24) + 1) * 60 * 60 * 1000)
+
+      // Push Pickup shipment (Customer picks up)
+      shipments.push({
+        trackingNumber: pickupTrackingNumber,
+        carrier: 'CRC Logistics',
+        events: [], // No tracking events for Pickup
+        status: 'PICKED_UP', // Shows as PICKED UP in UI
+        eta: formatDateDDMMYYYY(pickupEtaDate),
+        shippedOn: '', // No shipped date for Pickup
+        relNo: pickupRelNo,
+        shippedFrom: destinationStore, // "Picked from" destination store
+        subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
+        shipToAddress: {
+          email: generateEmail(recipientName),
+          name: recipientName, // Customer name for Pickup
+          address: destinationAddress,
+          fullAddress: thaiDistrictAddresses[Math.floor(Math.random() * thaiDistrictAddresses.length)],
+          allocationType: 'Pickup' as const,
+          phone: recipientPhone
+        },
+        trackingUrl: 'https://crc.central.co.th/tracking',
+        shipmentType: 'CLICK_COLLECT' as const
+      })
+
+      continue // Skip the rest of the loop for Merge scenario
+    }
+
+    // For Home Delivery, generate full tracking
     const carrier = carriers[Math.floor(Math.random() * carriers.length)]
-    const trackingNumber = allocationType === 'Merge'
-      ? `CC-${String(Math.floor(Math.random() * 900000000) + 100000000)}`
-      : `${carrier.prefix}${String(Math.floor(Math.random() * 900000000) + 100000000)}`
+    const trackingNumber = `${carrier.prefix}${String(Math.floor(Math.random() * 900000000) + 100000000)}`
 
     const events: any[] = []
     let currentTime = new Date(now.getTime() - (Math.floor(Math.random() * 48) + 12) * 60 * 60 * 1000)
@@ -1850,13 +2198,11 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         location: 'Local Delivery Station'
       })
 
-      // 4. Delivered (60% chance if out for delivery) or FULFILLED for Merge
+      // 4. Delivered (60% chance if out for delivery)
       if (Math.random() < 0.6) {
         isDelivered = true
         currentTime = new Date(currentTime.getTime() + (Math.floor(Math.random() * 4) + 1) * 60 * 60 * 1000)
-        const deliveryLocation = allocationType === 'Merge'
-          ? orderData?.deliveryMethods?.find((dm: any) => dm.type === 'CLICK_COLLECT')?.clickCollect?.storeName || thaiStores[Math.floor(Math.random() * thaiStores.length)]
-          : orderData?.shipping_address?.city || 'Bangkok'
+        const deliveryLocation = orderData?.shipping_address?.city || 'Bangkok'
         events.push({
           status: 'Delivered',
           timestamp: formatTimestamp(currentTime),
@@ -1889,36 +2235,23 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
     const relNo = `REL-${now.getFullYear()}-${String(Math.floor(Math.random() * 1000000)).padStart(6, '0')}`
 
     // Generate ship-to address details
-    const clickCollectData = orderData?.deliveryMethods?.find((dm: any) => dm.type === 'CLICK_COLLECT')?.clickCollect
-    const recipientName = allocationType === 'Merge' && clickCollectData?.recipientName
-      ? clickCollectData.recipientName
-      : thaiRecipientNames[Math.floor(Math.random() * thaiRecipientNames.length)]
-
-    const destinationStore = allocationType === 'Merge' && clickCollectData?.storeName
-      ? clickCollectData.storeName
-      : thaiStores[Math.floor(Math.random() * thaiStores.length)]
-
-    const destinationAddress = allocationType === 'Merge' && clickCollectData?.storeAddress
-      ? clickCollectData.storeAddress
-      : thaiAddresses[Math.floor(Math.random() * thaiAddresses.length)]
+    const recipientName = thaiRecipientNames[Math.floor(Math.random() * thaiRecipientNames.length)]
 
     const shipToAddress = {
       email: generateEmail(recipientName),
-      name: allocationType === 'Merge' ? destinationStore : recipientName,
-      address: allocationType === 'Merge' ? destinationAddress : thaiAddresses[Math.floor(Math.random() * thaiAddresses.length)],
+      name: recipientName,
+      address: thaiAddresses[Math.floor(Math.random() * thaiAddresses.length)],
       fullAddress: thaiDistrictAddresses[Math.floor(Math.random() * thaiDistrictAddresses.length)],
-      allocationType: allocationType as 'Delivery' | 'Pickup' | 'Merge',
-      phone: allocationType === 'Merge' && clickCollectData?.phone ? clickCollectData.phone : generateThaiPhone()
+      allocationType: 'Delivery' as const,
+      phone: generateThaiPhone()
     }
 
     // Generate tracking URL
-    const trackingUrl = allocationType === 'Merge'
-      ? 'https://crc.central.co.th/tracking' // CRC tracking for Ship to Store
-      : carrier.urlTemplate.replace('{trackingNumber}', trackingNumber)
+    const trackingUrl = carrier.urlTemplate.replace('{trackingNumber}', trackingNumber)
 
     const shipmentData: any = {
       trackingNumber,
-      carrier: allocationType === 'Merge' ? 'CRC Logistics' : carrier.name,
+      carrier: carrier.name,
       events,
       status: shipmentStatus,
       eta: formatDateDDMMYYYY(etaDate),
@@ -1927,13 +2260,8 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
       shippedFrom: originStore,
       subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
       shipToAddress,
-      trackingUrl
-    }
-
-    // Add product items for Merge allocation (Ship to Store)
-    if (allocationType === 'Merge') {
-      const productItemCount = Math.floor(Math.random() * 3) + 2 // 2-4 items
-      shipmentData.productItems = generateProductItems(productItemCount)
+      trackingUrl,
+      shipmentType // 'HOME_DELIVERY'
     }
 
     shipments.push(shipmentData)

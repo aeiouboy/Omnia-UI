@@ -349,4 +349,5 @@ export interface CCProductItem {
  */
 export interface CCTrackingShipment extends TrackingShipment {
   productItems?: CCProductItem[] // Only for Merge allocation type (Ship to Store)
+  shipmentType?: 'HOME_DELIVERY' | 'CLICK_COLLECT' // Optional for backwards compatibility
 }
