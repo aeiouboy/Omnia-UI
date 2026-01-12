@@ -43,6 +43,25 @@ export const BRANDS = [
 ] as const
 
 /**
+ * Available view configurations for inventory items
+ */
+export const VIEW_OPTIONS = [
+  "ECOM-TH-CFR-LOCD-STD",
+  "ECOM-TH-DSS-NW-ALL",
+  "ECOM-TH-DSS-NW-STD",
+  "ECOM-TH-DSS-LOCD-EXP",
+  "ECOM-TH-SSP-NW-STD",
+  "MKP-TH-SSP-NW-STD",
+  "MKP-TH-CFR-LOCD-STD",
+  "ECOM-TH-SSP-NW-ALL",
+  "MKP-TH-CFR-MANUAL-SYNC",
+  "CMG-ECOM-TH-STD",
+  "CMG-MKP-SHOPEE-TH-NTW-STD",
+  "CMG-MKP-LAZADA-TH-LOC-STD",
+  "CMG-MKP-MIRAKL-TH-NTW-STD",
+] as const
+
+/**
  * Get a deterministic brand based on product characteristics
  */
 function getBrandForProduct(productId: string, category: ProductCategory): string {
@@ -118,6 +137,14 @@ function getStockConfigStatus(productId: string, hasWarehouseLocations: boolean)
   if (seed % 20 === 0) return "unconfigured"
   if (seed % 7 === 0) return "invalid"
   return "valid"
+}
+
+/**
+ * Get deterministic view configuration for product
+ */
+function getViewForProduct(productId: string, category: ProductCategory): string {
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return VIEW_OPTIONS[seed % VIEW_OPTIONS.length]
 }
 
 /**
@@ -338,6 +365,7 @@ function ensureWarehouseLocationsAndNewFields(items: InventoryItem[]): Inventory
       channels: item.channels || getChannelsForProduct(item.productId, item.category),
       supplyType: item.supplyType || getSupplyTypeForProduct(item.productId, item.status),
       stockConfigStatus: item.stockConfigStatus || getStockConfigStatus(item.productId, warehouseLocations.length > 0),
+      view: item.view || getViewForProduct(item.productId, item.category),
     }
   })
 }

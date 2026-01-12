@@ -148,6 +148,7 @@ export default function InventoryPage() {
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
   const [itemTypeFilter, setItemTypeFilter] = useState<"weight" | "unit" | "all">("all")
   const [brandFilter, setBrandFilter] = useState<string>("all")
+  const [viewFilter, setViewFilter] = useState<string>("all")
   const [availableBrands, setAvailableBrands] = useState<string[]>([])
 
   // Pagination state
@@ -194,8 +195,9 @@ export default function InventoryPage() {
     category: categoryFilter,
     itemType: itemTypeFilter,
     brand: brandFilter,
+    view: viewFilter,
     businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
-  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter, warehouseFilter, categoryFilter, itemTypeFilter, brandFilter, selectedOrganization])
+  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter, warehouseFilter, categoryFilter, itemTypeFilter, brandFilter, viewFilter, selectedOrganization])
 
   // Fetch data function
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -284,6 +286,11 @@ export default function InventoryPage() {
 
   const handleBrandChange = (value: string) => {
     setBrandFilter(value)
+    setPage(1)
+  }
+
+  const handleViewChange = (value: string) => {
+    setViewFilter(value)
     setPage(1)
   }
 
@@ -530,6 +537,29 @@ export default function InventoryPage() {
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="weight">Weight Items</SelectItem>
                       <SelectItem value="unit">Unit Items</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* View Filter */}
+                  <Select value={viewFilter} onValueChange={handleViewChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All Views" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Views</SelectItem>
+                      <SelectItem value="ECOM-TH-CFR-LOCD-STD">ECOM-TH-CFR-LOCD-STD</SelectItem>
+                      <SelectItem value="ECOM-TH-DSS-NW-ALL">ECOM-TH-DSS-NW-ALL</SelectItem>
+                      <SelectItem value="ECOM-TH-DSS-NW-STD">ECOM-TH-DSS-NW-STD</SelectItem>
+                      <SelectItem value="ECOM-TH-DSS-LOCD-EXP">ECOM-TH-DSS-LOCD-EXP</SelectItem>
+                      <SelectItem value="ECOM-TH-SSP-NW-STD">ECOM-TH-SSP-NW-STD</SelectItem>
+                      <SelectItem value="MKP-TH-SSP-NW-STD">MKP-TH-SSP-NW-STD</SelectItem>
+                      <SelectItem value="MKP-TH-CFR-LOCD-STD">MKP-TH-CFR-LOCD-STD</SelectItem>
+                      <SelectItem value="ECOM-TH-SSP-NW-ALL">ECOM-TH-SSP-NW-ALL</SelectItem>
+                      <SelectItem value="MKP-TH-CFR-MANUAL-SYNC">MKP-TH-CFR-MANUAL-SYNC</SelectItem>
+                      <SelectItem value="CMG-ECOM-TH-STD">CMG-ECOM-TH-STD</SelectItem>
+                      <SelectItem value="CMG-MKP-SHOPEE-TH-NTW-STD">CMG-MKP-SHOPEE-TH-NTW-STD</SelectItem>
+                      <SelectItem value="CMG-MKP-LAZADA-TH-LOC-STD">CMG-MKP-LAZADA-TH-LOC-STD</SelectItem>
+                      <SelectItem value="CMG-MKP-MIRAKL-TH-NTW-STD">CMG-MKP-MIRAKL-TH-NTW-STD</SelectItem>
                     </SelectContent>
                   </Select>
 

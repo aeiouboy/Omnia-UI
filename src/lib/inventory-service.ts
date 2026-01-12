@@ -132,6 +132,11 @@ function applyFilters(
     filtered = filtered.filter((item) => item.brand === filters.brand)
   }
 
+  // Filter by view
+  if (filters.view && filters.view !== "all") {
+    filtered = filtered.filter((item) => item.view === filters.view)
+  }
+
   // Filter by business unit
   if (filters.businessUnit) {
     filtered = filtered.filter((item) => item.businessUnit === filters.businessUnit)

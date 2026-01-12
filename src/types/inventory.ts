@@ -239,6 +239,9 @@ export interface InventoryItem {
 
   /** Business unit / organization (e.g., "CRC", "CFR", "CFM", "DS") */
   businessUnit?: string
+
+  /** View configuration (e.g., ECOM-TH-CFR-LOCD-STD, MKP-TH-SSP-NW-STD) */
+  view?: string
 }
 
 /**
@@ -291,6 +294,8 @@ export interface InventoryFilters {
   channels?: Channel[]
   /** Filter by business unit / organization */
   businessUnit?: string
+  /** Filter by view configuration */
+  view?: string | "all"
 }
 
 /**
