@@ -85,7 +85,7 @@ export function FulfillmentTab() {
           <h3 className="text-lg font-semibold mb-4">📍 Fulfillment by Branch</h3>
           <div className="space-y-3">
             {branchData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
+              <div key={item.branch || `branch-${index}`} className="flex items-center justify-between">
                 <span className="text-sm">{item.branch}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-24 bg-gray-200 rounded-full h-2">
@@ -105,7 +105,7 @@ export function FulfillmentTab() {
           <h3 className="text-lg font-semibold mb-4">🛒 Fulfillment by Channel</h3>
           <div className="space-y-3">
             {channelData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
+              <div key={item.channel || `channel-${index}`} className="flex items-center justify-between">
                 <span className="text-sm">{item.channel}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-24 bg-gray-200 rounded-full h-2">

@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, ApiMetadata, ApiOrderItem } from "./order-management-hub" // Assuming Order and its sub-types are exported
+import { formatGMT7DateTime } from "@/lib/utils"
 import { DeliveryMethod } from "@/types/delivery"
 import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
 import { AuditTrailTab } from "./order-detail/audit-trail-tab"
@@ -469,7 +470,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Allow Substitution</p>
-                    <p className="text-sm">{order?.allowSubstitution ? 'Yes' : 'No'}</p>
+                    <p className="text-sm">{order?.allow_substitution ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Tax ID</p>
@@ -625,7 +626,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <CardContent className="px-3 sm:px-6">
               {filteredItems.length > 0 ? (
                 <div className="space-y-3">
-                  {filteredItems.map((item: ApiOrderItem) => {
+                  {filteredItems.map((item: ApiOrderItem, index) => {
                     // Helper function to get fulfillment status badge color
                     const getFulfillmentBadgeClass = (status?: string) => {
                       switch (status) {
@@ -638,7 +639,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     }
 
                     return (
-                      <Card key={item.product_sku} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
+                      <Card key={item.id || `${item.product_sku}-${index}`} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
                         {/* Enhanced Item Header */}
                         <div
                           className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -720,7 +721,9 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                         </div>
 
                         {/* Collapsible Item Details - 3 Column Layout */}
-                        {expandedItems[item.product_sku] && (
+                        {expandedItems[item.product_sku] && (() => {
+                          const isPackUOM = ['PACK', 'BOX', 'SET', 'CASE', 'CTN', 'CARTON'].includes(item.uom?.toUpperCase() || '')
+                          return (
                           <div className="border-t border-gray-100 bg-gray-50">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-4">
                               {/* Column 1 - Product Details */}
@@ -737,10 +740,12 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     <span className="text-gray-500">Supply Type ID</span>
                                     <span className="text-gray-900 font-medium">{item.supplyTypeId || 'N/A'}</span>
                                   </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Packed Ordered Qty</span>
-                                    <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
-                                  </div>
+                                  {isPackUOM && (
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Packed Ordered Qty</span>
+                                      <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
+                                    </div>
+                                  )}
                                   <div className="flex justify-between">
                                     <span className="text-gray-500">Location</span>
                                     <span className="text-gray-900 font-mono text-xs">{item.location || 'N/A'}</span>
@@ -776,18 +781,56 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                   <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Pricing & Promotions</h5>
                                 </div>
                                 <div className="space-y-3 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Price</span>
-                                    <span className="text-gray-900 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Total</span>
-                                    <span className="text-gray-900 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Qty</span>
-                                    <span className="text-gray-900 font-medium">{item.quantity}</span>
-                                  </div>
+                                  {/* Weight-based conditional display */}
+                                  {(() => {
+                                    const hasWeight = item.weight && item.weight > 0;
+                                    return (
+                                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                        {/* Row 1 */}
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-500">Price</span>
+                                          <span className="text-green-600 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          {hasWeight ? (
+                                            <>
+                                              <span className="text-gray-500">Weight</span>
+                                              <span className="text-gray-900 font-medium">{item.weight} kg</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <span className="text-gray-500">Qty</span>
+                                              <span className="text-gray-900 font-medium">{item.quantity}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                        {/* Row 2 */}
+                                        <div className="flex justify-between">
+                                          {hasWeight ? (
+                                            <>
+                                              <span className="text-gray-500">Weight (Actual)</span>
+                                              <span className="text-gray-900 font-medium">{item.actualWeight || item.weight} kg</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <span className="text-gray-500">Total</span>
+                                              <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                        <div className="flex justify-between">
+                                          {hasWeight ? (
+                                            <>
+                                              <span className="text-gray-500">Total</span>
+                                              <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                            </>
+                                          ) : (
+                                            <span></span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
 
                                   {/* Promotions & Coupons Section */}
                                   <div className="pt-2 border-t border-gray-200">
@@ -795,7 +838,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     {item.promotions && item.promotions.length > 0 ? (
                                       <div className="space-y-2">
                                         {item.promotions.map((promo, idx) => (
-                                          <div key={idx} className="bg-white p-2 rounded border border-gray-200 text-xs">
+                                          <div key={promo.promotionId || `promo-${item.product_sku}-${idx}`} className="bg-white p-2 rounded border border-gray-200 text-xs">
                                             <div className="flex justify-between">
                                               <span className="text-gray-500">Discount</span>
                                               <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
@@ -858,6 +901,22 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     </div>
                                   )}
                                   <div className="flex justify-between">
+                                    <span className="text-gray-500">Route</span>
+                                    <span className="text-gray-900 font-medium">{item.route || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Booking Slot From</span>
+                                    <span className="text-gray-900 font-medium text-xs">
+                                      {item.bookingSlotFrom ? formatGMT7DateTime(item.bookingSlotFrom) : 'N/A'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-500">Booking Slot To</span>
+                                    <span className="text-gray-900 font-medium text-xs">
+                                      {item.bookingSlotFrom ? formatGMT7DateTime(item.bookingSlotTo) : 'N/A'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
                                     <span className="text-gray-500">ETA</span>
                                     <span className="text-gray-900 text-xs text-right">
                                       {item.eta ? `${item.eta.from.split(' ').slice(0, 3).join(' ')} - ${item.eta.to.split(' ').slice(0, 3).join(' ')}` : 'N/A'}
@@ -904,7 +963,8 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                               </div>
                             </div>
                           </div>
-                        )}
+                          )
+                        })()}
                       </Card>
                     )
                   })}

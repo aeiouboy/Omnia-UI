@@ -3090,7 +3090,7 @@ export function ExecutiveDashboard() {
                   {orderAlerts.length > 0 ? (
                     <div className="space-y-2">
                       {orderAlerts.map((alert, index) => (
-                        <div key={index} className="flex items-center justify-between p-6 bg-white rounded-xl border border-red-200 shadow-sm hover:shadow-md hover:border-red-300 transition-all duration-200 group">
+                        <div key={alert.order_id || alert.order_number || `breach-${index}`} className="flex items-center justify-between p-6 bg-white rounded-xl border border-red-200 shadow-sm hover:shadow-md hover:border-red-300 transition-all duration-200 group">
                           <div className="space-y-2">
                             <div className="font-semibold text-base text-gray-900 group-hover:text-red-700 transition-colors">{alert.order_number}</div>
                             <div className="flex items-center space-x-3 text-sm text-gray-600">
@@ -3121,7 +3121,7 @@ export function ExecutiveDashboard() {
                   {approachingSla.length > 0 ? (
                     <div className="space-y-2">
                       {approachingSla.slice(0, 6).map((alert, index) => (
-                        <div key={index} className="flex items-center justify-between p-6 bg-white rounded-xl border border-amber-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
+                        <div key={alert.order_id || alert.order_number || `approaching-${index}`} className="flex items-center justify-between p-6 bg-white rounded-xl border border-amber-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 group">
                           <div className="space-y-2">
                             <div className="font-semibold text-base text-gray-900 group-hover:text-amber-700 transition-colors">{alert.order_number}</div>
                             <div className="flex items-center text-sm text-gray-600">

@@ -129,3 +129,31 @@ export function safeToISOString(
   // Return valid ISO string
   return dateObj.toISOString()
 }
+
+/**
+ * Generate a unique React key combining multiple fallback values
+ * @param values - Array of potential key values, first non-empty is used
+ * @param prefix - Optional prefix for the key
+ * @param index - Fallback index if all values are empty
+ * @returns A unique string suitable for use as a React key
+ *
+ * @example
+ * // Use with array map
+ * items.map((item, index) => (
+ *   <div key={generateUniqueKey([item.id, item.sku], 'product', index)}>
+ *     {item.name}
+ *   </div>
+ * ))
+ */
+export function generateUniqueKey(
+  values: (string | number | undefined | null)[],
+  prefix: string = 'item',
+  index?: number
+): string {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== '') {
+      return `${prefix}-${value}`;
+    }
+  }
+  return `${prefix}-${index ?? Math.random().toString(36).substr(2, 9)}`;
+}

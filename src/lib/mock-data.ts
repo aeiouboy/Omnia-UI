@@ -4,6 +4,10 @@
 import { AuditActionType, AuditType, ACTION_TYPE_TO_AUDIT_TYPE } from "@/types/audit"
 import { DeliveryMethod, DeliveryMethodType } from "@/types/delivery"
 
+// UOM Type Categories
+const WEIGHT_UOMS = ['KG', 'G', 'GRAM', 'LB'] as const
+const NON_WEIGHT_UOMS = ['PACK', 'PCS', 'PIECE', 'EA', 'EACH', 'BOX', 'SET', 'SCAN', 'SBOX', 'BTL'] as const
+
 // Click & Collect store names
 const clickCollectStores = [
   'Central Ladprao',
@@ -192,21 +196,21 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   const priorities = ["LOW", "NORMAL", "HIGH", "URGENT"]
   const foodCategories = ["Fresh Produce", "Meat & Seafood", "Dairy & Eggs", "Beverages", "Snacks & Confectionery", "Bakery", "Frozen Foods", "Pantry Staples"]
   const products = [
-    { name: "Fresh Milk 1L", thaiName: "นมสด 1ลิตร", sku: "DAIRY-001", category: "Dairy & Eggs", price: 45 },
-    { name: "Chicken Breast 500g", thaiName: "อกไก่ 500กรัม", sku: "MEAT-001", category: "Meat & Seafood", price: 120 },
-    { name: "Jasmine Rice 5kg", thaiName: "ข้าวหอมมะลิ 5กิโลกรัม", sku: "PANTRY-001", category: "Pantry Staples", price: 180 },
-    { name: "Green Apples", thaiName: "แอปเปิ้ลเขียว", sku: "PRODUCE-001", category: "Fresh Produce", price: 80 },
-    { name: "Coca Cola 1.5L", thaiName: "โค้ก 1.5ลิตร", sku: "BEV-001", category: "Beverages", price: 35 },
-    { name: "Chocolate Cookies", thaiName: "คุกกี้ช็อกโกแลต", sku: "SNACK-001", category: "Snacks & Confectionery", price: 65 },
-    { name: "Whole Wheat Bread", thaiName: "ขนมปังโฮลวีท", sku: "BAKERY-001", category: "Bakery", price: 40 },
-    { name: "Frozen Pizza", thaiName: "พิซซ่าแช่แข็ง", sku: "FROZEN-001", category: "Frozen Foods", price: 180 },
-    { name: "Organic Eggs 10pcs", thaiName: "ไข่ออร์แกนิค 10ฟอง", sku: "DAIRY-002", category: "Dairy & Eggs", price: 95 },
-    { name: "Fresh Salmon 300g", thaiName: "ปลาแซลมอนสด 300กรัม", sku: "MEAT-002", category: "Meat & Seafood", price: 250 },
-    { name: "Potato Chips", thaiName: "มันฝรั่งทอด", sku: "SNACK-002", category: "Snacks & Confectionery", price: 45 },
-    { name: "Orange Juice 1L", thaiName: "น้ำส้ม 1ลิตร", sku: "BEV-002", category: "Beverages", price: 55 },
-    { name: "Bananas 1kg", thaiName: "กล้วย 1กิโลกรัม", sku: "PRODUCE-002", category: "Fresh Produce", price: 35 },
-    { name: "Croissant 6pcs", thaiName: "ครัวซองต์ 6ชิ้น", sku: "BAKERY-002", category: "Bakery", price: 120 },
-    { name: "Ice Cream Vanilla", thaiName: "ไอศกรีมวานิลลา", sku: "FROZEN-002", category: "Frozen Foods", price: 150 }
+    { name: "Fresh Milk 1L", thaiName: "นมสด 1ลิตร", sku: "DAIRY-001", category: "Dairy & Eggs", price: 45, uom: "BTL" },
+    { name: "Chicken Breast 500g", thaiName: "อกไก่ 500กรัม", sku: "MEAT-001", category: "Meat & Seafood", price: 120, uom: "KG" },
+    { name: "Jasmine Rice 5kg", thaiName: "ข้าวหอมมะลิ 5กิโลกรัม", sku: "PANTRY-001", category: "Pantry Staples", price: 180, uom: "KG" },
+    { name: "Green Apples", thaiName: "แอปเปิ้ลเขียว", sku: "PRODUCE-001", category: "Fresh Produce", price: 80, uom: "KG" },
+    { name: "Coca Cola 1.5L", thaiName: "โค้ก 1.5ลิตร", sku: "BEV-001", category: "Beverages", price: 35, uom: "BTL" },
+    { name: "Chocolate Cookies", thaiName: "คุกกี้ช็อกโกแลต", sku: "SNACK-001", category: "Snacks & Confectionery", price: 65, uom: "PACK" },
+    { name: "Whole Wheat Bread", thaiName: "ขนมปังโฮลวีท", sku: "BAKERY-001", category: "Bakery", price: 40, uom: "PCS" },
+    { name: "Frozen Pizza", thaiName: "พิซซ่าแช่แข็ง", sku: "FROZEN-001", category: "Frozen Foods", price: 180, uom: "EA" },
+    { name: "Organic Eggs 10pcs", thaiName: "ไข่ออร์แกนิค 10ฟอง", sku: "DAIRY-002", category: "Dairy & Eggs", price: 95, uom: "PACK" },
+    { name: "Fresh Salmon 300g", thaiName: "ปลาแซลมอนสด 300กรัม", sku: "MEAT-002", category: "Meat & Seafood", price: 250, uom: "KG" },
+    { name: "Potato Chips", thaiName: "มันฝรั่งทอด", sku: "SNACK-002", category: "Snacks & Confectionery", price: 45, uom: "PACK" },
+    { name: "Orange Juice 1L", thaiName: "น้ำส้ม 1ลิตร", sku: "BEV-002", category: "Beverages", price: 55, uom: "BTL" },
+    { name: "Bananas 1kg", thaiName: "กล้วย 1กิโลกรัม", sku: "PRODUCE-002", category: "Fresh Produce", price: 35, uom: "KG" },
+    { name: "Croissant 6pcs", thaiName: "ครัวซองต์ 6ชิ้น", sku: "BAKERY-002", category: "Bakery", price: 120, uom: "PACK" },
+    { name: "Ice Cream Vanilla", thaiName: "ไอศกรีมวานิลลา", sku: "FROZEN-002", category: "Frozen Foods", price: 150, uom: "EA" }
   ]
 
   const status = statuses[Math.floor(Math.random() * statuses.length)]
@@ -273,8 +277,9 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
     const total_price = unit_price * quantity
 
     // Generate Manhattan OMS enhanced fields
-    const uom = uomOptions[Math.floor(Math.random() * uomOptions.length)]
-    const packedOrderedQty = quantity
+    const uom = product.uom || 'EA'  // Use product-specific UOM with fallback to EA
+    const isPackUOM = ['PACK', 'BOX', 'SET', 'CASE', 'CTN', 'CARTON'].includes(uom.toUpperCase())
+    const packedOrderedQty = isPackUOM ? quantity : undefined
     const location = `CFM${Math.floor(Math.random() * 9000 + 1000)}`
     const barcode = String(Math.floor(Math.random() * 9000000000000) + 1000000000000)
     const giftWrapped = Math.random() < 0.15  // 15% chance
@@ -332,6 +337,24 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
 
     const giftWithPurchase = Math.random() < 0.1 ? 'Free Sample Gift' : null
 
+    // Conditionally generate weight fields only for weight-based UOMs
+    const isWeightBasedUom = WEIGHT_UOMS.includes(uom as any)
+    const weight = isWeightBasedUom ? parseFloat((Math.random() * 4.9 + 0.1).toFixed(2)) : undefined
+    const actualWeight = isWeightBasedUom && weight ? parseFloat((weight + (Math.random() * 0.2 - 0.1)).toFixed(2)) : undefined
+
+    // Generate route and booking slot fields
+    const routeNames = ['สายรถหนองบอน', 'สายรถบางนา', 'สายรถลาดพร้าว', 'สายรถรามคำแหง', 'สายรถพระราม 9']
+    const route = routeNames[Math.floor(Math.random() * routeNames.length)]
+
+    // Generate booking slot (1-3 days from now, 1-2 hour window)
+    const bookingSlotFromDate = new Date()
+    bookingSlotFromDate.setDate(bookingSlotFromDate.getDate() + Math.floor(Math.random() * 3) + 1)
+    bookingSlotFromDate.setHours(Math.floor(Math.random() * 12) + 8, 0, 0, 0)  // 8:00 - 20:00
+    const bookingSlotToDate = new Date(bookingSlotFromDate)
+    bookingSlotToDate.setHours(bookingSlotToDate.getHours() + Math.floor(Math.random() * 2) + 1)  // 1-2 hours later
+    const bookingSlotFrom = bookingSlotFromDate.toISOString()
+    const bookingSlotTo = bookingSlotToDate.toISOString()
+
     return {
       id: `ITEM-${id}-${j + 1}`,
       product_id: product.sku,
@@ -373,7 +396,12 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
         amountExcludedTaxes: itemAmountExcludedTaxes,
         taxes: itemTaxes,
         total: itemAmountIncludedTaxes
-      }
+      },
+      weight,
+      actualWeight,
+      route,
+      bookingSlotFrom,
+      bookingSlotTo
     }
   })
 

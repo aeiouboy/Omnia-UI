@@ -182,7 +182,7 @@ export function AnalyticsTab() {
           <h3 className="text-lg font-semibold mb-4">Revenue by Business Unit</h3>
           <div className="space-y-4">
             {businessUnitRevenue.map((bu, index) => (
-              <div key={index} className="space-y-2">
+              <div key={bu.business_unit || `bu-${index}`} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{bu.business_unit}</span>
                   <span className="text-sm font-medium">฿{(bu.total_revenue / 1000000).toFixed(1)}M</span>
@@ -247,7 +247,7 @@ export function AnalyticsTab() {
             </thead>
             <tbody>
               {topProducts.map((product, index) => (
-                <tr key={index} className="border-b border-gray-100">
+                <tr key={product.sku || product.product || `product-${index}`} className="border-b border-gray-100">
                   <td className="py-3 px-4">{product.product}</td>
                   <td className="py-3 px-4 text-gray-600">{product.sku}</td>
                   <td className="py-3 px-4">{product.units_sold.toLocaleString()}</td>

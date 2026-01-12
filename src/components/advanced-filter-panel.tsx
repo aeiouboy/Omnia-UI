@@ -403,7 +403,7 @@ export function AdvancedFilterPanel({
           <h4 className="text-sm font-medium text-deep-navy mb-2">Filter Preview:</h4>
           <div className="flex flex-wrap gap-2">
             {getFilterSummary().map((filter, index) => (
-              <Badge key={index} variant="secondary" className="bg-white text-deep-navy px-3 py-1">
+              <Badge key={`filter-${index}`} variant="secondary" className="bg-white text-deep-navy px-3 py-1">
                 {filter}
               </Badge>
             ))}

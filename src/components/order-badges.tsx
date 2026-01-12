@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, Check, X, Truck, Zap, Store, Settings } from "lucide-react";
 import React from "react";
 
 // Theme color classes based on tailwind.config.ts
@@ -181,4 +181,198 @@ export function SLABadge({
       </Badge>
     );
   }
+}
+
+// FMS Extended Badge Components
+
+// Delivery Type Badge - STD (Standard), EXP (Express), CC (Click & Collect)
+export function DeliveryTypeBadge({ deliveryType }: { deliveryType?: string }) {
+  if (!deliveryType) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  switch (deliveryType) {
+    case "Standard Delivery":
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-sm flex items-center">
+          <Truck className="h-3 w-3 mr-1" />
+          STD
+        </Badge>
+      );
+    case "Express Delivery":
+      return (
+        <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-sm flex items-center">
+          <Zap className="h-3 w-3 mr-1" />
+          EXP
+        </Badge>
+      );
+    case "Click & Collect":
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm flex items-center">
+          <Store className="h-3 w-3 mr-1" />
+          C&C
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">
+          {deliveryType}
+        </Badge>
+      );
+  }
+}
+
+// Settlement Type Badge - Auto Settle (green), Manual Settle (yellow)
+export function SettlementTypeBadge({ settlementType }: { settlementType?: string }) {
+  if (!settlementType) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  switch (settlementType) {
+    case "Auto Settle":
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm flex items-center">
+          <Settings className="h-3 w-3 mr-1" />
+          Auto
+        </Badge>
+      );
+    case "Manual Settle":
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-mono text-sm flex items-center">
+          <Settings className="h-3 w-3 mr-1" />
+          Manual
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">
+          {settlementType}
+        </Badge>
+      );
+  }
+}
+
+// Request Tax Badge - Checkmark for true, X for false
+export function RequestTaxBadge({ requestTax }: { requestTax?: boolean }) {
+  if (requestTax === undefined || requestTax === null) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  if (requestTax) {
+    return (
+      <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm flex items-center">
+        <Check className="h-3 w-3 mr-1" />
+        Yes
+      </Badge>
+    );
+  }
+  return (
+    <Badge className="bg-gray-100 text-gray-600 border-gray-300 font-mono text-sm flex items-center">
+      <X className="h-3 w-3 mr-1" />
+      No
+    </Badge>
+  );
+}
+
+// Order Type Badge (FMS values)
+export function OrderTypeBadge({ orderType }: { orderType?: string }) {
+  if (!orderType) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  // Map FMS order types to colors
+  const typeStyles: Record<string, string> = {
+    "Large format": "bg-purple-100 text-purple-800 border-purple-200",
+    "Tops daily CFR": "bg-blue-100 text-blue-800 border-blue-200",
+    "Tops daily CFM": "bg-cyan-100 text-cyan-800 border-cyan-200",
+    "Subscription": "bg-indigo-100 text-indigo-800 border-indigo-200",
+    "Retail": "bg-teal-100 text-teal-800 border-teal-200",
+  };
+
+  const style = typeStyles[orderType] || "bg-gray-100 text-gray-800 border-gray-300";
+
+  return (
+    <Badge className={`${style} font-mono text-sm`}>
+      {orderType}
+    </Badge>
+  );
+}
+
+// Payment Type Badge - displays abbreviated payment types with appropriate colors
+export function PaymentTypeBadge({ paymentType }: { paymentType?: string }) {
+  if (!paymentType) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  // Handle combined payment types (e.g., "Cash on Delivery + T1C Redeem Payment")
+  const parts = paymentType.split(" + ");
+
+  // If combined, show abbreviated combo
+  if (parts.length > 1) {
+    const abbreviations = parts.map(part => getPaymentAbbreviation(part));
+    return (
+      <Badge className="bg-gradient-to-r from-green-100 to-orange-100 text-gray-800 border-gray-300 font-mono text-sm">
+        {abbreviations.join("+")}
+      </Badge>
+    );
+  }
+
+  // Single payment type
+  const { abbreviation, style } = getPaymentTypeStyle(paymentType);
+  return (
+    <Badge className={`${style} font-mono text-sm`}>
+      {abbreviation}
+    </Badge>
+  );
+}
+
+function getPaymentAbbreviation(paymentType: string): string {
+  const abbreviations: Record<string, string> = {
+    "Cash on Delivery": "COD",
+    "Credit Card on Delivery": "CC-OD",
+    "2C2P-Credit-Card": "2C2P",
+    "QR PromptPay": "QR",
+    "T1C Redeem Payment": "T1C",
+    "Lazada Payment": "Lazada",
+    "Shopee Payment": "Shopee",
+  };
+  return abbreviations[paymentType] || paymentType;
+}
+
+function getPaymentTypeStyle(paymentType: string): { abbreviation: string; style: string } {
+  const styles: Record<string, { abbreviation: string; style: string }> = {
+    "Cash on Delivery": {
+      abbreviation: "COD",
+      style: "bg-green-100 text-green-800 border-green-200",
+    },
+    "Credit Card on Delivery": {
+      abbreviation: "CC-OD",
+      style: "bg-blue-100 text-blue-800 border-blue-200",
+    },
+    "2C2P-Credit-Card": {
+      abbreviation: "2C2P",
+      style: "bg-purple-100 text-purple-800 border-purple-200",
+    },
+    "QR PromptPay": {
+      abbreviation: "QR",
+      style: "bg-cyan-100 text-cyan-800 border-cyan-200",
+    },
+    "T1C Redeem Payment": {
+      abbreviation: "T1C",
+      style: "bg-orange-100 text-orange-800 border-orange-200",
+    },
+    "Lazada Payment": {
+      abbreviation: "Lazada",
+      style: "bg-blue-100 text-blue-800 border-blue-200",
+    },
+    "Shopee Payment": {
+      abbreviation: "Shopee",
+      style: "bg-orange-100 text-orange-800 border-orange-200",
+    },
+  };
+
+  return styles[paymentType] || {
+    abbreviation: paymentType,
+    style: "bg-gray-100 text-gray-800 border-gray-300",
+  };
 }
