@@ -1034,6 +1034,8 @@ export function generateMockStockHistory(productId: string): StockHistoryPoint[]
 
 /**
  * Generate mock transaction history for a product
+ * Generates transactions in chronological order (oldest first), calculates sequential balances,
+ * then returns in reverse chronological order (most recent first) for display
  */
 export function generateMockTransactions(productId: string): StockTransaction[] {
   const item = mockInventoryItems.find((i) => i.id === productId || i.productId === productId)
@@ -1043,38 +1045,37 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
   const transactionCount = 10 + Math.floor(Math.random() * 10) // 10-20 transactions
   const today = new Date()
 
-  const transactionTypes: TransactionType[] = ["stock_in", "stock_out", "adjustment", "return"]
   const users = ["John Smith", "Sarah Johnson", "Mike Chen", "Lisa Wong", "David Kim"]
 
-  let currentBalance = item.currentStock
-
+  // Generate timestamps in chronological order (oldest to newest)
+  const timestamps: Date[] = []
   for (let i = 0; i < transactionCount; i++) {
-    const daysAgo = Math.floor(Math.random() * 60) // Last 60 days
+    const daysAgo = 60 - Math.floor((60 / transactionCount) * i) // Spread over 60 days, oldest first
     const timestamp = new Date(today)
     timestamp.setDate(timestamp.getDate() - daysAgo)
     timestamp.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60))
+    timestamps.push(timestamp)
+  }
 
-    const type = transactionTypes[Math.floor(Math.random() * transactionTypes.length)]
-    let quantity: number
+  // Sort timestamps to ensure chronological order
+  timestamps.sort((a, b) => a.getTime() - b.getTime())
 
-    // Determine quantity based on type
-    switch (type) {
-      case "stock_in":
-        quantity = Math.floor(Math.random() * 100) + 50 // 50-150 units
-        break
-      case "stock_out":
-        quantity = -(Math.floor(Math.random() * 50) + 10) // -10 to -60 units
-        break
-      case "adjustment":
-        quantity = Math.floor(Math.random() * 20) - 10 // -10 to +10 units
-        break
-      case "return":
-        quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units
-        break
-      default:
-        quantity = 0
-    }
+  // Start with initial stock from first restocking
+  const initialRestockQuantity = Math.floor(Math.random() * 100) + 100 // 100-200 units initial stock
+  let runningBalance = initialRestockQuantity
 
+  // Determine channel and referenceId helper
+  const channels: ("Grab" | "Lineman" | "Gokoo")[] = ["Grab", "Lineman", "Gokoo"]
+  const channelWeights = [0.6, 0.3, 0.1] // 60% Grab, 30% Lineman, 10% Gokoo
+  const randomChannel = () => {
+    const rand = Math.random()
+    if (rand < channelWeights[0]) return channels[0]
+    if (rand < channelWeights[0] + channelWeights[1]) return channels[1]
+    return channels[2]
+  }
+
+  for (let i = 0; i < transactionCount; i++) {
+    const timestamp = timestamps[i]
     const user = users[Math.floor(Math.random() * users.length)]
 
     // Pick a random warehouse location from the item's locations
@@ -1082,14 +1083,75 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       ? item.warehouseLocations[Math.floor(Math.random() * item.warehouseLocations.length)]
       : undefined
 
-    // Determine channel and referenceId for stock_out and return transactions
-    const channels: ("Grab" | "Lineman" | "Gokoo")[] = ["Grab", "Lineman", "Gokoo"]
-    const channelWeights = [0.6, 0.3, 0.1] // 60% Grab, 30% Lineman, 10% Gokoo
-    const randomChannel = () => {
+    let type: TransactionType
+    let quantity: number
+    let balanceChange: number
+
+    if (i === 0) {
+      // First transaction is always stock_in (initial restocking)
+      type = "stock_in"
+      quantity = initialRestockQuantity
+      balanceChange = quantity
+      runningBalance = quantity // Set initial balance
+    } else {
+      // Determine transaction type based on current balance
+      // If balance is low, more likely to get stock_in
+      // If balance is high, more likely to get stock_out
+      const balanceRatio = runningBalance / initialRestockQuantity
+      let typeWeights: number[]
+
+      if (balanceRatio < 0.3) {
+        // Low stock: 60% stock_in, 20% adjustment, 15% return, 5% stock_out
+        typeWeights = [0.6, 0.05, 0.2, 0.15]
+      } else if (balanceRatio > 0.8) {
+        // High stock: 10% stock_in, 70% stock_out, 10% adjustment, 10% return
+        typeWeights = [0.1, 0.7, 0.1, 0.1]
+      } else {
+        // Normal: 25% stock_in, 45% stock_out, 15% adjustment, 15% return
+        typeWeights = [0.25, 0.45, 0.15, 0.15]
+      }
+
       const rand = Math.random()
-      if (rand < channelWeights[0]) return channels[0]
-      if (rand < channelWeights[0] + channelWeights[1]) return channels[1]
-      return channels[2]
+      if (rand < typeWeights[0]) {
+        type = "stock_in"
+      } else if (rand < typeWeights[0] + typeWeights[1]) {
+        type = "stock_out"
+      } else if (rand < typeWeights[0] + typeWeights[1] + typeWeights[2]) {
+        type = "adjustment"
+      } else {
+        type = "return"
+      }
+
+      // Determine quantity based on type
+      switch (type) {
+        case "stock_in":
+          quantity = Math.floor(Math.random() * 100) + 50 // 50-150 units
+          balanceChange = quantity
+          break
+        case "stock_out":
+          // Ensure we don't go negative
+          const maxOut = Math.min(runningBalance - 10, 60) // Keep at least 10 in stock
+          quantity = Math.max(10, Math.floor(Math.random() * maxOut) + 10) // 10 to maxOut units
+          balanceChange = -quantity
+          break
+        case "adjustment":
+          // Can be positive or negative, but don't let balance go below 5
+          const maxNegativeAdj = Math.min(runningBalance - 5, 10)
+          quantity = Math.floor(Math.random() * 20) - Math.min(10, maxNegativeAdj)
+          balanceChange = quantity
+          quantity = Math.abs(quantity) // Store absolute value
+          break
+        case "return":
+          quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units
+          balanceChange = quantity
+          break
+        default:
+          quantity = 0
+          balanceChange = 0
+      }
+
+      // Apply balance change
+      runningBalance = Math.max(0, runningBalance + balanceChange)
     }
 
     const channel = (type === "stock_out" || type === "return") ? randomChannel() : undefined
@@ -1102,8 +1164,8 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       productId: item.productId,
       productName: item.productName,
       type,
-      quantity: Math.abs(quantity),
-      balanceAfter: currentBalance,
+      quantity,
+      balanceAfter: runningBalance,
       timestamp: timestamp.toISOString(),
       user,
       notes: generateTransactionNotes(type),
@@ -1113,13 +1175,10 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       channel,
       itemType: item.itemType,
     })
-
-    // Update balance for previous transactions (going backwards in time)
-    currentBalance -= quantity
   }
 
-  // Sort by timestamp (most recent first)
-  return transactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  // Return in reverse chronological order (most recent first) for display
+  return transactions.reverse()
 }
 
 /**

@@ -29,7 +29,7 @@ interface StockByStoreTableProps {
   itemType: ItemType
 }
 
-type SortField = "warehouse" | "location" | "available" | "reserved" | "safety" | "total" | "status" | "locationStatus"
+type SortField = "warehouse" | "location" | "available" | "reserved" | "safety" | "total" | "status"
 type SortOrder = "asc" | "desc"
 
 export function StockByStoreTable({ locations, itemType }: StockByStoreTableProps) {
@@ -81,11 +81,6 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
           const statusA = a.stockAvailable > 0 ? 1 : 0
           const statusB = b.stockAvailable > 0 ? 1 : 0
           compareValue = statusA - statusB
-          break
-        case "locationStatus":
-          const locStatusA = a.locationStatus || 'Active'
-          const locStatusB = b.locationStatus || 'Active'
-          compareValue = locStatusA.localeCompare(locStatusB)
           break
       }
 
@@ -168,7 +163,7 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                 onClick={() => handleSort("warehouse")}
               >
                 <div className="flex items-center">
-                  Store/Warehouse
+                  Store
                   <SortIcon field="warehouse" />
                 </div>
               </TableHead>
@@ -177,7 +172,7 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                 onClick={() => handleSort("location")}
               >
                 <div className="flex items-center">
-                  Location Code
+                  Store ID
                   <SortIcon field="location" />
                 </div>
               </TableHead>
@@ -226,21 +221,12 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                   <SortIcon field="status" />
                 </div>
               </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("locationStatus")}
-              >
-                <div className="flex items-center">
-                  Store Status
-                  <SortIcon field="locationStatus" />
-                </div>
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLocations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No locations match your search.
                 </TableCell>
               </TableRow>
@@ -293,23 +279,6 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                         isAvailable={isAvailable}
                         stockCount={location.stockAvailable}
                       />
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          (location.locationStatus || 'Active') === 'Active'
-                            ? "bg-green-100 text-green-800 border-green-300"
-                            : "bg-gray-100 text-gray-600 border-gray-300"
-                        }
-                      >
-                        <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${
-                          (location.locationStatus || 'Active') === 'Active'
-                            ? "bg-green-500"
-                            : "bg-gray-400"
-                        }`} />
-                        {location.locationStatus || 'Active'}
-                      </Badge>
                     </TableCell>
                   </TableRow>
                 )

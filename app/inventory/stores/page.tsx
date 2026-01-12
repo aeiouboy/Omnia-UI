@@ -250,7 +250,7 @@ export default function StockByStorePage() {
               Back to Inventory
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Stock by Store</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Stock Card</h1>
               <p className="text-muted-foreground">
                 View inventory performance and stock levels across all Tops stores
               </p>
@@ -471,7 +471,7 @@ export default function StockByStorePage() {
                         onClick={() => handleSort("storeName")}
                       >
                         <div className="flex items-center">
-                          Store Name
+                          Store
                           <SortIcon field="storeName" />
                         </div>
                       </TableHead>

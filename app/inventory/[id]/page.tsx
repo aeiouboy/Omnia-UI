@@ -19,6 +19,9 @@ interface ProductDetailPageProps {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{
+    store?: string
+  }>
 }
 
 // Generate metadata for the page
@@ -42,8 +45,10 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: ProductDetailPageProps) {
   const { id } = await params
+  const { store } = await searchParams
 
   // Fetch product data
   const item = await fetchInventoryItemById(id)
@@ -65,6 +70,7 @@ export default async function ProductDetailPage({
         item={item}
         stockHistory={stockHistory}
         transactions={transactions}
+        storeContext={store}
       />
     </DashboardShell>
   )

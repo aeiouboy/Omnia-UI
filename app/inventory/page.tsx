@@ -397,7 +397,7 @@ export default function InventoryPage() {
             {!activeStoreFilter && (
               <Button variant="outline" onClick={() => router.push("/inventory/stores")}>
                 <Store className="h-4 w-4 mr-2" />
-                Stock by Store
+                Stock Card
               </Button>
             )}
             <Button variant="outline" onClick={handleExport}>
@@ -625,7 +625,11 @@ export default function InventoryPage() {
                       <TableRow
                         key={item.id}
                         className="h-16 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => router.push(`/inventory/${item.id}`)}
+                        onClick={() => {
+                          const url = `/inventory/${item.id}`
+                          const params = activeStoreFilter ? `?store=${encodeURIComponent(activeStoreFilter)}` : ''
+                          router.push(`${url}${params}`)
+                        }}
                       >
                         <TableCell>
                           <Image

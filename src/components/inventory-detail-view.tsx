@@ -63,6 +63,7 @@ interface InventoryDetailViewProps {
   stockHistory: StockHistoryPoint[]
   transactions: StockTransaction[]
   onBack?: () => void
+  storeContext?: string // Store filter context - when set, hides Stock by Store section and filters transactions
 }
 
 function getStatusBadgeVariant(status: string) {
@@ -96,8 +97,14 @@ export function InventoryDetailView({
   stockHistory,
   transactions,
   onBack,
+  storeContext,
 }: InventoryDetailViewProps) {
   const router = useRouter()
+
+  // Filter transactions by store context when provided
+  const filteredTransactions = storeContext
+    ? transactions.filter(t => t.warehouseCode === storeContext)
+    : transactions
 
   // Calculate stock percentage
   const stockPercentage = (item.currentStock / item.maxStockLevel) * 100
@@ -464,8 +471,8 @@ export function InventoryDetailView({
         </CardContent>
       </Card>
 
-      {/* Stock by Store Section */}
-      {item.warehouseLocations && item.warehouseLocations.length > 0 && (
+      {/* Stock by Store Section - Hidden when viewing from store-specific context */}
+      {!storeContext && item.warehouseLocations && item.warehouseLocations.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Stock by Store</CardTitle>
@@ -489,7 +496,7 @@ export function InventoryDetailView({
       />
 
       {/* Recent Transactions */}
-      <RecentTransactionsTable transactions={transactions} />
+      <RecentTransactionsTable transactions={filteredTransactions} />
     </div>
   )
 }

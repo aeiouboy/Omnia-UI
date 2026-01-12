@@ -218,8 +218,8 @@ export function RecentTransactionsTable({
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Channel</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Available</TableHead>
-                  <TableHead className="hidden lg:table-cell">Location</TableHead>
+                  <TableHead className="text-right">Balance</TableHead>
+                  <TableHead className="hidden lg:table-cell">Store</TableHead>
                   <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
