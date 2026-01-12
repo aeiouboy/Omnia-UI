@@ -51,7 +51,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CheckCircle, AlertCircle, Minus } from "lucide-react"
+import { Check } from "lucide-react"
 import type {
   InventoryItem,
   InventoryFilters,
@@ -698,30 +698,11 @@ export default function InventoryPage() {
                         </TableCell>
                         {/* Config Status Column */}
                         <TableCell className="hidden lg:table-cell">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex justify-center">
-                                  {item.stockConfigStatus === "valid" && (
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
-                                  )}
-                                  {item.stockConfigStatus === "invalid" && (
-                                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                                  )}
-                                  {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && (
-                                    <Minus className="h-5 w-5 text-gray-400" />
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  {item.stockConfigStatus === "valid" && "Stock configuration is correct"}
-                                  {item.stockConfigStatus === "invalid" && "Stock configuration has errors"}
-                                  {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && "Stock not configured"}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <div className="flex justify-center">
+                            {item.stockConfigStatus === "valid" && (
+                              <Check className="h-5 w-5 text-green-600" />
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

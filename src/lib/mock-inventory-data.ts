@@ -1079,6 +1079,8 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
     const user = users[Math.floor(Math.random() * users.length)]
 
     // Pick a random warehouse location from the item's locations
+    // This ensures transactions are aligned with the item's actual warehouse locations
+    // which are associated with the item's store through the deterministic generation
     const location = item.warehouseLocations && item.warehouseLocations.length > 0
       ? item.warehouseLocations[Math.floor(Math.random() * item.warehouseLocations.length)]
       : undefined
@@ -1179,6 +1181,36 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
 
   // Return in reverse chronological order (most recent first) for display
   return transactions.reverse()
+}
+
+/**
+ * Get warehouse codes associated with a store
+ * Maps store names to the warehouse codes used by items in that store
+ * @param storeName - The Tops store name
+ * @returns Array of warehouse codes associated with the store, or empty array if store not found
+ */
+export function getWarehouseCodesForStore(storeName: string): string[] {
+  // Find all items for this store
+  const storeItems = mockInventoryItems.filter(item => item.storeName === storeName)
+
+  if (storeItems.length === 0) {
+    return []
+  }
+
+  // Collect all unique warehouse codes from the store's items
+  const warehouseCodes = new Set<string>()
+
+  storeItems.forEach(item => {
+    if (item.warehouseLocations && item.warehouseLocations.length > 0) {
+      item.warehouseLocations.forEach(location => {
+        if (location.warehouseCode) {
+          warehouseCodes.add(location.warehouseCode)
+        }
+      })
+    }
+  })
+
+  return Array.from(warehouseCodes)
 }
 
 /**

@@ -11,6 +11,7 @@
 
 "use client"
 
+import * as React from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,6 +33,7 @@ import {
   Shield,
   Info,
   Minus,
+  Check,
 } from "lucide-react"
 import {
   Tooltip,
@@ -102,9 +104,26 @@ export function InventoryDetailView({
   const router = useRouter()
 
   // Filter transactions by store context when provided
-  const filteredTransactions = storeContext
-    ? transactions.filter(t => t.warehouseCode === storeContext)
-    : transactions
+  // Import the store-to-warehouse mapping function at the top of the file
+  const filteredTransactions = React.useMemo(() => {
+    if (!storeContext) {
+      return transactions
+    }
+
+    // Lazy import to avoid circular dependencies
+    const { getWarehouseCodesForStore } = require("@/lib/mock-inventory-data")
+    const warehouseCodes = getWarehouseCodesForStore(storeContext)
+
+    // If no warehouse codes found for store, return all transactions (failsafe)
+    if (warehouseCodes.length === 0) {
+      return transactions
+    }
+
+    // Filter transactions to only show those from warehouses associated with this store
+    return transactions.filter(t =>
+      t.warehouseCode && warehouseCodes.includes(t.warehouseCode)
+    )
+  }, [storeContext, transactions])
 
   // Calculate stock percentage
   const stockPercentage = (item.currentStock / item.maxStockLevel) * 100
@@ -248,39 +267,16 @@ export function InventoryDetailView({
                     <Shield className="h-4 w-4" />
                     <span>Stock Config</span>
                   </div>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-2 cursor-help">
-                          {item.stockConfigStatus === "valid" && (
-                            <>
-                              <CheckCircle className="h-5 w-5 text-green-600" />
-                              <span className="text-sm text-green-700">Valid</span>
-                            </>
-                          )}
-                          {item.stockConfigStatus === "invalid" && (
-                            <>
-                              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                              <span className="text-sm text-yellow-700">Invalid</span>
-                            </>
-                          )}
-                          {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && (
-                            <>
-                              <Minus className="h-5 w-5 text-gray-400" />
-                              <span className="text-sm text-gray-500">Unconfigured</span>
-                            </>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          {item.stockConfigStatus === "valid" && "Stock configuration is correct and all settings are properly configured"}
-                          {item.stockConfigStatus === "invalid" && "Stock configuration has errors that need attention"}
-                          {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && "Stock configuration has not been set up yet"}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="flex items-center gap-2">
+                    {item.stockConfigStatus === "valid" ? (
+                      <>
+                        <Check className="h-5 w-5 text-green-600" />
+                        <span className="text-sm text-green-700">Configured</span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-gray-400">—</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
