@@ -20,7 +20,6 @@ import {
   X,
   MapPin,
 } from "lucide-react"
-import StockAvailabilityIndicator from "./stock-availability-indicator"
 import { formatStockQuantity } from "@/lib/warehouse-utils"
 import type { StockLocation, ItemType } from "@/types/inventory"
 
@@ -29,7 +28,7 @@ interface StockByStoreTableProps {
   itemType: ItemType
 }
 
-type SortField = "warehouse" | "location" | "available" | "reserved" | "safety" | "total" | "status"
+type SortField = "warehouse" | "location" | "available" | "reserved" | "safety" | "total"
 type SortOrder = "asc" | "desc"
 
 export function StockByStoreTable({ locations, itemType }: StockByStoreTableProps) {
@@ -75,12 +74,6 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
           const totalA = a.stockAvailable + a.stockInProcess + (a.stockSafetyStock || 0)
           const totalB = b.stockAvailable + b.stockInProcess + (b.stockSafetyStock || 0)
           compareValue = totalA - totalB
-          break
-        case "status":
-          // Sort by availability status
-          const statusA = a.stockAvailable > 0 ? 1 : 0
-          const statusB = b.stockAvailable > 0 ? 1 : 0
-          compareValue = statusA - statusB
           break
       }
 
@@ -212,21 +205,12 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                   <SortIcon field="total" />
                 </div>
               </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("status")}
-              >
-                <div className="flex items-center">
-                  Status
-                  <SortIcon field="status" />
-                </div>
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredLocations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No locations match your search.
                 </TableCell>
               </TableRow>
@@ -236,7 +220,6 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                   location.stockAvailable +
                   location.stockInProcess +
                   (location.stockSafetyStock || 0)
-                const isAvailable = location.stockAvailable > 0
 
                 return (
                   <TableRow key={`${location.warehouseCode}-${location.locationCode}-${index}`}>
@@ -273,12 +256,6 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       {formatStockQuantity(totalStock, itemType, false)}
-                    </TableCell>
-                    <TableCell>
-                      <StockAvailabilityIndicator
-                        isAvailable={isAvailable}
-                        stockCount={location.stockAvailable}
-                      />
                     </TableCell>
                   </TableRow>
                 )

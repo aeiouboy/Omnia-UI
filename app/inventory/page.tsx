@@ -456,8 +456,9 @@ export default function InventoryPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <div className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <CardHeader className="flex flex-col gap-4 pb-4">
+              {/* Row 1: Title and Tabs */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <CardTitle>
                     {activeTab === "all" && "All Products"}
@@ -469,107 +470,75 @@ export default function InventoryPage() {
                   </CardDescription>
                 </div>
 
-                {/* Filters row - search, dropdowns, and tabs */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  {/* Search Box */}
-                  <div className="relative max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search products, barcode, category..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      className="w-[240px] pl-9 h-9 text-sm"
-                    />
-                  </div>
+                {/* Tabs */}
+                <TabsList>
+                  <TabsTrigger value="all">All Products</TabsTrigger>
+                  <TabsTrigger value="low">Low Stock</TabsTrigger>
+                  <TabsTrigger value="critical">Out of Stock</TabsTrigger>
+                </TabsList>
+              </div>
 
-                  {/* Warehouse Filter */}
-                  <Select value={warehouseFilter} onValueChange={handleWarehouseChange}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="All Warehouses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Warehouses</SelectItem>
-                      {WAREHOUSE_CODES.map((code) => (
-                        <SelectItem key={code} value={code}>{code}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Category Filter */}
-                  <Select value={categoryFilter} onValueChange={handleCategoryChange}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="Produce">Produce</SelectItem>
-                      <SelectItem value="Dairy">Dairy</SelectItem>
-                      <SelectItem value="Bakery">Bakery</SelectItem>
-                      <SelectItem value="Meat">Meat</SelectItem>
-                      <SelectItem value="Seafood">Seafood</SelectItem>
-                      <SelectItem value="Pantry">Pantry</SelectItem>
-                      <SelectItem value="Frozen">Frozen</SelectItem>
-                      <SelectItem value="Beverages">Beverages</SelectItem>
-                      <SelectItem value="Snacks">Snacks</SelectItem>
-                      <SelectItem value="Household">Household</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Brand Filter */}
-                  <Select value={brandFilter} onValueChange={handleBrandChange}>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="All Brands" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Brands</SelectItem>
-                      {availableBrands.map((brand) => (
-                        <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Item Type Filter */}
-                  <Select value={itemTypeFilter} onValueChange={handleItemTypeChange}>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="weight">Weight Items</SelectItem>
-                      <SelectItem value="unit">Unit Items</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* View Filter */}
-                  <Select value={viewFilter} onValueChange={handleViewChange}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="All Views" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Views</SelectItem>
-                      <SelectItem value="ECOM-TH-CFR-LOCD-STD">ECOM-TH-CFR-LOCD-STD</SelectItem>
-                      <SelectItem value="ECOM-TH-DSS-NW-ALL">ECOM-TH-DSS-NW-ALL</SelectItem>
-                      <SelectItem value="ECOM-TH-DSS-NW-STD">ECOM-TH-DSS-NW-STD</SelectItem>
-                      <SelectItem value="ECOM-TH-DSS-LOCD-EXP">ECOM-TH-DSS-LOCD-EXP</SelectItem>
-                      <SelectItem value="ECOM-TH-SSP-NW-STD">ECOM-TH-SSP-NW-STD</SelectItem>
-                      <SelectItem value="MKP-TH-SSP-NW-STD">MKP-TH-SSP-NW-STD</SelectItem>
-                      <SelectItem value="MKP-TH-CFR-LOCD-STD">MKP-TH-CFR-LOCD-STD</SelectItem>
-                      <SelectItem value="ECOM-TH-SSP-NW-ALL">ECOM-TH-SSP-NW-ALL</SelectItem>
-                      <SelectItem value="MKP-TH-CFR-MANUAL-SYNC">MKP-TH-CFR-MANUAL-SYNC</SelectItem>
-                      <SelectItem value="CMG-ECOM-TH-STD">CMG-ECOM-TH-STD</SelectItem>
-                      <SelectItem value="CMG-MKP-SHOPEE-TH-NTW-STD">CMG-MKP-SHOPEE-TH-NTW-STD</SelectItem>
-                      <SelectItem value="CMG-MKP-LAZADA-TH-LOC-STD">CMG-MKP-LAZADA-TH-LOC-STD</SelectItem>
-                      <SelectItem value="CMG-MKP-MIRAKL-TH-NTW-STD">CMG-MKP-MIRAKL-TH-NTW-STD</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Tabs */}
-                  <TabsList>
-                    <TabsTrigger value="all">All Products</TabsTrigger>
-                    <TabsTrigger value="low">Low Stock</TabsTrigger>
-                    <TabsTrigger value="critical">Out of Stock</TabsTrigger>
-                  </TabsList>
+              {/* Row 2: Search and Filters - All Right Aligned */}
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t">
+                {/* Search Box - First Priority */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search products, barcode..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="w-[200px] pl-9 h-9 text-sm"
+                  />
                 </div>
+
+                {/* Channel Filter */}
+                <Select value={warehouseFilter} onValueChange={handleWarehouseChange}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="All Channels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Channels</SelectItem>
+                    {WAREHOUSE_CODES.map((code) => (
+                      <SelectItem key={code} value={code}>{code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Brand Filter */}
+                <Select value={brandFilter} onValueChange={handleBrandChange}>
+                  <SelectTrigger className="w-[130px] h-9">
+                    <SelectValue placeholder="All Brands" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Brands</SelectItem>
+                    {availableBrands.map((brand) => (
+                      <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* View Filter */}
+                <Select value={viewFilter} onValueChange={handleViewChange}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="All Views" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Views</SelectItem>
+                    <SelectItem value="ECOM-TH-CFR-LOCD-STD">ECOM-TH-CFR-LOCD-STD</SelectItem>
+                    <SelectItem value="ECOM-TH-DSS-NW-ALL">ECOM-TH-DSS-NW-ALL</SelectItem>
+                    <SelectItem value="ECOM-TH-DSS-NW-STD">ECOM-TH-DSS-NW-STD</SelectItem>
+                    <SelectItem value="ECOM-TH-DSS-LOCD-EXP">ECOM-TH-DSS-LOCD-EXP</SelectItem>
+                    <SelectItem value="ECOM-TH-SSP-NW-STD">ECOM-TH-SSP-NW-STD</SelectItem>
+                    <SelectItem value="MKP-TH-SSP-NW-STD">MKP-TH-SSP-NW-STD</SelectItem>
+                    <SelectItem value="MKP-TH-CFR-LOCD-STD">MKP-TH-CFR-LOCD-STD</SelectItem>
+                    <SelectItem value="ECOM-TH-SSP-NW-ALL">ECOM-TH-SSP-NW-ALL</SelectItem>
+                    <SelectItem value="MKP-TH-CFR-MANUAL-SYNC">MKP-TH-CFR-MANUAL-SYNC</SelectItem>
+                    <SelectItem value="CMG-ECOM-TH-STD">CMG-ECOM-TH-STD</SelectItem>
+                    <SelectItem value="CMG-MKP-SHOPEE-TH-NTW-STD">CMG-MKP-SHOPEE-TH-NTW-STD</SelectItem>
+                    <SelectItem value="CMG-MKP-LAZADA-TH-LOC-STD">CMG-MKP-LAZADA-TH-LOC-STD</SelectItem>
+                    <SelectItem value="CMG-MKP-MIRAKL-TH-NTW-STD">CMG-MKP-MIRAKL-TH-NTW-STD</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent>
