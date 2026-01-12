@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useOrganization } from "@/contexts/organization-context"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -37,21 +38,29 @@ import {
   ArrowLeft,
   X,
 } from "lucide-react"
-import WarehouseLocationCell from "@/components/inventory/warehouse-location-cell"
 import StockAvailabilityIndicator from "@/components/inventory/stock-availability-indicator"
 import {
   fetchInventoryData,
   fetchInventorySummary,
+  getUniqueBrands,
 } from "@/lib/inventory-service"
 import { WAREHOUSE_CODES } from "@/lib/mock-inventory-data"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { CheckCircle, AlertCircle, Minus } from "lucide-react"
 import type {
   InventoryItem,
   InventoryFilters,
   TopsStore,
   ProductCategory,
+  Channel,
 } from "@/types/inventory"
 
-type SortField = "productName" | "productId" | "currentStock" | "status"
+type SortField = "productName" | "productId" | "brand" | "currentStock" | "status"
 type SortOrder = "asc" | "desc"
 
 function getStatusBadgeVariant(status: string) {
@@ -80,9 +89,46 @@ function getStatusLabel(status: string) {
   }
 }
 
+function getChannelBadgeClass(channel: Channel): string {
+  switch (channel) {
+    case "store":
+      return "bg-gray-100 text-gray-700 border-gray-300"
+    case "website":
+      return "bg-blue-100 text-blue-700 border-blue-300"
+    case "Grab":
+      return "bg-green-100 text-green-700 border-green-300"
+    case "LINE MAN":
+      return "bg-lime-100 text-lime-700 border-lime-300"
+    case "Gokoo":
+      return "bg-orange-100 text-orange-700 border-orange-300"
+    default:
+      return "bg-gray-100 text-gray-700"
+  }
+}
+
+function getChannelLabel(channel: Channel): string {
+  switch (channel) {
+    case "store":
+      return "Store"
+    case "website":
+      return "Web"
+    case "Grab":
+      return "GB"
+    case "LINE MAN":
+      return "LM"
+    case "Gokoo":
+      return "GK"
+    default:
+      return channel
+  }
+}
+
 export default function InventoryPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Get organization context for filtering
+  const { selectedOrganization } = useOrganization()
 
   // State management
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
@@ -101,6 +147,8 @@ export default function InventoryPage() {
   const [warehouseFilter, setWarehouseFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
   const [itemTypeFilter, setItemTypeFilter] = useState<"weight" | "unit" | "all">("all")
+  const [brandFilter, setBrandFilter] = useState<string>("all")
+  const [availableBrands, setAvailableBrands] = useState<string[]>([])
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -145,7 +193,9 @@ export default function InventoryPage() {
     warehouseCode: warehouseFilter,
     category: categoryFilter,
     itemType: itemTypeFilter,
-  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter, warehouseFilter, categoryFilter, itemTypeFilter])
+    brand: brandFilter,
+    businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
+  }), [activeTab, searchQuery, page, pageSize, sortField, sortOrder, activeStoreFilter, warehouseFilter, categoryFilter, itemTypeFilter, brandFilter, selectedOrganization])
 
   // Fetch data function
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -157,16 +207,18 @@ export default function InventoryPage() {
     setError(null)
 
     try {
-      // Fetch inventory and summary in parallel
-      const [inventoryResponse, summaryData] = await Promise.all([
+      // Fetch inventory, summary, and brands in parallel
+      const [inventoryResponse, summaryData, brands] = await Promise.all([
         fetchInventoryData(filters),
         fetchInventorySummary(),
+        getUniqueBrands(),
       ])
 
       setInventoryItems(inventoryResponse.items)
       setTotalPages(inventoryResponse.totalPages)
       setTotalItems(inventoryResponse.total)
       setSummary(summaryData)
+      setAvailableBrands(brands)
     } catch (err) {
       console.error("Failed to load inventory data:", err)
       setError("Failed to load inventory data. Please try again.")
@@ -227,6 +279,11 @@ export default function InventoryPage() {
 
   const handleItemTypeChange = (value: string) => {
     setItemTypeFilter(value as "weight" | "unit" | "all")
+    setPage(1)
+  }
+
+  const handleBrandChange = (value: string) => {
+    setBrandFilter(value)
     setPage(1)
   }
 
@@ -451,6 +508,19 @@ export default function InventoryPage() {
                     </SelectContent>
                   </Select>
 
+                  {/* Brand Filter */}
+                  <Select value={brandFilter} onValueChange={handleBrandChange}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="All Brands" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Brands</SelectItem>
+                      {availableBrands.map((brand) => (
+                        <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
                   {/* Item Type Filter */}
                   <Select value={itemTypeFilter} onValueChange={handleItemTypeChange}>
                     <SelectTrigger className="w-[130px]">
@@ -495,14 +565,32 @@ export default function InventoryPage() {
                         <SortIcon field="productId" />
                       </div>
                     </TableHead>
-                    <TableHead className="hidden lg:table-cell min-w-[180px]">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        Warehouse & Location
+                    <TableHead
+                      className="hidden md:table-cell cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleSort("brand")}
+                    >
+                      <div className="flex items-center">
+                        Brand
+                        <SortIcon field="brand" />
                       </div>
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
                       Item Type
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Channel
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell w-[60px]">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Config</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Stock configuration status</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
@@ -528,7 +616,7 @@ export default function InventoryPage() {
                 <TableBody>
                   {inventoryItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                         No products found matching your search.
                       </TableCell>
                     </TableRow>
@@ -559,8 +647,8 @@ export default function InventoryPage() {
                         <TableCell className="font-mono text-sm text-muted-foreground">
                           {item.barcode || item.productId}
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <WarehouseLocationCell stockLocations={item.warehouseLocations} />
+                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                          {item.brand || "—"}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex items-center gap-2">
@@ -581,11 +669,63 @@ export default function InventoryPage() {
                             </Badge>
                           </div>
                         </TableCell>
+                        {/* Channel Column */}
+                        <TableCell className="hidden xl:table-cell">
+                          <div className="flex flex-wrap gap-1">
+                            {item.channels && item.channels.length > 0 ? (
+                              item.channels.slice(0, 3).map((channel) => (
+                                <Badge
+                                  key={channel}
+                                  variant="outline"
+                                  className={`text-xs px-1.5 py-0.5 ${getChannelBadgeClass(channel)}`}
+                                >
+                                  {getChannelLabel(channel)}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                            {item.channels && item.channels.length > 3 && (
+                              <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                                +{item.channels.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        {/* Config Status Column */}
+                        <TableCell className="hidden lg:table-cell">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex justify-center">
+                                  {item.stockConfigStatus === "valid" && (
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                  )}
+                                  {item.stockConfigStatus === "invalid" && (
+                                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                                  )}
+                                  {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && (
+                                    <Minus className="h-5 w-5 text-gray-400" />
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {item.stockConfigStatus === "valid" && "Stock configuration is correct"}
+                                  {item.stockConfigStatus === "invalid" && "Stock configuration has errors"}
+                                  {(item.stockConfigStatus === "unconfigured" || !item.stockConfigStatus) && "Stock not configured"}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <StockAvailabilityIndicator
                               isAvailable={item.availableStock > 0}
                               stockCount={item.availableStock}
+                              safetyStock={item.safetyStock}
+                              status={item.status}
                             />
                             <span className="text-sm">
                               {item.availableStock}/{item.currentStock}

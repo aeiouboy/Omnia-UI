@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     const pageSize = searchParams.get("pageSize") || "10"
     const status = searchParams.get("status") || ""
     const channel = searchParams.get("channel") || ""
+    const businessUnit = searchParams.get("businessUnit") || ""
     const search = searchParams.get("search") || ""
     const dateFrom = searchParams.get("dateFrom") || ""
     const dateTo = searchParams.get("dateTo") || ""
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
     const paymentStatus = searchParams.get("paymentStatus") || ""
 
     console.log(`🔄 External orders API request:`, {
-      page, pageSize, status, channel, search, dateFrom, dateTo,
+      page, pageSize, status, channel, businessUnit, search, dateFrom, dateTo,
       orderNumber, customerName, phoneNumber, email, exceedSLA, location, items, paymentStatus
     })
 
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
       const mockResult = getMockOrders({
         status: status !== "all-status" ? status : undefined,
         channel: channel !== "all-channels" ? channel : undefined,
+        businessUnit: businessUnit && businessUnit !== "ALL" ? businessUnit : undefined,
         search: search || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -103,6 +105,7 @@ export async function GET(request: Request) {
       const mockResult = getMockOrders({
         status: status !== "all-status" ? status : undefined,
         channel: channel !== "all-channels" ? channel : undefined,
+        businessUnit: businessUnit && businessUnit !== "ALL" ? businessUnit : undefined,
         search: search || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -134,6 +137,7 @@ export async function GET(request: Request) {
       const mockResult = getMockOrders({
         status: status !== "all-status" ? status : undefined,
         channel: channel !== "all-channels" ? channel : undefined,
+        businessUnit: businessUnit && businessUnit !== "ALL" ? businessUnit : undefined,
         search: search || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -166,6 +170,7 @@ export async function GET(request: Request) {
     // Add filters supported by the external API
     if (status && status !== "all-status") apiUrl.searchParams.set("status", status)
     if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
+    if (businessUnit && businessUnit !== "ALL") apiUrl.searchParams.set("businessUnit", businessUnit)
     if (search) apiUrl.searchParams.set("search", search)
     
     // NOTE: The following filters are not yet supported by the external API

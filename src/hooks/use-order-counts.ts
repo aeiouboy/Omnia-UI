@@ -15,7 +15,7 @@ interface UseOrderCountsResult {
   refetch: () => void
 }
 
-export function useOrderCounts(refreshInterval: number = 10000): UseOrderCountsResult {
+export function useOrderCounts(refreshInterval: number = 10000, businessUnit?: string): UseOrderCountsResult {
   const [counts, setCounts] = useState<OrderCounts>({
     breach: 0,
     nearBreach: 0,
@@ -28,7 +28,12 @@ export function useOrderCounts(refreshInterval: number = 10000): UseOrderCountsR
 
   const fetchCounts = useCallback(async () => {
     try {
-      const response = await fetch('/api/orders/counts', {
+      const url = new URL('/api/orders/counts', window.location.origin)
+      if (businessUnit && businessUnit !== 'ALL') {
+        url.searchParams.set('businessUnit', businessUnit)
+      }
+
+      const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +63,7 @@ export function useOrderCounts(refreshInterval: number = 10000): UseOrderCountsR
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [businessUnit])
 
   useEffect(() => {
     // Initial fetch

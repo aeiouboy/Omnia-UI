@@ -32,6 +32,26 @@ export type InventoryStatus = "healthy" | "low" | "critical"
 export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household"
 
 /**
+ * Sales channels where products can be sold
+ */
+export type Channel = "store" | "website" | "Grab" | "LINE MAN" | "Gokoo"
+
+/**
+ * Supply type indicating product availability method
+ * - "On Hand Available": Product is available from current inventory
+ * - "Pre-Order": Product requires pre-ordering before availability
+ */
+export type SupplyType = "On Hand Available" | "Pre-Order"
+
+/**
+ * Stock configuration status
+ * - "valid": Stock configuration is correct and complete
+ * - "invalid": Stock configuration has errors
+ * - "unconfigured": Stock has not been configured yet
+ */
+export type StockConfigStatus = "valid" | "invalid" | "unconfigured"
+
+/**
  * Item type indicating how items are measured and sold
  * - "weight": Items sold by weight (kg) - displayed with 3 decimals (e.g., loose produce, bulk goods)
  * - "pack_weight": Pre-packed items sold by weight (kg) - displayed with 3 decimals (e.g., pre-packed meat, cheese)
@@ -108,6 +128,8 @@ export interface StockLocation extends WarehouseLocation {
   stockUnusable?: number
   /** Safety stock threshold for this location - minimum buffer level */
   stockSafetyStock?: number
+  /** Location operational status - indicates if the location is currently active */
+  locationStatus?: 'Active' | 'Inactive'
 }
 
 /**
@@ -202,6 +224,21 @@ export interface InventoryItem {
   /** Warehouse locations with detailed stock breakdown by status
    * @see {@link StockLocation} for location-level stock details */
   warehouseLocations?: StockLocation[]
+
+  /** Product brand (e.g., "CP", "Betagro", "Thai Union") */
+  brand?: string
+
+  /** Sales channels where product is available */
+  channels?: Channel[]
+
+  /** Supply type indicating availability method */
+  supplyType?: SupplyType
+
+  /** Stock configuration status */
+  stockConfigStatus?: StockConfigStatus
+
+  /** Business unit / organization (e.g., "CRC", "CFR", "CFM", "DS") */
+  businessUnit?: string
 }
 
 /**
@@ -214,6 +251,8 @@ export interface StorePerformance {
   criticalStockItems: number
   totalValue: number
   healthScore: number
+  /** Store operational status - indicates if the store is currently active */
+  storeStatus?: 'Active' | 'Inactive'
 }
 
 /**
@@ -244,8 +283,14 @@ export interface InventoryFilters {
   searchQuery?: string
   page?: number
   pageSize?: number
-  sortBy?: "productName" | "currentStock" | "status" | "lastRestocked"
+  sortBy?: "productName" | "brand" | "currentStock" | "status" | "lastRestocked"
   sortOrder?: "asc" | "desc"
+  /** Filter by brand */
+  brand?: string | "all"
+  /** Filter by sales channels */
+  channels?: Channel[]
+  /** Filter by business unit / organization */
+  businessUnit?: string
 }
 
 /**
