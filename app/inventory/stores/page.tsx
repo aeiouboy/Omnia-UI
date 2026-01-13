@@ -31,7 +31,6 @@ import {
   ChevronRight,
   TrendingUp,
   Activity,
-  Check,
 } from "lucide-react"
 import { fetchStorePerformance } from "@/lib/inventory-service"
 import type { StorePerformance } from "@/types/inventory"
@@ -485,16 +484,6 @@ export default function StockByStorePage() {
                           <SortIcon field="totalProducts" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-center">
-                        <div className="flex items-center justify-center">
-                          Channel
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <div className="flex items-center justify-center">
-                          Config
-                        </div>
-                      </TableHead>
                       <TableHead
                         className="text-center cursor-pointer hover:bg-muted/50"
                         onClick={() => handleSort("lowStockItems")}
@@ -537,7 +526,7 @@ export default function StockByStorePage() {
                   <TableBody>
                     {filteredAndSortedStores.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                           No stores found matching your search.
                         </TableCell>
                       </TableRow>
@@ -556,19 +545,6 @@ export default function StockByStorePage() {
                           </TableCell>
                           <TableCell className="text-center font-semibold">
                             {store.totalProducts}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex flex-wrap justify-center gap-1">
-                              <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300 text-xs">
-                                Store
-                              </Badge>
-                              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
-                                Web
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Check className="h-4 w-4 text-green-600 mx-auto" />
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge
