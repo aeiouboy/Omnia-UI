@@ -1,0 +1,5770 @@
+[
+  {
+    "num": "1",
+    "field_name": "CancelLineCount",
+    "mapping_type": "Logic",
+    "mapping_table": "[OMS-Order] order_lines Table",
+    "mapping_field": "min_fulfillment_status_id",
+    "remarks": "COUNT(OrderLine[] WHERE order_line[].min_fulfillment_status_id = \"9000\")"
+  },
+  {
+    "num": "2",
+    "field_name": "SuspendedOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "3",
+    "field_name": "CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "4",
+    "field_name": "BusinessDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "5",
+    "field_name": "ReturnTrackingDetail[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "6",
+    "field_name": "MaxFulfillmentStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "7",
+    "field_name": "IsOnHold",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "8",
+    "field_name": "Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "9",
+    "field_name": "IsConfirmed",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "10",
+    "field_name": "CurrencyCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "11",
+    "field_name": "SellingLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "12",
+    "field_name": "EventSubmitTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "13",
+    "field_name": "UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "14",
+    "field_name": "FulfillmentStatus",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "15",
+    "field_name": "CustomerFirstName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "16",
+    "field_name": "OrderChargeDetail[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "17",
+    "field_name": "OrderType.OrderTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "18",
+    "field_name": "CountedDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "19",
+    "field_name": "TotalCharges",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "20",
+    "field_name": "OrderLineCount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "21",
+    "field_name": "OrderHold[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "22",
+    "field_name": "OrderToken",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "23",
+    "field_name": "IsArchiveInProgress",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "24",
+    "field_name": "Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "25",
+    "field_name": "CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "26",
+    "field_name": "Priority",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "27",
+    "field_name": "IsCancelled",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "28",
+    "field_name": "OrderTagDetail[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "29",
+    "field_name": "OrderExtension5[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "30",
+    "field_name": "CustomerId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "31",
+    "field_name": "OrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "32",
+    "field_name": "OrderExtension3[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "33",
+    "field_name": "OrderExtension4[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "35",
+    "field_name": "OrderExtension1.UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "36",
+    "field_name": "OrderExtension1.UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "37",
+    "field_name": "OrderExtension1.OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "38",
+    "field_name": "OrderExtension1.CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "39",
+    "field_name": "OrderExtension1.CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "40",
+    "field_name": "OrderExtension1.Extended.LatestT1RedeemTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "41",
+    "field_name": "OrderExtension1.Extended.CancelAllowed",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "42",
+    "field_name": "OrderExtension1.Extended.FullTaxInvoice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "43",
+    "field_name": "OrderExtension1.Extended.LatestPostpaidTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "44",
+    "field_name": "OrderExtension1.Extended.LatestOrderTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "45",
+    "field_name": "OrderExtension1.Extended.LatestPrepaidTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "46",
+    "field_name": "OrderExtension1.Extended.SourceOrderShippingTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "47",
+    "field_name": "OrderExtension1.Extended.AutoSettlement",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "48",
+    "field_name": "OrderExtension1.Extended.TaxId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "49",
+    "field_name": "OrderExtension1.Extended.T1ConversionRate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "50",
+    "field_name": "OrderExtension1.Extended.Extended1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "51",
+    "field_name": "OrderExtension1.Extended.AllowSubstitution",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "52",
+    "field_name": "OrderExtension1.Extended.CompanyName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "53",
+    "field_name": "OrderExtension1.Extended.CustRef",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "54",
+    "field_name": "OrderExtension1.Extended.SourceOrderTotalDiscount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "55",
+    "field_name": "OrderExtension1.Extended.ConfirmPaymentId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "56",
+    "field_name": "OrderExtension1.Extended.SourceOrderSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "57",
+    "field_name": "OrderExtension1.Extended.ExternalMPSellerId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "58",
+    "field_name": "OrderExtension1.Extended.IsPSConfirmed",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "59",
+    "field_name": "OrderExtension1.Extended.LatestOrderSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "60",
+    "field_name": "OrderExtension1.Extended.SourceOrderTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "61",
+    "field_name": "OrderExtension1.Extended.LatestOrderTotalDiscount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "62",
+    "field_name": "OrderExtension1.Extended.T1RedemptionPoint",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "63",
+    "field_name": "OrderExtension1.Extended.BranchNo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "64",
+    "field_name": "OrderExtension1.Extended.T1Number",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "65",
+    "field_name": "OrderExtension1.Extended.T1PhoneNo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "66",
+    "field_name": "OrderExtension1.ContextId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "67",
+    "field_name": "OrderExtension1.Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "68",
+    "field_name": "OrderExtension1.PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "69",
+    "field_name": "OrderExtension1.PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "70",
+    "field_name": "OrderExtension1.Unique_Identifier",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "71",
+    "field_name": "OrderExtension2[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "72",
+    "field_name": "OrderSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "74",
+    "field_name": "Payment[].Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "75",
+    "field_name": "Payment[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "76",
+    "field_name": "Payment[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "77",
+    "field_name": "Payment[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "78",
+    "field_name": "Payment[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "79",
+    "field_name": "Payment[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "80",
+    "field_name": "Payment[].Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "81",
+    "field_name": "Payment[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "82",
+    "field_name": "Payment[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "83",
+    "field_name": "Payment[].OrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "84",
+    "field_name": "Payment[].PaymentGroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "85",
+    "field_name": "Payment[].CustomerId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "86",
+    "field_name": "Payment[].IsCancelled",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "87",
+    "field_name": "Payment[].AlternateOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "88",
+    "field_name": "Payment[].IsAnonymized",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "90",
+    "field_name": "Payment[].PaymentMethod[].Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "91",
+    "field_name": "Payment[].PaymentMethod[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "92",
+    "field_name": "Payment[].PaymentMethod[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "93",
+    "field_name": "Payment[].PaymentMethod[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "94",
+    "field_name": "Payment[].PaymentMethod[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "95",
+    "field_name": "Payment[].PaymentMethod[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "96",
+    "field_name": "Payment[].PaymentMethod[].Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "97",
+    "field_name": "Payment[].PaymentMethod[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "98",
+    "field_name": "Payment[].PaymentMethod[].PaymentMethodId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "99",
+    "field_name": "Payment[].PaymentMethod[].CurrencyCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "100",
+    "field_name": "Payment[].PaymentMethod[].AlternateCurrencyCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "101",
+    "field_name": "Payment[].PaymentMethod[].ConversionRate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "102",
+    "field_name": "Payment[].PaymentMethod[].AlternateCurrencyAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "103",
+    "field_name": "Payment[].PaymentMethod[].AccountNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "104",
+    "field_name": "Payment[].PaymentMethod[].AccountDisplayNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "105",
+    "field_name": "Payment[].PaymentMethod[].NameOnCard",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "106",
+    "field_name": "Payment[].PaymentMethod[].SwipeData",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "107",
+    "field_name": "Payment[].PaymentMethod[].CardExpiryMonth",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "108",
+    "field_name": "Payment[].PaymentMethod[].CardExpiryYear",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "109",
+    "field_name": "Payment[].PaymentMethod[].GiftCardPin",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "110",
+    "field_name": "Payment[].PaymentMethod[].CustomerSignature",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "111",
+    "field_name": "Payment[].PaymentMethod[].CustomerPaySignature",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "112",
+    "field_name": "Payment[].PaymentMethod[].ChangeAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "113",
+    "field_name": "Payment[].PaymentMethod[].Amount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "114",
+    "field_name": "Payment[].PaymentMethod[].CurrentAuthAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "115",
+    "field_name": "Payment[].PaymentMethod[].CurrentSettledAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "116",
+    "field_name": "Payment[].PaymentMethod[].CurrentRefundAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "117",
+    "field_name": "Payment[].PaymentMethod[].ChargeSequence",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "118",
+    "field_name": "Payment[].PaymentMethod[].IsSuspended",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "119",
+    "field_name": "Payment[].PaymentMethod[].EntryTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "120",
+    "field_name": "Payment[].PaymentMethod[].GatewayId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "121",
+    "field_name": "Payment[].PaymentMethod[].RoutingNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "122",
+    "field_name": "Payment[].PaymentMethod[].RoutingDisplayNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "123",
+    "field_name": "Payment[].PaymentMethod[].CheckNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "124",
+    "field_name": "Payment[].PaymentMethod[].DriversLicenseNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "125",
+    "field_name": "Payment[].PaymentMethod[].DriversLicenseState",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "126",
+    "field_name": "Payment[].PaymentMethod[].DriversLicenseCountry",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "127",
+    "field_name": "Payment[].PaymentMethod[].BusinessName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "128",
+    "field_name": "Payment[].PaymentMethod[].BusinessTaxId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "129",
+    "field_name": "Payment[].PaymentMethod[].CheckQuantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "130",
+    "field_name": "Payment[].PaymentMethod[].OriginalAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "131",
+    "field_name": "Payment[].PaymentMethod[].IsModifiable",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "132",
+    "field_name": "Payment[].PaymentMethod[].CurrentFailedAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "133",
+    "field_name": "Payment[].PaymentMethod[].ParentOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "134",
+    "field_name": "Payment[].PaymentMethod[].ParentPaymentGroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "135",
+    "field_name": "Payment[].PaymentMethod[].ParentPaymentMethodId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "136",
+    "field_name": "Payment[].PaymentMethod[].IsVoided",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "137",
+    "field_name": "Payment[].PaymentMethod[].IsCopied",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "138",
+    "field_name": "Payment[].PaymentMethod[].GatewayAccountId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "139",
+    "field_name": "Payment[].PaymentMethod[].LocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "140",
+    "field_name": "Payment[].PaymentMethod[].TransactionReferenceId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "141",
+    "field_name": "Payment[].PaymentMethod[].CapturedInEdgeMode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "142",
+    "field_name": "Payment[].PaymentMethod[].MerchandiseAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "143",
+    "field_name": "Payment[].PaymentMethod[].CapturedSource",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "144",
+    "field_name": "Payment[].PaymentMethod[].ShopperReference",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "145",
+    "field_name": "Payment[].PaymentMethod[].SuggestedAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "146",
+    "field_name": "Payment[].PaymentMethod[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "147",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "148",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "149",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "150",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "151",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "152",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "153",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "154",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "155",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.FirstName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "156",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.LastName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "157",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Address1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "158",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Address2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "159",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Address3",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "160",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.City",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "161",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.State",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "162",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.PostalCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "163",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.County",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "164",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Country",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "165",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Phone",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "166",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Address.Email",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "167",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "168",
+    "field_name": "Payment[].PaymentMethod[].BillingAddress.Extended.AddressRef",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "169",
+    "field_name": "Payment[].PaymentMethod[].PaymentMethodAttribute[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "170",
+    "field_name": "Payment[].PaymentMethod[].PaymentMethodEncrAttribute[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "172",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "173",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "174",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "175",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "176",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "177",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "178",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "179",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "180",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "181",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RequestedAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "182",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RequestId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "183",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RequestToken",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "184",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RequestedDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "185",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].FollowOnId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "186",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].FollowOnToken",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "187",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].TransactionDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "188",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].TransactionExpiryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "189",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ProcessedAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "190",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].FollowOnProcessedAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "191",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RemainingAttempts",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "192",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].FollowOnCount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "193",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ReconciliationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "194",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ExternalResponseId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "195",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ReasonId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "196",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].IsValidForRefund",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "197",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ReAuthOnSettlementFailure",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "198",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].IsActive",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "199",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].RemainingBalance",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "200",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].IsCopied",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "201",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ScheduledTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "202",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].OrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "203",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentGroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "204",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].StoreAndForwardNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "205",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].IsActivation",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "206",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].OnHold",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "207",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].NetworkTransactionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "208",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].UniqueTransactionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "209",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].IsChargeback",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "210",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].NotificationTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "211",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].AlternateOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "212",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "213",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].FollowOnParentTransaction[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "215",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "216",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "217",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "218",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "219",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "220",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "221",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "222",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "223",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].ParentPaymentTransaction.PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "224",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].Name",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "225",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].Value",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "226",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "227",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransAttribute[].Extended",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "228",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransEncrAttribute[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "230",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].Actions",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "231",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "232",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "233",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "234",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "235",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "236",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].Messages",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "237",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "238",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].PaymentTransactionDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "239",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].ReferenceId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "240",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].Amount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "241",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "242",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].ReferenceType.TransactionReferenceTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "243",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].PaymentTransactionDetailGroup[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "244",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionDetail[].Extended",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "245",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionEMVTags",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "246",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentTransactionGroup[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "247",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].TransactionType.PaymentTransactionTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "248",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].Status.PaymentTransactionStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "249",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].AuthorizationType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "250",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].ProcessingMode.ProcessingModeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "251",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].PaymentResponseStatus.PaymentResponseStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "252",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].TransmissionStatus.PaymentTransmissionStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "253",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].InteractionMode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "254",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].NotificationStatus",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "255",
+    "field_name": "Payment[].PaymentMethod[].PaymentTransaction[].Extended",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "256",
+    "field_name": "Payment[].PaymentMethod[].ParentOrderPaymentMethod[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "257",
+    "field_name": "Payment[].PaymentMethod[].PaymentType.PaymentTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "258",
+    "field_name": "Payment[].PaymentMethod[].CardType.CardTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "259",
+    "field_name": "Payment[].PaymentMethod[].AccountType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "260",
+    "field_name": "Payment[].PaymentMethod[].PaymentCategory",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "261",
+    "field_name": "Payment[].PaymentMethod[].Extended.BillingNameString",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "262",
+    "field_name": "Payment[].PaymentMethod[].Extended.BillingAddressString",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "263",
+    "field_name": "Payment[].PaymentMethod[].Extended.InstallmentPlan",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "264",
+    "field_name": "Payment[].PaymentMethod[].Extended.BillingAddressString2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "265",
+    "field_name": "Payment[].PaymentMethod[].Extended.InstallmentRate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "266",
+    "field_name": "Payment[].Status.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "267",
+    "field_name": "Payment[].Extended",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "268",
+    "field_name": "CancelReason",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "269",
+    "field_name": "ParentReservationRequestId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "271",
+    "field_name": "OrderTrackingInfo[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "272",
+    "field_name": "OrderTrackingInfo[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "273",
+    "field_name": "OrderTrackingInfo[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "274",
+    "field_name": "OrderTrackingInfo[].TrackingNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "275",
+    "field_name": "OrderTrackingInfo[].ShippedDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "276",
+    "field_name": "OrderTrackingInfo[].Extended.CRCTrackingURL",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "277",
+    "field_name": "OrderTrackingInfo[].ScheduledDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "278",
+    "field_name": "OrderTrackingInfo[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "279",
+    "field_name": "OrderTrackingInfo[].StatusSubTypeDescription",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "280",
+    "field_name": "OrderTrackingInfo[].TrackingDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "281",
+    "field_name": "OrderTrackingInfo[].PostalCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "282",
+    "field_name": "OrderTrackingInfo[].City",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "283",
+    "field_name": "OrderTrackingInfo[].Date",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "284",
+    "field_name": "OrderTrackingInfo[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "285",
+    "field_name": "OrderTrackingInfo[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "286",
+    "field_name": "OrderTrackingInfo[].State",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "287",
+    "field_name": "OrderTrackingInfo[].StatusDescription",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "288",
+    "field_name": "OrderTrackingInfo[].StatusSubType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "289",
+    "field_name": "OrderTrackingInfo[].ContextId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "290",
+    "field_name": "OrderTrackingInfo[].Country",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "291",
+    "field_name": "OrderTrackingInfo[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "292",
+    "field_name": "OrderTrackingInfo[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "293",
+    "field_name": "OrderTrackingInfo[].Unique_Identifier",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "294",
+    "field_name": "EstimatedDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "295",
+    "field_name": "PackageStatus.PackageStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "296",
+    "field_name": "DeliveredDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "297",
+    "field_name": "OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "298",
+    "field_name": "ContextId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "299",
+    "field_name": "CarrierCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "300",
+    "field_name": "PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "301",
+    "field_name": "PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "302",
+    "field_name": "Unique_Identifier",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "303",
+    "field_name": "OriginalEstimatedDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "304",
+    "field_name": "OrderTrackingAdditional",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "305",
+    "field_name": "ContactPreference[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "306",
+    "field_name": "ReturnLabel[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "307",
+    "field_name": "RelatedOrders[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "308",
+    "field_name": "TotalInformationalTaxes",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "309",
+    "field_name": "ConfirmedDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "310",
+    "field_name": "ArchiveDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "311",
+    "field_name": "TransactionReference[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "312",
+    "field_name": "OrderPromisingInfo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "313",
+    "field_name": "MinReturnStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "314",
+    "field_name": "OrderTaxDetail[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "315",
+    "field_name": "AlternateOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "317",
+    "field_name": "OrderLine[].ParentLineCreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "318",
+    "field_name": "OrderLine[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "319",
+    "field_name": "OrderLine[].BusinessDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "320",
+    "field_name": "OrderLine[].RefundPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "321",
+    "field_name": "OrderLine[].IsHazmat",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "322",
+    "field_name": "OrderLine[].TaxOverrideValue",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "323",
+    "field_name": "OrderLine[].MaxFulfillmentStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "324",
+    "field_name": "OrderLine[].OrderLineCancelHistory[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "325",
+    "field_name": "OrderLine[].StoreSaleEntryMethod",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "326",
+    "field_name": "OrderLine[].IsReturnAllowedByAgePolicy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "327",
+    "field_name": "OrderLine[].ShippingMethodId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "328",
+    "field_name": "OrderLine[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "329",
+    "field_name": "OrderLine[].ItemMaxDiscountPercentage",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "330",
+    "field_name": "OrderLine[].OrderLineSalesAssociate[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "331",
+    "field_name": "OrderLine[].ReleaseGroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "332",
+    "field_name": "OrderLine[].OrderLineSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "333",
+    "field_name": "OrderLine[].ItemStyle",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "334",
+    "field_name": "OrderLine[].ParentOrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "335",
+    "field_name": "OrderLine[].ReturnableQuantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "336",
+    "field_name": "OrderLine[].OrderLineHold[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "337",
+    "field_name": "OrderLine[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "338",
+    "field_name": "OrderLine[].SmallImageURI",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "339",
+    "field_name": "OrderLine[].CarrierCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "340",
+    "field_name": "OrderLine[].ItemBarcode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "342",
+    "field_name": "OrderLine[].QuantityDetail[].Status.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "343",
+    "field_name": "OrderLine[].QuantityDetail[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "344",
+    "field_name": "OrderLine[].QuantityDetail[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "345",
+    "field_name": "OrderLine[].QuantityDetail[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "346",
+    "field_name": "OrderLine[].QuantityDetail[].QuantityDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "347",
+    "field_name": "OrderLine[].QuantityDetail[].WebURL",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "348",
+    "field_name": "OrderLine[].QuantityDetail[].Quantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "349",
+    "field_name": "OrderLine[].QuantityDetail[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "350",
+    "field_name": "OrderLine[].QuantityDetail[].SubstitutionRatio",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "351",
+    "field_name": "OrderLine[].QuantityDetail[].ItemId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "352",
+    "field_name": "OrderLine[].QuantityDetail[].Reason",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "353",
+    "field_name": "OrderLine[].QuantityDetail[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "354",
+    "field_name": "OrderLine[].QuantityDetail[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "355",
+    "field_name": "OrderLine[].QuantityDetail[].SubstitutionType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "356",
+    "field_name": "OrderLine[].QuantityDetail[].UOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "357",
+    "field_name": "OrderLine[].QuantityDetail[].StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "358",
+    "field_name": "OrderLine[].QuantityDetail[].ReasonType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "359",
+    "field_name": "OrderLine[].QuantityDetail[].ChangeLog",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "360",
+    "field_name": "OrderLine[].ChangeLog",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "361",
+    "field_name": "OrderLine[].PromisedShipDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "362",
+    "field_name": "OrderLine[].TotalDiscounts",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "363",
+    "field_name": "OrderLine[].AllocationConfigId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "364",
+    "field_name": "OrderLine[].ShipToAddress.AddressName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "365",
+    "field_name": "OrderLine[].ShipToAddress.AvsReason",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "366",
+    "field_name": "OrderLine[].ShipToAddress.Address.Email",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "367",
+    "field_name": "OrderLine[].ShipToAddress.Address.FirstName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "368",
+    "field_name": "OrderLine[].ShipToAddress.Address.State",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "369",
+    "field_name": "OrderLine[].ShipToAddress.Address.Phone",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "370",
+    "field_name": "OrderLine[].ShipToAddress.Address.Address2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "371",
+    "field_name": "OrderLine[].ShipToAddress.Address.Address3",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "372",
+    "field_name": "OrderLine[].ShipToAddress.Address.Country",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "373",
+    "field_name": "OrderLine[].ShipToAddress.Address.PostalCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "374",
+    "field_name": "OrderLine[].ShipToAddress.Address.LastName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "375",
+    "field_name": "OrderLine[].ShipToAddress.Address.Address1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "376",
+    "field_name": "OrderLine[].ShipToAddress.Address.City",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "377",
+    "field_name": "OrderLine[].ShipToAddress.Address.County",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "378",
+    "field_name": "OrderLine[].ShipToAddress.IsAddressVerified",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "379",
+    "field_name": "OrderLine[].ShipToAddress.Extended.AddressRef",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "380",
+    "field_name": "OrderLine[].ShipToAddress.AddressId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "381",
+    "field_name": "OrderLine[].ServiceLevelCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "382",
+    "field_name": "OrderLine[].ItemDepartmentNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "383",
+    "field_name": "OrderLine[].IsReturnable",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "384",
+    "field_name": "OrderLine[].IsTaxIncluded",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "385",
+    "field_name": "OrderLine[].OrderLinePriceOverrideHistory[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "386",
+    "field_name": "OrderLine[].IsOnHold",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "387",
+    "field_name": "OrderLine[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "388",
+    "field_name": "OrderLine[].IsReceiptExpected",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "389",
+    "field_name": "OrderLine[].OrderLineComponents[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "390",
+    "field_name": "OrderLine[].ItemId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "391",
+    "field_name": "OrderLine[].PhysicalOriginId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "392",
+    "field_name": "OrderLine[].ReturnableLineTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "393",
+    "field_name": "OrderLine[].SellingLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "394",
+    "field_name": "OrderLine[].IsGift",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "395",
+    "field_name": "OrderLine[].FulfillmentStatus",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "396",
+    "field_name": "OrderLine[].ParentOrderLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "397",
+    "field_name": "OrderLine[].TotalCharges",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "398",
+    "field_name": "OrderLine[].ParentOrderLineType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "399",
+    "field_name": "OrderLine[].AddressId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "400",
+    "field_name": "OrderLine[].ShipFromAddress",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "401",
+    "field_name": "OrderLine[].VolumetricWeight",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "402",
+    "field_name": "OrderLine[].Priority",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "403",
+    "field_name": "OrderLine[].OrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "404",
+    "field_name": "OrderLine[].IsPreOrder",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "405",
+    "field_name": "OrderLine[].PromisedDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "406",
+    "field_name": "OrderLine[].ItemTaxCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "407",
+    "field_name": "OrderLine[].CancelReason",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "408",
+    "field_name": "OrderLine[].LatestDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "409",
+    "field_name": "OrderLine[].StreetDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "410",
+    "field_name": "OrderLine[].OrderLinePromotionRequest[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "411",
+    "field_name": "OrderLine[].AlternateOrderLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "413",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.InventorySegmentId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "414",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "415",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ShipFromLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "416",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.CountryOfOrigin",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "417",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "418",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.InventoryTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "419",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ConsolidatationLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "420",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "421",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.AsnId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "422",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.AsnDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "423",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "424",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "425",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.StrategyType.StrategyTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "426",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.BatchNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "427",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.IsForceAllocate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "428",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ProductStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "429",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "430",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.PoDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "431",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ItemAttribute4",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "432",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ItemAttribute3",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "433",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ItemAttribute2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "434",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ItemAttribute1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "435",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.PoId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "436",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ReqCapacityPerUnit",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "437",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ShipThroughLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "438",
+    "field_name": "OrderLine[].OrderLinePromisingInfo.ItemAttribute5",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "439",
+    "field_name": "OrderLine[].DoNotShipBeforeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "441",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].IsInvoiceTax",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "442",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "443",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "444",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxIdentifier5",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "445",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxIdentifier4",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "446",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "447",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].JurisdictionTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "448",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "449",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "450",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].HeaderTaxDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "451",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "452",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "453",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxRate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "454",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "455",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "456",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "457",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxableAmount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "458",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxEngineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "459",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].Jurisdiction",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "460",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].FulfillmentGroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "461",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "462",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].IsInformational",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "463",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxIdentifier3",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "464",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxIdentifier2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "465",
+    "field_name": "OrderLine[].OrderLineTaxDetail[].TaxIdentifier1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "466",
+    "field_name": "OrderLine[].IsItemTaxOverridable",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "467",
+    "field_name": "OrderLine[].OrderLineChargeDetail[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "468",
+    "field_name": "OrderLine[].OrderLineTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "469",
+    "field_name": "OrderLine[].ItemSeason",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "470",
+    "field_name": "OrderLine[].ItemDescription",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "471",
+    "field_name": "OrderLine[].IsItemTaxExemptable",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "473",
+    "field_name": "OrderLine[].Allocation[].InventorySegmentId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "474",
+    "field_name": "OrderLine[].Allocation[].ServiceLevelCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "475",
+    "field_name": "OrderLine[].Allocation[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "476",
+    "field_name": "OrderLine[].Allocation[].AllocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "477",
+    "field_name": "OrderLine[].Allocation[].SubstitutionTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "478",
+    "field_name": "OrderLine[].Allocation[].AllocationType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "479",
+    "field_name": "OrderLine[].Allocation[].ShipFromLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "480",
+    "field_name": "OrderLine[].Allocation[].CountryOfOrigin",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "481",
+    "field_name": "OrderLine[].Allocation[].EarliestDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "482",
+    "field_name": "OrderLine[].Allocation[].AllocatedOn",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "483",
+    "field_name": "OrderLine[].Allocation[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "484",
+    "field_name": "OrderLine[].Allocation[].EarliestShipDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "485",
+    "field_name": "OrderLine[].Allocation[].SubstitutionRatio",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "486",
+    "field_name": "OrderLine[].Allocation[].InventoryTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "487",
+    "field_name": "OrderLine[].Allocation[].ItemId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "488",
+    "field_name": "OrderLine[].Allocation[].IsVirtual",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "489",
+    "field_name": "OrderLine[].Allocation[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "490",
+    "field_name": "OrderLine[].Allocation[].CommittedDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "491",
+    "field_name": "OrderLine[].Allocation[].InventoryAttribute1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "492",
+    "field_name": "OrderLine[].Allocation[].InventoryAttribute2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "493",
+    "field_name": "OrderLine[].Allocation[].InventoryAttribute3",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "494",
+    "field_name": "OrderLine[].Allocation[].InventoryAttribute4",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "495",
+    "field_name": "OrderLine[].Allocation[].InventoryAttribute5",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "496",
+    "field_name": "OrderLine[].Allocation[].AsnId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "497",
+    "field_name": "OrderLine[].Allocation[].AsnDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "498",
+    "field_name": "OrderLine[].Allocation[].Status.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "499",
+    "field_name": "OrderLine[].Allocation[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "500",
+    "field_name": "OrderLine[].Allocation[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "501",
+    "field_name": "OrderLine[].Allocation[].ShipToLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "502",
+    "field_name": "OrderLine[].Allocation[].CommittedShipDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "503",
+    "field_name": "OrderLine[].Allocation[].BatchNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "504",
+    "field_name": "OrderLine[].Allocation[].Quantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "505",
+    "field_name": "OrderLine[].Allocation[].LatestShipDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "506",
+    "field_name": "OrderLine[].Allocation[].ShipViaId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "507",
+    "field_name": "OrderLine[].Allocation[].AllocationDependencyId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "508",
+    "field_name": "OrderLine[].Allocation[].GroupId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "509",
+    "field_name": "OrderLine[].Allocation[].ProductStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "510",
+    "field_name": "OrderLine[].Allocation[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "511",
+    "field_name": "OrderLine[].Allocation[].UOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "512",
+    "field_name": "OrderLine[].Allocation[].PoDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "513",
+    "field_name": "OrderLine[].Allocation[].ReservationRequestDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "514",
+    "field_name": "OrderLine[].Allocation[].CarrierCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "515",
+    "field_name": "OrderLine[].Allocation[].LatestReleaseDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "516",
+    "field_name": "OrderLine[].Allocation[].PoId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "517",
+    "field_name": "OrderLine[].Allocation[].ReservationRequestId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "518",
+    "field_name": "OrderLine[].OrderLineVASInstructions[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "519",
+    "field_name": "OrderLine[].PipelineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "520",
+    "field_name": "OrderLine[].ItemSize",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "521",
+    "field_name": "OrderLine[].IsNonMerchandise",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "522",
+    "field_name": "OrderLine[].LineType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "523",
+    "field_name": "OrderLine[].ShipToLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "524",
+    "field_name": "OrderLine[].ShipFromAddressId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "525",
+    "field_name": "OrderLine[].IsActivationRequired",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "526",
+    "field_name": "OrderLine[].Quantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "527",
+    "field_name": "OrderLine[].IsItemNotOnFile",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "528",
+    "field_name": "OrderLine[].IsPackAndHold",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "529",
+    "field_name": "OrderLine[].IsGiftCard",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "530",
+    "field_name": "OrderLine[].CancelComments",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "531",
+    "field_name": "OrderLine[].MaxFulfillmentStatus.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "532",
+    "field_name": "OrderLine[].VolumetricWeightUOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "534",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.OfferId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "535",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.DeliveryRoute",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "536",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductNameVN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "537",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.NumberOfPack",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "538",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreCountry",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "539",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.MMSDepartment",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "540",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.GWPParentItem",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "541",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductUOMEN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "542",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.CustomerAddressLong",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "543",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.CustomerAddressLat",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "544",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.IsBundle",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "545",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.LatestItemTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "546",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackUnitPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "547",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.LatestItemSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "548",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.IsWeightItem",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "549",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductNameIT",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "550",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "551",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductNameEN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "552",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PromotionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "553",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackItemDescriptionEN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "554",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreLat",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "555",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.MMSSKUType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "556",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreCity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "557",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreEmail",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "558",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpSecretKey",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "559",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ReferenceOrderLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "560",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackSmallImageURI",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "561",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackItemDescriptionTH",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "562",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackOriginalUnitPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "563",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ServiceType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "564",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreAddress2",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "565",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreAddress1",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "566",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackitemDescription",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "567",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreDescription",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "568",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.IsSubstitution",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "569",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.AverageWeight",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "570",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.AverageUnitPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "571",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SlotBookingFrom",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "572",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.CanReturntoWarehouse",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "573",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PackOrderedQty",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "574",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStorePhone",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "575",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SourceItemTotalDiscount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "576",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductNameTH",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "577",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SourceItemTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "578",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStorePostal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "579",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SourceItemSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "580",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SlotBookingId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "581",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.MMSSubDepartment",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "582",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SecretKeyCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "583",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductUOMTH",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "584",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreDistrict",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "585",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PrimaryBarcode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "586",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.IsGiftWrapping",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "587",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "588",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.LatestUnitPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "589",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.JDASKUType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "590",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PromotionType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "591",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.SlotBookingTo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "592",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreLong",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "593",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ActualQuantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "594",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.IsGWP",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "595",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.BundleRefId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "596",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.PickUpStoreSubDistrict",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "597",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.ProductNameDE",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "598",
+    "field_name": "OrderLine[].OrderLineExtension1.Extended.LatestItemTotalDiscount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "600",
+    "field_name": "OrderLine[].FulfillmentDetail[].ShipmentId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "601",
+    "field_name": "OrderLine[].FulfillmentDetail[].ServiceLevelCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "602",
+    "field_name": "OrderLine[].FulfillmentDetail[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "603",
+    "field_name": "OrderLine[].FulfillmentDetail[].TrackingNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "604",
+    "field_name": "OrderLine[].FulfillmentDetail[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "605",
+    "field_name": "OrderLine[].FulfillmentDetail[].PackageDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "606",
+    "field_name": "OrderLine[].FulfillmentDetail[].FulfillmentDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "607",
+    "field_name": "OrderLine[].FulfillmentDetail[].ItemId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "608",
+    "field_name": "OrderLine[].FulfillmentDetail[].FulfillmentId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "609",
+    "field_name": "OrderLine[].FulfillmentDetail[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "610",
+    "field_name": "OrderLine[].FulfillmentDetail[].FulfillmentDetailId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "611",
+    "field_name": "OrderLine[].FulfillmentDetail[].ReturnTrackingNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "612",
+    "field_name": "OrderLine[].FulfillmentDetail[].GcNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "613",
+    "field_name": "OrderLine[].FulfillmentDetail[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "614",
+    "field_name": "OrderLine[].FulfillmentDetail[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "615",
+    "field_name": "OrderLine[].FulfillmentDetail[].GiftCardPIN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "616",
+    "field_name": "OrderLine[].FulfillmentDetail[].Quantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "617",
+    "field_name": "OrderLine[].FulfillmentDetail[].ShipViaId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "618",
+    "field_name": "OrderLine[].FulfillmentDetail[].GiftCardNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "619",
+    "field_name": "OrderLine[].FulfillmentDetail[].ReleaseId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "620",
+    "field_name": "OrderLine[].FulfillmentDetail[].ReleaseLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "621",
+    "field_name": "OrderLine[].FulfillmentDetail[].GcPIN",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "622",
+    "field_name": "OrderLine[].FulfillmentDetail[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "623",
+    "field_name": "OrderLine[].FulfillmentDetail[].UOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "624",
+    "field_name": "OrderLine[].FulfillmentDetail[].Eta",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "625",
+    "field_name": "OrderLine[].FulfillmentDetail[].SerialNumber",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "626",
+    "field_name": "OrderLine[].FulfillmentDetail[].CarrierCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "627",
+    "field_name": "OrderLine[].FulfillmentDetail[].StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "628",
+    "field_name": "OrderLine[].FulfillmentDetail[].PackageId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "629",
+    "field_name": "OrderLine[].OrderLineExtension2[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "630",
+    "field_name": "OrderLine[].UOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "631",
+    "field_name": "OrderLine[].OrderLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "632",
+    "field_name": "OrderLine[].TotalTaxes",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "633",
+    "field_name": "OrderLine[].OrderLineAdditional",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "634",
+    "field_name": "OrderLine[].TransactionReferenceId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "635",
+    "field_name": "OrderLine[].RequestedDeliveryDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "636",
+    "field_name": "OrderLine[].OriginalUnitPrice",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "637",
+    "field_name": "OrderLine[].IsEvenExchange",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "638",
+    "field_name": "OrderLine[].LineProcessInfo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "639",
+    "field_name": "CancelledOrderSubTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "640",
+    "field_name": "CustomerEmail",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "641",
+    "field_name": "DoNotReleaseBefore",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "642",
+    "field_name": "PackageCount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "643",
+    "field_name": "SellingChannel.SellingChannelId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "644",
+    "field_name": "OrderNote[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "645",
+    "field_name": "OrderAttribute[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "646",
+    "field_name": "OrderAttribute[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "647",
+    "field_name": "OrderAttribute[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "648",
+    "field_name": "OrderAttribute[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "649",
+    "field_name": "OrderAttribute[].AttributeValue",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "650",
+    "field_name": "OrderAttribute[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "651",
+    "field_name": "OrderAttribute[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "652",
+    "field_name": "OrderAttribute[].ContextId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "653",
+    "field_name": "OrderAttribute[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "654",
+    "field_name": "OrderAttribute[].AttributeName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "655",
+    "field_name": "OrderAttribute[].PK",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "656",
+    "field_name": "OrderAttribute[].PurgeDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "657",
+    "field_name": "OrderAttribute[].Unique_Identifier",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "658",
+    "field_name": "RunId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "659",
+    "field_name": "MinFulfillmentStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "660",
+    "field_name": "DocType.DocTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "662",
+    "field_name": "Release[].ReleaseType",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "663",
+    "field_name": "Release[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "664",
+    "field_name": "Release[].ServiceLevelCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "665",
+    "field_name": "Release[].ShipToLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "666",
+    "field_name": "Release[].EffectiveRank",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "667",
+    "field_name": "Release[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "668",
+    "field_name": "Release[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "670",
+    "field_name": "Release[].ReleaseLine[].CancelledQuantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "671",
+    "field_name": "Release[].ReleaseLine[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "672",
+    "field_name": "Release[].ReleaseLine[].EffectiveRank",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "673",
+    "field_name": "Release[].ReleaseLine[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "674",
+    "field_name": "Release[].ReleaseLine[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "675",
+    "field_name": "Release[].ReleaseLine[].FulfilledQuantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "676",
+    "field_name": "Release[].ReleaseLine[].AllocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "677",
+    "field_name": "Release[].ReleaseLine[].Quantity",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "678",
+    "field_name": "Release[].ReleaseLine[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "679",
+    "field_name": "Release[].ReleaseLine[].ItemId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "680",
+    "field_name": "Release[].ReleaseLine[].ReleaseLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "681",
+    "field_name": "Release[].ReleaseLine[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "682",
+    "field_name": "Release[].ReleaseLine[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "683",
+    "field_name": "Release[].ReleaseLine[].UOM",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "684",
+    "field_name": "Release[].ReleaseLine[].OrderLineId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "685",
+    "field_name": "Release[].ReleaseLine[].CancelledDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "686",
+    "field_name": "Release[].DeliveryMethodId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "687",
+    "field_name": "Release[].ShipFromLocationId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "688",
+    "field_name": "Release[].ShipViaId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "689",
+    "field_name": "Release[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "690",
+    "field_name": "Release[].ReleaseId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "691",
+    "field_name": "Release[].OrderId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "692",
+    "field_name": "Release[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "693",
+    "field_name": "Release[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "694",
+    "field_name": "Release[].ReleaseExtension1[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "695",
+    "field_name": "Release[].DestinationAction",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "696",
+    "field_name": "Release[].CarrierCode",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "697",
+    "field_name": "PublishStatus.PublishStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "698",
+    "field_name": "MinFulfillmentStatus.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "699",
+    "field_name": "UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "700",
+    "field_name": "ReturnLabelEmail",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "701",
+    "field_name": "MaxReturnStatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "702",
+    "field_name": "ProcessInfo",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "704",
+    "field_name": "OrderMilestoneEvent[].MonitoringRuleId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "705",
+    "field_name": "OrderMilestoneEvent[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "706",
+    "field_name": "OrderMilestoneEvent[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "707",
+    "field_name": "OrderMilestoneEvent[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "708",
+    "field_name": "OrderMilestoneEvent[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "709",
+    "field_name": "OrderMilestoneEvent[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "710",
+    "field_name": "OrderMilestoneEvent[].EventTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "711",
+    "field_name": "OrderMilestoneEvent[].MilestoneDefinitionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "712",
+    "field_name": "OrderMilestoneEvent[].EventId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "713",
+    "field_name": "OrderMilestoneEvent[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "714",
+    "field_name": "CancelComments",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "715",
+    "field_name": "MaxFulfillmentStatus.StatusId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "716",
+    "field_name": "MerchSaleLineCount",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "717",
+    "field_name": "CustomerIdentityDoc[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "719",
+    "field_name": "OrderMilestone[].MonitoringRuleId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "720",
+    "field_name": "OrderMilestone[].UpdatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "721",
+    "field_name": "OrderMilestone[].OrgId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "722",
+    "field_name": "OrderMilestone[].UpdatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "723",
+    "field_name": "OrderMilestone[].CreatedBy",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "724",
+    "field_name": "OrderMilestone[].CreatedTimestamp",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "725",
+    "field_name": "OrderMilestone[].ExpectedTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "726",
+    "field_name": "OrderMilestone[].ActualTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "727",
+    "field_name": "OrderMilestone[].MilestoneDefinitionId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "728",
+    "field_name": "OrderMilestone[].Process",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "729",
+    "field_name": "OrderMilestone[].NextEventTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "730",
+    "field_name": "OrderLocale",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "731",
+    "field_name": "IsOrderCountable",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "732",
+    "field_name": "TotalTaxes",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "733",
+    "field_name": "CustomerLastName",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "734",
+    "field_name": "CapturedDate",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "735",
+    "field_name": "CustomerTypeId",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "736",
+    "field_name": "NextEventTime",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "737",
+    "field_name": "ChangeLog.ModTypes.Order[]",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "738",
+    "field_name": "OrderTotal",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  },
+  {
+    "num": "739",
+    "field_name": "TotalDiscounts",
+    "mapping_type": "",
+    "mapping_table": "",
+    "mapping_field": "",
+    "remarks": ""
+  }
+]

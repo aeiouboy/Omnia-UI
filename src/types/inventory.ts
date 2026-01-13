@@ -52,6 +52,20 @@ export type SupplyType = "On Hand Available" | "Pre-Order"
 export type StockConfigStatus = "valid" | "invalid" | "unconfigured"
 
 /**
+ * Inventory view types for mandatory view filtering
+ * User must select a view before inventory data is displayed
+ */
+export type InventoryViewType =
+  | "all-inventory"
+  | "available-stock"
+  | "low-stock"
+  | "out-of-stock"
+  | "reserved-stock"
+  | "damaged-quarantine"
+  | "by-warehouse"
+  | "by-channel"
+
+/**
  * Item type indicating how items are measured and sold
  * - "weight": Items sold by weight (kg) - displayed with 3 decimals (e.g., loose produce, bulk goods)
  * - "pack_weight": Pre-packed items sold by weight (kg) - displayed with 3 decimals (e.g., pre-packed meat, cheese)
@@ -296,6 +310,8 @@ export interface InventoryFilters {
   businessUnit?: string
   /** Filter by view configuration */
   view?: string | "all"
+  /** Mandatory inventory view selection */
+  inventoryView?: InventoryViewType
 }
 
 /**
@@ -337,8 +353,10 @@ export interface StockAlertsResponse {
  * - "stock_out": Outbound stock (sales, shipments). Also known as "Goods Issue"
  * - "adjustment": Inventory corrections (recount, damage, expiry, theft)
  * - "return": Customer or supplier returns (reverse transaction)
+ * - "transfer": Stock movement between warehouses/locations
+ * - "allocation": Stock reserved/allocated for specific orders or purposes
  */
-export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
+export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return" | "transfer" | "allocation"
 
 /**
  * Stock transaction record
@@ -351,11 +369,15 @@ export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
  * - stock_out: Decreases availableStock by quantity
  * - adjustment: Can increase or decrease (quantity can be negative)
  * - return: Increases availableStock (reverses previous stock_out)
+ * - transfer: Decreases at source, increases at destination
+ * - allocation: Reserves stock for specific purpose (decreases available)
  *
  * Reference IDs:
  * - For stock_out with referenceId: Links to order (e.g., "ORD-12345")
  * - For return with referenceId: Links to original order
  * - For stock_in with referenceId: Links to PO or supplier invoice
+ * - For transfer with referenceId: Links to transfer document (e.g., "TRF-12345")
+ * - For allocation with referenceId: Links to order or allocation request
  */
 export interface StockTransaction {
   id: string
@@ -394,6 +416,15 @@ export interface StockTransaction {
 
   /** Item type for proper quantity formatting in UI */
   itemType?: ItemType
+
+  /** Source warehouse for transfer transactions */
+  transferFrom?: string
+
+  /** Destination warehouse for transfer transactions */
+  transferTo?: string
+
+  /** Type of allocation for allocation transactions */
+  allocationType?: "order" | "hold" | "reserve"
 }
 
 /**
@@ -457,4 +488,76 @@ export interface InventoryItemDB {
   item_type?: string
   created_at?: string
   updated_at?: string
+}
+
+/**
+ * Status types for allocate-by-order transactions
+ */
+export type AllocateByOrderStatus = "pending" | "confirmed" | "cancelled"
+
+/**
+ * Allocate by Order Transaction record
+ *
+ * @remarks
+ * Represents a stock allocation tied to a specific order.
+ * These transactions track how inventory is allocated to fulfill customer orders.
+ *
+ * Workflow:
+ * - pending: Allocation created, awaiting confirmation
+ * - confirmed: Allocation confirmed and stock reserved
+ * - cancelled: Allocation cancelled, stock returned to available
+ */
+export interface AllocateByOrderTransaction {
+  /** Unique transaction identifier */
+  id: string
+  /** Order ID for linking to order details */
+  order_id: string
+  /** Human-readable order number (e.g., "ORD-12345") */
+  order_no: string
+  /** Timestamp when allocation was made (ISO 8601 format) */
+  allocated_at: string
+  /** Quantity of items allocated */
+  quantity: number
+  /** Warehouse ID where stock is allocated from */
+  warehouse_id: string
+  /** Human-readable warehouse name */
+  warehouse_name: string
+  /** Current status of the allocation */
+  status: AllocateByOrderStatus
+  /** User ID who performed the allocation */
+  allocated_by: string
+  /** Human-readable name of user who performed the allocation */
+  allocated_by_name: string
+}
+
+/**
+ * Filter parameters for transaction history queries
+ */
+export interface TransactionHistoryFilters {
+  /** Page number (1-indexed) */
+  page?: number
+  /** Number of items per page */
+  pageSize?: number
+  /** Start date for filtering (ISO 8601 format) */
+  dateFrom?: string
+  /** End date for filtering (ISO 8601 format) */
+  dateTo?: string
+  /** Filter by transaction type */
+  transactionType?: TransactionType | "all"
+}
+
+/**
+ * Response structure for paginated transaction history
+ */
+export interface TransactionHistoryResponse {
+  /** Array of transactions */
+  transactions: StockTransaction[]
+  /** Total number of transactions matching filters */
+  total: number
+  /** Current page number */
+  page: number
+  /** Number of items per page */
+  pageSize: number
+  /** Total number of pages */
+  totalPages: number
 }

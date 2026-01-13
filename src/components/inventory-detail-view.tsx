@@ -43,8 +43,11 @@ import {
 } from "@/components/ui/tooltip"
 import { StockHistoryChart } from "./stock-history-chart"
 import { RecentTransactionsTable } from "./recent-transactions-table"
+import { AllocateByOrderTable } from "./allocate-by-order-table"
 import StockAvailabilityIndicator from "./inventory/stock-availability-indicator"
 import { StockByStoreTable } from "./inventory/stock-by-store-table"
+import { TransactionHistorySection } from "./inventory/transaction-history-section"
+import { useAllocateTransactions } from "@/hooks/use-allocate-transactions"
 import {
   formatWarehouseCode,
   getStockStatusColor,
@@ -102,6 +105,14 @@ export function InventoryDetailView({
   storeContext,
 }: InventoryDetailViewProps) {
   const router = useRouter()
+
+  // Fetch allocate-by-order transactions
+  const {
+    data: allocateTransactions,
+    loading: allocateLoading,
+    error: allocateError,
+    refetch: refetchAllocate,
+  } = useAllocateTransactions(item.id)
 
   // Filter transactions by store context when provided
   // Import the store-to-warehouse mapping function at the top of the file
@@ -491,8 +502,24 @@ export function InventoryDetailView({
         productName={item.productName}
       />
 
-      {/* Recent Transactions */}
+      {/* Recent Transactions (Quick Overview - Last 10) */}
       <RecentTransactionsTable transactions={filteredTransactions} />
+
+      {/* Full Transaction History Section */}
+      <TransactionHistorySection
+        productId={item.id}
+        productName={item.productName}
+        itemType={item.itemType}
+        storeContext={storeContext}
+      />
+
+      {/* Allocate by Order Transactions */}
+      <AllocateByOrderTable
+        transactions={allocateTransactions || []}
+        loading={allocateLoading}
+        error={allocateError}
+        onRetry={refetchAllocate}
+      />
     </div>
   )
 }

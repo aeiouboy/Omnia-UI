@@ -21,6 +21,8 @@ import type {
   Channel,
   SupplyType,
   StockConfigStatus,
+  AllocateByOrderTransaction,
+  AllocateByOrderStatus,
 } from "@/types/inventory"
 
 /**
@@ -1064,21 +1066,25 @@ export function generateMockStockHistory(productId: string): StockHistoryPoint[]
  * Generate mock transaction history for a product
  * Generates transactions in chronological order (oldest first), calculates sequential balances,
  * then returns in reverse chronological order (most recent first) for display
+ *
+ * @param productId - Product ID or inventory item ID
+ * @param count - Number of transactions to generate (default: 50-100 random)
  */
-export function generateMockTransactions(productId: string): StockTransaction[] {
+export function generateMockTransactions(productId: string, count?: number): StockTransaction[] {
   const item = mockInventoryItems.find((i) => i.id === productId || i.productId === productId)
   if (!item) return []
 
   const transactions: StockTransaction[] = []
-  const transactionCount = 10 + Math.floor(Math.random() * 10) // 10-20 transactions
+  // Generate 50-100 transactions for comprehensive history
+  const transactionCount = count ?? (50 + Math.floor(Math.random() * 50))
   const today = new Date()
 
-  const users = ["John Smith", "Sarah Johnson", "Mike Chen", "Lisa Wong", "David Kim"]
+  const users = ["John Smith", "Sarah Johnson", "Mike Chen", "Lisa Wong", "David Kim", "Amy Wang", "Tom Brown"]
 
   // Generate timestamps in chronological order (oldest to newest)
   const timestamps: Date[] = []
   for (let i = 0; i < transactionCount; i++) {
-    const daysAgo = 60 - Math.floor((60 / transactionCount) * i) // Spread over 60 days, oldest first
+    const daysAgo = 90 - Math.floor((90 / transactionCount) * i) // Spread over 90 days, oldest first
     const timestamp = new Date(today)
     timestamp.setDate(timestamp.getDate() - daysAgo)
     timestamp.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60))
@@ -1102,6 +1108,9 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
     return channels[2]
   }
 
+  // Allocation types for allocation transactions
+  const allocationTypes: ("order" | "hold" | "reserve")[] = ["order", "hold", "reserve"]
+
   for (let i = 0; i < transactionCount; i++) {
     const timestamp = timestamps[i]
     const user = users[Math.floor(Math.random() * users.length)]
@@ -1116,6 +1125,9 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
     let type: TransactionType
     let quantity: number
     let balanceChange: number
+    let transferFrom: string | undefined
+    let transferTo: string | undefined
+    let allocationType: "order" | "hold" | "reserve" | undefined
 
     if (i === 0) {
       // First transaction is always stock_in (initial restocking)
@@ -1131,25 +1143,30 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       let typeWeights: number[]
 
       if (balanceRatio < 0.3) {
-        // Low stock: 60% stock_in, 20% adjustment, 15% return, 5% stock_out
-        typeWeights = [0.6, 0.05, 0.2, 0.15]
+        // Low stock: 50% stock_in, 5% stock_out, 15% adjustment, 10% return, 10% transfer, 10% allocation
+        typeWeights = [0.50, 0.05, 0.15, 0.10, 0.10, 0.10]
       } else if (balanceRatio > 0.8) {
-        // High stock: 10% stock_in, 70% stock_out, 10% adjustment, 10% return
-        typeWeights = [0.1, 0.7, 0.1, 0.1]
+        // High stock: 5% stock_in, 55% stock_out, 10% adjustment, 10% return, 10% transfer, 10% allocation
+        typeWeights = [0.05, 0.55, 0.10, 0.10, 0.10, 0.10]
       } else {
-        // Normal: 25% stock_in, 45% stock_out, 15% adjustment, 15% return
-        typeWeights = [0.25, 0.45, 0.15, 0.15]
+        // Normal: 15% stock_in, 35% stock_out, 15% adjustment, 10% return, 15% transfer, 10% allocation
+        typeWeights = [0.15, 0.35, 0.15, 0.10, 0.15, 0.10]
       }
 
       const rand = Math.random()
-      if (rand < typeWeights[0]) {
+      let cumulative = 0
+      if (rand < (cumulative += typeWeights[0])) {
         type = "stock_in"
-      } else if (rand < typeWeights[0] + typeWeights[1]) {
+      } else if (rand < (cumulative += typeWeights[1])) {
         type = "stock_out"
-      } else if (rand < typeWeights[0] + typeWeights[1] + typeWeights[2]) {
+      } else if (rand < (cumulative += typeWeights[2])) {
         type = "adjustment"
-      } else {
+      } else if (rand < (cumulative += typeWeights[3])) {
         type = "return"
+      } else if (rand < (cumulative += typeWeights[4])) {
+        type = "transfer"
+      } else {
+        type = "allocation"
       }
 
       // Determine quantity based on type
@@ -1161,7 +1178,7 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
         case "stock_out":
           // Ensure we don't go negative
           const maxOut = Math.min(runningBalance - 10, 60) // Keep at least 10 in stock
-          quantity = Math.max(10, Math.floor(Math.random() * maxOut) + 10) // 10 to maxOut units
+          quantity = Math.max(10, Math.floor(Math.random() * Math.max(maxOut, 10)) + 10) // 10 to maxOut units
           balanceChange = -quantity
           break
         case "adjustment":
@@ -1175,6 +1192,26 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
           quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units
           balanceChange = quantity
           break
+        case "transfer":
+          // Transfer out from this location
+          const maxTransfer = Math.min(runningBalance - 10, 40) // Keep at least 10 in stock
+          quantity = Math.max(5, Math.floor(Math.random() * Math.max(maxTransfer, 5)) + 5) // 5 to maxTransfer units
+          balanceChange = -quantity // Transfer reduces local balance
+          // Set transfer source and destination
+          transferFrom = location?.warehouseCode || WAREHOUSE_CODES[0]
+          transferTo = WAREHOUSE_CODES[Math.floor(Math.random() * WAREHOUSE_CODES.length)]
+          // Ensure different warehouses
+          if (transferTo === transferFrom) {
+            transferTo = WAREHOUSE_CODES[(WAREHOUSE_CODES.indexOf(transferFrom) + 1) % WAREHOUSE_CODES.length]
+          }
+          break
+        case "allocation":
+          // Allocate stock for order/hold/reserve
+          const maxAlloc = Math.min(runningBalance - 10, 30) // Keep at least 10 in stock
+          quantity = Math.max(3, Math.floor(Math.random() * Math.max(maxAlloc, 3)) + 3) // 3 to maxAlloc units
+          balanceChange = -quantity // Allocation reduces available balance
+          allocationType = allocationTypes[Math.floor(Math.random() * allocationTypes.length)]
+          break
         default:
           quantity = 0
           balanceChange = 0
@@ -1185,9 +1222,23 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
     }
 
     const channel = (type === "stock_out" || type === "return") ? randomChannel() : undefined
-    const referenceId = (type === "stock_out" || type === "return")
-      ? `ORD-${Math.floor(Math.random() * 10000)}`
-      : undefined
+
+    // Generate reference IDs based on transaction type
+    let referenceId: string | undefined
+    if (type === "stock_out" || type === "return") {
+      referenceId = `ORD-${Math.floor(Math.random() * 10000)}`
+    } else if (type === "transfer") {
+      referenceId = `TRF-${Math.floor(Math.random() * 10000)}`
+    } else if (type === "allocation") {
+      referenceId = allocationType === "order"
+        ? `ORD-${Math.floor(Math.random() * 10000)}`
+        : `ALLOC-${Math.floor(Math.random() * 10000)}`
+    } else if (type === "stock_in") {
+      // 50% chance of having a PO reference
+      if (Math.random() > 0.5) {
+        referenceId = `PO-${Math.floor(Math.random() * 10000)}`
+      }
+    }
 
     transactions.push({
       id: `TXN-${item.productId}-${i.toString().padStart(3, '0')}`,
@@ -1204,6 +1255,9 @@ export function generateMockTransactions(productId: string): StockTransaction[] 
       locationCode: location?.locationCode,
       channel,
       itemType: item.itemType,
+      transferFrom,
+      transferTo,
+      allocationType,
     })
   }
 
@@ -1270,8 +1324,194 @@ function generateTransactionNotes(type: TransactionType): string {
       "Product expired",
       "Wrong item received",
     ],
+    transfer: [
+      "Inter-warehouse transfer",
+      "Store replenishment",
+      "Distribution center transfer",
+      "Regional rebalancing",
+    ],
+    allocation: [
+      "Order reservation",
+      "Customer hold request",
+      "Promotional campaign reserve",
+      "Pre-order allocation",
+    ],
   }
 
   const typeNotes = notes[type] || ["Transaction processed"]
   return typeNotes[Math.floor(Math.random() * typeNotes.length)]
+}
+
+/**
+ * Filter mock transactions with pagination, date range, and type filtering
+ *
+ * @param transactions - Array of all transactions
+ * @param filters - Filter parameters
+ * @returns Filtered and paginated transactions with metadata
+ */
+export function filterMockTransactions(
+  transactions: StockTransaction[],
+  filters: {
+    page?: number
+    pageSize?: number
+    dateFrom?: string
+    dateTo?: string
+    transactionType?: TransactionType | "all"
+  }
+): {
+  transactions: StockTransaction[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+} {
+  const page = filters.page ?? 1
+  const pageSize = filters.pageSize ?? 25
+  let filtered = [...transactions]
+
+  // Apply date range filter
+  if (filters.dateFrom) {
+    const fromDate = new Date(filters.dateFrom)
+    fromDate.setHours(0, 0, 0, 0)
+    filtered = filtered.filter((t) => new Date(t.timestamp) >= fromDate)
+  }
+
+  if (filters.dateTo) {
+    const toDate = new Date(filters.dateTo)
+    toDate.setHours(23, 59, 59, 999)
+    filtered = filtered.filter((t) => new Date(t.timestamp) <= toDate)
+  }
+
+  // Apply transaction type filter
+  if (filters.transactionType && filters.transactionType !== "all") {
+    filtered = filtered.filter((t) => t.type === filters.transactionType)
+  }
+
+  // Calculate pagination
+  const total = filtered.length
+  const totalPages = Math.ceil(total / pageSize)
+  const from = (page - 1) * pageSize
+  const to = from + pageSize
+  const paginatedTransactions = filtered.slice(from, to)
+
+  return {
+    transactions: paginatedTransactions,
+    total,
+    page,
+    pageSize,
+    totalPages,
+  }
+}
+
+/**
+ * Generate mock allocate-by-order transactions for an inventory item
+ *
+ * @param productId - Product identifier to generate transactions for
+ * @returns Array of AllocateByOrderTransaction objects
+ */
+export function generateMockAllocateTransactions(productId: string): AllocateByOrderTransaction[] {
+  const item = mockInventoryItems.find((i) => i.id === productId || i.productId === productId)
+  if (!item) return []
+
+  const transactions: AllocateByOrderTransaction[] = []
+
+  // Use product ID to seed deterministic but varied results
+  const seed = productId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const transactionCount = 5 + (seed % 6) // 5-10 transactions
+
+  const users = [
+    { id: "USR-001", name: "John Smith" },
+    { id: "USR-002", name: "Sarah Johnson" },
+    { id: "USR-003", name: "Mike Chen" },
+    { id: "USR-004", name: "Lisa Wong" },
+    { id: "USR-005", name: "David Kim" },
+  ]
+
+  const statuses: AllocateByOrderStatus[] = ["pending", "confirmed", "cancelled"]
+  const statusWeights = [0.25, 0.60, 0.15] // 25% pending, 60% confirmed, 15% cancelled
+
+  const today = new Date()
+
+  for (let i = 0; i < transactionCount; i++) {
+    // Generate deterministic but varied order number
+    const orderNum = 10000 + ((seed * (i + 1) * 7) % 90000)
+
+    // Generate timestamp (spread over last 30 days)
+    const daysAgo = (seed + i * 3) % 30
+    const hoursAgo = (seed + i * 5) % 24
+    const timestamp = new Date(today)
+    timestamp.setDate(timestamp.getDate() - daysAgo)
+    timestamp.setHours(timestamp.getHours() - hoursAgo)
+
+    // Pick warehouse from item's locations or use default
+    const location = item.warehouseLocations && item.warehouseLocations.length > 0
+      ? item.warehouseLocations[(seed + i) % item.warehouseLocations.length]
+      : null
+
+    const warehouseId = location?.warehouseCode || WAREHOUSE_CODES[(seed + i) % WAREHOUSE_CODES.length]
+
+    // Map warehouse codes to readable names
+    const warehouseNames: Record<string, string> = {
+      "CDC-BKK01": "Bangkok Central DC",
+      "CDC-BKK02": "Bangkok Central DC 2",
+      "CDC-NTH01": "Northern Distribution Center",
+      "CDC-STH01": "Southern Distribution Center",
+      "RWH-LP": "Lat Phrao Regional Warehouse",
+      "RWH-CW": "Central World Regional Warehouse",
+      "RWH-SK": "Sukhumvit Regional Warehouse",
+      "RWH-SL": "Silom Regional Warehouse",
+      "STW-001": "Store Warehouse 001",
+      "STW-002": "Store Warehouse 002",
+      "STW-003": "Store Warehouse 003",
+      "STW-005": "Store Warehouse 005",
+      "STW-008": "Store Warehouse 008",
+      "STW-010": "Store Warehouse 010",
+      "FDC-BKK": "Fresh Food DC Bangkok",
+      "FDC-PRV": "Fresh Food DC Provincial",
+      "CMG": "Central Mega",
+      "TPS-1005": "Tops 1005",
+      "TPS-1055": "Tops 1055",
+      "TPS-2001": "Tops 2001",
+      "TPS-2002": "Tops 2002",
+    }
+    const warehouseName = warehouseNames[warehouseId] || warehouseId
+
+    // Determine status based on weighted random
+    const statusRand = ((seed + i * 11) % 100) / 100
+    let status: AllocateByOrderStatus
+    if (statusRand < statusWeights[0]) {
+      status = "pending"
+    } else if (statusRand < statusWeights[0] + statusWeights[1]) {
+      status = "confirmed"
+    } else {
+      status = "cancelled"
+    }
+
+    // Pick user
+    const user = users[(seed + i) % users.length]
+
+    // Generate quantity (1-20 for unit items, 0.5-10kg for weight items)
+    const baseQuantity = 1 + ((seed + i * 13) % 20)
+    const quantity = (item.itemType === "weight" || item.itemType === "pack_weight")
+      ? parseFloat((baseQuantity * 0.5).toFixed(3))
+      : baseQuantity
+
+    transactions.push({
+      id: `ALLOC-${productId}-${i.toString().padStart(3, '0')}`,
+      order_id: orderNum.toString(),
+      order_no: `ORD-${orderNum}`,
+      allocated_at: timestamp.toISOString(),
+      quantity,
+      warehouse_id: warehouseId,
+      warehouse_name: warehouseName,
+      status,
+      allocated_by: user.id,
+      allocated_by_name: user.name,
+    })
+  }
+
+  // Sort by most recent first
+  transactions.sort((a, b) => new Date(b.allocated_at).getTime() - new Date(a.allocated_at).getTime())
+
+  return transactions
 }

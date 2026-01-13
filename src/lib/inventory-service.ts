@@ -14,6 +14,7 @@ import {
   generateMockStockHistory,
   generateMockTransactions,
   generateStorePerformanceFromInventory,
+  filterMockTransactions,
   BRANDS,
 } from "./mock-inventory-data"
 import type {
@@ -27,6 +28,8 @@ import type {
   InventoryItemDB,
   StockTransaction,
   StockHistoryPoint,
+  TransactionHistoryFilters,
+  TransactionHistoryResponse,
 } from "@/types/inventory"
 
 /**
@@ -147,6 +150,32 @@ function applyFilters(
     filtered = filtered.filter((item) =>
       filters.channels!.some((channel) => item.channels?.includes(channel))
     )
+  }
+
+  // Filter by inventory view (mandatory view filtering)
+  if (filters.inventoryView && filters.inventoryView !== "all-inventory") {
+    switch (filters.inventoryView) {
+      case "available-stock":
+        filtered = filtered.filter((item) => item.availableStock > 0)
+        break
+      case "low-stock":
+        filtered = filtered.filter((item) => item.status === "low")
+        break
+      case "out-of-stock":
+        filtered = filtered.filter((item) => item.status === "critical")
+        break
+      case "reserved-stock":
+        filtered = filtered.filter((item) => item.reservedStock > 0)
+        break
+      case "damaged-quarantine":
+        filtered = filtered.filter((item) =>
+          item.warehouseLocations?.some(
+            (loc) => (loc.stockUnusable || 0) > 0 || (loc.stockOnHold || 0) > 0
+          )
+        )
+        break
+      // by-warehouse and by-channel use existing warehouseCode and channels filters
+    }
   }
 
   // Filter by search query
@@ -453,16 +482,19 @@ export async function fetchStockAlerts(
 /**
  * Get inventory summary statistics
  *
- * This function calculates summary KPIs across ALL inventory items, not just
- * a single page. For mock data, we use mockInventoryItems directly for efficiency.
- * For Supabase, we fetch all items by setting a large pageSize.
+ * This function calculates summary KPIs based on the provided filters.
+ * For mock data, we apply filters to mockInventoryItems.
+ * For Supabase, we fetch filtered items.
+ *
+ * @param filters - Optional filter parameters (view, brand, etc.)
  */
-export async function fetchInventorySummary() {
+export async function fetchInventorySummary(filters?: InventoryFilters) {
   try {
     // For efficiency, use mockInventoryItems directly when Supabase is not available
-    // This ensures we count ALL items, not just the first page (default pageSize: 25)
+    // Apply filters to get accurate counts for the selected view
     if (!isSupabaseAvailable()) {
-      const items = mockInventoryItems
+      // Apply filters if provided, otherwise use all items
+      const items = filters ? applyFilters(mockInventoryItems, filters) : mockInventoryItems
 
       return {
         totalProducts: items.length,
@@ -476,8 +508,8 @@ export async function fetchInventorySummary() {
       }
     }
 
-    // For Supabase, fetch all items by setting a large pageSize
-    const data = await fetchInventoryData({ pageSize: 1000 })
+    // For Supabase, fetch filtered items by setting a large pageSize
+    const data = await fetchInventoryData({ ...filters, pageSize: 1000 })
     const items = data.items
 
     // Handle empty data gracefully
@@ -612,6 +644,43 @@ export async function fetchRecentTransactions(
   // Use mock data generator
   const allTransactions = generateMockTransactions(productId)
   return allTransactions.slice(0, limit)
+}
+
+/**
+ * Fetch full transaction history for a product with pagination and filtering
+ *
+ * @param productId - Product ID or inventory item ID
+ * @param filters - Optional filter parameters (page, pageSize, dateFrom, dateTo, transactionType)
+ * @returns Promise<TransactionHistoryResponse>
+ */
+export async function fetchTransactionHistory(
+  productId: string,
+  filters?: TransactionHistoryFilters
+): Promise<TransactionHistoryResponse> {
+  try {
+    if (isSupabaseAvailable()) {
+      // TODO: Implement database query for full transaction history
+      // This would require a stock_transactions table with proper indexing
+      // Query should support:
+      // - Pagination (LIMIT/OFFSET)
+      // - Date range filtering (WHERE timestamp BETWEEN ...)
+      // - Transaction type filtering (WHERE type = ...)
+      // - Ordering (ORDER BY timestamp DESC)
+      console.info("Transaction history from database not yet implemented, using mock data")
+    }
+  } catch (error) {
+    console.warn("Failed to fetch transaction history from database:", error)
+  }
+
+  // Use mock data generator with filtering
+  const allTransactions = generateMockTransactions(productId)
+  return filterMockTransactions(allTransactions, {
+    page: filters?.page,
+    pageSize: filters?.pageSize,
+    dateFrom: filters?.dateFrom,
+    dateTo: filters?.dateTo,
+    transactionType: filters?.transactionType,
+  })
 }
 
 /**

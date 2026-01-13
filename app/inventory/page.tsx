@@ -59,6 +59,8 @@ import type {
   ProductCategory,
   Channel,
 } from "@/types/inventory"
+import { InventoryViewSelector } from "@/components/inventory/inventory-view-selector"
+import { InventoryEmptyState } from "@/components/inventory/inventory-empty-state"
 
 type SortField = "productName" | "productId" | "brand" | "currentStock" | "status"
 type SortOrder = "asc" | "desc"
@@ -166,7 +168,7 @@ export default function InventoryPage() {
     totalInventoryValue: 0,
   })
 
-  // Read store filter from URL
+  // Read store and view filters from URL
   useEffect(() => {
     const storeParam = searchParams.get("store")
     if (storeParam) {
@@ -179,6 +181,12 @@ export default function InventoryPage() {
       }
     } else {
       setActiveStoreFilter(null)
+    }
+
+    // Read view filter from URL
+    const viewParam = searchParams.get("view")
+    if (viewParam) {
+      setViewFilter(viewParam)
     }
   }, [searchParams])
 
@@ -201,6 +209,13 @@ export default function InventoryPage() {
 
   // Fetch data function
   const loadData = useCallback(async (showLoadingState = true) => {
+    // Don't fetch if no view selected (mandatory view filtering)
+    if (!viewFilter || viewFilter === "all") {
+      setLoading(false)
+      setInventoryItems([])
+      return
+    }
+
     if (showLoadingState) {
       setLoading(true)
     } else {
@@ -209,10 +224,10 @@ export default function InventoryPage() {
     setError(null)
 
     try {
-      // Fetch inventory, summary, and brands in parallel
+      // Fetch inventory, summary (with view filter), and brands in parallel
       const [inventoryResponse, summaryData, brands] = await Promise.all([
         fetchInventoryData(filters),
-        fetchInventorySummary(),
+        fetchInventorySummary({ view: viewFilter }),
         getUniqueBrands(),
       ])
 
@@ -228,7 +243,7 @@ export default function InventoryPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [filters])
+  }, [filters, viewFilter])
 
   // Load data on mount and when filters change
   useEffect(() => {
@@ -292,6 +307,17 @@ export default function InventoryPage() {
   const handleViewChange = (value: string) => {
     setViewFilter(value)
     setPage(1)
+    // Update URL with new view
+    const params = new URLSearchParams()
+    if (value && value !== "all") {
+      params.set("view", value)
+    }
+    const storeParam = searchParams.get("store")
+    if (storeParam) {
+      params.set("store", storeParam)
+    }
+    const queryString = params.toString()
+    router.push(`/inventory${queryString ? `?${queryString}` : ''}`)
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -309,8 +335,8 @@ export default function InventoryPage() {
     console.log("Export clicked")
   }
 
-  // Loading skeleton
-  if (loading) {
+  // Loading skeleton - only show when loading AND a view is selected
+  if (loading && viewFilter && viewFilter !== "all") {
     return (
       <DashboardShell>
         <div className="space-y-6">
@@ -414,6 +440,38 @@ export default function InventoryPage() {
           </div>
         </div>
 
+        {/* Mandatory View Selector - First Element */}
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">View:</span>
+              <InventoryViewSelector
+                value={viewFilter}
+                onValueChange={handleViewChange}
+              />
+            </div>
+            {/* Active view badge indicator */}
+            {viewFilter && viewFilter !== "all" && (
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                {viewFilter}
+              </Badge>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewFilter("all")}
+            className={viewFilter && viewFilter !== "all" ? "" : "invisible"}
+          >
+            Clear View
+          </Button>
+        </div>
+
+        {/* Conditional Content - Empty state or data */}
+        {!viewFilter || viewFilter === "all" ? (
+          <InventoryEmptyState message="Please select a view to display inventory" />
+        ) : (
+          <>
       {/* KPI Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
@@ -514,29 +572,6 @@ export default function InventoryPage() {
                     {availableBrands.map((brand) => (
                       <SelectItem key={brand} value={brand}>{brand}</SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-
-                {/* View Filter */}
-                <Select value={viewFilter} onValueChange={handleViewChange}>
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue placeholder="All Views" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Views</SelectItem>
-                    <SelectItem value="ECOM-TH-CFR-LOCD-STD">ECOM-TH-CFR-LOCD-STD</SelectItem>
-                    <SelectItem value="ECOM-TH-DSS-NW-ALL">ECOM-TH-DSS-NW-ALL</SelectItem>
-                    <SelectItem value="ECOM-TH-DSS-NW-STD">ECOM-TH-DSS-NW-STD</SelectItem>
-                    <SelectItem value="ECOM-TH-DSS-LOCD-EXP">ECOM-TH-DSS-LOCD-EXP</SelectItem>
-                    <SelectItem value="ECOM-TH-SSP-NW-STD">ECOM-TH-SSP-NW-STD</SelectItem>
-                    <SelectItem value="MKP-TH-SSP-NW-STD">MKP-TH-SSP-NW-STD</SelectItem>
-                    <SelectItem value="MKP-TH-CFR-LOCD-STD">MKP-TH-CFR-LOCD-STD</SelectItem>
-                    <SelectItem value="ECOM-TH-SSP-NW-ALL">ECOM-TH-SSP-NW-ALL</SelectItem>
-                    <SelectItem value="MKP-TH-CFR-MANUAL-SYNC">MKP-TH-CFR-MANUAL-SYNC</SelectItem>
-                    <SelectItem value="CMG-ECOM-TH-STD">CMG-ECOM-TH-STD</SelectItem>
-                    <SelectItem value="CMG-MKP-SHOPEE-TH-NTW-STD">CMG-MKP-SHOPEE-TH-NTW-STD</SelectItem>
-                    <SelectItem value="CMG-MKP-LAZADA-TH-LOC-STD">CMG-MKP-LAZADA-TH-LOC-STD</SelectItem>
-                    <SelectItem value="CMG-MKP-MIRAKL-TH-NTW-STD">CMG-MKP-MIRAKL-TH-NTW-STD</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -765,6 +800,8 @@ export default function InventoryPage() {
           </Card>
         </div>
       </Tabs>
+        </>
+        )}
       </div>
     </DashboardShell>
   )
