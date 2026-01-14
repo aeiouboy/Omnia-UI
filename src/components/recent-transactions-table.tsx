@@ -24,12 +24,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin, Download } from "lucide-react"
 import Link from "next/link"
 import type { StockTransaction } from "@/types/inventory"
+import type { ViewTypeChannel } from "@/types/view-type-config"
 import { formatWarehouseCode, formatStockQuantity } from "@/lib/warehouse-utils"
 import { exportTransactionsToCSV } from "@/lib/export-utils"
 
 interface RecentTransactionsTableProps {
   transactions: StockTransaction[]
   loading?: boolean
+  /** Optional: Channels from View Type to display instead of transaction channel */
+  viewChannels?: ViewTypeChannel[]
+  storeName?: string
+  storeId?: string
 }
 
 function getTransactionIcon(type: StockTransaction["type"]) {
@@ -115,6 +120,9 @@ function getChannelBadge(channel?: "Grab" | "Lineman" | "Gokoo") {
 export function RecentTransactionsTable({
   transactions,
   loading = false,
+  viewChannels,
+  storeName,
+  storeId,
 }: RecentTransactionsTableProps) {
   const [filter, setFilter] = useState<"all" | "sold" | "movement" | "return">("all")
 
@@ -241,7 +249,21 @@ export function RecentTransactionsTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getChannelBadge(transaction.channel)}
+                      {viewChannels && viewChannels.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {viewChannels.map((channel) => (
+                            <Badge
+                              key={channel}
+                              variant="outline"
+                              className="text-xs px-2 py-1 h-6 font-semibold bg-blue-100 text-blue-700 border-blue-300"
+                            >
+                              {channel}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        getChannelBadge(transaction.channel)
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       {transaction.type === "stock_out"
@@ -252,18 +274,25 @@ export function RecentTransactionsTable({
                       {transaction.itemType ? formatStockQuantity(transaction.balanceAfter, transaction.itemType, false) : transaction.balanceAfter}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {transaction.warehouseCode && transaction.locationCode ? (
-                        <div className="flex items-center gap-1.5">
-                          <Badge
-                            variant="outline"
-                            className="text-xs px-2 py-1 h-6 font-mono bg-blue-50 text-blue-700 border-blue-200"
-                          >
-                            <MapPin className="h-3 w-3 mr-1 inline" />
-                            {formatWarehouseCode(transaction.warehouseCode, transaction.locationCode)}
-                          </Badge>
+                      {storeName ? (
+                        <div className="flex flex-col">
+                          <span className="font-medium text-xs truncate max-w-[150px]" title={storeName}>{storeName}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">{storeId}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        transaction.warehouseCode && transaction.locationCode ? (
+                          <div className="flex items-center gap-1.5">
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-1 h-6 font-mono bg-blue-50 text-blue-700 border-blue-200"
+                            >
+                              <MapPin className="h-3 w-3 mr-1 inline" />
+                              {formatWarehouseCode(transaction.warehouseCode, transaction.locationCode)}
+                            </Badge>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-[200px]">

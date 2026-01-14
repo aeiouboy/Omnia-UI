@@ -136,6 +136,9 @@ function applyFilters(
   }
 
   // Filter by view
+  // Note: We skip strict view filtering for mock data because mock items have randomized views.
+  // Filter by View Type (Strict filtering based on item.view assignment)
+  // This is critical because businessUnit and channels alone might be ambiguous in mock data
   if (filters.view && filters.view !== "all") {
     filtered = filtered.filter((item) => item.view === filters.view)
   }
@@ -147,8 +150,17 @@ function applyFilters(
 
   // Filter by channels
   if (filters.channels && filters.channels.length > 0) {
+    // Map ViewTypeChannel codes to InventoryChannels used in mock data
+    const mappedChannels: string[] = []
+
+    filters.channels.forEach(vc => {
+      if (vc === "TOL" || vc === "STD") mappedChannels.push("website")
+      if (vc === "MKP") mappedChannels.push("Shopee", "Lazada")
+      if (vc === "QC" || vc === "EXP") mappedChannels.push("Grab", "LINE MAN", "Gokoo", "Foodpanda")
+    })
+
     filtered = filtered.filter((item) =>
-      filters.channels!.some((channel) => item.channels?.includes(channel))
+      item.channels?.some((channel) => mappedChannels.includes(channel) || filters.channels!.includes(channel as any))
     )
   }
 
@@ -363,7 +375,7 @@ export async function fetchInventoryData(
  *
  * @returns Promise<StorePerformanceResponse>
  */
-export async function fetchStorePerformance(): Promise<StorePerformanceResponse> {
+export async function fetchStorePerformance(filters?: InventoryFilters): Promise<StorePerformanceResponse> {
   try {
     if (isSupabaseAvailable()) {
       // Try to fetch aggregated store performance from database
@@ -376,9 +388,20 @@ export async function fetchStorePerformance(): Promise<StorePerformanceResponse>
     console.warn("Failed to fetch store performance from database:", error)
   }
 
-  // Generate store performance dynamically from inventory items
+  // Generate store performance dynamically from filtered inventory items
   // This ensures data consistency between store overview and detail views
-  const stores = generateStorePerformanceFromInventory()
+  let itemsToProcess = mockInventoryItems
+
+  // If filters are provided, filter the items first
+  if (filters) {
+    itemsToProcess = applyFilters(mockInventoryItems, filters)
+  }
+
+  const stores = generateStorePerformanceFromInventory(itemsToProcess)
+
+  // Use the count from filtered stores, or maybe the total of filtered items...
+  // The original implementation returned stores.length (number of stores).
+  // We want to return the performance metrics for the stores based on the filtered data.
 
   return {
     stores,

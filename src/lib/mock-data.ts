@@ -1711,7 +1711,7 @@ export function generateFulfillmentTimeline(
 
   // Use delivery method prefix for unique event IDs
   const idPrefix = deliveryMethodType === 'HOME_DELIVERY' ? 'HD' :
-                   deliveryMethodType === 'CLICK_COLLECT' ? 'CC' : 'FUL'
+    deliveryMethodType === 'CLICK_COLLECT' ? 'CC' : 'FUL'
   let eventId = 1
 
   // Helper to format timestamp as YYYY-MM-DDTHH:mm:ss
@@ -2298,6 +2298,355 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
 
   return shipments
 }
+
+// -----------------------------------------------------------------------------
+// SCENARIO TEST ORDER: ORD-SCENARIO-001
+// -----------------------------------------------------------------------------
+// View Types: ECOM-TH-DSS-NW-STD (DS Standard) & ECOM-TH-DSS-LOCD-EXP (DS Express)
+// Items: 4 items total
+// Conditions: Promotion, Coupon, Gift Message, Gift with Purchase = Y
+// Delivery: Home Delivery (Standard), Click & Collect (Express)
+// Payment: Credit Card, T1 Member
+// -----------------------------------------------------------------------------
+const scenarioOrderItems = [
+  // Item 1: Home Delivery - Standard (View: ECOM-TH-DSS-NW-STD)
+  // Reqs: 1 item have 1 promotion
+  {
+    id: `ITEM-SCENARIO-001-1`,
+    product_id: "PROD-DS-001",
+    product_name: "Luxury Perfume 50ml",
+    thaiName: "น้ำหอมหรู 50มล.",
+    product_sku: "BEAUTY-001",
+    quantity: 1,
+    unit_price: 2500,
+    total_price: 2500,
+    product_details: {
+      description: "Premium fragrance",
+      category: "Beauty",
+      brand: "Dior"
+    },
+    uom: "EA",
+    packedOrderedQty: undefined,
+    location: "CFM1001",
+    barcode: "8850000000001",
+    shippingMethod: "Standard Delivery", // HD Standard
+    fulfillmentStatus: "Packed",
+    giftWrapped: true,
+    giftWrappedMessage: "Happy Birthday Mom!", // Gift Message
+    giftWithPurchase: "Free Sample Perfume", // GWP
+    promotions: [{
+      discountAmount: -250,
+      promotionId: "PROMO-BEAUTY-01",
+      promotionType: "Discount"
+      // Removed secretCode to meet "1 promotion" requirement
+    }],
+    viewType: "ECOM-TH-DSS-NW-STD",
+    supplyTypeId: "On Hand Available",
+    substitution: false,
+    bundle: false,
+    bundleRef: undefined,
+    eta: {
+      from: "16 Jan 2026 09:00:00",
+      to: "18 Jan 2026 18:00:00"
+    },
+    priceBreakdown: {
+      subtotal: 2500,
+      discount: 250,
+      charges: 0,
+      amountIncludedTaxes: 2250,
+      amountExcludedTaxes: 2102.80,
+      taxes: 147.20,
+      total: 2250
+    },
+    route: "สายรถพระราม 9",
+    bookingSlotFrom: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+    bookingSlotTo: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()
+  },
+  // Item 2: Home Delivery - Standard (View: ECOM-TH-DSS-NW-STD)
+  // Reqs: 1 item have Promotions & Coupons (Mix)
+  {
+    id: `ITEM-SCENARIO-001-2`,
+    product_id: "PROD-DS-002",
+    product_name: "Silk Scarf",
+    thaiName: "ผ้าพันคอไหม",
+    product_sku: "FASHION-001",
+    quantity: 1,
+    unit_price: 1500,
+    total_price: 1500,
+    product_details: {
+      description: "100% Silk Scarf",
+      category: "Fashion",
+      brand: "Jim Thompson"
+    },
+    uom: "EA",
+    packedOrderedQty: undefined,
+    location: "CFM1002",
+    barcode: "8850000000002",
+    shippingMethod: "Standard Delivery", // HD Standard
+    fulfillmentStatus: "Packed",
+    giftWrapped: true,
+    giftWrappedMessage: "For you",
+    giftWithPurchase: "Silk Care Kit",
+    promotions: [
+      {
+        discountAmount: -150,
+        promotionId: "PROMO-FASH-01",
+        promotionType: "Member Discount"
+      },
+      {
+        discountAmount: -100,
+        promotionId: "COUPON-FASH-02",
+        promotionType: "Coupon Discount",
+        secretCode: "SILKLOVER" // Coupon
+      }
+    ],
+    viewType: "ECOM-TH-DSS-NW-STD",
+    supplyTypeId: "On Hand Available",
+    substitution: false,
+    bundle: false,
+    bundleRef: undefined,
+    eta: {
+      from: "16 Jan 2026 09:00:00",
+      to: "18 Jan 2026 18:00:00"
+    },
+    priceBreakdown: {
+      subtotal: 1500,
+      discount: 250, // 150 + 100
+      charges: 0,
+      amountIncludedTaxes: 1250,
+      amountExcludedTaxes: 1168.22,
+      taxes: 81.78,
+      total: 1250
+    },
+    route: "สายรถพระราม 9",
+    bookingSlotFrom: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+    bookingSlotTo: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()
+  },
+  // Item 3: Click & Collect - Express (View: ECOM-TH-DSS-LOCD-EXP)
+  // Reqs: 1 item use coupon
+  {
+    id: `ITEM-SCENARIO-001-3`,
+    product_id: "PROD-DS-003",
+    product_name: "Wireless Earbuds",
+    thaiName: "หูฟังไร้สาย",
+    product_sku: "ELEC-001",
+    quantity: 1,
+    unit_price: 5900,
+    total_price: 5900,
+    product_details: {
+      description: "Noise cancelling earbuds",
+      category: "Electronics",
+      brand: "Sony"
+    },
+    uom: "EA",
+    packedOrderedQty: undefined,
+    location: "CFM1003",
+    barcode: "8850000000003",
+    shippingMethod: "1H Delivery", // CC Express
+    fulfillmentStatus: "Ready for Pickup",
+    giftWrapped: true,
+    giftWrappedMessage: "Enjoy the music",
+    giftWithPurchase: "Protective Case",
+    promotions: [{
+      discountAmount: -500,
+      promotionId: "PROMO-ELEC-01",
+      promotionType: "Product Discount Promotion",
+      secretCode: "SONY500" // Coupon
+    }],
+    viewType: "ECOM-TH-DSS-LOCD-EXP",
+    supplyTypeId: "On Hand Available",
+    substitution: false,
+    bundle: false,
+    bundleRef: undefined,
+    eta: {
+      from: "15 Jan 2026 14:00:00",
+      to: "15 Jan 2026 15:00:00"
+    },
+    priceBreakdown: {
+      subtotal: 5900,
+      discount: 500,
+      charges: 0,
+      amountIncludedTaxes: 5400,
+      amountExcludedTaxes: 5046.73,
+      taxes: 353.27,
+      total: 5400
+    },
+    route: "CC-EXPRESS",
+    bookingSlotFrom: new Date().toISOString(),
+    bookingSlotTo: new Date(new Date().getTime() + 3600000).toISOString()
+  },
+  // Item 4: Click & Collect - Express (View: ECOM-TH-DSS-LOCD-EXP)
+  // Reqs: 1 item have 2 promotion
+  {
+    id: `ITEM-SCENARIO-001-4`,
+    product_id: "PROD-DS-004",
+    product_name: "Smart Watch",
+    thaiName: "สมาร์ทวอทช์",
+    product_sku: "ELEC-002",
+    quantity: 1,
+    unit_price: 12900,
+    total_price: 12900,
+    product_details: {
+      description: "Latest model smart watch",
+      category: "Electronics",
+      brand: "Garmin"
+    },
+    uom: "EA",
+    packedOrderedQty: undefined,
+    location: "CFM1004",
+    barcode: "8850000000004",
+    shippingMethod: "1H Delivery", // CC Express
+    fulfillmentStatus: "Ready for Pickup",
+    giftWrapped: true,
+    giftWrappedMessage: "Stay healthy",
+    giftWithPurchase: "Screen Protector",
+    promotions: [
+      {
+        discountAmount: -1000,
+        promotionId: "PROMO-ELEC-02",
+        promotionType: "Bundle Discount"
+      },
+      {
+        discountAmount: -500,
+        promotionId: "PROMO-ELEC-03",
+        promotionType: "Season Discount"
+      }
+    ],
+    viewType: "ECOM-TH-DSS-LOCD-EXP",
+    supplyTypeId: "On Hand Available",
+    substitution: false,
+    bundle: true,
+    bundleRef: "BDL-001",
+    eta: {
+      from: "15 Jan 2026 14:00:00",
+      to: "15 Jan 2026 15:00:00"
+    },
+    priceBreakdown: {
+      subtotal: 12900,
+      discount: 1500, // 1000 + 500
+      charges: 0,
+      amountIncludedTaxes: 11400,
+      amountExcludedTaxes: 10654.21,
+      taxes: 745.79,
+      total: 11400
+    },
+    route: "CC-EXPRESS",
+    bookingSlotFrom: new Date().toISOString(),
+    bookingSlotTo: new Date(new Date().getTime() + 3600000).toISOString()
+  }
+];
+
+// Calculate totals from item breakdowns to ensure consistency
+const scenarioSubtotal = scenarioOrderItems.reduce((sum, item) => sum + item.priceBreakdown.subtotal, 0);
+const scenarioDiscounts = scenarioOrderItems.reduce((sum, item) => sum + item.priceBreakdown.discount, 0);
+const scenarioCharges = 0;
+const scenarioTotal = scenarioOrderItems.reduce((sum, item) => sum + item.priceBreakdown.total, 0);
+const scenarioExcludedTaxes = scenarioOrderItems.reduce((sum, item) => sum + item.priceBreakdown.amountExcludedTaxes, 0);
+const scenarioTaxes = scenarioOrderItems.reduce((sum, item) => sum + item.priceBreakdown.taxes, 0);
+
+// Generate future pickup date (tomorrow)
+const pickupDate = new Date();
+pickupDate.setDate(pickupDate.getDate() + 1);
+const pickupDateStr = pickupDate.toLocaleDateString('en-GB', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+});
+
+const scenarioOrder = {
+  id: "ORD-SCENARIO-001",
+  order_no: "ORD-SCENARIO-001",
+  customer: {
+    id: "CUST-SCENARIO",
+    name: "Scenario Tester",
+    email: "tester@example.com",
+    phone: "+66812345678",
+    T1Number: "T199988877", // T1 Member
+    customerType: "CORPORATE", // Changed to CORPORATE to trigger Company Name logic
+    custRef: "CREF-SCENARIO"
+  },
+  items: scenarioOrderItems,
+  status: "PROCESSING",
+  channel: "Tops Online",
+  business_unit: "DS", // Matching View Type BU
+  order_type: "DELIVERY", // Mixed logic usually defaults to Delivery in top level
+  total_amount: scenarioTotal,
+  order_date: new Date().toISOString(),
+  shipping_address: {
+    street: "123 Scenario Road",
+    city: "Bangkok",
+    state: "Bangkok",
+    postal_code: "10110",
+    country: "Thailand"
+  },
+  payment_info: {
+    method: "CREDIT_CARD",
+    status: "PAID",
+    transaction_id: "TXN-SCENARIO-001",
+    subtotal: scenarioSubtotal,
+    discounts: scenarioDiscounts,
+    charges: scenarioCharges,
+    amountIncludedTaxes: scenarioTotal,
+    amountExcludedTaxes: scenarioExcludedTaxes,
+    taxes: scenarioTaxes
+  },
+  metadata: {
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    priority: "NORMAL",
+    store_name: "Tops Central World",
+    store_no: "STR-0001",
+    viewTypes: ["ECOM-TH-DSS-NW-STD", "ECOM-TH-DSS-LOCD-EXP"],
+    order_created: new Date().toISOString() // Added Order Created field
+  },
+  sla_info: {
+    target_minutes: 60,
+    elapsed_minutes: 10,
+    status: "COMPLIANT"
+  },
+  deliveryMethods: [
+    {
+      type: 'HOME_DELIVERY',
+      itemCount: 2,
+      homeDelivery: {
+        recipient: "Scenario Tester",
+        phone: "+66812345678",
+        address: "123 Scenario Road",
+        district: "Watthana",
+        city: "Bangkok",
+        postalCode: "10110",
+        specialInstructions: "Standard Delivery Items"
+      }
+    },
+    {
+      type: 'CLICK_COLLECT',
+      itemCount: 2,
+      clickCollect: {
+        storeName: "Tops Central World",
+        storeAddress: "Central World, Bangkok",
+        storePhone: "02-111-2222",
+        recipientName: "Scenario Tester",
+        phone: "+66812345678",
+        pickupDate: pickupDateStr,
+        timeSlot: "10:00 - 12:00", // Express/1H Slot usually
+        collectionCode: "CC-SCENARIO-001",
+        relNo: "REL-2026-SCENARIO",
+        allocationType: "Pickup"
+      }
+    }
+  ],
+  on_hold: false,
+  fullTaxInvoice: true,
+  customerTypeId: "CT-TOP",
+  sellingChannel: "Tops Online",
+  allowSubstitution: false,
+  taxId: "1234567890123",
+  companyName: "Scenario Corp Co., Ltd.", // Added Company Name
+  branchNo: "BR-0001" // Added Branch No
+};
+
+// Add to mock orders
+mockApiOrders.unshift(scenarioOrder); // Add to beginning so it's easy to find
 
 // Export all mock data
 export const mockData = {

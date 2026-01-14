@@ -26,14 +26,16 @@ import type { StockLocation, ItemType } from "@/types/inventory"
 interface StockByStoreTableProps {
   locations: StockLocation[]
   itemType: ItemType
+  storeName: string
+  storeId?: string
 }
 
-type SortField = "warehouse" | "location" | "available" | "reserved" | "safety" | "total"
+type SortField = "storeName" | "storeId" | "location" | "available" | "reserved" | "safety" | "total"
 type SortOrder = "asc" | "desc"
 
-export function StockByStoreTable({ locations, itemType }: StockByStoreTableProps) {
+export function StockByStoreTable({ locations, itemType, storeName, storeId }: StockByStoreTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [sortField, setSortField] = useState<SortField>("warehouse")
+  const [sortField, setSortField] = useState<SortField>("location")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
 
   // Filter and sort locations
@@ -45,6 +47,8 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (loc) =>
+          storeName.toLowerCase().includes(query) ||
+          (storeId || "").toLowerCase().includes(query) ||
           loc.warehouseCode.toLowerCase().includes(query) ||
           loc.locationCode.toLowerCase().includes(query)
       )
@@ -55,8 +59,11 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
       let compareValue = 0
 
       switch (sortField) {
-        case "warehouse":
-          compareValue = a.warehouseCode.localeCompare(b.warehouseCode)
+        case "storeName":
+          compareValue = storeName.localeCompare(storeName)
+          break
+        case "storeId":
+          compareValue = (storeId || "").localeCompare(storeId || "")
           break
         case "location":
           compareValue = a.locationCode.localeCompare(b.locationCode)
@@ -81,7 +88,7 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
     })
 
     return filtered
-  }, [locations, searchQuery, sortField, sortOrder])
+  }, [locations, searchQuery, sortField, sortOrder, storeName, storeId])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -153,11 +160,20 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
             <TableRow>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("warehouse")}
+                onClick={() => handleSort("storeName")}
               >
                 <div className="flex items-center">
                   Store
-                  <SortIcon field="warehouse" />
+                  <SortIcon field="storeName" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("storeId")}
+              >
+                <div className="flex items-center">
+                  Store ID
+                  <SortIcon field="storeId" />
                 </div>
               </TableHead>
               <TableHead
@@ -165,7 +181,7 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                 onClick={() => handleSort("location")}
               >
                 <div className="flex items-center">
-                  Store ID
+                  Location
                   <SortIcon field="location" />
                 </div>
               </TableHead>
@@ -210,7 +226,7 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
           <TableBody>
             {filteredLocations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No locations match your search.
                 </TableCell>
               </TableRow>
@@ -225,17 +241,12 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                   <TableRow key={`${location.warehouseCode}-${location.locationCode}-${index}`}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className="bg-blue-50 text-blue-700 border-blue-200 font-mono"
-                        >
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {location.warehouseCode}
-                        </Badge>
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm whitespace-nowrap">{storeName}</span>
                         {location.isDefaultLocation && (
                           <Badge
                             variant="outline"
-                            className="text-xs px-1.5 py-0 h-5 bg-green-50 text-green-700 border-green-200"
+                            className="text-[10px] px-1 py-0 h-4 bg-green-50 text-green-700 border-green-200"
                           >
                             Default
                           </Badge>
@@ -243,7 +254,18 @@ export function StockByStoreTable({ locations, itemType }: StockByStoreTableProp
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="font-mono text-sm">{location.locationCode}</code>
+                      <span className="font-mono text-sm text-muted-foreground">{storeId || "—"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Badge
+                          variant="outline"
+                          className="bg-gray-50 text-gray-500 border-gray-200 font-mono text-xs scale-90 origin-left"
+                        >
+                          {location.warehouseCode}
+                        </Badge>
+                        <code className="font-mono text-sm">{location.locationCode}</code>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-semibold text-green-700">
                       {formatStockQuantity(location.stockAvailable, itemType, false)}

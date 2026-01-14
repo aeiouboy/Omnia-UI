@@ -383,3 +383,52 @@ export function exportTransactionsToExcel(
   // Clean up URL object
   URL.revokeObjectURL(url)
 }
+
+/**
+ * Export Order Analysis data to CSV
+ *
+ * @param data - Order analysis data to export
+ * @param filename - Name of the downloaded file (without extension)
+ */
+export function exportOrderAnalysisToCSV(
+  data: Array<{ date: string; totalAmount: number; tolOrders: number; mkpOrders: number; qcOrders: number }>,
+  filename = "order_analysis_export"
+): void {
+  if (data.length === 0) {
+    console.warn("No data to export")
+    return
+  }
+
+  // CSV header row
+  const headers = ["Date,Total Amount,TOL Orders,MKP Orders,QC Orders"]
+
+  // Build CSV data rows
+  const rows = data.map(row => {
+    const formattedDate = row.date
+    const formattedAmount = row.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    return `${formattedDate},${formattedAmount},${row.tolOrders},${row.mkpOrders},${row.qcOrders}`
+  })
+
+  // Combine header and rows
+  const csvContent = [headers.join(""), ...rows].join("\n")
+
+  // Add BOM (Byte Order Mark) for Excel UTF-8 compatibility
+  const BOM = "\uFEFF"
+  const csvWithBOM = BOM + csvContent
+
+  // Create blob with UTF-8 encoding and trigger download
+  const blob = new Blob([csvWithBOM], { type: "text/csv;charset=utf-8;" })
+  const link = document.createElement("a")
+  const url = URL.createObjectURL(blob)
+
+  link.setAttribute("href", url)
+  link.setAttribute("download", `${filename}.csv`)
+  link.style.visibility = "hidden"
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Clean up URL object
+  URL.revokeObjectURL(url)
+}

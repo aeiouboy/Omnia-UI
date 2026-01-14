@@ -48,6 +48,7 @@ import StockAvailabilityIndicator from "./inventory/stock-availability-indicator
 import { StockByStoreTable } from "./inventory/stock-by-store-table"
 import { TransactionHistorySection } from "./inventory/transaction-history-section"
 import { useAllocateTransactions } from "@/hooks/use-allocate-transactions"
+import { useInventoryView } from "@/contexts/inventory-view-context"
 import {
   formatWarehouseCode,
   getStockStatusColor,
@@ -105,6 +106,9 @@ export function InventoryDetailView({
   storeContext,
 }: InventoryDetailViewProps) {
   const router = useRouter()
+
+  // Get channels from inventory view context
+  const { channels: viewChannels } = useInventoryView()
 
   // Fetch allocate-by-order transactions
   const {
@@ -208,6 +212,17 @@ export function InventoryDetailView({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Store className="h-4 w-4" />
+                    <span>Store</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-lg truncate" title={item.storeName}>{item.storeName}</span>
+                    <span className="font-mono text-sm text-muted-foreground">{item.storeId || "—"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
                     <span>Barcode</span>
                   </div>
@@ -226,11 +241,10 @@ export function InventoryDetailView({
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className={`${
-                        item.itemType === "weight" || item.itemType === "pack_weight"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      } text-sm`}
+                      className={`${item.itemType === "weight" || item.itemType === "pack_weight"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
+                        } text-sm`}
                     >
                       {item.itemType === "weight" && "Weight Item (kg)"}
                       {item.itemType === "pack_weight" && "Pack Weight (kg)"}
@@ -251,11 +265,10 @@ export function InventoryDetailView({
                         <div className="flex items-center gap-2 cursor-help">
                           <Badge
                             variant="outline"
-                            className={`${
-                              item.supplyType === "On Hand Available"
-                                ? "bg-green-100 text-green-800 border-green-300"
-                                : "bg-blue-100 text-blue-800 border-blue-300"
-                            } text-sm`}
+                            className={`${item.supplyType === "On Hand Available"
+                              ? "bg-green-100 text-green-800 border-green-300"
+                              : "bg-blue-100 text-blue-800 border-blue-300"
+                              } text-sm`}
                           >
                             {item.supplyType || "On Hand Available"}
                           </Badge>
@@ -491,6 +504,8 @@ export function InventoryDetailView({
             <StockByStoreTable
               locations={item.warehouseLocations}
               itemType={item.itemType}
+              storeName={item.storeName}
+              storeId={item.storeId}
             />
           </CardContent>
         </Card>
@@ -503,7 +518,12 @@ export function InventoryDetailView({
       />
 
       {/* Recent Transactions (Quick Overview - Last 10) */}
-      <RecentTransactionsTable transactions={filteredTransactions} />
+      <RecentTransactionsTable
+        transactions={filteredTransactions}
+        viewChannels={viewChannels}
+        storeName={item.storeName}
+        storeId={item.storeId}
+      />
 
       {/* Full Transaction History Section */}
       <TransactionHistorySection

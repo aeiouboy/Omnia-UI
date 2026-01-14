@@ -34,6 +34,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 
@@ -155,6 +156,9 @@ export type FMSDeliveryType = 'Standard Delivery' | 'Express Delivery' | 'Click 
 // FMS Settlement Type values
 export type FMSSettlementType = 'Auto Settle' | 'Manual Settle'
 
+// Delivery Type Code values for order-level delivery type
+export type DeliveryTypeCode = 'RT-HD-EXP' | 'RT-CC-STD' | 'MKP-HD-STD' | 'RT-HD-STD' | 'RT-CC-EXP'
+
 interface ApiOrder {
   id: string
   order_no: string
@@ -239,6 +243,7 @@ export interface Order {
   customerPayAmount?: number
   customerRedeemAmount?: number
   orderDeliveryFee?: number
+  deliveryTypeCode?: DeliveryTypeCode
   // Optionally add derived fields for UI only if needed
 }
 
@@ -309,7 +314,7 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
     const mappedOrders = orders.map((apiOrder: ApiOrder, index) => {
       // For demonstration: vary elapsed times and add FMS fields based on order index
       if (process.env.NODE_ENV === 'development') {
-        const demoOrder = { ...apiOrder }
+        const demoOrder: any = { ...apiOrder }
 
         // SLA demo patterns
         if (apiOrder.sla_info) {
@@ -327,68 +332,91 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
             ...demoOrder.sla_info,
             elapsed_minutes: pattern.elapsed,
             status: pattern.elapsed > 300 ? "BREACH" :
-                    pattern.elapsed > 240 ? "NEAR_BREACH" : "ON_TRACK"
+              pattern.elapsed > 240 ? "NEAR_BREACH" : "ON_TRACK"
           }
         }
 
         // FMS Extended Fields - mock data for development
-        const orderTypes: FMSOrderType[] = ['Large format', 'Tops daily CFR', 'Tops daily CFM', 'Subscription', 'Retail']
-        const deliveryTypes: FMSDeliveryType[] = ['Standard Delivery', 'Express Delivery', 'Click & Collect']
-        const settlementTypes: FMSSettlementType[] = ['Auto Settle', 'Manual Settle']
+        // const orderTypes: FMSOrderType[] = ['Large format', 'Tops daily CFR', 'Tops daily CFM', 'Subscription', 'Retail']
+        // const deliveryTypes: FMSDeliveryType[] = ['Standard Delivery', 'Express Delivery', 'Click & Collect']
+        // const settlementTypes: FMSSettlementType[] = ['Auto Settle', 'Manual Settle']
 
-        demoOrder.orderType = orderTypes[index % orderTypes.length]
-        demoOrder.deliveryType = deliveryTypes[index % deliveryTypes.length]
-        demoOrder.settlementType = settlementTypes[index % settlementTypes.length]
-        demoOrder.fullTaxInvoice = index % 3 === 0 // Every 3rd order requests tax invoice
+        // demoOrder.orderType = orderTypes[index % orderTypes.length]
+        // demoOrder.deliveryType = deliveryTypes[index % deliveryTypes.length]
+        // demoOrder.settlementType = settlementTypes[index % settlementTypes.length]
+        // demoOrder.fullTaxInvoice = index % 3 === 0 // Every 3rd order requests tax invoice
 
-        // Generate mock delivery time slot
-        const today = new Date()
-        const slotDate = new Date(today.getTime() + (index % 7) * 24 * 60 * 60 * 1000)
-        const slotHour = 9 + (index % 7) * 2 // Slots from 9:00 to 21:00 in 2-hour intervals (7 slots)
-        demoOrder.deliveryTimeSlot = {
-          date: slotDate.toISOString().split('T')[0],
-          from: `${String(slotHour).padStart(2, '0')}:00`,
-          to: `${String(slotHour + 2).padStart(2, '0')}:00`
-        }
+        // // Generate mock delivery time slot
+        // const today = new Date()
+        // const slotDate = new Date(today.getTime() + (index % 7) * 24 * 60 * 60 * 1000)
+        // const slotHour = 9 + (index % 7) * 2 // Slots from 9:00 to 21:00 in 2-hour intervals (7 slots)
+        // demoOrder.deliveryTimeSlot = {
+        //   date: slotDate.toISOString().split('T')[0],
+        //   from: `${String(slotHour).padStart(2, '0')}:00`,
+        //   to: `${String(slotHour + 2).padStart(2, '0')}:00`
+        // }
 
-        // Delivered time for completed orders
-        if (demoOrder.status === 'DELIVERED' || demoOrder.status === 'FULFILLED') {
-          const deliveredDate = new Date(today.getTime() - (index % 5) * 24 * 60 * 60 * 1000)
-          demoOrder.deliveredTime = deliveredDate.toISOString()
-        }
+        // // Delivered time for completed orders
+        // if (demoOrder.status === 'DELIVERED' || demoOrder.status === 'FULFILLED') {
+        //   const deliveredDate = new Date(today.getTime() - (index % 5) * 24 * 60 * 60 * 1000)
+        //   demoOrder.deliveredTime = deliveredDate.toISOString()
+        // }
 
-        // Payment and delivery dates
-        if (demoOrder.payment_info?.status === 'PAID') {
-          const paymentDate = new Date(today.getTime() - (index % 3) * 24 * 60 * 60 * 1000)
-          demoOrder.paymentDate = paymentDate.toISOString()
-        }
+        // // Payment and delivery dates
+        // if (demoOrder.payment_info?.status === 'PAID') {
+        //   const paymentDate = new Date(today.getTime() - (index % 3) * 24 * 60 * 60 * 1000)
+        //   demoOrder.paymentDate = paymentDate.toISOString()
+        // }
 
-        // Delivery date for DELIVERED orders
-        if (demoOrder.status === 'DELIVERED') {
-          const orderDate = new Date(demoOrder.order_date || demoOrder.metadata?.created_at || '')
-          orderDate.setHours(orderDate.getHours() + Math.floor(Math.random() * 48) + 2)
-          demoOrder.deliveryDate = orderDate.toISOString()
-        }
+        // // Delivery date for DELIVERED orders
+        // if (demoOrder.status === 'DELIVERED') {
+        //   const orderDate = new Date(demoOrder.order_date || demoOrder.metadata?.created_at || '')
+        //   orderDate.setHours(orderDate.getHours() + Math.floor(Math.random() * 48) + 2)
+        //   demoOrder.deliveryDate = orderDate.toISOString()
+        // }
 
-        // Payment type with T1C combinations
-        const paymentTypes = [
-          'Cash on Delivery',
-          'Credit Card on Delivery',
-          '2C2P-Credit-Card',
-          'QR PromptPay',
-          'T1C Redeem Payment',
-          'Cash on Delivery + T1C Redeem Payment',
-          '2C2P-Credit-Card + T1C Redeem Payment',
-          'Lazada Payment',
-          'Shopee Payment'
-        ]
-        demoOrder.paymentType = paymentTypes[index % paymentTypes.length]
+        // // Payment type with T1C combinations
+        // const paymentTypes = [
+        //   'Cash on Delivery',
+        //   'Credit Card on Delivery',
+        //   '2C2P-Credit-Card',
+        //   'QR PromptPay',
+        //   'T1C Redeem Payment',
+        //   'Cash on Delivery + T1C Redeem Payment',
+        //   '2C2P-Credit-Card + T1C Redeem Payment',
+        //   'Lazada Payment',
+        //   'Shopee Payment'
+        // ]
+        // demoOrder.paymentType = paymentTypes[index % paymentTypes.length]
 
         // Financial fields
         const hasRedemption = index % 3 === 0 // ~30% of orders
         demoOrder.customerRedeemAmount = hasRedemption ? Math.floor(Math.random() * 500) : 0
         demoOrder.orderDeliveryFee = [0, 40, 60, 80][index % 4]
         demoOrder.customerPayAmount = (demoOrder.total_amount || 0) - (demoOrder.customerRedeemAmount || 0)
+
+        // Generate random deliveryTypeCode for filtering demo
+        const deliveryTypeCodes: DeliveryTypeCode[] = ['RT-HD-EXP', 'RT-CC-STD', 'MKP-HD-STD', 'RT-HD-STD', 'RT-CC-EXP']
+        demoOrder.deliveryTypeCode = deliveryTypeCodes[index % deliveryTypeCodes.length]
+
+        // Mock Selling Channel
+        const sellingChannels = ['Web', 'Grab', 'Lineman', 'Gokoo', 'Shopee', 'Lazada']
+        demoOrder.channel = sellingChannels[index % sellingChannels.length]
+        demoOrder.sellingChannel = demoOrder.channel // Ensure compatibility if access via sellingChannel prop
+
+        // Mock Gift with Purchase for items
+        if (demoOrder.items && demoOrder.items.length > 0) {
+          demoOrder.items = demoOrder.items.map((item: any, i: number) => {
+            // Every 4th item has a gift
+            if (i % 4 === 0) {
+              return {
+                ...item,
+                giftWithPurchase: "Free Travel Kit"
+              }
+            }
+            return item
+          })
+        }
 
         return demoOrder
       }
@@ -435,7 +463,7 @@ const fetchOrdersFromApi = async (
 
     // Add advanced filter parameters
     if (filterParams?.advancedFilters) {
-      const af = filterParams.advancedFilters
+      const af = filterParams.advancedFilters as any // Cast to any to access extended properties
       if (af.orderNumber) queryParams.set("orderNumber", af.orderNumber)
       if (af.customerName) queryParams.set("customerName", af.customerName)
       if (af.phoneNumber) queryParams.set("phoneNumber", af.phoneNumber)
@@ -446,14 +474,33 @@ const fetchOrdersFromApi = async (
       if (af.paymentStatus && af.paymentStatus !== "all-payment") {
         queryParams.set("paymentStatus", af.paymentStatus)
       }
+
+      // Extended filters mapping
+      if (af.itemStatus) queryParams.set("itemStatus", af.itemStatus)
+      if (af.orderType) queryParams.set("orderType", af.orderType)
+      if (af.deliveryType) queryParams.set("deliveryType", af.deliveryType)
+      if (af.requestTax) queryParams.set("requestTax", af.requestTax)
+      if (af.settlementType) queryParams.set("settlementType", af.settlementType)
+
       // Handle date filters
       if (af.orderDateFrom && af.orderDateTo) {
         // Override the default wide date range with user-selected dates
-        queryParams.set("dateFrom", af.orderDateFrom.toISOString().split('T')[0])
-        queryParams.set("dateTo", af.orderDateTo.toISOString().split('T')[0])
+        queryParams.set("dateFrom", af.orderDateFrom instanceof Date ? af.orderDateFrom.toISOString().split('T')[0] : af.orderDateFrom)
+        queryParams.set("dateTo", af.orderDateTo instanceof Date ? af.orderDateTo.toISOString().split('T')[0] : af.orderDateTo)
+      }
+
+      // Handle extended date filters
+      if (af.deliverySlotDateFrom && af.deliverySlotDateTo) {
+        queryParams.set("deliverySlotDateFrom", af.deliverySlotDateFrom instanceof Date ? af.deliverySlotDateFrom.toISOString().split('T')[0] : af.deliverySlotDateFrom)
+        queryParams.set("deliverySlotDateTo", af.deliverySlotDateTo instanceof Date ? af.deliverySlotDateTo.toISOString().split('T')[0] : af.deliverySlotDateTo)
+      }
+
+      if (af.deliveredTimeFrom && af.deliveredTimeTo) {
+        queryParams.set("deliveredTimeFrom", af.deliveredTimeFrom instanceof Date ? af.deliveredTimeFrom.toISOString().split('T')[0] : af.deliveredTimeFrom)
+        queryParams.set("deliveredTimeTo", af.deliveredTimeTo instanceof Date ? af.deliveredTimeTo.toISOString().split('T')[0] : af.deliveredTimeTo)
       }
     }
-    
+
     // For Order Management Hub - fetch ALL orders by setting a very wide date range
     // This will override the 7-day default in the API route
     // UNLESS user has explicitly set date filters
@@ -571,8 +618,7 @@ export function OrderManagementHub() {
   const [skuSearchTerm, setSkuSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all-status")
   const [channelFilter, setChannelFilter] = useState("all-channels")
-  const [activeSlaFilter, setActiveSlaFilter] = useState<"all" | "near-breach" | "breach">("all")
-  const [quickFilter, setQuickFilter] = useState<"all" | "urgent" | "due-soon" | "ready" | "on-hold">("all")
+
 
   // New extended filter states
   const [storeNoFilter, setStoreNoFilter] = useState("all-stores")
@@ -612,7 +658,7 @@ export function OrderManagementHub() {
     fulfillmentLocationId: "",
     items: "",
   })
-  
+
   // Bulk selection states
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set())
   const [isAllSelected, setIsAllSelected] = useState(false)
@@ -630,11 +676,7 @@ export function OrderManagementHub() {
     hasPrev: false,
   })
 
-  // SLA Filter Handler
-  const handleSlaFilterChange = (filterValue: "all" | "near-breach" | "breach") => {
-    setActiveSlaFilter(filterValue)
-    setCurrentPage(1) // Reset to first page when SLA filter changes
-  }
+
 
   // Order Detail Click Handler
   const handleOrderRowClick = (order: Order) => {
@@ -682,7 +724,7 @@ export function OrderManagementHub() {
     }
 
     const orderIds = Array.from(selectedOrders)
-    
+
     switch (action) {
       case "process":
         toast({
@@ -739,6 +781,23 @@ export function OrderManagementHub() {
   const [error, setError] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState<boolean>(false)
 
+  // Export dialog state
+  const [showExportDialog, setShowExportDialog] = useState(false)
+  const [exportDateFrom, setExportDateFrom] = useState<Date | undefined>(undefined)
+  const [exportDateTo, setExportDateTo] = useState<Date | undefined>(undefined)
+
+  // 6-month backward limit for export
+  const sixMonthsAgo = useMemo(() => {
+    const date = new Date()
+    date.setMonth(date.getMonth() - 6)
+    date.setHours(0, 0, 0, 0)
+    return date
+  }, [])
+
+  const isDateDisabledForExport = (date: Date) => {
+    return date < sixMonthsAgo || date > new Date()
+  }
+
   // State for fetch all mode
   const [fetchAllMode, setFetchAllMode] = useState(false)
   const [fetchingAllProgress, setFetchingAllProgress] = useState({ current: 0, total: 0 })
@@ -748,51 +807,83 @@ export function OrderManagementHub() {
     setIsLoading(true)
     setError(null)
     setFetchingAllProgress({ current: 0, total: 0 })
-    
+
     try {
       const allOrders: Order[] = []
       let currentFetchPage = 1
       let hasMorePages = true
       let totalPages = 0
-      
+
+      // Merge all filter values for API request
       // Merge all filter values for API request
       const mergedFilters: FilterParams = {
         searchTerm,
         status: statusFilter,
         channel: channelFilter,
         businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
-        slaFilter: activeSlaFilter,
-        advancedFilters: advancedFilters
+        advancedFilters: {
+          ...advancedFilters,
+          // Map separate state variables to advancedFilters object
+          orderNumber: skuSearchTerm || advancedFilters.orderNumber,
+          items: itemNameFilter || advancedFilters.items,
+          customerName: customerNameFilter || advancedFilters.customerName,
+          email: emailFilter || advancedFilters.email,
+          phoneNumber: phoneFilter || advancedFilters.phoneNumber,
+          paymentStatus: paymentStatusFilter !== 'all-payment' ? paymentStatusFilter : advancedFilters.paymentStatus,
+          fulfillmentLocationId: storeNoFilter !== 'all-stores' ? storeNoFilter : advancedFilters.fulfillmentLocationId,
+          orderDateFrom: dateFromFilter || advancedFilters.orderDateFrom,
+          orderDateTo: dateToFilter || advancedFilters.orderDateTo,
+
+          // Map extended filters (cast to any or assume interface allows extension)
+          // @ts-ignore - Extending interface dynamically
+          itemStatus: itemStatusFilter !== 'all-item-status' ? itemStatusFilter : undefined,
+          // @ts-ignore
+          orderType: orderTypeFilter !== 'all-order-type' ? orderTypeFilter : undefined,
+          // @ts-ignore
+          deliveryType: deliveryTypeFilter !== 'all-delivery-type' ? deliveryTypeFilter : undefined,
+          // @ts-ignore
+          requestTax: requestTaxFilter !== 'all-request-tax' ? requestTaxFilter : undefined,
+          // @ts-ignore
+          settlementType: settlementTypeFilter !== 'all-settlement-type' ? settlementTypeFilter : undefined,
+          // @ts-ignore
+          deliverySlotDateFrom: deliverySlotDateFromFilter,
+          // @ts-ignore
+          deliverySlotDateTo: deliverySlotDateToFilter,
+          // @ts-ignore
+          deliveredTimeFrom: deliveredTimeFromFilter,
+          // @ts-ignore
+          deliveredTimeTo: deliveredTimeToFilter
+        }
       }
-      
+
       // Loop through all pages
       while (hasMorePages) {
         console.log(`📄 Fetching page ${currentFetchPage}...`)
-        
+
         const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
           { page: currentFetchPage, pageSize: 100 }, // Use larger page size for efficiency
           mergedFilters,
         )
-        
+
         allOrders.push(...orders)
         totalPages = apiPagination.totalPages
         hasMorePages = apiPagination.hasNext
-        
+
         // Update progress
         setFetchingAllProgress({ current: currentFetchPage, total: totalPages })
-        
+
         // Move to next page
         currentFetchPage++
-        
+
         // Safety check to prevent infinite loops
         if (currentFetchPage > 1000) {
           console.warn("⚠️ Safety limit reached: stopping at 1000 pages")
           break
         }
       }
-      
+
       console.log(`✅ Fetched all ${allOrders.length} orders across ${currentFetchPage - 1} pages`)
-      
+
       // Update state with all orders
       setOrdersData(allOrders)
       setPagination({
@@ -803,7 +894,7 @@ export function OrderManagementHub() {
         hasNext: false,
         hasPrev: false,
       })
-      
+
       // Only update timestamp on client side
       if (typeof window !== "undefined") {
         setLastUpdated(formatGMT7TimeString())
@@ -823,7 +914,7 @@ export function OrderManagementHub() {
       setIsLoading(false)
       setFetchingAllProgress({ current: 0, total: 0 })
     }
-  }, [pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, activeSlaFilter, advancedFilters])
+  }, [pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, advancedFilters])
 
   // Regular single page fetch
   const fetchOrders = useCallback(async () => {
@@ -831,7 +922,7 @@ export function OrderManagementHub() {
     if (fetchAllMode) {
       return fetchAllOrders()
     }
-    
+
     setIsLoading(true)
     setError(null)
     try {
@@ -841,8 +932,39 @@ export function OrderManagementHub() {
         status: statusFilter,
         channel: channelFilter,
         businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
-        slaFilter: activeSlaFilter,
-        advancedFilters: advancedFilters
+        advancedFilters: {
+          ...advancedFilters,
+          // Map separate state variables to advancedFilters object
+          orderNumber: skuSearchTerm || advancedFilters.orderNumber,
+          items: itemNameFilter || advancedFilters.items,
+          customerName: customerNameFilter || advancedFilters.customerName,
+          email: emailFilter || advancedFilters.email,
+          phoneNumber: phoneFilter || advancedFilters.phoneNumber,
+          paymentStatus: paymentStatusFilter !== 'all-payment' ? paymentStatusFilter : advancedFilters.paymentStatus,
+          fulfillmentLocationId: storeNoFilter !== 'all-stores' ? storeNoFilter : advancedFilters.fulfillmentLocationId,
+          orderDateFrom: dateFromFilter || advancedFilters.orderDateFrom,
+          orderDateTo: dateToFilter || advancedFilters.orderDateTo,
+
+          // Map extended filters
+          // @ts-ignore - Extending interface dynamically
+          itemStatus: itemStatusFilter !== 'all-item-status' ? itemStatusFilter : undefined,
+          // @ts-ignore
+          orderType: orderTypeFilter !== 'all-order-type' ? orderTypeFilter : undefined,
+          // @ts-ignore
+          deliveryType: deliveryTypeFilter !== 'all-delivery-type' ? deliveryTypeFilter : undefined,
+          // @ts-ignore
+          requestTax: requestTaxFilter !== 'all-request-tax' ? requestTaxFilter : undefined,
+          // @ts-ignore
+          settlementType: settlementTypeFilter !== 'all-settlement-type' ? settlementTypeFilter : undefined,
+          // @ts-ignore
+          deliverySlotDateFrom: deliverySlotDateFromFilter,
+          // @ts-ignore
+          deliverySlotDateTo: deliverySlotDateToFilter,
+          // @ts-ignore
+          deliveredTimeFrom: deliveredTimeFromFilter,
+          // @ts-ignore
+          deliveredTimeTo: deliveredTimeToFilter
+        }
       }
       const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
         { page: currentPage, pageSize },
@@ -869,7 +991,7 @@ export function OrderManagementHub() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, activeSlaFilter, advancedFilters, fetchAllMode, fetchAllOrders])
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, advancedFilters, fetchAllMode, fetchAllOrders])
 
   // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
@@ -929,26 +1051,24 @@ export function OrderManagementHub() {
       setPaymentMethodFilter("all-payment-method")
     } else if (filter.startsWith("Order Type:")) {
       setOrderTypeFilter("all-order-type")
-    } else if (filter.startsWith("Delivery Type:")) {
-      setDeliveryTypeFilter("all-delivery-type")
-    } else if (filter.startsWith("Request Tax:")) {
-      setRequestTaxFilter("all-request-tax")
-    } else if (filter.startsWith("Settlement Type:")) {
-      setSettlementTypeFilter("all-settlement-type")
-    } else if (filter.startsWith("Delivery Time Slot From:")) {
-      setDeliverySlotDateFromFilter(undefined)
-    } else if (filter.startsWith("Delivery Time Slot To:")) {
-      setDeliverySlotDateToFilter(undefined)
-    } else if (filter.startsWith("Delivery Date From:")) {
-      setDeliveredTimeFromFilter(undefined)
-    } else if (filter.startsWith("Delivery Date To:")) {
-      setDeliveredTimeToFilter(undefined)
-    } else if (filter.startsWith("Date Type:")) {
-      setDateTypeFilter("order-date")
-    } else if (filter === "Urgent Orders" || filter === "Due Soon" || filter === "Ready to Process" || filter === "On Hold") {
-      setQuickFilter("all")
-      setActiveSlaFilter("all")
     }
+    // } else if (filter.startsWith("Delivery Type:")) {
+    //   setDeliveryTypeFilter("all-delivery-type")
+    // } else if (filter.startsWith("Request Tax:")) {
+    //   setRequestTaxFilter("all-request-tax")
+    // } else if (filter.startsWith("Settlement Type:")) {
+    //   setSettlementTypeFilter("all-settlement-type")
+    // } else if (filter.startsWith("Delivery Time Slot From:")) {
+    //   setDeliverySlotDateFromFilter(undefined)
+    // } else if (filter.startsWith("Delivery Time Slot To:")) {
+    //   setDeliverySlotDateToFilter(undefined)
+    // } else if (filter.startsWith("Delivery Date From:")) {
+    //   setDeliveredTimeFromFilter(undefined)
+    // } else if (filter.startsWith("Delivery Date To:")) {
+    //   setDeliveredTimeToFilter(undefined)
+    // } else if (filter.startsWith("Date Type:")) {
+    //   setDateTypeFilter("order-date")
+    // }
     // Reset to first page when filter is removed
     setCurrentPage(1)
   }
@@ -972,34 +1092,25 @@ export function OrderManagementHub() {
     if (itemStatusFilter !== "all-item-status") filters.push(`Item Status: ${itemStatusFilter}`)
     if (paymentMethodFilter !== "all-payment-method") filters.push(`Payment Method: ${paymentMethodFilter}`)
     if (orderTypeFilter !== "all-order-type") filters.push(`Order Type: ${orderTypeFilter}`)
-    // FMS Extended Filters
-    if (deliveryTypeFilter !== "all-delivery-type") filters.push(`Delivery Type: ${deliveryTypeFilter}`)
-    if (requestTaxFilter !== "all-request-tax") filters.push(`Request Tax: ${requestTaxFilter === 'yes' ? 'Yes' : 'No'}`)
-    if (settlementTypeFilter !== "all-settlement-type") filters.push(`Settlement Type: ${settlementTypeFilter}`)
-    if (deliverySlotDateFromFilter) filters.push(`Delivery Time Slot From: ${format(deliverySlotDateFromFilter, "dd/MM/yyyy")}`)
-    if (deliverySlotDateToFilter) filters.push(`Delivery Time Slot To: ${format(deliverySlotDateToFilter, "dd/MM/yyyy")}`)
-    if (deliveredTimeFromFilter) filters.push(`Delivery Date From: ${format(deliveredTimeFromFilter, "dd/MM/yyyy")}`)
-    if (deliveredTimeToFilter) filters.push(`Delivery Date To: ${format(deliveredTimeToFilter, "dd/MM/yyyy")}`)
-    if (dateTypeFilter !== "order-date") {
-      const dateTypeLabels: Record<string, string> = {
-        'payment-date': 'Payment Date',
-        'delivery-date': 'Delivery Date',
-        'shipping-slot': 'Shipping Slot'
-      }
-      filters.push(`Date Type: ${dateTypeLabels[dateTypeFilter] || dateTypeFilter}`)
-    }
-    if (quickFilter !== "all") {
-      const quickFilterLabels = {
-        "urgent": "Urgent Orders",
-        "due-soon": "Due Soon",
-        "ready": "Ready to Process",
-        "on-hold": "On Hold"
-      }
-      filters.push(quickFilterLabels[quickFilter] || quickFilter)
-    }
+    // // FMS Extended Filters
+    // if (deliveryTypeFilter !== "all-delivery-type") filters.push(`Delivery Type: ${deliveryTypeFilter}`)
+    // if (requestTaxFilter !== "all-request-tax") filters.push(`Request Tax: ${requestTaxFilter === 'yes' ? 'Yes' : 'No'}`)
+    // if (settlementTypeFilter !== "all-settlement-type") filters.push(`Settlement Type: ${settlementTypeFilter}`)
+    // if (deliverySlotDateFromFilter) filters.push(`Delivery Time Slot From: ${format(deliverySlotDateFromFilter, "dd/MM/yyyy")}`)
+    // if (deliverySlotDateToFilter) filters.push(`Delivery Time Slot To: ${format(deliverySlotDateToFilter, "dd/MM/yyyy")}`)
+    // if (deliveredTimeFromFilter) filters.push(`Delivery Date From: ${format(deliveredTimeFromFilter, "dd/MM/yyyy")}`)
+    // if (deliveredTimeToFilter) filters.push(`Delivery Date To: ${format(deliveredTimeToFilter, "dd/MM/yyyy")}`)
+    // if (dateTypeFilter !== "order-date") {
+    //   const dateTypeLabels: Record<string, string> = {
+    //     'payment-date': 'Payment Date',
+    //     'delivery-date': 'Delivery Date',
+    //     'shipping-slot': 'Shipping Slot'
+    //   }
+    //   filters.push(`Date Type: ${dateTypeLabels[dateTypeFilter] || dateTypeFilter}`)
+    // }
 
     return filters
-  }, [searchTerm, skuSearchTerm, statusFilter, channelFilter, storeNoFilter, paymentStatusFilter, dateFromFilter, dateToFilter, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, itemStatusFilter, paymentMethodFilter, orderTypeFilter, deliveryTypeFilter, requestTaxFilter, settlementTypeFilter, deliverySlotDateFromFilter, deliverySlotDateToFilter, deliveredTimeFromFilter, deliveredTimeToFilter, dateTypeFilter, quickFilter])
+  }, [searchTerm, skuSearchTerm, statusFilter, channelFilter, storeNoFilter, paymentStatusFilter, dateFromFilter, dateToFilter, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, itemStatusFilter, paymentMethodFilter, orderTypeFilter, deliveryTypeFilter, requestTaxFilter, settlementTypeFilter, deliverySlotDateFromFilter, deliverySlotDateToFilter, deliveredTimeFromFilter, deliveredTimeToFilter, dateTypeFilter])
 
   // Reset all filters
   const handleResetAllFilters = () => {
@@ -1007,8 +1118,6 @@ export function OrderManagementHub() {
     setSkuSearchTerm("")
     setStatusFilter("all-status")
     setChannelFilter("all-channels")
-    setActiveSlaFilter("all")
-    setQuickFilter("all")
     // Reset new extended filters
     setStoreNoFilter("all-stores")
     setPaymentStatusFilter("all-payment")
@@ -1020,16 +1129,16 @@ export function OrderManagementHub() {
     setPhoneFilter("")
     setItemStatusFilter("all-item-status")
     setPaymentMethodFilter("all-payment-method")
-    setOrderTypeFilter("all-order-type")
-    // Reset FMS extended filters
-    setDeliveryTypeFilter("all-delivery-type")
-    setRequestTaxFilter("all-request-tax")
-    setSettlementTypeFilter("all-settlement-type")
-    setDateTypeFilter("order-date")
-    setDeliverySlotDateFromFilter(undefined)
-    setDeliverySlotDateToFilter(undefined)
-    setDeliveredTimeFromFilter(undefined)
-    setDeliveredTimeToFilter(undefined)
+    // setOrderTypeFilter("all-order-type")
+    // // Reset FMS extended filters
+    // setDeliveryTypeFilter("all-delivery-type")
+    // setRequestTaxFilter("all-request-tax")
+    // setSettlementTypeFilter("all-settlement-type")
+    // setDateTypeFilter("order-date")
+    // setDeliverySlotDateFromFilter(undefined)
+    // setDeliverySlotDateToFilter(undefined)
+    // setDeliveredTimeFromFilter(undefined)
+    // setDeliveredTimeToFilter(undefined)
     setCurrentPage(1)
   }
 
@@ -1318,82 +1427,78 @@ export function OrderManagementHub() {
       }
     }
 
-    // Order Type filter (supports both legacy and FMS values)
+    // Order Type filter (mapped to deliveryTypeCode)
     if (orderTypeFilter && orderTypeFilter !== "all-order-type") {
-      // Check both order_type and FMS orderType field
-      const matchesOrderType =
-        order.order_type?.toUpperCase() === orderTypeFilter.toUpperCase() ||
-        order.orderType === orderTypeFilter
-      if (!matchesOrderType) {
+      if (order.deliveryTypeCode !== orderTypeFilter) {
         return false
       }
     }
 
-    // Delivery Type filter (FMS)
-    if (deliveryTypeFilter && deliveryTypeFilter !== "all-delivery-type") {
-      if (order.deliveryType !== deliveryTypeFilter) {
-        return false
-      }
-    }
+    // // Delivery Type filter (FMS)
+    // if (deliveryTypeFilter && deliveryTypeFilter !== "all-delivery-type") {
+    //   if (order.deliveryType !== deliveryTypeFilter) {
+    //     return false
+    //   }
+    // }
 
-    // Request Tax filter (FMS) - uses fullTaxInvoice boolean
-    if (requestTaxFilter && requestTaxFilter !== "all-request-tax") {
-      const wantsTaxInvoice = requestTaxFilter === "yes"
-      if (order.fullTaxInvoice !== wantsTaxInvoice) {
-        return false
-      }
-    }
+    // // Request Tax filter (FMS) - uses fullTaxInvoice boolean
+    // if (requestTaxFilter && requestTaxFilter !== "all-request-tax") {
+    //   const wantsTaxInvoice = requestTaxFilter === "yes"
+    //   if (order.fullTaxInvoice !== wantsTaxInvoice) {
+    //     return false
+    //   }
+    // }
 
-    // Settlement Type filter (FMS)
-    if (settlementTypeFilter && settlementTypeFilter !== "all-settlement-type") {
-      if (order.settlementType !== settlementTypeFilter) {
-        return false
-      }
-    }
+    // // Settlement Type filter (FMS)
+    // if (settlementTypeFilter && settlementTypeFilter !== "all-settlement-type") {
+    //   if (order.settlementType !== settlementTypeFilter) {
+    //     return false
+    //   }
+    // }
 
-    // Delivery Slot Date Range filter (FMS)
-    if (deliverySlotDateFromFilter || deliverySlotDateToFilter) {
-      const slotDateValue = order.deliveryTimeSlot?.date
-      if (slotDateValue) {
-        const slotDate = getGMT7Time(slotDateValue)
+    // // Delivery Slot Date Range filter (FMS)
+    // if (deliverySlotDateFromFilter || deliverySlotDateToFilter) {
+    //   const slotDateValue = order.deliveryTimeSlot?.date
+    //   if (slotDateValue) {
+    //     const slotDate = getGMT7Time(slotDateValue)
 
-        if (deliverySlotDateFromFilter) {
-          const fromDate = getGMT7Time(deliverySlotDateFromFilter)
-          if (slotDate < fromDate) return false
-        }
+    //     if (deliverySlotDateFromFilter) {
+    //       const fromDate = getGMT7Time(deliverySlotDateFromFilter)
+    //       if (slotDate < fromDate) return false
+    //     }
 
-        if (deliverySlotDateToFilter) {
-          const toDate = getGMT7Time(deliverySlotDateToFilter)
-          toDate.setHours(23, 59, 59, 999) // Include entire day
-          if (slotDate > toDate) return false
-        }
-      } else {
-        // Filter out orders without delivery slot data when filter is active
-        return false
-      }
-    }
+    //     if (deliverySlotDateToFilter) {
+    //       const toDate = getGMT7Time(deliverySlotDateToFilter)
+    //       toDate.setHours(23, 59, 59, 999) // Include entire day
+    //       if (slotDate > toDate) return false
+    //     }
+    //   } else {
+    //     // Filter out orders without delivery slot data when filter is active
+    //     return false
+    //   }
+    // }
 
-    // Delivered Time Date Range filter (FMS)
-    if (deliveredTimeFromFilter || deliveredTimeToFilter) {
-      const deliveredTimeValue = order.deliveredTime
-      if (deliveredTimeValue) {
-        const deliveredDate = getGMT7Time(deliveredTimeValue)
+    // // Delivered Time Date Range filter (FMS)
+    // if (deliveredTimeFromFilter || deliveredTimeToFilter) {
+    //   const deliveredTimeValue = order.deliveredTime
+    //   if (deliveredTimeValue) {
+    //     const deliveredDate = getGMT7Time(deliveredTimeValue)
 
-        if (deliveredTimeFromFilter) {
-          const fromDate = getGMT7Time(deliveredTimeFromFilter)
-          if (deliveredDate < fromDate) return false
-        }
+    //     if (deliveredTimeFromFilter) {
+    //       const fromDate = getGMT7Time(deliveredTimeFromFilter)
+    //       if (deliveredDate < fromDate) return false
+    //     }
 
-        if (deliveredTimeToFilter) {
-          const toDate = getGMT7Time(deliveredTimeToFilter)
-          toDate.setHours(23, 59, 59, 999) // Include entire day
-          if (deliveredDate > toDate) return false
-        }
-      } else {
-        // Filter out orders without delivered time data when filter is active
-        return false
-      }
-    }
+    //     if (deliveredTimeToFilter) {
+    //       const toDate = getGMT7Time(deliveredTimeToFilter)
+    //       toDate.setHours(23, 59, 59, 999) // Include entire day
+    //       if (deliveredDate > toDate) return false
+    //     }
+    //   } else {
+    //     // Filter out orders without delivered time data when filter is active
+    //     return false
+    //   }
+    // }
 
     // Advanced filters
     if (advancedFilters.orderNumber) {
@@ -1473,33 +1578,7 @@ export function OrderManagementHub() {
       }
     }
 
-    // SLA filter
-    if (activeSlaFilter === "near-breach") {
-      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED" || order.status === "COLLECTED") {
-        return false
-      }
-      if (!order.sla_info) return false
 
-      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
-      const targetSeconds = order.sla_info.target_minutes || 300
-      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
-
-      const remainingSeconds = targetSeconds - elapsedSeconds
-      const criticalThreshold = targetSeconds * 0.2 // 20% of target (60 seconds for 300s target)
-      return (remainingSeconds <= criticalThreshold && remainingSeconds > 0) || order.sla_info.status === "NEAR_BREACH"
-    } else if (activeSlaFilter === "breach") {
-      if (order.status === "DELIVERED" || order.status === "FULFILLED" || order.status === "CANCELLED" || order.status === "COLLECTED") {
-        return false
-      }
-      if (!order.sla_info) return false
-
-      // API returns values in seconds - Default SLA target is 300 seconds (5 minutes)
-      const targetSeconds = order.sla_info.target_minutes || 300
-      const elapsedSeconds = order.sla_info.elapsed_minutes || 0
-
-      // Over SLA if elapsed time exceeds target
-      return elapsedSeconds > targetSeconds || order.sla_info.status === "BREACH"
-    }
 
     // SLA exceed filter from advanced filters
     if (advancedFilters.exceedSLA) {
@@ -1513,10 +1592,7 @@ export function OrderManagementHub() {
       if (elapsedSeconds <= targetSeconds && order.sla_info.status !== "BREACH") return false
     }
 
-    // Quick filter for on-hold orders
-    if (quickFilter === "on-hold") {
-      if (!order.on_hold) return false
-    }
+
 
     return true
   })
@@ -1574,20 +1650,20 @@ export function OrderManagementHub() {
       "Store Id",
       "Store Name",
       "Status",
-      "Request Full Tax",
+      // "Request Full Tax",
       "Customer Name",
-      "Order Type",
-      "Delivery Type",
+      // "Order Type",
+      // "Delivery Type",
       "Order Date",
-      "Payment Date",
-      "Delivery Time Slot",
-      "Delivery Date",
-      "Payment Type",
-      "Customer Pay Amount",
-      "Customer Redeem Amount",
-      "Order Delivery Fee",
-      "VAT Amount",
-      "Discount",
+      // "Payment Date",
+      // "Delivery Time Slot",
+      // "Delivery Date",
+      // "Payment Type",
+      // "Customer Pay Amount",
+      // "Customer Redeem Amount",
+      // "Order Delivery Fee",
+      // "VAT Amount",
+      // "Discount",
       "Total Amount"
     ]
 
@@ -1597,20 +1673,20 @@ export function OrderManagementHub() {
       escapeCSV(order.metadata?.store_no || ""),
       escapeCSV(order.metadata?.store_name || ""),
       escapeCSV(order.status),
-      escapeCSV(order.fullTaxInvoice ? "Yes" : "No"),
+      // escapeCSV(order.fullTaxInvoice ? "Yes" : "No"),
       escapeCSV(order.customer?.name || ""),
-      escapeCSV(order.orderType || order.order_type || ""),
-      escapeCSV(order.deliveryType || ""),
+      // escapeCSV(order.orderType || order.order_type || ""),
+      // escapeCSV(order.deliveryType || ""),
       escapeCSV(formatDateForFMSExport(order.order_date || order.metadata?.created_at)),
-      escapeCSV(formatDateForFMSExport(order.paymentDate)),
-      escapeCSV(formatDeliveryTimeSlotForFMSExport(order.deliveryTimeSlot)),
-      escapeCSV(order.status === "DELIVERED" ? formatDateForFMSExport(order.deliveryDate || order.deliveredTime) : ""),
-      escapeCSV(order.paymentType || order.payment_info?.method || ""),
-      escapeCSV(formatAmount(order.customerPayAmount ?? order.total_amount)),
-      escapeCSV(formatAmount(order.customerRedeemAmount)),
-      escapeCSV(formatAmount(order.orderDeliveryFee)),
-      escapeCSV(formatAmount(order.payment_info?.taxes)),
-      escapeCSV(formatAmount(order.payment_info?.discounts ? Math.abs(order.payment_info.discounts) : 0)),
+      // escapeCSV(formatDateForFMSExport(order.paymentDate)),
+      // escapeCSV(formatDeliveryTimeSlotForFMSExport(order.deliveryTimeSlot)),
+      // escapeCSV(order.status === "DELIVERED" ? formatDateForFMSExport(order.deliveryDate || order.deliveredTime) : ""),
+      // escapeCSV(order.paymentType || order.payment_info?.method || ""),
+      // escapeCSV(formatAmount(order.customerPayAmount ?? order.total_amount)),
+      // escapeCSV(formatAmount(order.customerRedeemAmount)),
+      // escapeCSV(formatAmount(order.orderDeliveryFee)),
+      // escapeCSV(formatAmount(order.payment_info?.taxes)),
+      // escapeCSV(formatAmount(order.payment_info?.discounts ? Math.abs(order.payment_info.discounts) : 0)),
       escapeCSV(formatAmount(order.total_amount))
     ])
 
@@ -1634,19 +1710,38 @@ export function OrderManagementHub() {
     URL.revokeObjectURL(link.href)
   }
 
-  // Export Handler Function
+  // Export Handler Function - opens dialog
   const handleExportSearchResults = async () => {
+    setShowExportDialog(true)
+  }
+
+  // Export Handler with Date Range
+  const handleExportWithDateRange = async () => {
+    if (!exportDateFrom) {
+      toast({
+        title: "Date Required",
+        description: "Please select an Order Date From to export.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsExporting(true)
     try {
-      setIsExporting(true)
+      // Filter orders based on export date range
+      const ordersToExport = filteredOrders.filter(order => {
+        const orderDate = new Date(order.order_date || order.metadata?.created_at || '')
+        if (exportDateFrom && orderDate < exportDateFrom) return false
+        if (exportDateTo && orderDate > exportDateTo) return false
+        return true
+      })
 
-      // Small delay to show loading state
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      exportOrdersToCSV(filteredOrders)
+      exportOrdersToCSV(ordersToExport)
+      setShowExportDialog(false)
 
       toast({
         title: "Export Successful",
-        description: `Exported ${filteredOrders.length} order${filteredOrders.length !== 1 ? "s" : ""} to CSV.`,
+        description: `Exported ${ordersToExport.length} order(s) to CSV.`,
       })
     } catch (err: any) {
       toast({
@@ -1694,7 +1789,7 @@ export function OrderManagementHub() {
                 Selling Channel
               </TableHead>
               {/* FMS Extended Columns */}
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+              {/* <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 Order Type
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
@@ -1714,7 +1809,7 @@ export function OrderManagementHub() {
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[110px] text-sm font-semibold">
                 Settlement Type
-              </TableHead>
+              </TableHead> */}
               {/* End FMS Extended Columns */}
               <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
                 Allow Substitution
@@ -1727,7 +1822,7 @@ export function OrderManagementHub() {
           <TableBody>
             {ordersToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={19} className="text-center py-8">
+                <TableCell colSpan={11} className="text-center py-8">
                   No orders found.
                 </TableCell>
               </TableRow>
@@ -1744,52 +1839,52 @@ export function OrderManagementHub() {
                         {order.id}
                       </button>
                     </TableCell>
-                  <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
-                                    <TableCell>
-                    <OrderStatusBadge status={order.status} />
-                  </TableCell>
-                  <TableCell>
-                    <SLABadge
-                      targetMinutes={order.slaStatus?.target_minutes ?? 0}
-                      elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
-                      status={order.status}
-                      slaStatus={order.slaStatus?.status}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <ReturnStatusBadge status={order.returnStatus} />
-                  </TableCell>
-                  <TableCell>
-                    <OnHoldBadge onHold={order.onHold} />
-                  </TableCell>
-                  <TableCell>
-                    <PaymentStatusBadge status={order.paymentStatus} />
-                  </TableCell>
-                  <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
-                  <TableCell>
-                    <ChannelBadge channel={order.channel} />
-                  </TableCell>
-                  {/* FMS Extended Column Data */}
-                  <TableCell>
-                    <OrderTypeBadge orderType={order.orderType} />
-                  </TableCell>
-                  <TableCell>
-                    <DeliveryTypeBadge deliveryType={order.deliveryType} />
-                  </TableCell>
-                  <TableCell>
-                    <PaymentTypeBadge paymentType={order.paymentType} />
-                  </TableCell>
-                  <TableCell>
-                    <RequestTaxBadge requestTax={order.requestTax} />
-                  </TableCell>
-                  <TableCell>{order.deliveryTimeSlot || "-"}</TableCell>
-                  <TableCell>{order.deliveredTime || "-"}</TableCell>
-                  <TableCell>
-                    <SettlementTypeBadge settlementType={order.settlementType} />
-                  </TableCell>
-                  {/* End FMS Extended Column Data */}
-                  <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
-                  <TableCell>{order.createdDate}</TableCell>
+                    <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
+                    <TableCell>
+                      <OrderStatusBadge status={order.status} />
+                    </TableCell>
+                    <TableCell>
+                      <SLABadge
+                        targetMinutes={order.slaStatus?.target_minutes ?? 0}
+                        elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
+                        status={order.status}
+                        slaStatus={order.slaStatus?.status}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <ReturnStatusBadge status={order.returnStatus} />
+                    </TableCell>
+                    <TableCell>
+                      <OnHoldBadge onHold={order.onHold} />
+                    </TableCell>
+                    <TableCell>
+                      <PaymentStatusBadge status={order.paymentStatus} />
+                    </TableCell>
+                    <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
+                    <TableCell>
+                      <ChannelBadge channel={order.channel} />
+                    </TableCell>
+                    {/* FMS Extended Column Data */}
+                    {/* <TableCell>
+                      <OrderTypeBadge orderType={order.orderType} />
+                    </TableCell>
+                    <TableCell>
+                      <DeliveryTypeBadge deliveryType={order.deliveryType} />
+                    </TableCell>
+                    <TableCell>
+                      <PaymentTypeBadge paymentType={order.paymentType} />
+                    </TableCell>
+                    <TableCell>
+                      <RequestTaxBadge requestTax={order.requestTax} />
+                    </TableCell>
+                    <TableCell>{order.deliveryTimeSlot || "-"}</TableCell>
+                    <TableCell>{order.deliveredTime || "-"}</TableCell>
+                    <TableCell>
+                      <SettlementTypeBadge settlementType={order.settlementType} />
+                    </TableCell> */}
+                    {/* End FMS Extended Column Data */}
+                    <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
+                    <TableCell>{order.createdDate}</TableCell>
                   </TableRow>
                 )
               })
@@ -1838,7 +1933,7 @@ export function OrderManagementHub() {
             </div>
           </div>
           {/* Urgency Legend */}
-          <div className="mt-4 flex items-center gap-4 text-xs">
+          {/* <div className="mt-4 flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-red-500 rounded"></div>
               <span className="text-gray-600">Critical (Breach)</span>
@@ -1855,101 +1950,8 @@ export function OrderManagementHub() {
               <div className="w-3 h-3 bg-green-500 rounded"></div>
               <span className="text-gray-600">On Track</span>
             </div>
-          </div>
+          </div> */}
 
-          {/* Operations Quick Filters */}
-          <div className="mt-4 space-y-3">
-            <div className="text-sm font-medium text-gray-700">Quick Filters</div>
-            <div className="flex flex-wrap gap-2">
-              {/* Urgent Orders - SLA Breach */}
-              <Button
-                variant={quickFilter === "urgent" ? "default" : "outline"}
-                onClick={() => {
-                  setQuickFilter("urgent")
-                  setActiveSlaFilter("breach")
-                  setStatusFilter("all-status")
-                  setCurrentPage(1)
-                }}
-                className={`h-10 px-4 font-medium ${
-                  quickFilter === "urgent" 
-                    ? "bg-red-600 text-white hover:bg-red-700 shadow-md" 
-                    : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
-                }`}
-              >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Urgent Orders ({realTimeCounts.breach})
-              </Button>
-              
-              {/* Due Soon - Near Breach */}
-              <Button
-                variant={quickFilter === "due-soon" ? "default" : "outline"}
-                onClick={() => {
-                  setQuickFilter("due-soon")
-                  setActiveSlaFilter("near-breach")
-                  setStatusFilter("all-status")
-                  setCurrentPage(1)
-                }}
-                className={`h-10 px-4 font-medium ${
-                  quickFilter === "due-soon"
-                    ? "bg-amber-600 text-white hover:bg-amber-700 shadow-md"
-                    : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-                }`}
-              >
-                <Clock className="h-4 w-4 mr-2" />
-                Due Soon ({realTimeCounts.nearBreach})
-              </Button>
-              
-              {/* Ready to Process - New/Submitted Orders */}
-              <Button
-                variant={quickFilter === "ready" ? "default" : "outline"}
-                onClick={() => {
-                  setQuickFilter("ready")
-                  setStatusFilter("SUBMITTED")
-                  setActiveSlaFilter("all")
-                  setCurrentPage(1)
-                }}
-                className={`h-10 px-4 font-medium ${
-                  quickFilter === "ready"
-                    ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
-                    : "bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
-                }`}
-              >
-                <Package className="h-4 w-4 mr-2" />
-                Ready to Process ({realTimeCounts.submitted})
-              </Button>
-              
-              {/* On Hold Orders */}
-              <Button
-                variant={quickFilter === "on-hold" ? "default" : "outline"}
-                onClick={() => {
-                  setQuickFilter("on-hold")
-                  // Filter will be applied client-side for on-hold status
-                  setStatusFilter("all-status")
-                  setActiveSlaFilter("all")
-                  setCurrentPage(1)
-                }}
-                className={`h-10 px-4 font-medium ${
-                  quickFilter === "on-hold"
-                    ? "bg-gray-600 text-white hover:bg-gray-700 shadow-md"
-                    : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
-              >
-                <PauseCircle className="h-4 w-4 mr-2" />
-                On Hold ({realTimeCounts.onHold})
-              </Button>
-              
-              {/* Reset Filters */}
-              <Button
-                variant="ghost"
-                onClick={handleResetAllFilters}
-                className="h-10 px-4 font-medium text-gray-600 hover:text-gray-900"
-                disabled={quickFilter === "all" && statusFilter === "all-status" && channelFilter === "all-channels" && activeSlaFilter === "all" && !searchTerm && !skuSearchTerm && storeNoFilter === "all-stores" && paymentStatusFilter === "all-payment" && !dateFromFilter && !dateToFilter && !itemNameFilter && !customerNameFilter && !emailFilter && !phoneFilter && itemStatusFilter === "all-item-status" && paymentMethodFilter === "all-payment-method" && orderTypeFilter === "all-order-type"}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear Filters
-              </Button>
-            </div>
-          </div>
 
           {/* Main Filters Section */}
           <div className="mt-4 space-y-3">
@@ -2033,7 +2035,7 @@ export function OrderManagementHub() {
             {/* Row 2: Date Range */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {/* Date Type Selector */}
-              <div className="space-y-1">
+              {/* <div className="space-y-1">
                 <Label className="text-xs text-gray-600">Date Type</Label>
                 <Select value={dateTypeFilter} onValueChange={setDateTypeFilter}>
                   <SelectTrigger className="h-11">
@@ -2046,7 +2048,7 @@ export function OrderManagementHub() {
                     <SelectItem value="shipping-slot">Shipping Slot</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               {/* Date From */}
               <div className="space-y-1">
@@ -2178,19 +2180,20 @@ export function OrderManagementHub() {
                     />
                   </div>
 
-                  {/* Item Status */}
+                  {/* Order Type */}
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Item Status</Label>
-                    <Select value={itemStatusFilter} onValueChange={setItemStatusFilter}>
+                    <Label className="text-xs text-gray-600">Order Type</Label>
+                    <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
                       <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Item Status" />
+                        <SelectValue placeholder="All Order Types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all-item-status">All Item Status</SelectItem>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="PICKED">Picked</SelectItem>
-                        <SelectItem value="PACKED">Packed</SelectItem>
-                        <SelectItem value="SHIPPED">Shipped</SelectItem>
+                        <SelectItem value="all-order-type">All Order Types</SelectItem>
+                        <SelectItem value="RT-HD-EXP">RT-HD-EXP</SelectItem>
+                        <SelectItem value="RT-CC-STD">RT-CC-STD</SelectItem>
+                        <SelectItem value="MKP-HD-STD">MKP-HD-STD</SelectItem>
+                        <SelectItem value="RT-HD-STD">RT-HD-STD</SelectItem>
+                        <SelectItem value="RT-CC-EXP">RT-CC-EXP</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -2206,17 +2209,17 @@ export function OrderManagementHub() {
                         <SelectItem value="all-payment-method">All Payment Methods</SelectItem>
                         <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
                         <SelectItem value="CREDIT_CARD_ON_DELIVERY">Credit Card on Delivery</SelectItem>
-                        <SelectItem value="2C2P_CREDIT_CARD">2C2P Credit-Card</SelectItem>
+                        {/* <SelectItem value="2C2P_CREDIT_CARD">2C2P Credit-Card</SelectItem>
                         <SelectItem value="QR_PROMPTPAY">QR PromptPay</SelectItem>
                         <SelectItem value="T1C_REDEEM">T1C Redeem Payment</SelectItem>
                         <SelectItem value="LAZADA_PAYMENT">Lazada Payment</SelectItem>
-                        <SelectItem value="SHOPEE_PAYMENT">Shopee Payment</SelectItem>
+                        <SelectItem value="SHOPEE_PAYMENT">Shopee Payment</SelectItem> */}
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Order Type (FMS) */}
-                  <div className="space-y-1">
+                  {/* <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Order Type</Label>
                     <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
                       <SelectTrigger className="h-11">
@@ -2233,10 +2236,10 @@ export function OrderManagementHub() {
                         <SelectItem value="PICKUP">Pickup</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
 
                   {/* Delivery Type (FMS) */}
-                  <div className="space-y-1">
+                  {/* <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Delivery Type</Label>
                     <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
                       <SelectTrigger className="h-11">
@@ -2249,10 +2252,10 @@ export function OrderManagementHub() {
                         <SelectItem value="Click & Collect">Click & Collect</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
 
                   {/* Request Tax (FMS) */}
-                  <div className="space-y-1">
+                  {/* <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Request Tax Invoice</Label>
                     <Select value={requestTaxFilter} onValueChange={setRequestTaxFilter}>
                       <SelectTrigger className="h-11">
@@ -2264,10 +2267,10 @@ export function OrderManagementHub() {
                         <SelectItem value="no">No</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
 
                   {/* Settlement Type (FMS) */}
-                  <div className="space-y-1">
+                  {/* <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Settlement Type</Label>
                     <Select value={settlementTypeFilter} onValueChange={setSettlementTypeFilter}>
                       <SelectTrigger className="h-11">
@@ -2279,12 +2282,12 @@ export function OrderManagementHub() {
                         <SelectItem value="Manual Settle">Manual Settle</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Row: Delivery Slot and Delivered Time Date Filters */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                  {/* Delivery Time Slot From */}
+                {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                  
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Delivery Time Slot From</Label>
                     <Popover>
@@ -2311,7 +2314,7 @@ export function OrderManagementHub() {
                     </Popover>
                   </div>
 
-                  {/* Delivery Time Slot To */}
+                  
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Delivery Time Slot To</Label>
                     <Popover>
@@ -2338,7 +2341,7 @@ export function OrderManagementHub() {
                     </Popover>
                   </div>
 
-                  {/* Delivery Date From */}
+                  
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Delivery Date From</Label>
                     <Popover>
@@ -2365,7 +2368,7 @@ export function OrderManagementHub() {
                     </Popover>
                   </div>
 
-                  {/* Delivery Date To */}
+                  
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-600">Delivery Date To</Label>
                     <Popover>
@@ -2391,7 +2394,7 @@ export function OrderManagementHub() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                </div>
+                </div> */}
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -2404,8 +2407,8 @@ export function OrderManagementHub() {
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-corporate-blue" />
               <p className="ml-2 text-steel-gray">
-                {fetchingAllProgress.total > 0 
-                  ? `Fetching page ${fetchingAllProgress.current} of ${fetchingAllProgress.total}...` 
+                {fetchingAllProgress.total > 0
+                  ? `Fetching page ${fetchingAllProgress.current} of ${fetchingAllProgress.total}...`
                   : "Loading orders..."}
               </p>
             </div>
@@ -2484,6 +2487,123 @@ export function OrderManagementHub() {
           </div>
         </div>
       )}
+
+      {/* Export Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Export Orders</DialogTitle>
+            <DialogDescription>
+              Select date range for export. Export is limited to the last 6 months from today.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Info message about 6-month limit */}
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span>Export date range is limited to the last 6 months from today.</span>
+            </div>
+
+            {/* Date Type Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="export-date-type">Date Type</Label>
+              <Select value={dateTypeFilter} onValueChange={setDateTypeFilter}>
+                <SelectTrigger id="export-date-type" className="h-11">
+                  <SelectValue placeholder="Order Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="order-date">Order Date</SelectItem>
+                  <SelectItem value="payment-date">Payment Date</SelectItem>
+                  <SelectItem value="delivery-date">Delivery Date</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date From Picker with 6-month restriction */}
+            <div className="space-y-2">
+              <Label htmlFor="export-date-from">Order Date From *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-11",
+                      !exportDateFrom && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {exportDateFrom ? format(exportDateFrom, "dd/MM/yyyy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={exportDateFrom}
+                    onSelect={setExportDateFrom}
+                    disabled={isDateDisabledForExport}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Date To Picker */}
+            <div className="space-y-2">
+              <Label htmlFor="export-date-to">Order Date To</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-11",
+                      !exportDateTo && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {exportDateTo ? format(exportDateTo, "dd/MM/yyyy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={exportDateTo}
+                    onSelect={setExportDateTo}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowExportDialog(false)}
+              disabled={isExporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleExportWithDateRange}
+              disabled={isExporting || !exportDateFrom}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

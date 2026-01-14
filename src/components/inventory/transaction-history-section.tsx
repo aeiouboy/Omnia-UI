@@ -77,6 +77,7 @@ import { formatWarehouseCode, formatStockQuantity } from "@/lib/warehouse-utils"
 import { exportTransactionsToCSV, exportTransactionsToExcel } from "@/lib/export-utils"
 import { fetchTransactionHistory } from "@/lib/inventory-service"
 import { getWarehouseCodesForStore } from "@/lib/mock-inventory-data"
+import { useInventoryView } from "@/contexts/inventory-view-context"
 import type {
   StockTransaction,
   TransactionType,
@@ -182,6 +183,9 @@ export function TransactionHistorySection({
   itemType,
   storeContext,
 }: TransactionHistorySectionProps) {
+  // Get channels from inventory view context
+  const { channels: viewChannels } = useInventoryView()
+
   // State
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
@@ -663,7 +667,9 @@ export function TransactionHistorySection({
                             </TooltipTrigger>
                             <TooltipContent className="max-w-[300px] whitespace-normal break-words">
                               <p>{transaction.notes || "No notes"}</p>
-                              {transaction.channel && <p>Channel: {transaction.channel}</p>}
+                              {viewChannels && viewChannels.length > 0 && (
+                                <p>Channel: {viewChannels.join(", ")}</p>
+                              )}
                               {transaction.allocationType && (
                                 <p>Allocation Type: {transaction.allocationType}</p>
                               )}

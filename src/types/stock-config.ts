@@ -24,6 +24,14 @@ export type SupplyTypeID = "PreOrder" | "On Hand Available" | "Preorder" | "OnHa
 export type Frequency = "One-time" | "Daily" | "Onetime"
 
 /**
+ * Sales channel identifier
+ * - TOL: Tops Online
+ * - MKP: Marketplace
+ * - QC: Quality Control / Quick Commerce
+ */
+export type Channel = "TOL" | "MKP" | "QC"
+
+/**
  * Stock configuration item representing a single stock config record
  */
 export interface StockConfigItem {
@@ -33,6 +41,7 @@ export interface StockConfigItem {
   quantity: number
   supplyTypeId: SupplyTypeID
   frequency: Frequency
+  channel?: Channel // Sales channel (TOL, MKP, QC)
   startDate?: string // ISO 8601 date or YYYY-MM-DD HH:MM:SS (only for OnHand type)
   endDate?: string // ISO 8601 date or YYYY-MM-DD HH:MM:SS (only for OnHand type)
   createdAt: string // ISO 8601 timestamp
@@ -62,6 +71,7 @@ export type ErrorCode =
   | "INVALID_SUPPLY_TYPE"
   | "INVALID_FREQUENCY"
   | "QUANTITY_INVALID"
+  | "INVALID_CHANNEL"
 
 /**
  * Error severity for processing results
@@ -151,6 +161,7 @@ export interface ParsedStockConfigRow {
   quantity: number | null
   supplyTypeId: string
   frequency: string
+  channel: string
   startDate: string
   endDate: string
   isValid: boolean
@@ -177,12 +188,13 @@ export interface FileParseResult {
 export interface StockConfigFilters {
   supplyType?: SupplyTypeID | "all"
   frequency?: Frequency | "all"
+  channel?: Channel | "all"
   searchQuery?: string
   locationIdFilter?: string
   itemIdFilter?: string
   page?: number
   pageSize?: number
-  sortBy?: "locationId" | "itemId" | "quantity" | "supplyTypeId" | "createdAt"
+  sortBy?: "locationId" | "itemId" | "quantity" | "supplyTypeId" | "channel" | "createdAt"
   sortOrder?: "asc" | "desc"
 }
 

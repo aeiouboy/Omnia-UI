@@ -1,49 +1,44 @@
 import { Layers } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { VIEW_TYPE_CONFIG, getViewTypeDescription } from "@/types/view-type-config"
 
 interface InventoryViewSelectorProps {
   value: string | undefined
   onValueChange: (value: string) => void
+  /** Whether the selector shows a required indicator */
+  required?: boolean
 }
-
-// View code options (stock configuration views)
-const VIEW_CODE_OPTIONS = [
-  "ECOM-TH-CFR-LOCD-STD",
-  "ECOM-TH-DSS-NW-ALL",
-  "ECOM-TH-DSS-NW-STD",
-  "ECOM-TH-DSS-LOCD-EXP",
-  "ECOM-TH-SSP-NW-STD",
-  "MKP-TH-SSP-NW-STD",
-  "MKP-TH-CFR-LOCD-STD",
-  "ECOM-TH-SSP-NW-ALL",
-  "MKP-TH-CFR-MANUAL-SYNC",
-  "CMG-ECOM-TH-STD",
-  "CMG-MKP-SHOPEE-TH-NTW-STD",
-  "CMG-MKP-LAZADA-TH-LOC-STD",
-  "CMG-MKP-MIRAKL-TH-NTW-STD",
-] as const
 
 export function InventoryViewSelector({
   value,
   onValueChange,
+  required = true,
 }: InventoryViewSelectorProps) {
   return (
     <div className="flex items-center gap-2">
       <Select value={value || ""} onValueChange={onValueChange}>
-        <SelectTrigger className="w-[240px] h-10 bg-primary/5 border-primary/20 font-medium">
-          <SelectValue placeholder="Select a view..." />
+        <SelectTrigger className={`w-[280px] h-10 bg-primary/5 border-primary/20 font-medium ${required && !value ? 'border-orange-400 ring-1 ring-orange-400' : ''}`}>
+          <SelectValue placeholder="Select a View Type *" />
         </SelectTrigger>
         <SelectContent>
-          {VIEW_CODE_OPTIONS.map((viewCode) => (
-            <SelectItem key={viewCode} value={viewCode}>
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4" />
-                {viewCode}
+          {VIEW_TYPE_CONFIG.map((config) => (
+            <SelectItem key={config.viewType} value={config.viewType}>
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4" />
+                  <span className="font-medium">{config.viewType}</span>
+                </div>
+                <span className="text-xs text-muted-foreground ml-6">
+                  {config.description} ({config.channels.join(", ")})
+                </span>
               </div>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      {required && !value && (
+        <span className="text-xs text-orange-600 font-medium">Required</span>
+      )}
     </div>
   )
 }

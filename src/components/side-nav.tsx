@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Search, Package, Menu, X, AlertTriangle, Palette, Scale, FileSpreadsheet } from "lucide-react"
+import { LayoutDashboard, Search, Package, Menu, X, AlertTriangle, Palette, Scale, FileSpreadsheet, BarChart3 } from "lucide-react"
 import { useSidebar } from "@/contexts/sidebar-context"
 import { useSwipe } from "@/hooks/use-swipe"
 import { useEdgeSwipe } from "@/hooks/use-edge-swipe"
@@ -22,6 +22,11 @@ export function SideNav() {
       title: "Order Search",
       href: "/orders",
       icon: Search,
+    },
+    {
+      title: "Order Analysis",
+      href: "/order-analysis",
+      icon: BarChart3,
     },
     {
       title: "Inventory",

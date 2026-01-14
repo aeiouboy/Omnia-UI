@@ -222,6 +222,72 @@ export function DeliveryTypeBadge({ deliveryType }: { deliveryType?: string }) {
   }
 }
 
+// Delivery Type Code Badge - for order-level delivery type codes (RT-HD-EXP, RT-CC-STD, etc.)
+export function DeliveryTypeCodeBadge({ deliveryTypeCode }: { deliveryTypeCode?: string }) {
+  if (!deliveryTypeCode) {
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+  }
+
+  // Mapping of delivery type codes to friendly labels and styles
+  const deliveryTypeConfig: Record<string, { label: string; style: string; icon: React.ReactNode }> = {
+    "RT-HD-EXP": {
+      label: "Retail Home Delivery Express",
+      style: "bg-orange-100 text-orange-800 border-orange-200",
+      icon: <Zap className="h-3 w-3 mr-1" />,
+    },
+    "RT-CC-STD": {
+      label: "Retail Click & Collect Standard",
+      style: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: <Store className="h-3 w-3 mr-1" />,
+    },
+    "MKP-HD-STD": {
+      label: "Marketplace Home Delivery Standard",
+      style: "bg-purple-100 text-purple-800 border-purple-200",
+      icon: <Truck className="h-3 w-3 mr-1" />,
+    },
+    "RT-HD-STD": {
+      label: "Retail Home Delivery Standard",
+      style: "bg-blue-100 text-blue-800 border-blue-200",
+      icon: <Truck className="h-3 w-3 mr-1" />,
+    },
+    "RT-CC-EXP": {
+      label: "Retail Click & Collect Express",
+      style: "bg-orange-100 text-orange-800 border-orange-200",
+      icon: <Store className="h-3 w-3 mr-1" />,
+    },
+  };
+
+  const config = deliveryTypeConfig[deliveryTypeCode];
+
+  if (config) {
+    return (
+      <Badge className={`${config.style} font-mono text-sm flex items-center`} title={config.label}>
+        {config.icon}
+        {deliveryTypeCode}
+      </Badge>
+    );
+  }
+
+  // Fallback for unknown codes
+  return (
+    <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">
+      {deliveryTypeCode}
+    </Badge>
+  );
+}
+
+// Helper function to get the friendly label for a delivery type code
+export function getDeliveryTypeCodeLabel(deliveryTypeCode?: string): string {
+  const labels: Record<string, string> = {
+    "RT-HD-EXP": "Retail Home Delivery Express",
+    "RT-CC-STD": "Retail Click & Collect Standard",
+    "MKP-HD-STD": "Marketplace Home Delivery Standard",
+    "RT-HD-STD": "Retail Home Delivery Standard",
+    "RT-CC-EXP": "Retail Click & Collect Express",
+  };
+  return deliveryTypeCode ? (labels[deliveryTypeCode] || deliveryTypeCode) : "-";
+}
+
 // Settlement Type Badge - Auto Settle (green), Manual Settle (yellow)
 export function SettlementTypeBadge({ settlementType }: { settlementType?: string }) {
   if (!settlementType) {

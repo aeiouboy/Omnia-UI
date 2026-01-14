@@ -10,6 +10,29 @@
  * For detailed terminology guidelines, see docs/inventory-terminology-standards.md
  */
 
+import type {
+  BusinessUnit,
+  ViewTypeChannel,
+  ViewTypeConfig,
+} from "./view-type-config"
+
+// Re-export View Type configuration types and utilities
+export type {
+  BusinessUnit,
+  ViewTypeChannel,
+  ViewTypeConfig,
+}
+
+export {
+  VIEW_TYPE_CONFIG,
+  getViewTypeCodes,
+  getViewTypeConfig,
+  getChannelsByViewType,
+  getBusinessUnitByViewType,
+  getViewTypeDescription,
+  isValidViewType,
+} from "./view-type-config"
+
 /**
  * Status levels for inventory items based on available stock vs safety stock
  *
@@ -29,12 +52,12 @@ export type InventoryStatus = "healthy" | "low" | "critical"
 /**
  * Product categories available in the inventory system
  */
-export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household"
+export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household" | "Electronics" | "Appliances" | "Fashion" | "HomeLiving" | "Beauty" | "Sports"
 
 /**
  * Sales channels where products can be sold
  */
-export type Channel = "store" | "website" | "Grab" | "LINE MAN" | "Gokoo"
+export type Channel = "store" | "website" | "Grab" | "LINE MAN" | "Gokoo" | ViewTypeChannel
 
 /**
  * Supply type indicating product availability method
@@ -159,6 +182,11 @@ export type TopsStore =
   | "Tops เอกมัย"
   | "Tops พร้อมพงษ์"
   | "Tops จตุจักร"
+  | "CDS Central World"
+  | "CDS Chidlom"
+  | "CDS Ladprao"
+  | "CDS Bangna"
+  | "CDS Rama 9"
 
 /**
  * Main inventory item structure
@@ -185,6 +213,7 @@ export interface InventoryItem {
   productName: string
   category: ProductCategory
   storeName: TopsStore
+  storeId?: string
 
   /** Total physical stock on hand (Available + Reserved). Also known as "Stock on Hand" */
   currentStock: number
@@ -263,6 +292,7 @@ export interface InventoryItem {
  */
 export interface StorePerformance {
   storeName: TopsStore
+  storeId?: string
   totalProducts: number
   lowStockItems: number
   criticalStockItems: number

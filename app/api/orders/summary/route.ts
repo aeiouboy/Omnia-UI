@@ -69,11 +69,11 @@ export async function GET(request: Request) {
           },
         },
       })
-      
+
       authErrorResponse.headers.set('Access-Control-Allow-Origin', '*')
       authErrorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       authErrorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
+
       return authErrorResponse
     }
 
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
     if (status && status !== "all-status") apiUrl.searchParams.set("status", status)
     if (channel && channel !== "all-channels") apiUrl.searchParams.set("channel", channel)
     if (search) apiUrl.searchParams.set("search", search)
-    
+
     // Add date filtering (YYYY-MM-DD format)
     if (dateFrom) apiUrl.searchParams.set("dateFrom", dateFrom)
     if (dateTo) apiUrl.searchParams.set("dateTo", dateTo)
@@ -140,11 +140,11 @@ export async function GET(request: Request) {
               success: true,
               data: summaryData,
             })
-            
+
             retrySuccessResponse.headers.set('Access-Control-Allow-Origin', '*')
             retrySuccessResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             retrySuccessResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-            
+
             return retrySuccessResponse
           }
         } catch (retryError) {
@@ -166,11 +166,11 @@ export async function GET(request: Request) {
           },
         },
       })
-      
+
       errorResponse.headers.set('Access-Control-Allow-Origin', '*')
       errorResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       errorResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      
+
       return errorResponse
     }
 
@@ -182,11 +182,11 @@ export async function GET(request: Request) {
       success: true,
       data: summaryData,
     })
-    
+
     successResponse.headers.set('Access-Control-Allow-Origin', '*')
     successResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     successResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    
+
     return successResponse
   } catch (error: any) {
     console.error("❌ Server proxy error:", error)
@@ -218,44 +218,65 @@ export async function GET(request: Request) {
         },
       },
     })
-    
+
     fallbackResponse.headers.set('Access-Control-Allow-Origin', '*')
     fallbackResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     fallbackResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    
+
     return fallbackResponse
   }
 }
 
 // Transform full order objects to lightweight summary objects
 function transformToSummary(apiResponse: any) {
-  if (!apiResponse.data || !Array.isArray(apiResponse.data)) {
-    return {
-      data: [],
-      pagination: apiResponse.pagination || {
-        page: 1,
-        pageSize: 10,
-        total: 0,
-        totalPages: 0,
-        hasNext: false,
-        hasPrev: false,
-      },
-    }
+  let orders = apiResponse.data && Array.isArray(apiResponse.data) ? apiResponse.data : []
+
+  // If in development and no data (or empty data), generate mock data
+  if (process.env.NODE_ENV === 'development' && orders.length === 0) {
+    console.log("⚠️ Generating synthetic mock data for development...")
+    orders = Array.from({ length: 150 }).map((_, i) => ({
+      id: `mock-${i}`,
+      order_no: `MOCK-${1000 + i}`,
+      status: 'COMPLETED',
+      channel: 'Web', // Will be overridden in map
+      total_amount: Math.floor(Math.random() * 5000) + 500,
+      order_date: new Date().toISOString(), // Will be overridden
+      sla_info: { target_minutes: 60, elapsed_minutes: 30, status: 'ON_TRACK' }
+    }))
   }
 
-  const summaryOrders: OrderSummary[] = apiResponse.data.map((order: any) => ({
-    id: order.id,
-    order_no: order.order_no,
-    status: order.status,
-    channel: order.channel,
-    total_amount: order.total_amount,
-    order_date: order.order_date,
-    sla_info: {
-      target_minutes: order.sla_info?.target_minutes || 0,
-      elapsed_minutes: order.sla_info?.elapsed_minutes || 0,
-      status: order.sla_info?.status || "",
-    },
-  }))
+  const summaryOrders: OrderSummary[] = orders.map((order: any, index: number) => {
+    // Mock Selling Channel Logic (matching OrderManagementHub)
+    let channel = order.channel
+    let orderDate = order.order_date
+
+    if (process.env.NODE_ENV === 'development') {
+      const sellingChannels = ['Web', 'Grab', 'Lineman', 'Gokoo', 'Shopee', 'Lazada']
+      channel = sellingChannels[index % sellingChannels.length]
+
+      // Mock Date: Distribute orders over the last 14 days to ensure they appear in charts
+      // Current date is 2026-01-15, match this dynamic reference
+      const today = new Date()
+      const dayOffset = index % 14
+      const mockDate = new Date(today)
+      mockDate.setDate(today.getDate() - dayOffset)
+      orderDate = mockDate.toISOString()
+    }
+
+    return {
+      id: order.id,
+      order_no: order.order_no,
+      status: order.status,
+      channel: channel,
+      total_amount: order.total_amount,
+      order_date: orderDate,
+      sla_info: {
+        target_minutes: order.sla_info?.target_minutes || 0,
+        elapsed_minutes: order.sla_info?.elapsed_minutes || 0,
+        status: order.sla_info?.status || "",
+      },
+    }
+  })
 
   return {
     data: summaryOrders,
