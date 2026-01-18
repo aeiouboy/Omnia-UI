@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   Package,
   Barcode,
-  Store,
   TrendingUp,
   AlertTriangle,
   ChevronRight,
@@ -74,11 +73,11 @@ interface InventoryDetailViewProps {
 
 function getStatusBadgeVariant(status: string) {
   switch (status) {
-    case "healthy":
+    case "inStock":
       return "bg-green-100 text-green-800"
     case "low":
       return "bg-yellow-100 text-yellow-800"
-    case "critical":
+    case "outOfStock":
       return "bg-red-100 text-red-800"
     default:
       return "bg-gray-100 text-gray-800"
@@ -87,11 +86,11 @@ function getStatusBadgeVariant(status: string) {
 
 function getStatusLabel(status: string) {
   switch (status) {
-    case "healthy":
+    case "inStock":
       return "In Stock"
     case "low":
       return "Low Stock"
-    case "critical":
+    case "outOfStock":
       return "Out of Stock"
     default:
       return status
@@ -210,17 +209,6 @@ export function InventoryDetailView({
 
               {/* Product Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Store className="h-4 w-4" />
-                    <span>Store</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-medium text-lg truncate" title={item.storeName}>{item.storeName}</span>
-                    <span className="font-mono text-sm text-muted-foreground">{item.storeId || "—"}</span>
-                  </div>
-                </div>
-
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
@@ -525,21 +513,23 @@ export function InventoryDetailView({
         storeId={item.storeId}
       />
 
-      {/* Full Transaction History Section */}
+      {/* Full Transaction History Section - hidden per user request
       <TransactionHistorySection
         productId={item.id}
         productName={item.productName}
         itemType={item.itemType}
         storeContext={storeContext}
       />
+      */}
 
-      {/* Allocate by Order Transactions */}
+      {/* Allocate by Order Transactions - hidden per user request
       <AllocateByOrderTable
         transactions={allocateTransactions || []}
         loading={allocateLoading}
         error={allocateError}
         onRetry={refetchAllocate}
       />
+      */}
     </div>
   )
 }

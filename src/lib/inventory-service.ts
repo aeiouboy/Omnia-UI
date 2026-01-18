@@ -114,14 +114,18 @@ function applyFilters(
 
   // Filter by item type
   if (filters.itemType && filters.itemType !== "all") {
+    // Support both legacy "weight/unit" and specific item types
     if (filters.itemType === "weight") {
       filtered = filtered.filter((item) =>
         item.itemType === "weight" || item.itemType === "pack_weight"
       )
-    } else {
+    } else if (filters.itemType === "unit") {
       filtered = filtered.filter((item) =>
         item.itemType === "pack" || item.itemType === "normal"
       )
+    } else {
+      // Exact match for specific item types (pack, pack_weight, normal)
+      filtered = filtered.filter((item) => item.itemType === filters.itemType)
     }
   }
 
@@ -174,7 +178,7 @@ function applyFilters(
         filtered = filtered.filter((item) => item.status === "low")
         break
       case "out-of-stock":
-        filtered = filtered.filter((item) => item.status === "critical")
+        filtered = filtered.filter((item) => item.status === "outOfStock")
         break
       case "reserved-stock":
         filtered = filtered.filter((item) => item.reservedStock > 0)
@@ -190,7 +194,49 @@ function applyFilters(
     }
   }
 
-  // Filter by search query
+  // Filter by product name search
+  if (filters.productNameSearch && filters.productNameSearch.trim() !== "") {
+    const query = filters.productNameSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.productName.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by barcode search
+  if (filters.barcodeSearch && filters.barcodeSearch.trim() !== "") {
+    const query = filters.barcodeSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      (item.barcode && item.barcode.toLowerCase().includes(query)) ||
+      item.productId.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by store ID search
+  if (filters.storeIdSearch && filters.storeIdSearch.trim() !== "") {
+    const query = filters.storeIdSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.storeId && item.storeId.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by store name search
+  if (filters.storeNameSearch && filters.storeNameSearch.trim() !== "") {
+    const query = filters.storeNameSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.storeName && item.storeName.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by config status
+  if (filters.configStatus && filters.configStatus !== "all") {
+    if (filters.configStatus === "valid") {
+      filtered = filtered.filter((item) => item.stockConfigStatus === "valid")
+    } else if (filters.configStatus === "invalid") {
+      filtered = filtered.filter((item) => item.stockConfigStatus !== "valid")
+    }
+  }
+
+  // Legacy: Filter by search query (for backward compatibility)
   if (filters.searchQuery && filters.searchQuery.trim() !== "") {
     const query = filters.searchQuery.toLowerCase()
     filtered = filtered.filter(
@@ -438,11 +484,11 @@ export async function fetchStockAlerts(
   }
 
   try {
-    // Fetch items with low or critical status from database
+    // Fetch items with low or outOfStock status from database
     let query = supabase!
       .from("inventory_items")
       .select("*")
-      .in("status", ["low", "critical"])
+      .in("status", ["low", "outOfStock"])
 
     const { data, error } = await query
 
@@ -462,9 +508,9 @@ export async function fetchStockAlerts(
       currentStock: item.currentStock,
       reorderPoint: item.reorderPoint,
       status: item.status,
-      severity: item.status === "critical" ? "critical" : "warning",
+      severity: item.status === "outOfStock" ? "critical" : "warning",
       message:
-        item.status === "critical"
+        item.status === "outOfStock"
           ? `Critical: Only ${item.currentStock} units remaining. Immediate reorder required.`
           : `Low stock: ${item.currentStock} units remaining. Consider reordering soon.`,
       createdAt: new Date().toISOString(),
@@ -521,9 +567,9 @@ export async function fetchInventorySummary(filters?: InventoryFilters) {
 
       return {
         totalProducts: items.length,
-        healthyItems: items.filter((item) => item.status === "healthy").length,
+        healthyItems: items.filter((item) => item.status === "inStock").length,
         lowStockItems: items.filter((item) => item.status === "low").length,
-        criticalStockItems: items.filter((item) => item.status === "critical").length,
+        criticalStockItems: items.filter((item) => item.status === "outOfStock").length,
         totalInventoryValue: items.reduce(
           (sum, item) => sum + item.currentStock * item.unitPrice,
           0
@@ -548,9 +594,9 @@ export async function fetchInventorySummary(filters?: InventoryFilters) {
 
     return {
       totalProducts: items.length,
-      healthyItems: items.filter((item) => item.status === "healthy").length,
+      healthyItems: items.filter((item) => item.status === "inStock").length,
       lowStockItems: items.filter((item) => item.status === "low").length,
-      criticalStockItems: items.filter((item) => item.status === "critical").length,
+      criticalStockItems: items.filter((item) => item.status === "outOfStock").length,
       totalInventoryValue: items.reduce(
         (sum, item) => sum + item.currentStock * item.unitPrice,
         0

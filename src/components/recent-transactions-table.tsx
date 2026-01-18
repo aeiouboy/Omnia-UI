@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin, Download } from "lucide-react"
+import { ArrowUp, ArrowDown, RefreshCw, RotateCcw, MapPin, Download, Search, Calendar } from "lucide-react"
 import Link from "next/link"
 import type { StockTransaction } from "@/types/inventory"
 import type { ViewTypeChannel } from "@/types/view-type-config"
@@ -124,16 +125,40 @@ export function RecentTransactionsTable({
   storeName,
   storeId,
 }: RecentTransactionsTableProps) {
-  const [filter, setFilter] = useState<"all" | "sold" | "movement" | "return">("all")
+  const [typeFilter, setTypeFilter] = useState<"all" | "stock_in" | "stock_out" | "adjustment" | "return">("all")
+  const [dateFilter, setDateFilter] = useState<string>("")
+  const [noteSearch, setNoteSearch] = useState<string>("")
 
-  // Filter transactions based on selected filter
-  const filteredTransactions = transactions.filter((transaction) => {
-    if (filter === "all") return true
-    if (filter === "sold") return transaction.type === "stock_out" && transaction.referenceId
-    if (filter === "movement") return transaction.type === "stock_in" || transaction.type === "adjustment"
-    if (filter === "return") return transaction.type === "return"
-    return true
-  })
+  // Filter transactions based on all filters
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      // Filter by transaction type
+      if (typeFilter !== "all" && transaction.type !== typeFilter) {
+        return false
+      }
+
+      // Filter by date
+      if (dateFilter) {
+        const transactionDate = new Date(transaction.timestamp).toISOString().split('T')[0]
+        if (transactionDate !== dateFilter) {
+          return false
+        }
+      }
+
+      // Filter by note search
+      if (noteSearch.trim()) {
+        const searchLower = noteSearch.toLowerCase()
+        const notesMatch = transaction.notes?.toLowerCase().includes(searchLower)
+        const refMatch = transaction.referenceId?.toLowerCase().includes(searchLower)
+        const userMatch = transaction.user?.toLowerCase().includes(searchLower)
+        if (!notesMatch && !refMatch && !userMatch) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [transactions, typeFilter, dateFilter, noteSearch])
 
   if (loading) {
     return (
@@ -203,18 +228,58 @@ export function RecentTransactionsTable({
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
-              <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filter transactions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Transactions</SelectItem>
-                  <SelectItem value="sold">Sold Items</SelectItem>
-                  <SelectItem value="movement">Stock Movement</SelectItem>
-                  <SelectItem value="return">Return/Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+          </div>
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-3 pt-3 border-t">
+            {/* Note Search - Primary filter (wider) */}
+            <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search notes, reference, user..."
+                value={noteSearch}
+                onChange={(e) => setNoteSearch(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+
+            {/* Transaction Type Filter */}
+            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as typeof typeFilter)}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="All Transaction Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Transaction Types</SelectItem>
+                <SelectItem value="stock_in">Stock In</SelectItem>
+                <SelectItem value="stock_out">Stock Out</SelectItem>
+                <SelectItem value="adjustment">Adjustment</SelectItem>
+                <SelectItem value="return">Return</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Date Filter */}
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-[140px] h-9"
+            />
+
+            {/* Clear Filters */}
+            {(typeFilter !== "all" || dateFilter || noteSearch) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setTypeFilter("all")
+                  setDateFilter("")
+                  setNoteSearch("")
+                }}
+                className="h-9 text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -227,7 +292,7 @@ export function RecentTransactionsTable({
                   <TableHead>Channel</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
-                  <TableHead className="hidden lg:table-cell">Store</TableHead>
+                  <TableHead className="hidden lg:table-cell">Store Name</TableHead>
                   <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>

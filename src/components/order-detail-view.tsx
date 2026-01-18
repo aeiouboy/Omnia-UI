@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
   ArrowLeft,
+  Ban,
   ChevronDown,
   PackageOpen,
   Search,
@@ -46,6 +47,9 @@ import { AuditTrailTab } from "./order-detail/audit-trail-tab"
 import { FulfillmentTimeline } from "./order-detail/fulfillment-timeline"
 import { TrackingTab } from "./order-detail/tracking-tab"
 import { PaymentsTab } from "./order-detail/payments-tab"
+import { CancelOrderDialog } from "./order-detail/cancel-order-dialog"
+import { isOrderCancellable, getCancelDisabledReason } from "@/lib/order-status-utils"
+import { getCancelReasonById } from "@/lib/cancel-reasons"
 
 interface OrderDetailViewProps {
   order?: Order | null;
@@ -188,6 +192,27 @@ const formatOrderCreatedDate = (dateString?: string): string => {
   }
 }
 
+// Helper function to map customerTypeId to descriptive labels
+const getCustomerTypeLabel = (customerTypeId: string | undefined | null): string => {
+  if (!customerTypeId) return '-';
+
+  const clusterMapping: Record<string, string> = {
+    'cluster_1': 'Standard',
+    'cluster_2': 'Premium',
+    'cluster_3': 'Prime',
+    'cluster_4': 'VIP',
+  };
+
+  // Check if the ID is a cluster_X format
+  const clusterId = customerTypeId.toLowerCase().split(' ')[0]; // Handle "cluster_3 - Prime" format
+  if (clusterMapping[clusterId]) {
+    return `${clusterId} - ${clusterMapping[clusterId]}`;
+  }
+
+  // For non-cluster IDs, return as-is
+  return customerTypeId;
+};
+
 export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -196,6 +221,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const [copiedOrderId, setCopiedOrderId] = useState(false)
   const [allItemsExpanded, setAllItemsExpanded] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+
+  // Determine if order can be cancelled based on its status
+  const canCancelOrder = order?.status
+    ? isOrderCancellable(order.status)
+    : false
 
   const toggleItemExpansion = (sku: string) => {
     setExpandedItems((prev) => ({
@@ -238,6 +270,32 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     }
   }
 
+  const handleCancelOrder = async (reasonId: string) => {
+    setIsCancelling(true)
+    try {
+      // Note: In a real implementation, this would call an API to cancel the order
+      // For now, we simulate the cancellation with a delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const reason = getCancelReasonById(reasonId)
+      toast({
+        title: "Order Cancelled",
+        description: `Order ${order?.order_no} has been cancelled. Reason: ${reason?.shortDescription || reasonId}`,
+        variant: "default",
+      })
+      setShowCancelDialog(false)
+      // Note: In production, refresh order data here or update local state
+    } catch (error) {
+      toast({
+        title: "Cancellation Failed",
+        description: "Failed to cancel the order. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
   const filteredItems = order?.items
     ? order.items.filter((item: ApiOrderItem) => {
       const searchTerm = itemSearchTerm.toLowerCase();
@@ -268,9 +326,22 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               <p className="text-xs sm:text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowCancelDialog(true)}
+              disabled={!canCancelOrder || isCancelling}
+              className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
+              title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Action Buttons - Mobile First Design */}
@@ -392,7 +463,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Customer Type</p>
-                    <p className="text-sm">{order?.customer?.customerType || '-'}</p>
+                    <p className="text-sm">{getCustomerTypeLabel(order?.customerTypeId)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Cust Ref</p>
@@ -453,7 +524,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Store No.</p>
-                    <p className="font-medium">{order?.metadata?.store_no || order?.metadata?.store_name || '-'}</p>
+                    <p className="font-medium">{order?.metadata?.store_no || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order Created</p>
@@ -474,10 +545,6 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   <div>
                     <p className="text-sm text-enterprise-text-light">Full Tax Invoice</p>
                     <p className="text-sm">{order?.fullTaxInvoice ? 'Yes' : 'No'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Customer Type ID</p>
-                    <p className="font-mono text-sm">{order?.customerTypeId || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Selling Channel</p>
@@ -774,12 +841,6 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                       <span className="text-gray-500">Supply Type ID</span>
                                       <span className="text-gray-900 font-medium">{item.supplyTypeId || 'N/A'}</span>
                                     </div>
-                                    {isPackUOM && (
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-500">Packed Ordered Qty</span>
-                                        <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
-                                      </div>
-                                    )}
                                     {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Location</span>
                                       <span className="text-gray-900 font-mono text-xs">{item.location || 'N/A'}</span>
@@ -791,6 +852,18 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Substitution</span>
                                       <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle</span>
+                                      <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle Ref Id</span>
+                                      <span className="text-gray-900 font-medium">{item.bundleRef || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Packed Ordered Qty</span>
+                                      <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
                                     </div>
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Gift Wrapped</span>
@@ -869,7 +942,8 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     {/* Promotions & Coupons Section */}
                                     <div className="pt-2 border-t border-gray-200">
                                       <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Promotions & Coupons</p>
-                                      {item.promotions && item.promotions.length > 0 ? (
+                                      {/* Item-level Promotions */}
+                                      {item.promotions && item.promotions.length > 0 && (
                                         <div className="space-y-2">
                                           {item.promotions.map((promo, idx) => (
                                             <div key={promo.promotionId || `promo-${item.product_sku}-${idx}`} className="bg-white p-2 rounded border border-gray-200 text-xs">
@@ -894,8 +968,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                             </div>
                                           ))}
                                         </div>
-                                      ) : (
-                                        <p className="text-gray-400 text-xs">No promotions applied</p>
+                                      )}
+                                      {/* Empty state when no promotions */}
+                                      {!(item.promotions && item.promotions.length > 0) && (
+                                        <p className="text-gray-400 text-xs">No promotions or coupons applied</p>
                                       )}
                                     </div>
 
@@ -1186,6 +1262,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </Card>
         </TabsContent> */}
       </Tabs>
+
+      <CancelOrderDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        orderNo={order?.order_no || ''}
+        onConfirm={handleCancelOrder}
+        loading={isCancelling}
+      />
     </div >
   );
 }

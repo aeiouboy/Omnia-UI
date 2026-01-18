@@ -12,13 +12,15 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChannelLegend } from "./channel-legend"
+import { ChartEmptyState } from "./chart-empty-state"
 import {
-    CHANNEL_COLORS,
+    CHANNEL_COLORS_REVENUE,
     type RevenueDailySummary,
 } from "@/types/order-analysis"
 
 interface StackedRevenueChartProps {
     data: RevenueDailySummary[]
+    totalRevenue?: number
     isLoading?: boolean
 }
 
@@ -57,7 +59,7 @@ function RevenueChartTooltip({ active, payload, label }: any) {
  * Stacked bar chart for Revenue/Day view
  * Shows revenue by date, stacked by channel
  */
-export function StackedRevenueChart({ data, isLoading }: StackedRevenueChartProps) {
+export function StackedRevenueChart({ data, totalRevenue = 0, isLoading }: StackedRevenueChartProps) {
     const maxValue = useMemo(() => {
         if (!data || data.length === 0) return 10000
         const max = Math.max(...data.map((d) => d.totalRevenue))
@@ -67,8 +69,8 @@ export function StackedRevenueChart({ data, isLoading }: StackedRevenueChartProp
     if (isLoading) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Revenue Summary Per Day</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                    <CardTitle className="text-lg font-semibold">Revenue by Channel</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="h-80 flex items-center justify-center">
@@ -82,8 +84,8 @@ export function StackedRevenueChart({ data, isLoading }: StackedRevenueChartProp
     if (!data || data.length === 0) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Revenue Summary Per Day</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                    <CardTitle className="text-lg font-semibold">Revenue by Channel</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="h-80 flex items-center justify-center">
@@ -94,13 +96,20 @@ export function StackedRevenueChart({ data, isLoading }: StackedRevenueChartProp
         )
     }
 
+    // Check if any day has actual revenue data (TOL or MKP > 0)
+    // Note: Use Number() to handle potential undefined/null values safely
+    const hasRevenueData = data.some(d => Number(d.TOL) > 0 || Number(d.MKP) > 0)
+    const showEmptyState = !hasRevenueData
+
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-lg">Revenue Summary Per Day</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-lg font-semibold">Revenue by Channel</CardTitle>
+                <ChannelLegend variant="revenue" />
             </CardHeader>
             <CardContent>
-                <div className="h-80 w-full">
+                <div className="h-80 w-full relative">
+                    {showEmptyState && <ChartEmptyState />}
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={data}
@@ -121,30 +130,23 @@ export function StackedRevenueChart({ data, isLoading }: StackedRevenueChartProp
                                 tickFormatter={(value) => `฿${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
                             />
                             <Tooltip content={<RevenueChartTooltip />} />
-                            {/* Stack order matches Order Chart: TOL at bottom */}
+                            {/* Stack order: TOL at bottom, MKP on top with rounded corners */}
                             <Bar
                                 dataKey="TOL"
                                 stackId="revenue"
-                                fill={CHANNEL_COLORS.TOL}
+                                fill={CHANNEL_COLORS_REVENUE.TOL}
                                 name="TOL"
                             />
                             <Bar
                                 dataKey="MKP"
                                 stackId="revenue"
-                                fill={CHANNEL_COLORS.MKP}
+                                fill={CHANNEL_COLORS_REVENUE.MKP}
                                 name="MKP"
-                            />
-                            <Bar
-                                dataKey="QC"
-                                stackId="revenue"
-                                fill={CHANNEL_COLORS.QC}
-                                name="QC"
                                 radius={[4, 4, 0, 0]}
                             />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-                <ChannelLegend className="mt-4" />
             </CardContent>
         </Card>
     )

@@ -759,56 +759,64 @@ export default function StockConfigPage() {
                   </div>
 
                   {/* Filters row - location/item filters + date range + frequency + supply type tabs */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                    <div className="flex flex-wrap gap-3 items-center">
                     {/* Location ID Filter */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter by Location ID"
-                        value={locationIdFilter}
-                        onChange={handleLocationIdChange}
-                        className="w-40 pl-9 pr-8 h-9 text-sm"
-                      />
-                      {locationIdFilter && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setLocationIdFilter("")
-                            setPage(1)
-                          }}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Clear location filter</span>
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Location</span>
+                      <div className="relative">
+                        <Input
+                          placeholder="Search Location ID..."
+                          value={locationIdFilter}
+                          onChange={handleLocationIdChange}
+                          className="min-w-[160px] h-9 text-sm"
+                        />
+                        {locationIdFilter && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setLocationIdFilter("")
+                              setPage(1)
+                            }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Clear location filter</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Item ID Filter */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter by Item ID"
-                        value={itemIdFilter}
-                        onChange={handleItemIdChange}
-                        className="w-40 pl-9 pr-8 h-9 text-sm"
-                      />
-                      {itemIdFilter && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setItemIdFilter("")
-                            setPage(1)
-                          }}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Clear item filter</span>
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Item</span>
+                      <div className="relative">
+                        <Input
+                          placeholder="Search Item ID..."
+                          value={itemIdFilter}
+                          onChange={handleItemIdChange}
+                          className="min-w-[160px] h-9 text-sm"
+                        />
+                        {itemIdFilter && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setItemIdFilter("")
+                              setPage(1)
+                            }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Clear item filter</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Vertical Divider */}
+                    <div className="hidden lg:block h-8 w-px bg-border" />
 
                     {/* Date Range Filter */}
                     <div className="flex items-center gap-2">
@@ -913,6 +921,7 @@ export default function StockConfigPage() {
                       <TabsTrigger value="PreOrder">PreOrder</TabsTrigger>
                       <TabsTrigger value="OnHand">OnHand</TabsTrigger>
                     </TabsList>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -975,27 +984,30 @@ export default function StockConfigPage() {
               </div>
 
               {/* Filters row - search + date range + status tabs */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <div className="flex flex-wrap gap-3 items-center">
                 {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search files..."
-                    value={uploadHistorySearch}
-                    onChange={(e) => setUploadHistorySearch(e.target.value)}
-                    className="w-[180px] pl-9 pr-8 h-9"
-                  />
-                  {uploadHistorySearch && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setUploadHistorySearch("")}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Clear search</span>
-                    </Button>
-                  )}
+                <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">File</span>
+                  <div className="relative">
+                    <Input
+                      placeholder="Search files..."
+                      value={uploadHistorySearch}
+                      onChange={(e) => setUploadHistorySearch(e.target.value)}
+                      className="w-[180px] h-9 text-sm"
+                    />
+                    {uploadHistorySearch && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setUploadHistorySearch("")}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Clear search</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Date Range Filter */}
@@ -1091,6 +1103,7 @@ export default function StockConfigPage() {
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
+                </div>
               </div>
             </div>
           </CardHeader>

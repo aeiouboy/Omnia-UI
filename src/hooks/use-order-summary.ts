@@ -7,19 +7,54 @@ import {
     OrderAnalysisData,
     ChannelDailySummary,
     RevenueDailySummary,
+    PlatformDailySummary,
     CHANNEL_NAMES,
     ChannelName
 } from "@/types/order-analysis"
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, isSameDay } from "date-fns"
 
-// Helper to determine channel group
-const getChannelGroup = (channel: string): ChannelName | null => {
+// Helper to determine channel group - only TOL and MKP
+const getChannelGroup = (channel: string): ChannelName => {
     const c = channel.toUpperCase()
-    if (c.includes("GRAB") || c.includes("LINE") || c.includes("LINEMAN") || c.includes("GOKOO")) return "QC"
-    // Map Web to TOL as per user request
+    // TOL: Web, TOL, Tops Online, and unknown channels
     if (c.includes("TOL") || c.includes("TOPS ONLINE") || c.includes("WEB")) return "TOL"
-    if (c.includes("MKP") || c.includes("MARKETPLACE") || c.includes("SHOPEE") || c.includes("LAZADA")) return "MKP"
+    // MKP: Grab, Lineman, Gokoo, Shopee, Lazada, QC, Marketplace, and any other marketplace
+    if (c.includes("GRAB") || c.includes("LINE") || c.includes("LINEMAN") || c.includes("GOKOO") ||
+        c.includes("MKP") || c.includes("MARKETPLACE") || c.includes("SHOPEE") || c.includes("LAZADA") ||
+        c.includes("QC")) return "MKP"
     return "TOL" // Default to TOL if unknown
+}
+
+// Helper to determine platform subdivision for export
+const getPlatform = (order: OrderSummary): string => {
+    const channelGroup = getChannelGroup(order.channel || "")
+
+    if (channelGroup === "MKP") {
+        // For MKP, use the specific marketplace name
+        const c = (order.channel || "").toUpperCase()
+        if (c.includes("SHOPEE")) return "Shopee"
+        if (c.includes("LAZADA")) return "Lazada"
+        // Use delivery_type if available, otherwise default to channel name
+        return order.delivery_type || order.channel || "Other"
+    }
+
+    // For TOL, use delivery_type to determine platform
+    if (order.delivery_type) {
+        const dt = order.delivery_type.toLowerCase()
+        if (dt.includes("express") || dt.includes("3h") || dt.includes("next day")) {
+            return "Express Delivery"
+        }
+        if (dt.includes("click") || dt.includes("collect") || dt.includes("pickup")) {
+            return "Click & Collect"
+        }
+        if (dt.includes("standard")) {
+            return "Standard Delivery"
+        }
+        return order.delivery_type
+    }
+
+    // Default for TOL without delivery_type
+    return "Standard Delivery"
 }
 
 export function useOrderSummary() {
@@ -73,6 +108,7 @@ export function useOrderSummary() {
 
             const dailyOrders: ChannelDailySummary[] = []
             const dailyRevenue: RevenueDailySummary[] = []
+            const platformBreakdown: PlatformDailySummary[] = []
 
             let totalOrderCount = 0
             let totalRevenueAmount = 0
@@ -81,13 +117,16 @@ export function useOrderSummary() {
                 const dateStr = format(day, "yyyy-MM-dd")
                 const displayDate = format(day, "dd-MMM")
 
-                // Initialize daily buckets
+                // Initialize daily buckets - only TOL and MKP
                 const orderCounts: Record<ChannelName, number> = {
-                    TOL: 0, MKP: 0, QC: 0
+                    TOL: 0, MKP: 0
                 }
                 const revenueCounts: Record<ChannelName, number> = {
-                    TOL: 0, MKP: 0, QC: 0
+                    TOL: 0, MKP: 0
                 }
+
+                // Platform-level aggregation for export
+                const platformData: Record<string, { channel: ChannelName; orderCount: number; revenue: number }> = {}
 
                 // Filter orders for this day
                 const dayOrders = allOrders.filter(o => {
@@ -98,10 +137,18 @@ export function useOrderSummary() {
 
                 dayOrders.forEach(order => {
                     const group = getChannelGroup(order.channel || "")
-                    if (group) {
-                        orderCounts[group]++
-                        revenueCounts[group] += (order.total_amount || 0)
+                    const platform = getPlatform(order)
+                    const platformKey = `${group}-${platform}`
+
+                    orderCounts[group]++
+                    revenueCounts[group] += (order.total_amount || 0)
+
+                    // Aggregate by platform
+                    if (!platformData[platformKey]) {
+                        platformData[platformKey] = { channel: group, orderCount: 0, revenue: 0 }
                     }
+                    platformData[platformKey].orderCount++
+                    platformData[platformKey].revenue += (order.total_amount || 0)
                 })
 
                 const dayTotalOrders = Object.values(orderCounts).reduce((a, b) => a + b, 0)
@@ -124,11 +171,25 @@ export function useOrderSummary() {
                     ...revenueCounts,
                     totalRevenue: dayTotalRevenue
                 })
+
+                // Add platform breakdown entries
+                Object.entries(platformData).forEach(([key, data]) => {
+                    const platform = key.replace(`${data.channel}-`, "")
+                    platformBreakdown.push({
+                        date: dateStr,
+                        displayDate,
+                        channel: data.channel,
+                        platform,
+                        orderCount: data.orderCount,
+                        revenue: data.revenue
+                    })
+                })
             })
 
             setData({
                 dailyOrdersByChannel: dailyOrders,
                 dailyRevenueByChannel: dailyRevenue,
+                platformBreakdown,
                 totalOrders: totalOrderCount,
                 totalRevenue: totalRevenueAmount,
                 dateFrom: fromStr,

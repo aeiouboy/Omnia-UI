@@ -1,0 +1,1 @@
+Standardize quantity column names across inventory pages. In Inventory Availability (app/inventory-new/supply/page.tsx), rename 'Quantity' to 'Total Qty' and keep 'Available Qty'. In Inventory Management (app/inventory-new/page.tsx), rename 'Stock Available / Total' to 'Available / Total' for cleaner display.

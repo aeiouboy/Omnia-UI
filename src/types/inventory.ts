@@ -38,16 +38,16 @@ export {
  *
  * @remarks
  * Status is determined by comparing availableStock to safetyStock and zero:
- * - "healthy": availableStock > safetyStock (stock is above safety buffer)
+ * - "inStock": availableStock > safetyStock (stock is above safety buffer)
  * - "low": 0 < availableStock <= safetyStock (stock below safety threshold)
- * - "critical": availableStock === 0 (out of stock)
+ * - "outOfStock": availableStock === 0 (out of stock)
  *
  * User-facing labels:
- * - healthy → "In Stock" (green badge)
+ * - inStock → "In Stock" (green badge)
  * - low → "Low Stock" (yellow badge)
- * - critical → "Out of Stock" (red badge)
+ * - outOfStock → "Out of Stock" (red badge)
  */
-export type InventoryStatus = "healthy" | "low" | "critical"
+export type InventoryStatus = "inStock" | "low" | "outOfStock" | "healthy" | "critical"
 
 /**
  * Product categories available in the inventory system
@@ -170,23 +170,19 @@ export interface StockLocation extends WarehouseLocation {
 }
 
 /**
- * Tops store locations
- * Must match the official store names from CLAUDE.md
+ * Store locations type
+ *
+ * Supports:
+ * - CFM (Central Food Market) small format stores (516 stores from MAO reference data)
+ * - CDS (Central Department Store) stores (20 stores)
+ *
+ * CFM Store ID format: CFMxxxx where xxxx is the store identifier
+ * CDS Store ID format: CDS10xxx where xxx is the store identifier
+ *
+ * Using string type to accommodate all 516 CFM stores from the reference data
+ * without explicitly listing each one.
  */
-export type TopsStore =
-  | "Tops Central Plaza ลาดพร้าว"
-  | "Tops Central World"
-  | "Tops สุขุมวิท 39"
-  | "Tops ทองหล่อ"
-  | "Tops สีลม คอมเพล็กซ์"
-  | "Tops เอกมัย"
-  | "Tops พร้อมพงษ์"
-  | "Tops จตุจักร"
-  | "CDS Central World"
-  | "CDS Chidlom"
-  | "CDS Ladprao"
-  | "CDS Bangna"
-  | "CDS Rama 9"
+export type TopsStore = string
 
 /**
  * Main inventory item structure
@@ -325,8 +321,17 @@ export interface InventoryFilters {
   category?: ProductCategory | "all"
   storeName?: TopsStore | "all"
   warehouseCode?: string | "all"
-  itemType?: "weight" | "unit" | "all"
+  itemType?: "weight" | "pack" | "pack_weight" | "normal" | "unit" | "all"
   status?: InventoryStatus | "all"
+  /** Search by product name */
+  productNameSearch?: string
+  /** Search by barcode */
+  barcodeSearch?: string
+  /** Search by store ID */
+  storeIdSearch?: string
+  /** Search by store name */
+  storeNameSearch?: string
+  /** Legacy combined search query - deprecated, use productNameSearch and barcodeSearch */
   searchQuery?: string
   page?: number
   pageSize?: number
@@ -334,6 +339,8 @@ export interface InventoryFilters {
   sortOrder?: "asc" | "desc"
   /** Filter by brand */
   brand?: string | "all"
+  /** Filter by stock configuration status */
+  configStatus?: "valid" | "invalid" | "all"
   /** Filter by sales channels */
   channels?: Channel[]
   /** Filter by business unit / organization */

@@ -6,21 +6,29 @@
  */
 
 /**
- * Channel color scheme for consistent visualization
- */
-/**
- * Channel color scheme for consistent visualization
+ * Channel color scheme for consistent visualization across all charts
+ * TOL: Blue (#3b82f6 - Tailwind blue-500) - Tops Online
+ * MKP: Orange (#f97316 - Tailwind orange-500) - Marketplace
  */
 export const CHANNEL_COLORS = {
-  TOL: '#0ea5e9',       // Light Blue 
-  MKP: '#7c3aed',       // Purple
-  QC: '#16a34a',        // Green (consolidated Quick Commerce)
+  TOL: '#3b82f6',       // Blue (Tailwind blue-500)
+  MKP: '#f97316',       // Orange (Tailwind orange-500)
+} as const
+
+/**
+ * Channel colors for revenue chart - identical to CHANNEL_COLORS for visual consistency
+ * Kept separate for potential future differentiation if needed
+ */
+export const CHANNEL_COLORS_REVENUE = {
+  TOL: '#3b82f6',       // Blue (Tailwind blue-500)
+  MKP: '#f97316',       // Orange (Tailwind orange-500)
 } as const
 
 /**
  * Channel names for the order analysis charts
+ * Only TOL (Tops Online) and MKP (Marketplace) channels
  */
-export const CHANNEL_NAMES = ['TOL', 'MKP', 'QC'] as const
+export const CHANNEL_NAMES = ['TOL', 'MKP'] as const
 export type ChannelName = typeof CHANNEL_NAMES[number]
 
 /**
@@ -34,7 +42,6 @@ export interface ChannelDailySummary {
   /** Order counts by channel */
   TOL: number
   MKP: number
-  QC: number
   /** Total orders for the day */
   totalOrders: number
   /** Total revenue for the day */
@@ -52,7 +59,6 @@ export interface RevenueDailySummary {
   /** Revenue by channel */
   TOL: number
   MKP: number
-  QC: number
   /** Total revenue for the day */
   totalRevenue: number
 }
@@ -65,6 +71,8 @@ export interface OrderAnalysisData {
   dailyOrdersByChannel: ChannelDailySummary[]
   /** Daily revenue aggregated by channel */
   dailyRevenueByChannel: RevenueDailySummary[]
+  /** Platform-level breakdown for export */
+  platformBreakdown: PlatformDailySummary[]
   /** Total orders across all days */
   totalOrders: number
   /** Total revenue across all days */
@@ -76,14 +84,42 @@ export interface OrderAnalysisData {
 }
 
 /**
- * CSV export row format
+ * CSV export row format (legacy - for backward compatibility)
  */
 export interface OrderAnalysisExportRow {
   Date: string
   'Total Amount': number
   'TOL Orders': number
   'MKP Orders': number
-  'QC Orders': number
+}
+
+/**
+ * Platform-level export row for detailed CSV export
+ * Each row represents one date+channel+platform combination
+ */
+export interface PlatformExportRow {
+  /** Date in YYYY-MM-DD format */
+  date: string
+  /** Channel group: 'TOL' or 'MKP' */
+  channel: 'TOL' | 'MKP'
+  /** Platform subdivision (e.g., 'Standard Delivery', 'Shopee') */
+  platform: string
+  /** Number of orders (integer) */
+  orderCount: number
+  /** Revenue amount (decimal) */
+  revenue: number
+}
+
+/**
+ * Platform-level daily summary for aggregation
+ */
+export interface PlatformDailySummary {
+  date: string
+  displayDate: string
+  channel: 'TOL' | 'MKP'
+  platform: string
+  orderCount: number
+  revenue: number
 }
 
 /**
@@ -106,6 +142,7 @@ export interface OrderSummary {
     elapsed_minutes: number
     status: string
   }
+  delivery_type?: string
 }
 
 /**

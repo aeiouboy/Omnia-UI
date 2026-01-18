@@ -1,12 +1,14 @@
 import { Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
-interface InventoryEmptyStateProps {
+export interface InventoryEmptyStateProps {
   message?: string
+  subtitle?: string
 }
 
 export function InventoryEmptyState({
-  message = "Please select a view to display inventory"
+  message = "Please select a view to display inventory",
+  subtitle = "Select a view from the dropdown above to see inventory data"
 }: InventoryEmptyStateProps) {
   return (
     <Card className="border-dashed">
@@ -16,7 +18,7 @@ export function InventoryEmptyState({
           {message}
         </p>
         <p className="text-sm text-muted-foreground/70 mt-2">
-          Select a view from the dropdown above to see inventory data
+          {subtitle}
         </p>
       </CardContent>
     </Card>

@@ -385,32 +385,54 @@ export function exportTransactionsToExcel(
 }
 
 /**
- * Export Order Analysis data to CSV
+ * Platform-level export row interface
+ */
+export interface PlatformExportRow {
+  date: string
+  channel: 'TOL' | 'MKP'
+  platform: string
+  orderCount: number
+  revenue: number
+}
+
+/**
+ * Export Order Analysis data to CSV with platform-level breakdown
  *
- * @param data - Order analysis data to export
- * @param filename - Name of the downloaded file (without extension)
+ * @param data - Platform-level export data
+ * @param startDate - Start date for filename (YYYY-MM-DD format)
+ * @param endDate - End date for filename (YYYY-MM-DD format)
  */
 export function exportOrderAnalysisToCSV(
-  data: Array<{ date: string; totalAmount: number; tolOrders: number; mkpOrders: number; qcOrders: number }>,
-  filename = "order_analysis_export"
+  data: PlatformExportRow[],
+  startDate: string,
+  endDate: string
 ): void {
   if (data.length === 0) {
     console.warn("No data to export")
     return
   }
 
-  // CSV header row
-  const headers = ["Date,Total Amount,TOL Orders,MKP Orders,QC Orders"]
+  // CSV header row with new column structure
+  const headers = "Date,Channel,Platform,Order Count,Revenue"
 
-  // Build CSV data rows
+  // Build CSV data rows with proper formatting
+  // - Date: YYYY-MM-DD (no escaping needed)
+  // - Channel: TOL or MKP (no escaping needed)
+  // - Platform: e.g., "Standard Delivery", "Shopee" (no commas in our data)
+  // - Order Count: integer (no formatting, no commas)
+  // - Revenue: decimal with 2 decimal places (no thousands separators)
   const rows = data.map(row => {
     const formattedDate = row.date
-    const formattedAmount = row.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-    return `${formattedDate},${formattedAmount},${row.tolOrders},${row.mkpOrders},${row.qcOrders}`
+    const channel = row.channel
+    const platform = row.platform
+    const orderCount = row.orderCount  // Raw integer, no formatting
+    const revenue = row.revenue.toFixed(2)  // Decimal with 2 places, no commas
+
+    return `${formattedDate},${channel},${platform},${orderCount},${revenue}`
   })
 
   // Combine header and rows
-  const csvContent = [headers.join(""), ...rows].join("\n")
+  const csvContent = [headers, ...rows].join("\n")
 
   // Add BOM (Byte Order Mark) for Excel UTF-8 compatibility
   const BOM = "\uFEFF"
@@ -421,8 +443,11 @@ export function exportOrderAnalysisToCSV(
   const link = document.createElement("a")
   const url = URL.createObjectURL(blob)
 
+  // Filename pattern: order-analysis-{startDate}-to-{endDate}.csv
+  const filename = `order-analysis-${startDate}-to-${endDate}.csv`
+
   link.setAttribute("href", url)
-  link.setAttribute("download", `${filename}.csv`)
+  link.setAttribute("download", filename)
   link.style.visibility = "hidden"
 
   document.body.appendChild(link)

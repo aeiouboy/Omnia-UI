@@ -1,0 +1,1 @@
+Standardize Config dropdown labels. In Inventory Management (app/inventory-new/page.tsx), change 'All Config' to 'All Stock Config', change 'Configured' to 'Config Valid', change 'Not Configured' to 'Config Invalid' to align with the menu name 'Stock Config'.

@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Truck, Package, ExternalLink, Store } from "lucide-react"
-import { TrackingShipment, TrackingEvent, ShipmentStatus, CCTrackingShipment } from "@/types/audit"
+import { TrackingShipment, TrackingEvent, ShipmentStatus, CCTrackingShipment, ShippedItem } from "@/types/audit"
 import { generateTrackingData } from "@/lib/mock-data"
 import { CCShipmentDetailsSection } from "./cc-shipment-details-section"
 
@@ -157,6 +157,63 @@ function TrackingLinkSection({ shipment }: { shipment: TrackingShipment }) {
   )
 }
 
+/**
+ * CRC Tracking Link Section - Displays the CRC tracking link with label
+ */
+function CRCTrackingLinkSection({ trackingUrl }: { trackingUrl: string }) {
+  return (
+    <div className="mb-4">
+      <div className="flex items-start gap-2">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">CRC tracking link:</span>
+        <a
+          href={trackingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline break-all"
+        >
+          {trackingUrl}
+          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+        </a>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Shipped Items Section - Table showing shipped items with quantities
+ */
+function ShippedItemsSection({ shippedItems }: { shippedItems: ShippedItem[] }) {
+  return (
+    <div className="mb-4">
+      <h4 className="text-sm font-medium mb-2">Shipped Items</h4>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 dark:border-gray-700">
+              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Product Name</th>
+              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">SKU/Barcode</th>
+              <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Shipped Qty</th>
+              <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Ordered Qty</th>
+              <th className="text-left py-2 font-medium text-muted-foreground">UOM</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shippedItems.map((item, index) => (
+              <tr key={`${item.sku}-${index}`} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+                <td className="py-2 pr-4">{item.productName}</td>
+                <td className="py-2 pr-4 font-mono text-xs">{item.sku}</td>
+                <td className="py-2 pr-4 text-right">{item.shippedQty}</td>
+                <td className="py-2 pr-4 text-right">{item.orderedQty}</td>
+                <td className="py-2">{item.uom}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
   // Generate tracking data
   const shipments = useMemo(() => {
@@ -261,8 +318,18 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
                   <ShipmentDetailsSection shipment={shipment} />
                 )}
 
-                {/* External Tracking Link - Only if URL exists */}
-                {shipment.trackingUrl && (
+                {/* CRC Tracking Link - Only for Home Delivery with URL */}
+                {!isClickCollectShipment && shipment.trackingUrl && (
+                  <CRCTrackingLinkSection trackingUrl={shipment.trackingUrl} />
+                )}
+
+                {/* Shipped Items Table - Only if shippedItems exists */}
+                {shipment.shippedItems && shipment.shippedItems.length > 0 && (
+                  <ShippedItemsSection shippedItems={shipment.shippedItems} />
+                )}
+
+                {/* External Tracking Link for Click & Collect - Only if URL exists */}
+                {isClickCollectShipment && shipment.trackingUrl && (
                   <TrackingLinkSection shipment={shipment} />
                 )}
 

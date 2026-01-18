@@ -12,14 +12,15 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChannelLegend } from "./channel-legend"
+import { ChartEmptyState } from "./chart-empty-state"
 import {
   CHANNEL_COLORS,
-  CHANNEL_NAMES,
   type ChannelDailySummary,
 } from "@/types/order-analysis"
 
 interface StackedOrderChartProps {
   data: ChannelDailySummary[]
+  totalOrders?: number
   isLoading?: boolean
 }
 
@@ -58,7 +59,7 @@ function OrderChartTooltip({ active, payload, label }: any) {
  * Stacked bar chart for Order/Day view
  * Shows order count by date, stacked by channel
  */
-export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
+export function StackedOrderChart({ data, totalOrders = 0, isLoading }: StackedOrderChartProps) {
   const maxValue = useMemo(() => {
     if (!data || data.length === 0) return 100
     const max = Math.max(...data.map((d) => d.totalOrders))
@@ -68,8 +69,8 @@ export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Order Summary Per Day</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-lg font-semibold">Orders by Channel</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -83,8 +84,8 @@ export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
   if (!data || data.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Order Summary Per Day</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-lg font-semibold">Orders by Channel</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
@@ -95,13 +96,20 @@ export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
     )
   }
 
+  // Check if any day has actual order data (TOL or MKP > 0)
+  // Note: Use Number() to handle potential undefined/null values safely
+  const hasOrderData = data.some(d => Number(d.TOL) > 0 || Number(d.MKP) > 0)
+  const showEmptyState = !hasOrderData
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Order Summary Per Day</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-lg font-semibold">Orders by Channel</CardTitle>
+        <ChannelLegend variant="orders" />
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
+        <div className="h-80 w-full relative">
+          {showEmptyState && <ChartEmptyState />}
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
@@ -122,7 +130,7 @@ export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
                 tickFormatter={(value) => value.toLocaleString()}
               />
               <Tooltip content={<OrderChartTooltip />} />
-              {/* Stack order: TOL at bottom (largest), then others */}
+              {/* Stack order: TOL at bottom, MKP on top with rounded corners */}
               <Bar
                 dataKey="TOL"
                 stackId="orders"
@@ -134,18 +142,11 @@ export function StackedOrderChart({ data, isLoading }: StackedOrderChartProps) {
                 stackId="orders"
                 fill={CHANNEL_COLORS.MKP}
                 name="MKP"
-              />
-              <Bar
-                dataKey="QC"
-                stackId="orders"
-                fill={CHANNEL_COLORS.QC}
-                name="QC"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <ChannelLegend className="mt-4" />
       </CardContent>
     </Card>
   )

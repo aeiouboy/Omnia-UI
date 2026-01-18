@@ -58,6 +58,7 @@ import type {
   TopsStore,
   ProductCategory,
   Channel,
+  ItemType,
 } from "@/types/inventory"
 import { InventoryViewSelector } from "@/components/inventory/inventory-view-selector"
 import { InventoryEmptyState } from "@/components/inventory/inventory-empty-state"
@@ -154,12 +155,16 @@ export default function InventoryPage() {
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("")
+  const [storeIdSearch, setStoreIdSearch] = useState("")
+  const [storeNameSearch, setStoreNameSearch] = useState("")
+  const [productIdSearch, setProductIdSearch] = useState("")
+  const [productNameSearch, setProductNameSearch] = useState("")
   const [sortField, setSortField] = useState<SortField>("productName")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [activeStoreFilter, setActiveStoreFilter] = useState<TopsStore | null>(null)
   // warehouseFilter removed since it's now determined by View Type
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
-  const [itemTypeFilter, setItemTypeFilter] = useState<"weight" | "unit" | "all">("all")
+  const [itemTypeFilter, setItemTypeFilter] = useState<ItemType | "all">("all")
   const [brandFilter, setBrandFilter] = useState<string>("all")
   // viewFilter removed (using context)
   const [availableBrands, setAvailableBrands] = useState<string[]>([])
@@ -205,6 +210,10 @@ export default function InventoryPage() {
   const filters: InventoryFilters = useMemo(() => ({
     status: activeTab === "all" ? "all" : activeTab,
     searchQuery,
+    storeIdSearch,
+    storeNameSearch,
+    productNameSearch,
+    barcodeSearch: productIdSearch,
     page,
     pageSize,
     sortBy: sortField as any,
@@ -220,6 +229,10 @@ export default function InventoryPage() {
   }), [
     activeTab,
     searchQuery,
+    storeIdSearch,
+    storeNameSearch,
+    productIdSearch,
+    productNameSearch,
     page,
     pageSize,
     sortField,
@@ -302,6 +315,35 @@ export default function InventoryPage() {
     setPage(1) // Reset to first page on search
   }
 
+  const handleStoreIdSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStoreIdSearch(e.target.value)
+    setPage(1) // Reset to first page on search
+  }
+
+  const handleStoreNameSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStoreNameSearch(e.target.value)
+    setPage(1) // Reset to first page on search
+  }
+
+  const handleProductIdSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProductIdSearch(e.target.value)
+    setPage(1) // Reset to first page on search
+  }
+
+  const handleProductNameSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProductNameSearch(e.target.value)
+    setPage(1) // Reset to first page on search
+  }
+
+  const handleClearAllFilters = () => {
+    setStoreIdSearch("")
+    setStoreNameSearch("")
+    setProductIdSearch("")
+    setProductNameSearch("")
+    setBrandFilter("all")
+    setPage(1)
+  }
+
   const handleTabChange = (value: string) => {
     setActiveTab(value as "all" | "low" | "critical")
     setPage(1) // Reset to first page on tab change
@@ -334,7 +376,7 @@ export default function InventoryPage() {
   }
 
   const handleItemTypeChange = (value: string) => {
-    setItemTypeFilter(value as "weight" | "unit" | "all")
+    setItemTypeFilter(value as ItemType | "all")
     setPage(1)
   }
 
@@ -445,7 +487,7 @@ export default function InventoryPage() {
               )}
             </div>
             <div className="flex items-center gap-3 mt-2">
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-2xl font-semibold tracking-tight">
                 {activeStoreFilter ? `Inventory - ${activeStoreFilter}` : "Inventory Management"}
               </h1>
               {activeStoreFilter && (
@@ -460,7 +502,7 @@ export default function InventoryPage() {
                 </Badge>
               )}
             </div>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
               {activeStoreFilter
                 ? `Viewing products from ${activeStoreFilter}`
                 : "Monitor stock levels and manage inventory across all Tops stores"}
@@ -579,24 +621,51 @@ export default function InventoryPage() {
                       </TabsList>
                     </div>
 
-                    {/* Row 2: Search and Filters - All Right Aligned */}
-                    <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t">
-                      {/* Search Box - First Priority */}
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    {/* Row 2: Search and Filters */}
+                    <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
+                      {/* Store Search Group */}
+                      <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Store</span>
                         <Input
-                          placeholder="Search products, barcode..."
-                          value={searchQuery}
-                          onChange={handleSearchChange}
-                          className="w-[200px] pl-9 h-9 text-sm"
+                          placeholder="Search Store ID"
+                          value={storeIdSearch}
+                          onChange={handleStoreIdSearchChange}
+                          className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                        />
+                        <Input
+                          placeholder="Search Store Name"
+                          value={storeNameSearch}
+                          onChange={handleStoreNameSearchChange}
+                          className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
                         />
                       </div>
 
-                      {/* Channel Filter Removed - Determined by View Type */}
+                      {/* Vertical Divider */}
+                      <div className="h-8 w-px bg-border" />
+
+                      {/* Product Search Group */}
+                      <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Product</span>
+                        <Input
+                          placeholder="Search Product ID"
+                          value={productIdSearch}
+                          onChange={handleProductIdSearchChange}
+                          className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                        />
+                        <Input
+                          placeholder="Search Product Name"
+                          value={productNameSearch}
+                          onChange={handleProductNameSearchChange}
+                          className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                        />
+                      </div>
+
+                      {/* Spacer to push filters to the right */}
+                      <div className="flex-1" />
 
                       {/* Brand Filter */}
                       <Select value={brandFilter} onValueChange={handleBrandChange}>
-                        <SelectTrigger className="w-[130px] h-9">
+                        <SelectTrigger className="min-w-[160px] h-9">
                           <SelectValue placeholder="All Brands" />
                         </SelectTrigger>
                         <SelectContent>
@@ -606,6 +675,19 @@ export default function InventoryPage() {
                           ))}
                         </SelectContent>
                       </Select>
+
+                      {/* Clear All Button */}
+                      {(storeIdSearch || storeNameSearch || productIdSearch || productNameSearch || brandFilter !== "all") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearAllFilters}
+                          className="h-9 hover:bg-gray-100"
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Clear All
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>

@@ -1,0 +1,225 @@
+### Open tabs
+- 0: (current) [Central Group OMS] (http://localhost:3000/inventory-new/supply)
+- 1: [] (about:blank)
+- 2: [] (about:blank)
+- 3: [] (about:blank)
+- 4: [] (about:blank)
+- 5: [] (about:blank)
+
+### Page state
+- Page URL: http://localhost:3000/inventory-new/supply
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - generic [ref=e17]: Dashboard
+        - link "Order Search" [ref=e18] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e19]
+          - generic [ref=e22]: Order Search
+        - link "Order Analysis" [ref=e23] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e24]
+          - generic [ref=e26]: Order Analysis
+        - link "Inventory" [ref=e27] [cursor=pointer]:
+          - /url: /inventory
+          - img [ref=e28]
+          - generic [ref=e32]: Inventory
+        - generic [ref=e33]:
+          - button "Inventory Management" [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - generic [ref=e40]: Inventory Management
+            - img [ref=e42]
+          - generic [ref=e44]:
+            - link "Inventory Supply" [ref=e45] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e46]
+              - generic [ref=e48]: Inventory Supply
+            - link "Stock Card" [ref=e49] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e50]
+              - generic [ref=e52]: Stock Card
+            - link "Stock Config" [ref=e53] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e54]
+              - generic [ref=e56]: Stock Config
+        - link "ATC Config" [ref=e57] [cursor=pointer]:
+          - /url: /atc-config
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - link "Escalations" [ref=e63] [cursor=pointer]:
+          - /url: /escalations
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - link "Style Guide" [ref=e67] [cursor=pointer]:
+          - /url: /style-guide
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 22:58:54"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Inventory Supply" [level=1] [ref=e110]
+              - paragraph [ref=e111]: View and manage inventory supply levels across all stores and items
+            - button "Refresh" [ref=e113] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img [ref=e117]
+                - textbox "Search Store ID..." [ref=e120]
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - textbox "Search Store Name..." [ref=e125]
+              - generic [ref=e126]:
+                - img [ref=e127]
+                - textbox "Search Item ID..." [ref=e130]
+              - generic [ref=e131]:
+                - img [ref=e132]
+                - textbox "Search Product Name..." [active] [ref=e135]: Milk
+              - combobox [ref=e136] [cursor=pointer]:
+                - generic: All Types
+                - img [ref=e137]
+              - combobox [ref=e139] [cursor=pointer]:
+                - generic: All Views
+                - img [ref=e140]
+            - button "Clear All" [ref=e2368] [cursor=pointer]
+          - generic [ref=e143]:
+            - table [ref=e146]:
+              - rowgroup [ref=e147]:
+                - row "Store ID ↑ Store Name Item ID Product Name Quantity Available Qty Supply Type" [ref=e148]:
+                  - columnheader "Store ID ↑" [ref=e149] [cursor=pointer]:
+                    - generic [ref=e150]:
+                      - text: Store ID
+                      - generic [ref=e2369]: ↑
+                  - columnheader "Store Name" [ref=e152]
+                  - columnheader "Item ID" [ref=e153] [cursor=pointer]:
+                    - generic [ref=e154]: Item ID
+                  - columnheader "Product Name" [ref=e155]
+                  - columnheader "Quantity" [ref=e156] [cursor=pointer]:
+                    - generic [ref=e157]: Quantity
+                  - columnheader "Available Qty" [ref=e158] [cursor=pointer]:
+                    - generic [ref=e159]: Available Qty
+                  - columnheader "Supply Type" [ref=e160] [cursor=pointer]:
+                    - generic [ref=e161]: Supply Type
+              - rowgroup [ref=e162]:
+                - row "CFR1819 Tops Central World PROD-CFR-1 Betagen Fermented Milk 400ml 52 42 On Hand Available" [ref=e1461]:
+                  - cell "CFR1819" [ref=e1462]
+                  - cell "Tops Central World" [ref=e1463]
+                  - cell "PROD-CFR-1" [ref=e1464]
+                  - cell "Betagen Fermented Milk 400ml" [ref=e1465]
+                  - cell "52" [ref=e1466]:
+                    - generic [ref=e1467]: "52"
+                  - cell "42" [ref=e1468]:
+                    - generic [ref=e1469]: "42"
+                  - cell "On Hand Available" [ref=e1470]:
+                    - generic [ref=e1471]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-21 Betagen Fermented Milk 400ml (Batch 3) 92 82 On Hand Available" [ref=e1527]:
+                  - cell "CFR1819" [ref=e1528]
+                  - cell "Tops Central World" [ref=e1529]
+                  - cell "PROD-CFR-21" [ref=e1530]
+                  - cell "Betagen Fermented Milk 400ml (Batch 3)" [ref=e1531]
+                  - cell "92" [ref=e1532]:
+                    - generic [ref=e1533]: "92"
+                  - cell "82" [ref=e1534]:
+                    - generic [ref=e1535]: "82"
+                  - cell "On Hand Available" [ref=e1536]:
+                    - generic [ref=e1537]: On Hand Available
+                - row "CFR4284 Tops เอกมัย PROD-CFR-21 Betagen Fermented Milk 400ml (Batch 3) 92 82 On Hand Available" [ref=e1835]:
+                  - cell "CFR4284" [ref=e1836]
+                  - cell "Tops เอกมัย" [ref=e1837]
+                  - cell "PROD-CFR-21" [ref=e1838]
+                  - cell "Betagen Fermented Milk 400ml (Batch 3)" [ref=e1839]
+                  - cell "92" [ref=e1840]:
+                    - generic [ref=e1841]: "92"
+                  - cell "82" [ref=e1842]:
+                    - generic [ref=e1843]: "82"
+                  - cell "On Hand Available" [ref=e1844]:
+                    - generic [ref=e1845]: On Hand Available
+                - row "CFR4284 Tops เอกมัย PROD-CFR-1 Betagen Fermented Milk 400ml 52 42 On Hand Available" [ref=e1857]:
+                  - cell "CFR4284" [ref=e1858]
+                  - cell "Tops เอกมัย" [ref=e1859]
+                  - cell "PROD-CFR-1" [ref=e1860]
+                  - cell "Betagen Fermented Milk 400ml" [ref=e1861]
+                  - cell "52" [ref=e1862]:
+                    - generic [ref=e1863]: "52"
+                  - cell "42" [ref=e1864]:
+                    - generic [ref=e1865]: "42"
+                  - cell "On Hand Available" [ref=e1866]:
+                    - generic [ref=e1867]: On Hand Available
+                - row "CFR6299 Tops สีลม คอมเพล็กซ์ PROD-004 Organic Milk 1L 40 22 On Hand Available" [ref=e2011]:
+                  - cell "CFR6299" [ref=e2012]
+                  - cell "Tops สีลม คอมเพล็กซ์" [ref=e2013]
+                  - cell "PROD-004" [ref=e2014]
+                  - cell "Organic Milk 1L" [ref=e2015]
+                  - cell "40" [ref=e2016]:
+                    - generic [ref=e2017]: "40"
+                  - cell "22" [ref=e2018]:
+                    - generic [ref=e2019]: "22"
+                  - cell "On Hand Available" [ref=e2020]:
+                    - generic [ref=e2021]: On Hand Available
+                - row "CFR7820 Tops จตุจักร PROD-CFR-11 Betagen Fermented Milk 400ml (Batch 2) 72 62 On Hand Available" [ref=e2209]:
+                  - cell "CFR7820" [ref=e2210]
+                  - cell "Tops จตุจักร" [ref=e2211]
+                  - cell "PROD-CFR-11" [ref=e2212]
+                  - cell "Betagen Fermented Milk 400ml (Batch 2)" [ref=e2213]
+                  - cell "72" [ref=e2214]:
+                    - generic [ref=e2215]: "72"
+                  - cell "62" [ref=e2216]:
+                    - generic [ref=e2217]: "62"
+                  - cell "On Hand Available" [ref=e2218]:
+                    - generic [ref=e2219]: On Hand Available
+                - row "CFR7914 Tops ทองหล่อ PROD-CFR-11 Betagen Fermented Milk 400ml (Batch 2) 72 62 On Hand Available" [ref=e2286]:
+                  - cell "CFR7914" [ref=e2287]
+                  - cell "Tops ทองหล่อ" [ref=e2288]
+                  - cell "PROD-CFR-11" [ref=e2289]
+                  - cell "Betagen Fermented Milk 400ml (Batch 2)" [ref=e2290]
+                  - cell "72" [ref=e2291]:
+                    - generic [ref=e2292]: "72"
+                  - cell "62" [ref=e2293]:
+                    - generic [ref=e2294]: "62"
+                  - cell "On Hand Available" [ref=e2295]:
+                    - generic [ref=e2296]: On Hand Available
+            - generic [ref=e2352]:
+              - paragraph [ref=e2353]: 7 records displayed
+              - paragraph [ref=e2354]: Filtered from 199 total records
+      - contentinfo [ref=e2355]:
+        - generic [ref=e2357]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e2363] [cursor=pointer]:
+    - img [ref=e2364]
+  - alert [ref=e2367]
+```

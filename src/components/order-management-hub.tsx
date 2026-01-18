@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
 import { formatBangkokTime, formatBangkokDateTime } from "@/lib/timezone-utils"
 import { useOrganization } from "@/contexts/organization-context"
@@ -30,6 +30,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "@/hooks/use-toast"
 import { useOrderCounts } from "@/hooks/use-order-counts"
 import { DeliveryMethod } from "@/types/delivery"
+import type { PaymentTransaction, OrderDiscount, Promotion, CouponCode, PricingBreakdown } from "@/types/payment"
+import type { ManhattanAuditEvent } from "@/types/audit"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -67,6 +69,9 @@ export interface ApiPaymentInfo {
   amountIncludedTaxes?: number
   amountExcludedTaxes?: number
   taxes?: number
+  informationalTaxes?: number  // Display-only tax info (not part of Order Total calculation)
+  cardNumber?: string  // Credit card number (masked format)
+  expiryDate?: string  // Card expiry date
 }
 
 export interface ApiSLAInfo {
@@ -123,7 +128,7 @@ export interface ApiOrderItem {
     promotionType: string  // Discount, Product Discount Promotion
     secretCode?: string
   }[]
-  giftWithPurchase?: string | null  // null or gift description
+  giftWithPurchase?: string | boolean | null  // null, false, or gift description
   priceBreakdown?: {
     subtotal: number
     discount: number
@@ -138,6 +143,10 @@ export interface ApiOrderItem {
   route?: string  // Delivery route name, e.g., 'สายรถหนองบอน'
   bookingSlotFrom?: string  // ISO datetime string, e.g., '2026-01-12T14:00:00'
   bookingSlotTo?: string  // ISO datetime string, e.g., '2026-01-12T15:00:00'
+  // Order Line Splitting Fields
+  parentLineId?: string  // Original order line ID for split items
+  splitIndex?: number  // Position in split sequence (0-based)
+  splitReason?: string  // Reason for split, e.g., "quantity-normalization"
 }
 
 // FMS Extended Fields - Delivery Time Slot
@@ -212,6 +221,7 @@ export interface Order {
   customer: ApiCustomer
   order_date: string
   channel: string
+  sellingChannel?: string
   business_unit: string
   order_type: string
   total_amount: number
@@ -224,7 +234,6 @@ export interface Order {
   on_hold?: boolean
   fullTaxInvoice?: boolean
   customerTypeId?: string
-  sellingChannel?: string
   allowSubstitution?: boolean
   allow_substitution?: boolean // API returns snake_case
   taxId?: string
@@ -244,6 +253,15 @@ export interface Order {
   customerRedeemAmount?: number
   orderDeliveryFee?: number
   deliveryTypeCode?: DeliveryTypeCode
+  // MAO (Manhattan Active Omni) Extended Fields
+  organization?: string
+  paymentDetails?: PaymentTransaction[]
+  orderDiscounts?: OrderDiscount[]
+  promotions?: Promotion[]
+  couponCodes?: CouponCode[]
+  pricingBreakdown?: PricingBreakdown
+  auditTrail?: ManhattanAuditEvent[]
+  currency?: string
   // Optionally add derived fields for UI only if needed
 }
 
@@ -263,7 +281,7 @@ interface AdvancedFilterValues {
   orderDateTo: Date | undefined
   orderStatus: string
   exceedSLA: boolean
-  sellingChannel: string
+  channel: string
   paymentStatus: string
   fulfillmentLocationId: string
   items: string
@@ -399,13 +417,15 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
         const deliveryTypeCodes: DeliveryTypeCode[] = ['RT-HD-EXP', 'RT-CC-STD', 'MKP-HD-STD', 'RT-HD-STD', 'RT-CC-EXP']
         demoOrder.deliveryTypeCode = deliveryTypeCodes[index % deliveryTypeCodes.length]
 
-        // Mock Selling Channel
-        const sellingChannels = ['Web', 'Grab', 'Lineman', 'Gokoo', 'Shopee', 'Lazada']
-        demoOrder.channel = sellingChannels[index % sellingChannels.length]
-        demoOrder.sellingChannel = demoOrder.channel // Ensure compatibility if access via sellingChannel prop
+        // Mock Channel (using new standard) - EXCLUDE MAO orders (start with 'W')
+        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W')
+        if (!isMaoOrder) {
+          const channels = ['web', 'lazada', 'shopee']
+          demoOrder.channel = channels[index % channels.length]
+        }
 
-        // Mock Gift with Purchase for items
-        if (demoOrder.items && demoOrder.items.length > 0) {
+        // Mock Gift with Purchase for items - EXCLUDE MAO orders (start with 'W')
+        if (!isMaoOrder && demoOrder.items && demoOrder.items.length > 0) {
           demoOrder.items = demoOrder.items.map((item: any, i: number) => {
             // Every 4th item has a gift
             if (i % 4 === 0) {
@@ -613,6 +633,46 @@ export function OrderManagementHub() {
       document.body.style.overflow = "unset"
     }
   }, [])
+
+  // Scroll indicator effect for table horizontal scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = tableContainerRef.current
+      if (!container) return
+
+      const { scrollLeft, scrollWidth, clientWidth } = container
+      const isScrollable = scrollWidth > clientWidth
+
+      if (!isScrollable) {
+        setShowLeftShadow(false)
+        setShowRightShadow(false)
+        return
+      }
+
+      // Show left shadow when not at the start
+      setShowLeftShadow(scrollLeft > 0)
+
+      // Show right shadow when not at the end (with 1px tolerance)
+      setShowRightShadow(scrollLeft + clientWidth < scrollWidth - 1)
+    }
+
+    const container = tableContainerRef.current
+    if (container) {
+      // Initial check
+      handleScroll()
+
+      // Add scroll listener
+      container.addEventListener('scroll', handleScroll)
+
+      // Add resize listener to recalculate on window resize
+      window.addEventListener('resize', handleScroll)
+
+      return () => {
+        container.removeEventListener('scroll', handleScroll)
+        window.removeEventListener('resize', handleScroll)
+      }
+    }
+  }, []) // Run once on mount, recalculate on scroll and resize events
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [skuSearchTerm, setSkuSearchTerm] = useState("")
@@ -653,7 +713,7 @@ export function OrderManagementHub() {
     orderDateTo: undefined,
     orderStatus: "all-status",
     exceedSLA: false,
-    sellingChannel: "all-channels",
+    channel: "all-channels",
     paymentStatus: "all-payment",
     fulfillmentLocationId: "",
     items: "",
@@ -662,6 +722,11 @@ export function OrderManagementHub() {
   // Bulk selection states
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set())
   const [isAllSelected, setIsAllSelected] = useState(false)
+
+  // Scroll indicator states for horizontal table scroll
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+  const [showLeftShadow, setShowLeftShadow] = useState(false)
+  const [showRightShadow, setShowRightShadow] = useState(false)
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -798,131 +863,8 @@ export function OrderManagementHub() {
     return date < sixMonthsAgo || date > new Date()
   }
 
-  // State for fetch all mode
-  const [fetchAllMode, setFetchAllMode] = useState(false)
-  const [fetchingAllProgress, setFetchingAllProgress] = useState({ current: 0, total: 0 })
-
-  // Fetch all orders across all pages
-  const fetchAllOrders = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    setFetchingAllProgress({ current: 0, total: 0 })
-
-    try {
-      const allOrders: Order[] = []
-      let currentFetchPage = 1
-      let hasMorePages = true
-      let totalPages = 0
-
-      // Merge all filter values for API request
-      // Merge all filter values for API request
-      const mergedFilters: FilterParams = {
-        searchTerm,
-        status: statusFilter,
-        channel: channelFilter,
-        businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : undefined,
-        advancedFilters: {
-          ...advancedFilters,
-          // Map separate state variables to advancedFilters object
-          orderNumber: skuSearchTerm || advancedFilters.orderNumber,
-          items: itemNameFilter || advancedFilters.items,
-          customerName: customerNameFilter || advancedFilters.customerName,
-          email: emailFilter || advancedFilters.email,
-          phoneNumber: phoneFilter || advancedFilters.phoneNumber,
-          paymentStatus: paymentStatusFilter !== 'all-payment' ? paymentStatusFilter : advancedFilters.paymentStatus,
-          fulfillmentLocationId: storeNoFilter !== 'all-stores' ? storeNoFilter : advancedFilters.fulfillmentLocationId,
-          orderDateFrom: dateFromFilter || advancedFilters.orderDateFrom,
-          orderDateTo: dateToFilter || advancedFilters.orderDateTo,
-
-          // Map extended filters (cast to any or assume interface allows extension)
-          // @ts-ignore - Extending interface dynamically
-          itemStatus: itemStatusFilter !== 'all-item-status' ? itemStatusFilter : undefined,
-          // @ts-ignore
-          orderType: orderTypeFilter !== 'all-order-type' ? orderTypeFilter : undefined,
-          // @ts-ignore
-          deliveryType: deliveryTypeFilter !== 'all-delivery-type' ? deliveryTypeFilter : undefined,
-          // @ts-ignore
-          requestTax: requestTaxFilter !== 'all-request-tax' ? requestTaxFilter : undefined,
-          // @ts-ignore
-          settlementType: settlementTypeFilter !== 'all-settlement-type' ? settlementTypeFilter : undefined,
-          // @ts-ignore
-          deliverySlotDateFrom: deliverySlotDateFromFilter,
-          // @ts-ignore
-          deliverySlotDateTo: deliverySlotDateToFilter,
-          // @ts-ignore
-          deliveredTimeFrom: deliveredTimeFromFilter,
-          // @ts-ignore
-          deliveredTimeTo: deliveredTimeToFilter
-        }
-      }
-
-      // Loop through all pages
-      while (hasMorePages) {
-        console.log(`📄 Fetching page ${currentFetchPage}...`)
-
-        const { orders, pagination: apiPagination } = await fetchOrdersFromApi(
-          { page: currentFetchPage, pageSize: 100 }, // Use larger page size for efficiency
-          mergedFilters,
-        )
-
-        allOrders.push(...orders)
-        totalPages = apiPagination.totalPages
-        hasMorePages = apiPagination.hasNext
-
-        // Update progress
-        setFetchingAllProgress({ current: currentFetchPage, total: totalPages })
-
-        // Move to next page
-        currentFetchPage++
-
-        // Safety check to prevent infinite loops
-        if (currentFetchPage > 1000) {
-          console.warn("⚠️ Safety limit reached: stopping at 1000 pages")
-          break
-        }
-      }
-
-      console.log(`✅ Fetched all ${allOrders.length} orders across ${currentFetchPage - 1} pages`)
-
-      // Update state with all orders
-      setOrdersData(allOrders)
-      setPagination({
-        page: 1,
-        pageSize: allOrders.length,
-        total: allOrders.length,
-        totalPages: 1,
-        hasNext: false,
-        hasPrev: false,
-      })
-
-      // Only update timestamp on client side
-      if (typeof window !== "undefined") {
-        setLastUpdated(formatGMT7TimeString())
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch all orders")
-      setOrdersData([])
-      setPagination({
-        page: 1,
-        pageSize,
-        total: 0,
-        totalPages: 0,
-        hasNext: false,
-        hasPrev: false,
-      })
-    } finally {
-      setIsLoading(false)
-      setFetchingAllProgress({ current: 0, total: 0 })
-    }
-  }, [pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, advancedFilters])
-
   // Regular single page fetch
   const fetchOrders = useCallback(async () => {
-    // If in fetch all mode, fetch all pages
-    if (fetchAllMode) {
-      return fetchAllOrders()
-    }
-
     setIsLoading(true)
     setError(null)
     try {
@@ -991,7 +933,7 @@ export function OrderManagementHub() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, advancedFilters, fetchAllMode, fetchAllOrders])
+  }, [currentPage, pageSize, searchTerm, statusFilter, channelFilter, selectedOrganization, advancedFilters])
 
   // Initial fetch & refetch on filters/pagination change
   useEffect(() => {
@@ -1112,6 +1054,18 @@ export function OrderManagementHub() {
     return filters
   }, [searchTerm, skuSearchTerm, statusFilter, channelFilter, storeNoFilter, paymentStatusFilter, dateFromFilter, dateToFilter, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, itemStatusFilter, paymentMethodFilter, orderTypeFilter, deliveryTypeFilter, requestTaxFilter, settlementTypeFilter, deliverySlotDateFromFilter, deliverySlotDateToFilter, deliveredTimeFromFilter, deliveredTimeToFilter, dateTypeFilter])
 
+  // Count active advanced filters (for badge display)
+  const advancedFilterCount = useMemo(() => {
+    let count = 0
+    if (skuSearchTerm) count++
+    if (itemNameFilter) count++
+    if (customerNameFilter) count++
+    if (emailFilter) count++
+    if (phoneFilter) count++
+    if (orderTypeFilter !== "all-order-type") count++
+    return count
+  }, [skuSearchTerm, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, orderTypeFilter])
+
   // Reset all filters
   const handleResetAllFilters = () => {
     setSearchTerm("")
@@ -1179,14 +1133,15 @@ export function OrderManagementHub() {
   }
 
   // Get row styling based on urgency
+  // Updated colors to meet WCAG AA contrast requirements (4.5:1 for normal text)
   function getUrgencyRowStyle(urgencyLevel: string): string {
     switch (urgencyLevel) {
       case "critical":
-        return "bg-red-50 border-l-4 border-l-red-500 hover:bg-red-100"
+        return "bg-red-100 border-l-4 border-l-red-600 hover:bg-red-150 text-gray-900"
       case "warning":
-        return "bg-orange-50 border-l-4 border-l-orange-500 hover:bg-orange-100"
+        return "bg-orange-100 border-l-4 border-l-orange-600 hover:bg-orange-150 text-gray-900"
       case "approaching":
-        return "bg-yellow-50 border-l-4 border-l-yellow-500 hover:bg-yellow-100"
+        return "bg-yellow-100 border-l-4 border-l-yellow-600 hover:bg-yellow-150 text-gray-900"
       default:
         return "hover:bg-gray-50"
     }
@@ -1219,6 +1174,12 @@ export function OrderManagementHub() {
       allowSubstitution: order.allow_substitution ?? false,
       createdDate: order.metadata?.created_at ? formatGMT7DateTime(order.metadata.created_at) : "",
       urgencyLevel: urgencyLevel,
+      // Customer Fields
+      customerName: order.customer?.name ?? "",
+      customerEmail: order.customer?.email ?? "",
+      customerPhone: order.customer?.phone ?? "",
+      // Store Field
+      storeNo: order.metadata?.store_no ?? order.store_no ?? "",
       // FMS Extended Fields
       orderType: order.orderType ?? order.order_type ?? "",
       deliveryType: order.deliveryType ?? "",
@@ -1534,8 +1495,8 @@ export function OrderManagementHub() {
       }
     }
 
-    if (advancedFilters.sellingChannel && advancedFilters.sellingChannel !== "all-channels") {
-      if (order.channel?.toUpperCase() !== advancedFilters.sellingChannel.toUpperCase()) {
+    if (advancedFilters.channel && advancedFilters.channel !== "all-channels") {
+      if (order.channel?.toUpperCase() !== advancedFilters.channel.toUpperCase()) {
         return false
       }
     }
@@ -1759,15 +1720,35 @@ export function OrderManagementHub() {
   // Local function to render the order table
   function renderOrderTable(ordersToShow: any[]) {
     return (
-      <div className="overflow-x-auto">
+      <div
+        ref={tableContainerRef}
+        className={cn(
+          "overflow-x-auto transition-shadow duration-300",
+          showLeftShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15)]",
+          showRightShadow && "shadow-[inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]",
+          showLeftShadow && showRightShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15),inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]"
+        )}
+      >
         <Table>
           <TableHeader className="bg-light-gray">
             <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
-              <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
+              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
                 Order Number
               </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
+                Customer Name
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[180px] text-sm font-semibold">
+                Email
+              </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                Phone Number
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
                 Order Total
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
+                Store No
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 Order Status
@@ -1780,19 +1761,19 @@ export function OrderManagementHub() {
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">On Hold</TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+                Order Type
+              </TableHead>
+              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 Payment Status
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
                 Confirmed
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Selling Channel
+                Channel
               </TableHead>
-              {/* FMS Extended Columns */}
-              {/* <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Order Type
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
+              {/* FMS Extended Columns (commented out) */}
+              {/* <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
                 Delivery Type
               </TableHead>
               <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold">
@@ -1822,7 +1803,7 @@ export function OrderManagementHub() {
           <TableBody>
             {ordersToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8">
+                <TableCell colSpan={16} className="text-center py-8">
                   No orders found.
                 </TableCell>
               </TableRow>
@@ -1839,7 +1820,11 @@ export function OrderManagementHub() {
                         {order.id}
                       </button>
                     </TableCell>
+                    <TableCell>{order.customerName || "-"}</TableCell>
+                    <TableCell className="max-w-[180px] truncate" title={order.customerEmail || ""}>{order.customerEmail || "-"}</TableCell>
+                    <TableCell>{order.customerPhone || "-"}</TableCell>
                     <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{order.storeNo || "-"}</TableCell>
                     <TableCell>
                       <OrderStatusBadge status={order.status} />
                     </TableCell>
@@ -1858,17 +1843,17 @@ export function OrderManagementHub() {
                       <OnHoldBadge onHold={order.onHold} />
                     </TableCell>
                     <TableCell>
+                      <OrderTypeBadge orderType={order.orderType} />
+                    </TableCell>
+                    <TableCell>
                       <PaymentStatusBadge status={order.paymentStatus} />
                     </TableCell>
                     <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
                     <TableCell>
                       <ChannelBadge channel={order.channel} />
                     </TableCell>
-                    {/* FMS Extended Column Data */}
+                    {/* FMS Extended Column Data (commented out) */}
                     {/* <TableCell>
-                      <OrderTypeBadge orderType={order.orderType} />
-                    </TableCell>
-                    <TableCell>
                       <DeliveryTypeBadge deliveryType={order.deliveryType} />
                     </TableCell>
                     <TableCell>
@@ -1899,7 +1884,7 @@ export function OrderManagementHub() {
       <Card className="w-full max-w-none">
         <CardHeader className="border-b border-medium-gray bg-white p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-deep-navy font-heading">Order Management Hub</CardTitle>
+            <CardTitle className="text-2xl font-bold text-deep-navy font-heading">Order Management</CardTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -1953,117 +1938,118 @@ export function OrderManagementHub() {
           </div> */}
 
 
-          {/* Main Filters Section */}
-          <div className="mt-4 space-y-3">
-            <div className="text-sm font-medium text-gray-700">Main Filters</div>
-            {/* Row 1: Search and Core Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-              {/* Order ID Search */}
-              <div className="relative sm:col-span-2 lg:col-span-2">
-                <Input
-                  placeholder="Search by order #, customer name, email, phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 h-11 text-base"
-                />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-
-              {/* Order Status */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-status">All Status</SelectItem>
-                  <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                  <SelectItem value="PROCESSING">Processing</SelectItem>
-                  <SelectItem value="SHIPPED">Shipped</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                  <SelectItem value="FULFILLED">Fulfilled</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Store No. */}
-              <Select value={storeNoFilter} onValueChange={setStoreNoFilter}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="All Stores" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-stores">All Stores</SelectItem>
-                  {uniqueStoreNos.map((storeNo) => (
-                    <SelectItem key={storeNo} value={storeNo}>
-                      {storeNo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Payment Status */}
-              <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Payment Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-payment">All Payment Status</SelectItem>
-                  <SelectItem value="PAID">Paid</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="FAILED">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Selling Channel */}
-              <Select value={channelFilter} onValueChange={setChannelFilter}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="All Channels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-channels">All Channels</SelectItem>
-                  <SelectItem value="GRAB">Grab</SelectItem>
-                  <SelectItem value="LAZADA">Lazada</SelectItem>
-                  <SelectItem value="SHOPEE">Shopee</SelectItem>
-                  <SelectItem value="TIKTOK">TikTok</SelectItem>
-                  <SelectItem value="SHOPIFY">Shopify</SelectItem>
-                  <SelectItem value="INSTORE">In-Store</SelectItem>
-                  <SelectItem value="FOODPANDA">FoodPanda</SelectItem>
-                  <SelectItem value="LINEMAN">LineMan</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Main Filters Section - Reorganized with visual groups */}
+          <div className="mt-3 space-y-4">
+            {/* Row 1: Full-width Search */}
+            <div className="relative">
+              <Input
+                placeholder="Search by order #, customer name, email, phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 h-11 text-base"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                >
+                  <X className="h-4 w-4 text-gray-400" />
+                  <span className="sr-only">Clear search</span>
+                </Button>
+              )}
             </div>
 
-            {/* Row 2: Date Range */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {/* Date Type Selector */}
-              {/* <div className="space-y-1">
-                <Label className="text-xs text-gray-600">Date Type</Label>
-                <Select value={dateTypeFilter} onValueChange={setDateTypeFilter}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Order Date" />
+            {/* Filter Groups - Single Row No Wrap */}
+            <div className="flex gap-2 items-center overflow-x-auto">
+              {/* Order Filters Group */}
+              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order</span>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 min-w-[85px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="order-date">Order Date</SelectItem>
-                    <SelectItem value="payment-date">Payment Date</SelectItem>
-                    <SelectItem value="delivery-date">Delivery Date</SelectItem>
-                    <SelectItem value="shipping-slot">Shipping Slot</SelectItem>
+                    <SelectItem value="all-status">All Status</SelectItem>
+                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                    <SelectItem value="PROCESSING">Processing</SelectItem>
+                    <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="DELIVERED">Delivered</SelectItem>
+                    <SelectItem value="FULFILLED">Fulfilled</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-              </div> */}
+                <div className="h-5 w-px bg-border/60" />
+                <Select value={storeNoFilter} onValueChange={setStoreNoFilter}>
+                  <SelectTrigger className="h-9 min-w-[85px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue placeholder="Store" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-stores">All Stores</SelectItem>
+                    {uniqueStoreNos.map((storeNo) => (
+                      <SelectItem key={storeNo} value={storeNo}>
+                        {storeNo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="h-5 w-px bg-border/60" />
+                <Select value={channelFilter} onValueChange={setChannelFilter}>
+                  <SelectTrigger className="h-9 min-w-[105px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue placeholder="Channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-channels">All Channels</SelectItem>
+                    <SelectItem value="WEB">Web</SelectItem>
+                    <SelectItem value="LAZADA">Lazada</SelectItem>
+                    <SelectItem value="SHOPEE">Shopee</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Date From */}
-              <div className="space-y-1">
-                <Label htmlFor="dateFrom" className="text-xs text-gray-600">{dateTypeFilter === 'order-date' ? 'Order' : dateTypeFilter === 'payment-date' ? 'Payment' : dateTypeFilter === 'delivery-date' ? 'Delivery' : 'Shipping'} Date From</Label>
+              {/* Payment Filters Group */}
+              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Payment</span>
+                <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+                  <SelectTrigger className="h-9 min-w-[80px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-payment">All Status</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="FAILED">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="h-5 w-px bg-border/60" />
+                <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                  <SelectTrigger className="h-9 min-w-[100px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue placeholder="Method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-payment-method">All Methods</SelectItem>
+                    <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
+                    <SelectItem value="CREDIT_CARD_ON_DELIVERY">Credit Card on Delivery</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Order Date Group */}
+              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order Date</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       className={cn(
-                        "w-full justify-start text-left font-normal h-11",
+                        "h-9 min-w-[88px] justify-start text-left font-normal px-2",
                         !dateFromFilter && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFromFilter ? format(dateFromFilter, "dd/MM/yyyy") : "Select date"}
+                      {dateFromFilter ? format(dateFromFilter, "dd/MM/yyyy") : "From"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -2075,22 +2061,18 @@ export function OrderManagementHub() {
                     />
                   </PopoverContent>
                 </Popover>
-              </div>
-
-              {/* Date To */}
-              <div className="space-y-1">
-                <Label htmlFor="dateTo" className="text-xs text-gray-600">{dateTypeFilter === 'order-date' ? 'Order' : dateTypeFilter === 'payment-date' ? 'Payment' : dateTypeFilter === 'delivery-date' ? 'Delivery' : 'Shipping'} Date To</Label>
+                <span className="text-muted-foreground">-</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       className={cn(
-                        "w-full justify-start text-left font-normal h-11",
+                        "h-9 min-w-[88px] justify-start text-left font-normal px-2",
                         !dateToFilter && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateToFilter ? format(dateToFilter, "dd/MM/yyyy") : "Select date"}
+                      {dateToFilter ? format(dateToFilter, "dd/MM/yyyy") : "To"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -2104,297 +2086,138 @@ export function OrderManagementHub() {
                 </Popover>
               </div>
             </div>
+
+            {/* Active Filters Summary Bar */}
+            {generateActiveFilters.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center py-2 px-3 bg-muted/20 rounded-md border border-border/30">
+                <span className="text-xs font-medium text-muted-foreground">Active filters:</span>
+                {generateActiveFilters.map((filter, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-xs font-normal cursor-pointer hover:bg-secondary/80"
+                    onClick={() => removeFilter(filter)}
+                  >
+                    {filter}
+                    <X className="ml-1 h-3 w-3" />
+                  </Badge>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetAllFilters}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-gray-100"
+                >
+                  Clear All
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Advanced Filters Collapsible Section */}
           <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters} className="mt-4">
             <CollapsibleTrigger asChild>
               <Button
-                variant="ghost"
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 p-0 h-auto"
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 transition-colors border-primary/30"
               >
                 <Filter className="h-4 w-4" />
                 {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
+                {advancedFilterCount > 0 && !showAdvancedFilters && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {advancedFilterCount}
+                  </Badge>
+                )}
                 {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3">
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
-                {/* Text Search Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {/* Item ID / SKU Search */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Item ID / SKU</Label>
-                    <div className="relative">
+              <div className="p-4 bg-muted/30 border border-border/40 rounded-lg space-y-4">
+                {/* Product Search Group */}
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Product Search</div>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">SKU</span>
+                      <div className="relative flex-1">
+                        <Input
+                          placeholder="Search by SKU..."
+                          value={skuSearchTerm}
+                          onChange={(e) => setSkuSearchTerm(e.target.value)}
+                          className="h-8 pl-8 pr-2 border-0 bg-transparent focus-visible:ring-0"
+                        />
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Item</span>
                       <Input
-                        placeholder="Search by SKU..."
-                        value={skuSearchTerm}
-                        onChange={(e) => setSkuSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 h-11"
+                        placeholder="Search by item name..."
+                        value={itemNameFilter}
+                        onChange={(e) => setItemNameFilter(e.target.value)}
+                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
                       />
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     </div>
                   </div>
-
-                  {/* Item Name Search */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Item Name</Label>
-                    <Input
-                      placeholder="Search by item name..."
-                      value={itemNameFilter}
-                      onChange={(e) => setItemNameFilter(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-
-                  {/* Customer Name */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Customer Name</Label>
-                    <Input
-                      placeholder="Search by customer name..."
-                      value={customerNameFilter}
-                      onChange={(e) => setCustomerNameFilter(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Email</Label>
-                    <Input
-                      placeholder="Search by email..."
-                      value={emailFilter}
-                      onChange={(e) => setEmailFilter(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-
-                  {/* Phone */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Phone Number</Label>
-                    <Input
-                      placeholder="Search by phone..."
-                      value={phoneFilter}
-                      onChange={(e) => setPhoneFilter(e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-
-                  {/* Order Type */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Order Type</Label>
-                    <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Order Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-order-type">All Order Types</SelectItem>
-                        <SelectItem value="RT-HD-EXP">RT-HD-EXP</SelectItem>
-                        <SelectItem value="RT-CC-STD">RT-CC-STD</SelectItem>
-                        <SelectItem value="MKP-HD-STD">MKP-HD-STD</SelectItem>
-                        <SelectItem value="RT-HD-STD">RT-HD-STD</SelectItem>
-                        <SelectItem value="RT-CC-EXP">RT-CC-EXP</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Payment Method */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Payment Method</Label>
-                    <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Payment Methods" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-payment-method">All Payment Methods</SelectItem>
-                        <SelectItem value="CASH_ON_DELIVERY">Cash on Delivery</SelectItem>
-                        <SelectItem value="CREDIT_CARD_ON_DELIVERY">Credit Card on Delivery</SelectItem>
-                        {/* <SelectItem value="2C2P_CREDIT_CARD">2C2P Credit-Card</SelectItem>
-                        <SelectItem value="QR_PROMPTPAY">QR PromptPay</SelectItem>
-                        <SelectItem value="T1C_REDEEM">T1C Redeem Payment</SelectItem>
-                        <SelectItem value="LAZADA_PAYMENT">Lazada Payment</SelectItem>
-                        <SelectItem value="SHOPEE_PAYMENT">Shopee Payment</SelectItem> */}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Order Type (FMS) */}
-                  {/* <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Order Type</Label>
-                    <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Order Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-order-type">All Order Types</SelectItem>
-                        <SelectItem value="Large format">Large format</SelectItem>
-                        <SelectItem value="Tops daily CFR">Tops daily CFR</SelectItem>
-                        <SelectItem value="Tops daily CFM">Tops daily CFM</SelectItem>
-                        <SelectItem value="Subscription">Subscription</SelectItem>
-                        <SelectItem value="Retail">Retail</SelectItem>
-                        <SelectItem value="DELIVERY">Delivery</SelectItem>
-                        <SelectItem value="PICKUP">Pickup</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div> */}
-
-                  {/* Delivery Type (FMS) */}
-                  {/* <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Delivery Type</Label>
-                    <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Delivery Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-delivery-type">All Delivery Types</SelectItem>
-                        <SelectItem value="Standard Delivery">Standard Delivery</SelectItem>
-                        <SelectItem value="Express Delivery">Express Delivery</SelectItem>
-                        <SelectItem value="Click & Collect">Click & Collect</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div> */}
-
-                  {/* Request Tax (FMS) */}
-                  {/* <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Request Tax Invoice</Label>
-                    <Select value={requestTaxFilter} onValueChange={setRequestTaxFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-request-tax">All</SelectItem>
-                        <SelectItem value="yes">Yes</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div> */}
-
-                  {/* Settlement Type (FMS) */}
-                  {/* <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Settlement Type</Label>
-                    <Select value={settlementTypeFilter} onValueChange={setSettlementTypeFilter}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="All Settlement Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-settlement-type">All Settlement Types</SelectItem>
-                        <SelectItem value="Auto Settle">Auto Settle</SelectItem>
-                        <SelectItem value="Manual Settle">Manual Settle</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div> */}
                 </div>
 
-                {/* Row: Delivery Slot and Delivered Time Date Filters */}
-                {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Delivery Time Slot From</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-11",
-                            !deliverySlotDateFromFilter && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {deliverySlotDateFromFilter ? format(deliverySlotDateFromFilter, "dd/MM/yyyy") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={deliverySlotDateFromFilter}
-                          onSelect={setDeliverySlotDateFromFilter}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                {/* Customer Search Group */}
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Customer Search</div>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[180px]">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Name</span>
+                      <Input
+                        placeholder="Customer name..."
+                        value={customerNameFilter}
+                        onChange={(e) => setCustomerNameFilter(e.target.value)}
+                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[180px]">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Email</span>
+                      <Input
+                        placeholder="Email address..."
+                        value={emailFilter}
+                        onChange={(e) => setEmailFilter(e.target.value)}
+                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[160px]">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Phone</span>
+                      <Input
+                        placeholder="Phone number..."
+                        value={phoneFilter}
+                        onChange={(e) => setPhoneFilter(e.target.value)}
+                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
+                      />
+                    </div>
                   </div>
+                </div>
 
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Delivery Time Slot To</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-11",
-                            !deliverySlotDateToFilter && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {deliverySlotDateToFilter ? format(deliverySlotDateToFilter, "dd/MM/yyyy") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={deliverySlotDateToFilter}
-                          onSelect={setDeliverySlotDateToFilter}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                {/* Order Details Group */}
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Order Details</div>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Type</span>
+                      <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
+                        <SelectTrigger className="h-8 min-w-[120px] border-0 bg-transparent focus:ring-0">
+                          <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-order-type">All Types</SelectItem>
+                          <SelectItem value="RT-HD-EXP">RT-HD-EXP</SelectItem>
+                          <SelectItem value="RT-CC-STD">RT-CC-STD</SelectItem>
+                          <SelectItem value="MKP-HD-STD">MKP-HD-STD</SelectItem>
+                          <SelectItem value="RT-HD-STD">RT-HD-STD</SelectItem>
+                          <SelectItem value="RT-CC-EXP">RT-CC-EXP</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Delivery Date From</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-11",
-                            !deliveredTimeFromFilter && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {deliveredTimeFromFilter ? format(deliveredTimeFromFilter, "dd/MM/yyyy") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={deliveredTimeFromFilter}
-                          onSelect={setDeliveredTimeFromFilter}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-600">Delivery Date To</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-11",
-                            !deliveredTimeToFilter && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {deliveredTimeToFilter ? format(deliveredTimeToFilter, "dd/MM/yyyy") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={deliveredTimeToFilter}
-                          onSelect={setDeliveredTimeToFilter}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div> */}
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -2407,9 +2230,7 @@ export function OrderManagementHub() {
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-corporate-blue" />
               <p className="ml-2 text-steel-gray">
-                {fetchingAllProgress.total > 0
-                  ? `Fetching page ${fetchingAllProgress.current} of ${fetchingAllProgress.total}...`
-                  : "Loading orders..."}
+                Loading orders...
               </p>
             </div>
           )}
@@ -2428,45 +2249,19 @@ export function OrderManagementHub() {
             <div>
               {renderOrderTable(mappedOrders)}
               <div className="mt-4 space-y-2">
-                {/* Fetch All Toggle */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={fetchAllMode ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setFetchAllMode(!fetchAllMode)
-                        if (!fetchAllMode) {
-                          setCurrentPage(1)
-                        }
-                      }}
-                      disabled={isLoading}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      {fetchAllMode ? "Switch to Paginated View" : "Fetch All Pages"}
-                    </Button>
-                    {fetchAllMode && ordersData.length > 0 && (
-                      <span className="text-sm text-steel-gray">
-                        Showing all {ordersData.length} orders
-                      </span>
-                    )}
-                  </div>
                   {lastUpdated && (
                     <p className="text-sm text-steel-gray">Last updated: {lastUpdated}</p>
                   )}
                 </div>
-                {/* Pagination Controls - Only show when not in fetch all mode */}
-                {!fetchAllMode && (
-                  <PaginationControls
-                    currentPage={currentPage}
-                    totalPages={pagination.totalPages}
-                    pageSize={pageSize}
-                    totalItems={pagination.total}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                  />
-                )}
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  pageSize={pageSize}
+                  totalItems={pagination.total}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
               </div>
             </div>
           )}

@@ -6,12 +6,23 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Simple time formatting function that should always work
-export function formatGMT7TimeString(): string {
+export function formatGMT7TimeString(date?: Date | string | number): string {
   try {
-    return new Date().toLocaleString("en-US", {
+    let inputDate: Date
+    if (date === undefined || date === null) {
+      inputDate = new Date()
+    } else if (date instanceof Date) {
+      inputDate = date
+    } else {
+      inputDate = new Date(date)
+      if (isNaN(inputDate.getTime())) {
+        inputDate = new Date()
+      }
+    }
+    return inputDate.toLocaleString("en-US", {
       timeZone: "Asia/Bangkok",
       hour: "2-digit",
-      minute: "2-digit", 
+      minute: "2-digit",
       second: "2-digit",
       hour12: false,
     })
@@ -61,7 +72,7 @@ export function formatGMT7DateString(date?: Date | string | number): string {
 }
 
 export function formatGMT7DateTime(date?: Date | string | number): string {
-  return `${formatGMT7DateString(date)} ${formatGMT7TimeString()}`
+  return `${formatGMT7DateString(date)} ${formatGMT7TimeString(date)}`
 }
 
 export function safeParseDate(dateValue: any): Date {

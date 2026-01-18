@@ -1,0 +1,1 @@
+Standardize to 'Channel' terminology. In Order Management (src/components/order-management-hub.tsx), replace all references to 'sellingChannel' with 'channel' for consistency. Ensure filter labels and dropdown options use 'Channel' not 'Selling Channel'.

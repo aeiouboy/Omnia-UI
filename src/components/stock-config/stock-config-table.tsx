@@ -213,7 +213,7 @@ export function StockConfigTable({
         </TableHeader>
         <TableBody>
           {items.map((item) => (
-            <TableRow key={item.id} className="hover:bg-muted/50">
+            <TableRow key={item.id} className="hover:bg-accent/50 transition-colors">
               <TableCell className="font-mono text-sm">{item.locationId}</TableCell>
               <TableCell className="font-mono text-sm">{item.itemId}</TableCell>
               <TableCell className="text-right">

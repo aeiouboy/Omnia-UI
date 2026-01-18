@@ -1,0 +1,1 @@
+Standardize Store column header to 'Store Name' across all tables. In Stock Card page (app/inventory-new/stores/page.tsx), change table header from 'Store' to 'Store Name'. In Recent Transactions table (src/components/recent-transactions-table.tsx), change 'Store' header to 'Store Name'.

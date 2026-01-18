@@ -19,19 +19,24 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 /**
- * Normalize channel name to match expected channel names
+ * Normalize channel name to match expected channel names (TOL or MKP only)
  */
 function normalizeChannelName(channel: string | undefined): ChannelName {
   if (!channel) return 'TOL'
 
   const normalized = channel.toLowerCase().trim()
 
-  if (normalized.includes('grab')) return 'Grab'
-  if (normalized.includes('line') || normalized.includes('man')) return 'Line Man'
-  if (normalized.includes('gokoo')) return 'Gokoo'
-  if (normalized.includes('mkp') || normalized.includes('marketplace')) return 'MKP'
+  // MKP: Grab, Lineman, Gokoo, Shopee, Lazada, QC, Marketplace
+  if (normalized.includes('grab') ||
+      normalized.includes('line') || normalized.includes('man') ||
+      normalized.includes('gokoo') ||
+      normalized.includes('mkp') || normalized.includes('marketplace') ||
+      normalized.includes('shopee') || normalized.includes('lazada') ||
+      normalized.includes('qc')) {
+    return 'MKP'
+  }
 
-  // Default to TOL for unrecognized channels
+  // TOL: Web, TOL, Tops Online, and default
   return 'TOL'
 }
 
@@ -80,11 +85,11 @@ function aggregateOrdersByDateAndChannel(
     revenue: Record<ChannelName, number>
   }>()
 
-  // Initialize all dates
+  // Initialize all dates - only TOL and MKP channels
   for (const date of dates) {
     ordersByDate.set(date, {
-      orders: { TOL: 0, MKP: 0, Grab: 0, 'Line Man': 0, Gokoo: 0 },
-      revenue: { TOL: 0, MKP: 0, Grab: 0, 'Line Man': 0, Gokoo: 0 },
+      orders: { TOL: 0, MKP: 0 },
+      revenue: { TOL: 0, MKP: 0 },
     })
   }
 
@@ -197,6 +202,7 @@ export function useOrderAnalysis(params?: UseOrderAnalysisParams): UseOrderAnaly
       setData({
         dailyOrdersByChannel: dailyOrders,
         dailyRevenueByChannel: dailyRevenue,
+        platformBreakdown: [], // TODO: Implement platform-level breakdown if needed
         totalOrders,
         totalRevenue,
         dateFrom,
