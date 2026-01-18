@@ -2828,7 +2828,9 @@ const maoOrderW1156251121946800Items = [
         promotionType: 'Coupon',
         discountAmount: -0.86,
         secretCode: 'AUTOAPPLY',
-        couponType: 'CPN9'
+        couponType: 'CPN9',
+        couponId: 'AUTOAPPLY',
+        couponName: 'CPN9|AUTOAPPLY'
       }
     ],
     parentLineId: 'LINE-W115625-002',
@@ -2890,7 +2892,9 @@ const maoOrderW1156251121946800Items = [
         promotionType: 'Coupon',
         discountAmount: -0.87,
         secretCode: 'AUTOAPPLY',
-        couponType: 'CPN9'
+        couponType: 'CPN9',
+        couponId: 'AUTOAPPLY',
+        couponName: 'CPN9|AUTOAPPLY'
       }
     ],
     parentLineId: 'LINE-W115625-002',

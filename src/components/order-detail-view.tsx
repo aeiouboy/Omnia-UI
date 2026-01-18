@@ -952,14 +952,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                                 <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
                                               </div>
                                               <div className="flex justify-between">
-                                                <span className="text-gray-500">Promo ID</span>
-                                                <span className="text-gray-900 font-mono">{promo.promotionId}</span>
+                                                <span className="text-gray-500">{promo.couponId ? 'Coupon ID' : 'Promo ID'}</span>
+                                                <span className="text-gray-900 font-mono">{promo.couponId || promo.promotionId}</span>
                                               </div>
                                               <div className="flex justify-between">
-                                                <span className="text-gray-500">Type</span>
-                                                <span className="text-gray-900">{promo.promotionType}</span>
+                                                <span className="text-gray-500">{promo.couponName ? 'Coupon Name' : 'Type'}</span>
+                                                <span className="text-gray-900">{promo.couponName || promo.promotionType}</span>
                                               </div>
-                                              {promo.secretCode && (
+                                              {promo.secretCode && !promo.couponId && (
                                                 <div className="flex justify-between">
                                                   <span className="text-gray-500">Code</span>
                                                   <span className="text-gray-900 font-mono">{promo.secretCode}</span>

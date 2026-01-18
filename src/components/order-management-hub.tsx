@@ -127,6 +127,8 @@ export interface ApiOrderItem {
     promotionId: string
     promotionType: string  // Discount, Product Discount Promotion
     secretCode?: string
+    couponId?: string      // Coupon code e.g., 'AUTOAPPLY'
+    couponName?: string    // Coupon name e.g., 'CPN9|AUTOAPPLY'
   }[]
   giftWithPurchase?: string | boolean | null  // null, false, or gift description
   priceBreakdown?: {
