@@ -71,32 +71,6 @@ interface InventoryDetailViewProps {
   storeContext?: string // Store filter context - when set, hides Stock by Store section and filters transactions
 }
 
-function getStatusBadgeVariant(status: string) {
-  switch (status) {
-    case "inStock":
-      return "bg-green-100 text-green-800"
-    case "low":
-      return "bg-yellow-100 text-yellow-800"
-    case "outOfStock":
-      return "bg-red-100 text-red-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case "inStock":
-      return "In Stock"
-    case "low":
-      return "Low Stock"
-    case "outOfStock":
-      return "Out of Stock"
-    default:
-      return status
-  }
-}
-
 export function InventoryDetailView({
   item,
   stockHistory,
@@ -189,19 +163,11 @@ export function InventoryDetailView({
             {/* Product Info */}
             <div className="flex-1 space-y-4">
               <div>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h1 className="text-3xl font-bold">{item.productName}</h1>
-                    <p className="text-muted-foreground mt-1">
-                      {item.category}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`${getStatusBadgeVariant(item.status)} text-sm px-3 py-1`}
-                  >
-                    {getStatusLabel(item.status)}
-                  </Badge>
+                <div className="mb-2">
+                  <h1 className="text-3xl font-bold">{item.productName}</h1>
+                  <p className="text-muted-foreground mt-1">
+                    {item.category}
+                  </p>
                 </div>
               </div>
 

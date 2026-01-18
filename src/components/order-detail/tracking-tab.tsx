@@ -180,35 +180,59 @@ function CRCTrackingLinkSection({ trackingUrl }: { trackingUrl: string }) {
 }
 
 /**
- * Shipped Items Section - Table showing shipped items with quantities
+ * Shipped Items Section - Card-style list showing individual units
+ * Each unit is displayed as a separate row with product name, barcode, and qty badge
  */
 function ShippedItemsSection({ shippedItems }: { shippedItems: ShippedItem[] }) {
+  // Expand aggregated items into individual unit entries
+  const expandedItems = useMemo(() => {
+    const items: Array<{ productName: string; sku: string; unitIndex: number; totalUnits: number }> = []
+    shippedItems.forEach((item) => {
+      const qty = item.shippedQty || 1
+      for (let i = 0; i < qty; i++) {
+        items.push({
+          productName: item.productName,
+          sku: item.sku,
+          unitIndex: i,
+          totalUnits: qty
+        })
+      }
+    })
+    return items
+  }, [shippedItems])
+
+  if (expandedItems.length === 0) {
+    return null
+  }
+
   return (
     <div className="mb-4">
       <h4 className="text-sm font-medium mb-2">Shipped Items</h4>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Product Name</th>
-              <th className="text-left py-2 pr-4 font-medium text-muted-foreground">SKU/Barcode</th>
-              <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Shipped Qty</th>
-              <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Ordered Qty</th>
-              <th className="text-left py-2 font-medium text-muted-foreground">UOM</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shippedItems.map((item, index) => (
-              <tr key={`${item.sku}-${index}`} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                <td className="py-2 pr-4">{item.productName}</td>
-                <td className="py-2 pr-4 font-mono text-xs">{item.sku}</td>
-                <td className="py-2 pr-4 text-right">{item.shippedQty}</td>
-                <td className="py-2 pr-4 text-right">{item.orderedQty}</td>
-                <td className="py-2">{item.uom}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-2">
+        {expandedItems.map((item, index) => (
+          <div
+            key={`${item.sku}-${index}`}
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700"
+          >
+            {/* Left side - Product info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {item.productName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-mono">{item.sku}</span>
+                <span className="mx-1.5">•</span>
+                <span>1PCS</span>
+              </p>
+            </div>
+            {/* Right side - Qty badge */}
+            <div className="flex-shrink-0 ml-3">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                x1
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

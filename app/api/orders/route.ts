@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
           created_at: order.created_at,
           updated_at: order.updated_at,
           priority: order.priority,
-          store_name: order.store.name,
+          store_name: order.metadata?.store_name || order.store?.name || 'Unknown Store',
         },
       }))
 
@@ -427,7 +427,7 @@ export async function GET(request: NextRequest) {
           created_at: order.created_at,
           updated_at: order.updated_at,
           priority: order.priority,
-          store_name: order.store.name,
+          store_name: order.metadata?.store_name || order.store?.name || 'Unknown Store',
         },
       }))
 

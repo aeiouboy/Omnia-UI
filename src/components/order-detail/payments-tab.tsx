@@ -17,7 +17,10 @@ export function PaymentsTab({ order }: PaymentsTabProps) {
     // This is a simulation based on the available data structure in Order
     // intended to match the visual requirements requested.
 
-    const hasT1Redemption = (order.customerRedeemAmount || 0) > 0;
+    // Only show T1 redemption if there's an actual redemption amount AND
+    // it's not a MAO order with explicit paymentDetails (which should be used as source of truth)
+    const hasExplicitPaymentDetails = order.paymentDetails && order.paymentDetails.length > 0;
+    const hasT1Redemption = (order.customerRedeemAmount || 0) > 0 && !hasExplicitPaymentDetails;
     const mainPaymentAmount = (order.customerPayAmount || order.total_amount) || 0;
     const mainPaymentMethod = order.payment_info?.method || order.paymentType || "Unknown Method";
 

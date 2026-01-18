@@ -407,18 +407,22 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
         // ]
         // demoOrder.paymentType = paymentTypes[index % paymentTypes.length]
 
-        // Financial fields
-        const hasRedemption = index % 3 === 0 // ~30% of orders
-        demoOrder.customerRedeemAmount = hasRedemption ? Math.floor(Math.random() * 500) : 0
-        demoOrder.orderDeliveryFee = [0, 40, 60, 80][index % 4]
-        demoOrder.customerPayAmount = (demoOrder.total_amount || 0) - (demoOrder.customerRedeemAmount || 0)
+        // Check if this is a MAO order (starts with 'W') - used to skip demo data modifications
+        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W')
+
+        // Financial fields - EXCLUDE MAO orders (they have their own payment data)
+        if (!isMaoOrder) {
+          const hasRedemption = index % 3 === 0 // ~30% of orders
+          demoOrder.customerRedeemAmount = hasRedemption ? Math.floor(Math.random() * 500) : 0
+          demoOrder.orderDeliveryFee = [0, 40, 60, 80][index % 4]
+          demoOrder.customerPayAmount = (demoOrder.total_amount || 0) - (demoOrder.customerRedeemAmount || 0)
+        }
 
         // Generate random deliveryTypeCode for filtering demo
         const deliveryTypeCodes: DeliveryTypeCode[] = ['RT-HD-EXP', 'RT-CC-STD', 'MKP-HD-STD', 'RT-HD-STD', 'RT-CC-EXP']
         demoOrder.deliveryTypeCode = deliveryTypeCodes[index % deliveryTypeCodes.length]
 
         // Mock Channel (using new standard) - EXCLUDE MAO orders (start with 'W')
-        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W')
         if (!isMaoOrder) {
           const channels = ['web', 'lazada', 'shopee']
           demoOrder.channel = channels[index % channels.length]
@@ -1962,13 +1966,13 @@ export function OrderManagementHub() {
               )}
             </div>
 
-            {/* Filter Groups - Single Row No Wrap */}
-            <div className="flex gap-2 items-center overflow-x-auto">
+            {/* Filter Groups - Responsive wrapping with larger gaps */}
+            <div className="flex flex-wrap gap-3 items-center xl:flex-nowrap overflow-x-auto md:overflow-visible">
               {/* Order Filters Group */}
-              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
                 <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order</span>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9 min-w-[85px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="h-9 min-w-[110px] border-0 bg-transparent focus:ring-0">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1983,7 +1987,7 @@ export function OrderManagementHub() {
                 </Select>
                 <div className="h-5 w-px bg-border/60" />
                 <Select value={storeNoFilter} onValueChange={setStoreNoFilter}>
-                  <SelectTrigger className="h-9 min-w-[85px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="h-9 min-w-[120px] border-0 bg-transparent focus:ring-0">
                     <SelectValue placeholder="Store" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1997,7 +2001,7 @@ export function OrderManagementHub() {
                 </Select>
                 <div className="h-5 w-px bg-border/60" />
                 <Select value={channelFilter} onValueChange={setChannelFilter}>
-                  <SelectTrigger className="h-9 min-w-[105px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="h-9 min-w-[140px] border-0 bg-transparent focus:ring-0">
                     <SelectValue placeholder="Channel" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2010,10 +2014,10 @@ export function OrderManagementHub() {
               </div>
 
               {/* Payment Filters Group */}
-              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
                 <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Payment</span>
                 <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-                  <SelectTrigger className="h-9 min-w-[80px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="h-9 min-w-[110px] border-0 bg-transparent focus:ring-0">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2025,7 +2029,7 @@ export function OrderManagementHub() {
                 </Select>
                 <div className="h-5 w-px bg-border/60" />
                 <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                  <SelectTrigger className="h-9 min-w-[100px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="h-9 min-w-[150px] border-0 bg-transparent focus:ring-0">
                     <SelectValue placeholder="Method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2037,7 +2041,7 @@ export function OrderManagementHub() {
               </div>
 
               {/* Order Date Group */}
-              <div className="flex items-center gap-1 p-1.5 border border-border/40 rounded-md bg-muted/5 hover:border-border/60 transition-colors flex-shrink-0">
+              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
                 <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order Date</span>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -2166,7 +2170,7 @@ export function OrderManagementHub() {
                 <div>
                   <div className="text-xs font-medium text-muted-foreground mb-2">Customer Search</div>
                   <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[180px]">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Name</span>
                       <Input
                         placeholder="Customer name..."
@@ -2175,7 +2179,7 @@ export function OrderManagementHub() {
                         className="h-8 border-0 bg-transparent focus-visible:ring-0"
                       />
                     </div>
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[180px]">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Email</span>
                       <Input
                         placeholder="Email address..."
@@ -2184,7 +2188,7 @@ export function OrderManagementHub() {
                         className="h-8 border-0 bg-transparent focus-visible:ring-0"
                       />
                     </div>
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[160px]">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Phone</span>
                       <Input
                         placeholder="Phone number..."
@@ -2200,7 +2204,7 @@ export function OrderManagementHub() {
                 <div>
                   <div className="text-xs font-medium text-muted-foreground mb-2">Order Details</div>
                   <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background">
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[160px]">
                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Type</span>
                       <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
                         <SelectTrigger className="h-8 min-w-[120px] border-0 bg-transparent focus:ring-0">

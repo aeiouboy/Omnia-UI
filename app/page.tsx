@@ -1,10 +1,5 @@
-import { DashboardShell } from "@/components/dashboard-shell"
-import { ExecutiveDashboard } from "@/components/executive-dashboard/index"
+import { redirect } from "next/navigation"
 
 export default function Home() {
-  return (
-    <DashboardShell>
-      <ExecutiveDashboard />
-    </DashboardShell>
-  )
+  redirect('/orders/analysis')
 }

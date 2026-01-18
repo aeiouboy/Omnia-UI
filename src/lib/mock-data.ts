@@ -8731,8 +8731,7 @@ const maoOrderW1156251121946800AuditTrail: ManhattanAuditEvent[] = [
   }
 ];
 
-// Add MAO order to mock orders
-mockApiOrders.unshift(maoOrderW1156251121946800);
+// Note: MAO order W1156251121946800 will be added after W1156260115052036 to ensure it appears first in the list
 
 // -----------------------------------------------------------------------------
 // MAO Order W1156260115052036 Line Items
@@ -9464,8 +9463,7 @@ const maoOrderW1156260115052036 = {
   relNo: 'REL-2026-W115626'
 };
 
-// Add MAO order W1156260115052036 to mock orders
-mockApiOrders.unshift(maoOrderW1156260115052036);
+// Note: MAO orders added after scenarioOrder
 
 // -----------------------------------------------------------------------------
 // SCENARIO TEST ORDER: ORD-SCENARIO-001
@@ -9814,7 +9812,11 @@ const scenarioOrder = {
 };
 
 // Add to mock orders
-mockApiOrders.unshift(scenarioOrder); // Add to beginning so it's easy to find
+mockApiOrders.unshift(scenarioOrder);
+
+// Add MAO orders last so they appear at the top (row 1 and 2)
+mockApiOrders.unshift(maoOrderW1156260115052036);  // Row 2
+mockApiOrders.unshift(maoOrderW1156251121946800);  // Row 1 (top)
 
 // Export all mock data
 export const mockData = {

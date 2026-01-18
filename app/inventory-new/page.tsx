@@ -721,22 +721,13 @@ export default function InventoryPage() {
                               <SortIcon field="currentStock" />
                             </div>
                           </TableHead>
-                          <TableHead
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => handleSort("status")}
-                          >
-                            <div className="flex items-center">
-                              Status
-                              <SortIcon field="status" />
-                            </div>
-                          </TableHead>
                           <TableHead className="w-[40px]"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {inventoryItems.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                            <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                               No products found matching your search.
                             </TableCell>
                           </TableRow>
@@ -846,14 +837,6 @@ export default function InventoryPage() {
                                     {item.availableStock}/{item.currentStock}
                                   </span>
                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={getStatusBadgeVariant(item.status)}
-                                >
-                                  {getStatusLabel(item.status)}
-                                </Badge>
                               </TableCell>
                               <TableCell className="w-[40px]">
                                 <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
