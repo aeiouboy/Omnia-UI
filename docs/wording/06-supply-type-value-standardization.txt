@@ -1,0 +1,1 @@
+Standardize Supply Type values. In Inventory Availability page (app/inventory-new/supply/page.tsx), ensure consistent naming: use 'On Hand' (not 'On Hand Available') as the short display value, and 'Pre-Order' remains as-is. Update both the dropdown options and the table cell display to use the same values.

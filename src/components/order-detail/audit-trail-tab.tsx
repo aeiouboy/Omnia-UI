@@ -60,44 +60,58 @@ export function AuditTrailTab({ orderId, orderData, loading = false }: AuditTrai
   const filteredEvents = useMemo(() => {
     let filtered = [...auditEvents]
 
-    // Entity category filter
+    // Entity category filter - maps to MAO entity types
     if (appliedEntityCategory !== "All") {
       filtered = filtered.filter(event => {
         const entityName = event.entityName.toLowerCase()
         switch (appliedEntityCategory) {
           case "Order":
-            return entityName === "order" || entityName === "lineitem"
+            // Order, OrderLine, OrderMilestone, OrderAdditional, OrderAttribute, OrderExtension1, OrderLineNote
+            return entityName === "order" ||
+                   entityName === "orderline" ||
+                   entityName === "ordermilestone" ||
+                   entityName === "orderadditional" ||
+                   entityName === "orderattribute" ||
+                   entityName === "orderextension1" ||
+                   entityName === "orderlinenote"
           case "Fulfillment":
-            return entityName.includes("fulfillment") ||
-                   entityName.includes("shipment") ||
-                   entityName.includes("tracking") ||
-                   entityName === "inventoryreservation"
+            // FulfillmentDetail, Allocation, ReleaseLine, OrderTrackingDetail, OrderTrackingInfo
+            return entityName === "fulfillmentdetail" ||
+                   entityName === "allocation" ||
+                   entityName === "releaseline" ||
+                   entityName === "ordertrackingdetail" ||
+                   entityName === "ordertrackinginfo"
           case "Payment":
-            return entityName.includes("payment")
+            // Invoice, InvoiceLine, InvoiceLineChargeDetail, InvoiceLineTaxDetail, OrderLineTaxDetail
+            return entityName === "invoice" ||
+                   entityName === "invoiceline" ||
+                   entityName === "invoicelinechargedetail" ||
+                   entityName === "invoicelinetaxdetail" ||
+                   entityName === "orderlinetaxdetail"
           case "System":
-            return entityName === "quantitydetail" ||
-                   entityName === "customerdetail" ||
-                   entityName === "addressdetail"
+            // QuantityDetail (bulk system-generated events)
+            return entityName === "quantitydetail"
           default:
             return true
         }
       })
     }
 
-    // Audit date filter (compare date portion only)
+    // Audit date filter (compare date portion only) - MM/DD/YYYY format
     if (appliedAuditDate) {
-      const filterDateStr = format(appliedAuditDate, "dd/MM/yyyy")
+      const filterDateStr = format(appliedAuditDate, "MM/dd/yyyy")
       filtered = filtered.filter(event => {
         const eventDateStr = event.updatedOn.split(" ")[0]
         return eventDateStr === filterDateStr
       })
     }
 
-    // Order Line ID filter (case-insensitive partial match)
+    // Order Line ID filter (case-insensitive partial match on entity ID or line number in changed parameter)
     if (appliedOrderLineId) {
       const searchLower = appliedOrderLineId.toLowerCase()
       filtered = filtered.filter(event =>
-        event.entityId.toLowerCase().includes(searchLower)
+        event.entityId.toLowerCase().includes(searchLower) ||
+        event.changedParameter.toLowerCase().includes(`orderline:${searchLower}`)
       )
     }
 
@@ -261,7 +275,7 @@ export function AuditTrailTab({ orderId, orderData, loading = false }: AuditTrai
                   >
                     <CalendarIcon className="h-4 w-4 mr-2" />
                     {pendingAuditDate ? (
-                      format(pendingAuditDate, "dd/MM/yyyy")
+                      format(pendingAuditDate, "MM/dd/yyyy")
                     ) : (
                       <span className="text-muted-foreground">Select date</span>
                     )}
@@ -286,7 +300,6 @@ export function AuditTrailTab({ orderId, orderData, loading = false }: AuditTrai
                 value={pendingOrderLineId}
                 onChange={(e) => setPendingOrderLineId(e.target.value)}
                 className="w-full sm:w-[150px] h-9"
-                disabled
               />
             </div>
 
@@ -359,10 +372,12 @@ export function AuditTrailTab({ orderId, orderData, loading = false }: AuditTrai
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEvents.map((event) => (
+                  {filteredEvents.map((event, index) => (
                     <TableRow
                       key={event.id}
-                      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      className={`border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-800/50 ${
+                        index % 2 === 1 ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-950'
+                      }`}
                     >
                       <TableCell className="text-sm font-mono">
                         {event.updatedBy}
@@ -389,6 +404,10 @@ export function AuditTrailTab({ orderId, orderData, loading = false }: AuditTrai
                   ))}
                 </TableBody>
               </Table>
+              {/* Total Count Footer - MAO Style */}
+              <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <span className="text-sm text-muted-foreground">{filteredEvents.length} total</span>
+              </div>
             </div>
 
             {/* Mobile Card View */}

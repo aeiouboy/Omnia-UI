@@ -1,0 +1,362 @@
+### Open tabs
+- 0: (current) [Central Group OMS] (http://localhost:3000/inventory-new/supply)
+- 1: [] (about:blank)
+- 2: [] (about:blank)
+- 3: [] (about:blank)
+- 4: [] (about:blank)
+- 5: [] (about:blank)
+- 6: [] (about:blank)
+- 7: [] (about:blank)
+- 8: [] (about:blank)
+- 9: [] (about:blank)
+- 10: [] (about:blank)
+
+### Page state
+- Page URL: http://localhost:3000/inventory-new/supply
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - generic [ref=e17]: Dashboard
+        - link "Order Search" [ref=e18] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e19]
+          - generic [ref=e22]: Order Search
+        - link "Order Analysis" [ref=e23] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e24]
+          - generic [ref=e26]: Order Analysis
+        - link "Inventory" [ref=e27] [cursor=pointer]:
+          - /url: /inventory
+          - img [ref=e28]
+          - generic [ref=e32]: Inventory
+        - generic [ref=e33]:
+          - button "Inventory Management" [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - generic [ref=e40]: Inventory Management
+            - img [ref=e42]
+          - generic [ref=e44]:
+            - link "Inventory Supply" [ref=e45] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e46]
+              - generic [ref=e48]: Inventory Supply
+            - link "Stock Card" [ref=e49] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e50]
+              - generic [ref=e52]: Stock Card
+            - link "Stock Config" [ref=e53] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e54]
+              - generic [ref=e56]: Stock Config
+        - link "ATC Config" [ref=e57] [cursor=pointer]:
+          - /url: /atc-config
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - link "Escalations" [ref=e63] [cursor=pointer]:
+          - /url: /escalations
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - link "Style Guide" [ref=e67] [cursor=pointer]:
+          - /url: /style-guide
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 22:59:12"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Inventory Supply" [level=1] [ref=e110]
+              - paragraph [ref=e111]: View and manage inventory supply levels across all stores and items
+            - button "Refresh" [ref=e113] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img [ref=e117]
+                - textbox "Search Store ID..." [active] [ref=e120]: CFR1819
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - textbox "Search Store Name..." [ref=e125]
+              - generic [ref=e126]:
+                - img [ref=e127]
+                - textbox "Search Item ID..." [ref=e130]
+              - generic [ref=e131]:
+                - img [ref=e132]
+                - textbox "Search Product Name..." [ref=e135]
+              - combobox [ref=e136] [cursor=pointer]:
+                - generic: All Types
+                - img [ref=e137]
+              - combobox [ref=e139] [cursor=pointer]:
+                - generic: All Views
+                - img [ref=e140]
+            - button "Clear All" [ref=e2368] [cursor=pointer]
+          - generic [ref=e143]:
+            - table [ref=e146]:
+              - rowgroup [ref=e147]:
+                - row "Store ID ↑ Store Name Item ID Product Name Quantity Available Qty Supply Type" [ref=e148]:
+                  - columnheader "Store ID ↑" [ref=e149] [cursor=pointer]:
+                    - generic [ref=e150]:
+                      - text: Store ID
+                      - generic [ref=e2369]: ↑
+                  - columnheader "Store Name" [ref=e152]
+                  - columnheader "Item ID" [ref=e153] [cursor=pointer]:
+                    - generic [ref=e154]: Item ID
+                  - columnheader "Product Name" [ref=e155]
+                  - columnheader "Quantity" [ref=e156] [cursor=pointer]:
+                    - generic [ref=e157]: Quantity
+                  - columnheader "Available Qty" [ref=e158] [cursor=pointer]:
+                    - generic [ref=e159]: Available Qty
+                  - columnheader "Supply Type" [ref=e160] [cursor=pointer]:
+                    - generic [ref=e161]: Supply Type
+              - rowgroup [ref=e162]:
+                - row "CFR1819 Tops Central World PROD-001 Fresh Vegetables Mix 245 220 On Hand Available" [ref=e1340]:
+                  - cell "CFR1819" [ref=e1341]
+                  - cell "Tops Central World" [ref=e1342]
+                  - cell "PROD-001" [ref=e1343]
+                  - cell "Fresh Vegetables Mix" [ref=e1344]
+                  - cell "245" [ref=e1345]:
+                    - generic [ref=e1346]: "245"
+                  - cell "220" [ref=e1347]:
+                    - generic [ref=e1348]: "220"
+                  - cell "On Hand Available" [ref=e1349]:
+                    - generic [ref=e1350]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-009 Chicken Breast 500g 156 140 On Hand Available" [ref=e1351]:
+                  - cell "CFR1819" [ref=e1352]
+                  - cell "Tops Central World" [ref=e1353]
+                  - cell "PROD-009" [ref=e1354]
+                  - cell "Chicken Breast 500g" [ref=e1355]
+                  - cell "156" [ref=e1356]:
+                    - generic [ref=e1357]: "156"
+                  - cell "140" [ref=e1358]:
+                    - generic [ref=e1359]: "140"
+                  - cell "On Hand Available" [ref=e1360]:
+                    - generic [ref=e1361]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-017 Ice Cream Variety Pack 24 12 On Hand Available" [ref=e1362]:
+                  - cell "CFR1819" [ref=e1363]
+                  - cell "Tops Central World" [ref=e1364]
+                  - cell "PROD-017" [ref=e1365]
+                  - cell "Ice Cream Variety Pack" [ref=e1366]
+                  - cell "24" [ref=e1367]:
+                    - generic [ref=e1368]: "24"
+                  - cell "12" [ref=e1369]:
+                    - generic [ref=e1370]: "12"
+                  - cell "On Hand Available" [ref=e1371]:
+                    - generic [ref=e1372]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-TOL-JUICE Tipco 100% Orange Juice Tangerine 1000ml 120 110 On Hand Available" [ref=e1373]:
+                  - cell "CFR1819" [ref=e1374]
+                  - cell "Tops Central World" [ref=e1375]
+                  - cell "CFR-TOL-JUICE" [ref=e1376]
+                  - cell "Tipco 100% Orange Juice Tangerine 1000ml" [ref=e1377]
+                  - cell "120" [ref=e1378]:
+                    - generic [ref=e1379]: "120"
+                  - cell "110" [ref=e1380]:
+                    - generic [ref=e1381]: "110"
+                  - cell "On Hand Available" [ref=e1382]:
+                    - generic [ref=e1383]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-TOL-SODA-PK Schwepes Manao Soda 330ml (Pack 6) 50 45 On Hand Available" [ref=e1384]:
+                  - cell "CFR1819" [ref=e1385]
+                  - cell "Tops Central World" [ref=e1386]
+                  - cell "CFR-TOL-SODA-PK" [ref=e1387]
+                  - cell "Schwepes Manao Soda 330ml (Pack 6)" [ref=e1388]
+                  - cell "50" [ref=e1389]:
+                    - generic [ref=e1390]: "50"
+                  - cell "45" [ref=e1391]:
+                    - generic [ref=e1392]: "45"
+                  - cell "On Hand Available" [ref=e1393]:
+                    - generic [ref=e1394]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-TOL-BANANA-WT Cavendish Bananas (Premium Grade) 25.5 20 On Hand Available" [ref=e1395]:
+                  - cell "CFR1819" [ref=e1396]
+                  - cell "Tops Central World" [ref=e1397]
+                  - cell "CFR-TOL-BANANA-WT" [ref=e1398]
+                  - cell "Cavendish Bananas (Premium Grade)" [ref=e1399]
+                  - cell "25.5" [ref=e1400]:
+                    - generic [ref=e1401]: "25.5"
+                  - cell "20" [ref=e1402]:
+                    - generic [ref=e1403]: "20"
+                  - cell "On Hand Available" [ref=e1404]:
+                    - generic [ref=e1405]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-TOL-CHICKEN-PKWT Betagro Chicken Breast Skinless (Family Pack) 15 12 Pre-Order" [ref=e1406]:
+                  - cell "CFR1819" [ref=e1407]
+                  - cell "Tops Central World" [ref=e1408]
+                  - cell "CFR-TOL-CHICKEN-PKWT" [ref=e1409]
+                  - cell "Betagro Chicken Breast Skinless (Family Pack)" [ref=e1410]
+                  - cell "15" [ref=e1411]:
+                    - generic [ref=e1412]: "15"
+                  - cell "12" [ref=e1413]:
+                    - generic [ref=e1414]: "12"
+                  - cell "Pre-Order" [ref=e1415]:
+                    - generic [ref=e1416]: Pre-Order
+                - row "CFR1819 Tops Central World CFR-QC-SAUCE Mae Pranom Thai Chili Paste 114g 200 180 On Hand Available" [ref=e1417]:
+                  - cell "CFR1819" [ref=e1418]
+                  - cell "Tops Central World" [ref=e1419]
+                  - cell "CFR-QC-SAUCE" [ref=e1420]
+                  - cell "Mae Pranom Thai Chili Paste 114g" [ref=e1421]
+                  - cell "200" [ref=e1422]:
+                    - generic [ref=e1423]: "200"
+                  - cell "180" [ref=e1424]:
+                    - generic [ref=e1425]: "180"
+                  - cell "On Hand Available" [ref=e1426]:
+                    - generic [ref=e1427]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-QC-GIFT-PK Brand's Essence of Chicken Gift Basket 10 8 On Hand Available" [ref=e1428]:
+                  - cell "CFR1819" [ref=e1429]
+                  - cell "Tops Central World" [ref=e1430]
+                  - cell "CFR-QC-GIFT-PK" [ref=e1431]
+                  - cell "Brand's Essence of Chicken Gift Basket" [ref=e1432]
+                  - cell "10" [ref=e1433]:
+                    - generic [ref=e1434]: "10"
+                  - cell "8" [ref=e1435]:
+                    - generic [ref=e1436]: "8"
+                  - cell "On Hand Available" [ref=e1437]:
+                    - generic [ref=e1438]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-QC-CHEESE-WT Parmigiano Reggiano DOP (Block) 8.5 7 On Hand Available" [ref=e1439]:
+                  - cell "CFR1819" [ref=e1440]
+                  - cell "Tops Central World" [ref=e1441]
+                  - cell "CFR-QC-CHEESE-WT" [ref=e1442]
+                  - cell "Parmigiano Reggiano DOP (Block)" [ref=e1443]
+                  - cell "8.5" [ref=e1444]:
+                    - generic [ref=e1445]: "8.5"
+                  - cell "7" [ref=e1446]:
+                    - generic [ref=e1447]: "7"
+                  - cell "On Hand Available" [ref=e1448]:
+                    - generic [ref=e1449]: On Hand Available
+                - row "CFR1819 Tops Central World CFR-QC-SALMON-PKWT Norwegian Salmon Fillet Pack (Approx. 500g) 12 10 On Hand Available" [ref=e1450]:
+                  - cell "CFR1819" [ref=e1451]
+                  - cell "Tops Central World" [ref=e1452]
+                  - cell "CFR-QC-SALMON-PKWT" [ref=e1453]
+                  - cell "Norwegian Salmon Fillet Pack (Approx. 500g)" [ref=e1454]
+                  - cell "12" [ref=e1455]:
+                    - generic [ref=e1456]: "12"
+                  - cell "10" [ref=e1457]:
+                    - generic [ref=e1458]: "10"
+                  - cell "On Hand Available" [ref=e1459]:
+                    - generic [ref=e1460]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-1 Betagen Fermented Milk 400ml 52 42 On Hand Available" [ref=e1461]:
+                  - cell "CFR1819" [ref=e1462]
+                  - cell "Tops Central World" [ref=e1463]
+                  - cell "PROD-CFR-1" [ref=e1464]
+                  - cell "Betagen Fermented Milk 400ml" [ref=e1465]
+                  - cell "52" [ref=e1466]:
+                    - generic [ref=e1467]: "52"
+                  - cell "42" [ref=e1468]:
+                    - generic [ref=e1469]: "42"
+                  - cell "On Hand Available" [ref=e1470]:
+                    - generic [ref=e1471]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-9 Mama Instant Noodles Minced Pork Flavor 60g 68 58 On Hand Available" [ref=e1472]:
+                  - cell "CFR1819" [ref=e1473]
+                  - cell "Tops Central World" [ref=e1474]
+                  - cell "PROD-CFR-9" [ref=e1475]
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g" [ref=e1476]
+                  - cell "68" [ref=e1477]:
+                    - generic [ref=e1478]: "68"
+                  - cell "58" [ref=e1479]:
+                    - generic [ref=e1480]: "58"
+                  - cell "On Hand Available" [ref=e1481]:
+                    - generic [ref=e1482]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-17 Kikkoman Soy Sauce 600ml (Batch 2) 84 74 On Hand Available" [ref=e1483]:
+                  - cell "CFR1819" [ref=e1484]
+                  - cell "Tops Central World" [ref=e1485]
+                  - cell "PROD-CFR-17" [ref=e1486]
+                  - cell "Kikkoman Soy Sauce 600ml (Batch 2)" [ref=e1487]
+                  - cell "84" [ref=e1488]:
+                    - generic [ref=e1489]: "84"
+                  - cell "74" [ref=e1490]:
+                    - generic [ref=e1491]: "74"
+                  - cell "On Hand Available" [ref=e1492]:
+                    - generic [ref=e1493]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-25 S-Pure Chicken Beast Fillet 400g (Batch 3) 100 90 On Hand Available" [ref=e1494]:
+                  - cell "CFR1819" [ref=e1495]
+                  - cell "Tops Central World" [ref=e1496]
+                  - cell "PROD-CFR-25" [ref=e1497]
+                  - cell "S-Pure Chicken Beast Fillet 400g (Batch 3)" [ref=e1498]
+                  - cell "100" [ref=e1499]:
+                    - generic [ref=e1500]: "100"
+                  - cell "90" [ref=e1501]:
+                    - generic [ref=e1502]: "90"
+                  - cell "On Hand Available" [ref=e1503]:
+                    - generic [ref=e1504]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-5 S-Pure Chicken Beast Fillet 400g 60 50 On Hand Available" [ref=e1505]:
+                  - cell "CFR1819" [ref=e1506]
+                  - cell "Tops Central World" [ref=e1507]
+                  - cell "PROD-CFR-5" [ref=e1508]
+                  - cell "S-Pure Chicken Beast Fillet 400g" [ref=e1509]
+                  - cell "60" [ref=e1510]:
+                    - generic [ref=e1511]: "60"
+                  - cell "50" [ref=e1512]:
+                    - generic [ref=e1513]: "50"
+                  - cell "On Hand Available" [ref=e1514]:
+                    - generic [ref=e1515]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-13 Coca-Cola Original Taste 1.5L (Batch 2) 76 66 On Hand Available" [ref=e1516]:
+                  - cell "CFR1819" [ref=e1517]
+                  - cell "Tops Central World" [ref=e1518]
+                  - cell "PROD-CFR-13" [ref=e1519]
+                  - cell "Coca-Cola Original Taste 1.5L (Batch 2)" [ref=e1520]
+                  - cell "76" [ref=e1521]:
+                    - generic [ref=e1522]: "76"
+                  - cell "66" [ref=e1523]:
+                    - generic [ref=e1524]: "66"
+                  - cell "On Hand Available" [ref=e1525]:
+                    - generic [ref=e1526]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-21 Betagen Fermented Milk 400ml (Batch 3) 92 82 On Hand Available" [ref=e1527]:
+                  - cell "CFR1819" [ref=e1528]
+                  - cell "Tops Central World" [ref=e1529]
+                  - cell "PROD-CFR-21" [ref=e1530]
+                  - cell "Betagen Fermented Milk 400ml (Batch 3)" [ref=e1531]
+                  - cell "92" [ref=e1532]:
+                    - generic [ref=e1533]: "92"
+                  - cell "82" [ref=e1534]:
+                    - generic [ref=e1535]: "82"
+                  - cell "On Hand Available" [ref=e1536]:
+                    - generic [ref=e1537]: On Hand Available
+                - row "CFR1819 Tops Central World PROD-CFR-29 Mama Instant Noodles Minced Pork Flavor 60g (Batch 3) 108 98 On Hand Available" [ref=e1538]:
+                  - cell "CFR1819" [ref=e1539]
+                  - cell "Tops Central World" [ref=e1540]
+                  - cell "PROD-CFR-29" [ref=e1541]
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g (Batch 3)" [ref=e1542]
+                  - cell "108" [ref=e1543]:
+                    - generic [ref=e1544]: "108"
+                  - cell "98" [ref=e1545]:
+                    - generic [ref=e1546]: "98"
+                  - cell "On Hand Available" [ref=e1547]:
+                    - generic [ref=e1548]: On Hand Available
+            - generic [ref=e2352]:
+              - paragraph [ref=e2353]: 19 records displayed
+              - paragraph [ref=e2354]: Filtered from 199 total records
+      - contentinfo [ref=e2355]:
+        - generic [ref=e2357]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e2363] [cursor=pointer]:
+    - img [ref=e2364]
+  - alert [ref=e2367]
+```

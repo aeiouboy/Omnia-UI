@@ -10,31 +10,54 @@
  * For detailed terminology guidelines, see docs/inventory-terminology-standards.md
  */
 
+import type {
+  BusinessUnit,
+  ViewTypeChannel,
+  ViewTypeConfig,
+} from "./view-type-config"
+
+// Re-export View Type configuration types and utilities
+export type {
+  BusinessUnit,
+  ViewTypeChannel,
+  ViewTypeConfig,
+}
+
+export {
+  VIEW_TYPE_CONFIG,
+  getViewTypeCodes,
+  getViewTypeConfig,
+  getChannelsByViewType,
+  getBusinessUnitByViewType,
+  getViewTypeDescription,
+  isValidViewType,
+} from "./view-type-config"
+
 /**
  * Status levels for inventory items based on available stock vs safety stock
  *
  * @remarks
  * Status is determined by comparing availableStock to safetyStock and zero:
- * - "healthy": availableStock > safetyStock (stock is above safety buffer)
+ * - "inStock": availableStock > safetyStock (stock is above safety buffer)
  * - "low": 0 < availableStock <= safetyStock (stock below safety threshold)
- * - "critical": availableStock === 0 (out of stock)
+ * - "outOfStock": availableStock === 0 (out of stock)
  *
  * User-facing labels:
- * - healthy → "In Stock" (green badge)
+ * - inStock → "In Stock" (green badge)
  * - low → "Low Stock" (yellow badge)
- * - critical → "Out of Stock" (red badge)
+ * - outOfStock → "Out of Stock" (red badge)
  */
-export type InventoryStatus = "healthy" | "low" | "critical"
+export type InventoryStatus = "inStock" | "low" | "outOfStock" | "healthy" | "critical"
 
 /**
  * Product categories available in the inventory system
  */
-export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household"
+export type ProductCategory = "Produce" | "Dairy" | "Bakery" | "Meat" | "Seafood" | "Pantry" | "Frozen" | "Beverages" | "Snacks" | "Household" | "Electronics" | "Appliances" | "Fashion" | "HomeLiving" | "Beauty" | "Sports"
 
 /**
  * Sales channels where products can be sold
  */
-export type Channel = "store" | "website" | "Grab" | "LINE MAN" | "Gokoo"
+export type Channel = "store" | "website" | "Grab" | "LINE MAN" | "Gokoo" | ViewTypeChannel
 
 /**
  * Supply type indicating product availability method
@@ -50,6 +73,20 @@ export type SupplyType = "On Hand Available" | "Pre-Order"
  * - "unconfigured": Stock has not been configured yet
  */
 export type StockConfigStatus = "valid" | "invalid" | "unconfigured"
+
+/**
+ * Inventory view types for mandatory view filtering
+ * User must select a view before inventory data is displayed
+ */
+export type InventoryViewType =
+  | "all-inventory"
+  | "available-stock"
+  | "low-stock"
+  | "out-of-stock"
+  | "reserved-stock"
+  | "damaged-quarantine"
+  | "by-warehouse"
+  | "by-channel"
 
 /**
  * Item type indicating how items are measured and sold
@@ -133,18 +170,19 @@ export interface StockLocation extends WarehouseLocation {
 }
 
 /**
- * Tops store locations
- * Must match the official store names from CLAUDE.md
+ * Store locations type
+ *
+ * Supports:
+ * - CFM (Central Food Market) small format stores (516 stores from MAO reference data)
+ * - CDS (Central Department Store) stores (20 stores)
+ *
+ * CFM Store ID format: CFMxxxx where xxxx is the store identifier
+ * CDS Store ID format: CDS10xxx where xxx is the store identifier
+ *
+ * Using string type to accommodate all 516 CFM stores from the reference data
+ * without explicitly listing each one.
  */
-export type TopsStore =
-  | "Tops Central Plaza ลาดพร้าว"
-  | "Tops Central World"
-  | "Tops สุขุมวิท 39"
-  | "Tops ทองหล่อ"
-  | "Tops สีลม คอมเพล็กซ์"
-  | "Tops เอกมัย"
-  | "Tops พร้อมพงษ์"
-  | "Tops จตุจักร"
+export type TopsStore = string
 
 /**
  * Main inventory item structure
@@ -171,6 +209,7 @@ export interface InventoryItem {
   productName: string
   category: ProductCategory
   storeName: TopsStore
+  storeId?: string
 
   /** Total physical stock on hand (Available + Reserved). Also known as "Stock on Hand" */
   currentStock: number
@@ -239,6 +278,9 @@ export interface InventoryItem {
 
   /** Business unit / organization (e.g., "CRC", "CFR", "CFM", "DS") */
   businessUnit?: string
+
+  /** View configuration (e.g., ECOM-TH-CFR-LOCD-STD, MKP-TH-SSP-NW-STD) */
+  view?: string
 }
 
 /**
@@ -246,6 +288,7 @@ export interface InventoryItem {
  */
 export interface StorePerformance {
   storeName: TopsStore
+  storeId?: string
   totalProducts: number
   lowStockItems: number
   criticalStockItems: number
@@ -278,8 +321,17 @@ export interface InventoryFilters {
   category?: ProductCategory | "all"
   storeName?: TopsStore | "all"
   warehouseCode?: string | "all"
-  itemType?: "weight" | "unit" | "all"
+  itemType?: "weight" | "pack" | "pack_weight" | "normal" | "unit" | "all"
   status?: InventoryStatus | "all"
+  /** Search by product name */
+  productNameSearch?: string
+  /** Search by barcode */
+  barcodeSearch?: string
+  /** Search by store ID */
+  storeIdSearch?: string
+  /** Search by store name */
+  storeNameSearch?: string
+  /** Legacy combined search query - deprecated, use productNameSearch and barcodeSearch */
   searchQuery?: string
   page?: number
   pageSize?: number
@@ -287,10 +339,16 @@ export interface InventoryFilters {
   sortOrder?: "asc" | "desc"
   /** Filter by brand */
   brand?: string | "all"
+  /** Filter by stock configuration status */
+  configStatus?: "valid" | "invalid" | "all"
   /** Filter by sales channels */
   channels?: Channel[]
   /** Filter by business unit / organization */
   businessUnit?: string
+  /** Filter by view configuration */
+  view?: string | "all"
+  /** Mandatory inventory view selection */
+  inventoryView?: InventoryViewType
 }
 
 /**
@@ -332,8 +390,10 @@ export interface StockAlertsResponse {
  * - "stock_out": Outbound stock (sales, shipments). Also known as "Goods Issue"
  * - "adjustment": Inventory corrections (recount, damage, expiry, theft)
  * - "return": Customer or supplier returns (reverse transaction)
+ * - "transfer": Stock movement between warehouses/locations
+ * - "allocation": Stock reserved/allocated for specific orders or purposes
  */
-export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
+export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return" | "transfer" | "allocation"
 
 /**
  * Stock transaction record
@@ -346,11 +406,15 @@ export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
  * - stock_out: Decreases availableStock by quantity
  * - adjustment: Can increase or decrease (quantity can be negative)
  * - return: Increases availableStock (reverses previous stock_out)
+ * - transfer: Decreases at source, increases at destination
+ * - allocation: Reserves stock for specific purpose (decreases available)
  *
  * Reference IDs:
  * - For stock_out with referenceId: Links to order (e.g., "ORD-12345")
  * - For return with referenceId: Links to original order
  * - For stock_in with referenceId: Links to PO or supplier invoice
+ * - For transfer with referenceId: Links to transfer document (e.g., "TRF-12345")
+ * - For allocation with referenceId: Links to order or allocation request
  */
 export interface StockTransaction {
   id: string
@@ -389,6 +453,15 @@ export interface StockTransaction {
 
   /** Item type for proper quantity formatting in UI */
   itemType?: ItemType
+
+  /** Source warehouse for transfer transactions */
+  transferFrom?: string
+
+  /** Destination warehouse for transfer transactions */
+  transferTo?: string
+
+  /** Type of allocation for allocation transactions */
+  allocationType?: "order" | "hold" | "reserve"
 }
 
 /**
@@ -452,4 +525,76 @@ export interface InventoryItemDB {
   item_type?: string
   created_at?: string
   updated_at?: string
+}
+
+/**
+ * Status types for allocate-by-order transactions
+ */
+export type AllocateByOrderStatus = "pending" | "confirmed" | "cancelled"
+
+/**
+ * Allocate by Order Transaction record
+ *
+ * @remarks
+ * Represents a stock allocation tied to a specific order.
+ * These transactions track how inventory is allocated to fulfill customer orders.
+ *
+ * Workflow:
+ * - pending: Allocation created, awaiting confirmation
+ * - confirmed: Allocation confirmed and stock reserved
+ * - cancelled: Allocation cancelled, stock returned to available
+ */
+export interface AllocateByOrderTransaction {
+  /** Unique transaction identifier */
+  id: string
+  /** Order ID for linking to order details */
+  order_id: string
+  /** Human-readable order number (e.g., "ORD-12345") */
+  order_no: string
+  /** Timestamp when allocation was made (ISO 8601 format) */
+  allocated_at: string
+  /** Quantity of items allocated */
+  quantity: number
+  /** Warehouse ID where stock is allocated from */
+  warehouse_id: string
+  /** Human-readable warehouse name */
+  warehouse_name: string
+  /** Current status of the allocation */
+  status: AllocateByOrderStatus
+  /** User ID who performed the allocation */
+  allocated_by: string
+  /** Human-readable name of user who performed the allocation */
+  allocated_by_name: string
+}
+
+/**
+ * Filter parameters for transaction history queries
+ */
+export interface TransactionHistoryFilters {
+  /** Page number (1-indexed) */
+  page?: number
+  /** Number of items per page */
+  pageSize?: number
+  /** Start date for filtering (ISO 8601 format) */
+  dateFrom?: string
+  /** End date for filtering (ISO 8601 format) */
+  dateTo?: string
+  /** Filter by transaction type */
+  transactionType?: TransactionType | "all"
+}
+
+/**
+ * Response structure for paginated transaction history
+ */
+export interface TransactionHistoryResponse {
+  /** Array of transactions */
+  transactions: StockTransaction[]
+  /** Total number of transactions matching filters */
+  total: number
+  /** Current page number */
+  page: number
+  /** Number of items per page */
+  pageSize: number
+  /** Total number of pages */
+  totalPages: number
 }

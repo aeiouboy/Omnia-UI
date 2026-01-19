@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import type { StockConfigItem, StockConfigFilters } from "@/types/stock-config"
 
-type SortField = "locationId" | "itemId" | "quantity" | "supplyTypeId" | "createdAt"
+type SortField = "locationId" | "itemId" | "quantity" | "supplyTypeId" | "channel" | "createdAt"
 
 interface StockConfigTableProps {
   items: StockConfigItem[]
@@ -84,6 +84,21 @@ export function StockConfigTable({
     }
   }
 
+  const getChannelBadge = (channel?: string) => {
+    if (!channel) return <span className="text-gray-400">-</span>
+
+    switch (channel) {
+      case "TOL":
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">TOL</Badge>
+      case "MKP":
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-300">MKP</Badge>
+      case "QC":
+        return <Badge className="bg-green-100 text-green-800 border-green-300">QC</Badge>
+      default:
+        return <Badge variant="outline">{channel}</Badge>
+    }
+  }
+
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-"
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -105,6 +120,7 @@ export function StockConfigTable({
               <TableHead className="text-right">Quantity</TableHead>
               <TableHead>Supply Type</TableHead>
               <TableHead>Frequency</TableHead>
+              <TableHead>Channel</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
             </TableRow>
@@ -182,13 +198,22 @@ export function StockConfigTable({
               </div>
             </TableHead>
             <TableHead>Frequency</TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => handleSort("channel" as SortField)}
+            >
+              <div className="flex items-center">
+                Channel
+                <SortIcon field="channel" />
+              </div>
+            </TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((item) => (
-            <TableRow key={item.id} className="hover:bg-muted/50">
+            <TableRow key={item.id} className="hover:bg-accent/50 transition-colors">
               <TableCell className="font-mono text-sm">{item.locationId}</TableCell>
               <TableCell className="font-mono text-sm">{item.itemId}</TableCell>
               <TableCell className="text-right">
@@ -198,6 +223,7 @@ export function StockConfigTable({
               </TableCell>
               <TableCell>{getSupplyTypeBadge(item.supplyTypeId)}</TableCell>
               <TableCell>{getFrequencyBadge(item.frequency)}</TableCell>
+              <TableCell>{getChannelBadge(item.channel)}</TableCell>
               <TableCell>{formatDate(item.startDate)}</TableCell>
               <TableCell>{formatDate(item.endDate)}</TableCell>
             </TableRow>

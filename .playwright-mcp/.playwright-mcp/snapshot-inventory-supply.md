@@ -1,0 +1,349 @@
+### New console messages
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [ERROR] ./app/inventory-new/stores/page.tsx:717:5
+Parsing ecmascript source code failed
+  715 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:717:6
+Parsing ecmascript source code failed
+  715 |     ...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:5
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:6
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:5
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:6
+Parsing ecmascript source code failed
+  719 |     ...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:5
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:6
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:5
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:6
+Parsing ecmascript source code failed
+  719 |     ...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:5
+Parsing ecmascript source code failed
+  719 |     ...
+- [ERROR] ./app/inventory-new/stores/page.tsx:721:6
+Parsing ecmascript source code failed
+  719 |     ...
+
+### Page state
+- Page URL: http://localhost:3000/inventory-new/stores
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2368]:
+    - generic [ref=e2370]:
+      - button "Collapse sidebar" [ref=e2372] [cursor=pointer]:
+        - img [ref=e2373]
+      - generic [ref=e2374]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e2375]
+      - navigation [ref=e2376]:
+        - link "Dashboard" [ref=e2377] [cursor=pointer]:
+          - /url: /
+          - img [ref=e2378]
+          - generic [ref=e2383]: Dashboard
+        - link "Order Search" [ref=e2384] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e2385]
+          - generic [ref=e2388]: Order Search
+        - link "Order Analysis" [ref=e2389] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e2390]
+          - generic [ref=e2392]: Order Analysis
+        - link "Inventory" [ref=e2393] [cursor=pointer]:
+          - /url: /inventory
+          - img [ref=e2394]
+          - generic [ref=e2398]: Inventory
+        - generic [ref=e2399]:
+          - button "Inventory Management" [ref=e2400] [cursor=pointer]:
+            - generic [ref=e2401]:
+              - img [ref=e2402]
+              - generic [ref=e2406]: Inventory Management
+            - img [ref=e2408]
+          - generic [ref=e2410]:
+            - link "Inventory Supply" [ref=e2411] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e2412]
+              - generic [ref=e2414]: Inventory Supply
+            - link "Stock Card" [ref=e2415] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e2416]
+              - generic [ref=e2418]: Stock Card
+            - link "Stock Config" [ref=e2419] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e2420]
+              - generic [ref=e2422]: Stock Config
+        - link "ATC Config" [ref=e2423] [cursor=pointer]:
+          - /url: /atc-config
+          - img [ref=e2424]
+          - generic [ref=e2428]: ATC Config
+        - link "Escalations" [ref=e2429] [cursor=pointer]:
+          - /url: /escalations
+          - img [ref=e2430]
+          - generic [ref=e2432]: Escalations
+        - link "Style Guide" [ref=e2433] [cursor=pointer]:
+          - /url: /style-guide
+          - img [ref=e2434]
+          - generic [ref=e2440]: Style Guide
+    - generic [ref=e2441]:
+      - banner [ref=e2442]:
+        - generic [ref=e2443]:
+          - generic [ref=e2444]:
+            - img [ref=e2446]
+            - generic [ref=e2448]:
+              - heading "Central Group OMS" [level=1] [ref=e2449]
+              - paragraph [ref=e2450]: Enterprise Command Center
+          - generic [ref=e2451]:
+            - button "Refresh" [ref=e2452] [cursor=pointer]:
+              - img [ref=e2453]
+            - generic [ref=e2458]: "Last updated: 20:57:22"
+            - combobox "Select organization" [ref=e2460] [cursor=pointer]:
+              - generic [ref=e2461]:
+                - img [ref=e2462]
+                - generic: All Organizations
+              - img [ref=e2466]
+            - button "User" [ref=e2469] [cursor=pointer]:
+              - img "User" [ref=e2471]
+      - main [ref=e2472]:
+        - generic [ref=e2473]:
+          - generic [ref=e2474]:
+            - generic [ref=e2475]:
+              - heading "Stock Card" [level=1] [ref=e2476]
+              - paragraph [ref=e2477]: View inventory performance and stock levels across all store locations
+            - button "Refresh" [ref=e2479] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e2480]:
+            - generic [ref=e2481]:
+              - generic [ref=e2482]:
+                - generic [ref=e2483]: Total Stores
+                - img [ref=e2484]
+              - generic [ref=e2489]:
+                - generic [ref=e2490]: "8"
+                - paragraph [ref=e2491]: Active locations
+            - generic [ref=e2492]:
+              - generic [ref=e2493]:
+                - generic [ref=e2494]: Stores with Low Stock
+                - img [ref=e2495]
+              - generic [ref=e2498]:
+                - generic [ref=e2499]: "0"
+                - paragraph [ref=e2500]: Stores needing attention
+            - generic [ref=e2501]:
+              - generic [ref=e2502]:
+                - generic [ref=e2503]: Stores with Out of Stock
+                - img [ref=e2504]
+              - generic [ref=e2506]:
+                - generic [ref=e2507]: "0"
+                - paragraph [ref=e2508]: Stores needing immediate attention
+          - generic [ref=e2511]:
+            - img [ref=e2512]
+            - textbox "Search stores..." [ref=e2515]
+          - table [ref=e2520]:
+            - rowgroup [ref=e2521]:
+              - row "Store Store ID Total Products Low Stock Out of Stock ↓" [ref=e2522]:
+                - columnheader "Store" [ref=e2523] [cursor=pointer]:
+                  - generic [ref=e2524]: Store
+                - columnheader "Store ID" [ref=e2525] [cursor=pointer]:
+                  - generic [ref=e2526]: Store ID
+                - columnheader "Total Products" [ref=e2527] [cursor=pointer]:
+                  - generic [ref=e2528]: Total Products
+                - columnheader "Low Stock" [ref=e2529] [cursor=pointer]:
+                  - generic [ref=e2530]: Low Stock
+                - columnheader "Out of Stock ↓" [ref=e2531] [cursor=pointer]:
+                  - generic [ref=e2532]:
+                    - text: Out of Stock
+                    - generic [ref=e2533]: ↓
+                - columnheader [ref=e2534]
+            - rowgroup [ref=e2535]:
+              - row "Tops Central Plaza ลาดพร้าว CFR3841 2 0 0" [ref=e2536] [cursor=pointer]:
+                - cell "Tops Central Plaza ลาดพร้าว" [ref=e2537]:
+                  - generic [ref=e2538]:
+                    - img [ref=e2539]
+                    - generic [ref=e2542]: Tops Central Plaza ลาดพร้าว
+                - cell "CFR3841" [ref=e2543]
+                - cell "2" [ref=e2544]
+                - cell "0" [ref=e2545]:
+                  - generic [ref=e2546]: "0"
+                - cell "0" [ref=e2547]:
+                  - generic [ref=e2548]: "0"
+                - cell [ref=e2549]:
+                  - img [ref=e2550]
+              - row "Tops Central World CFR1819 7 0 0" [ref=e2552] [cursor=pointer]:
+                - cell "Tops Central World" [ref=e2553]:
+                  - generic [ref=e2554]:
+                    - img [ref=e2555]
+                    - generic [ref=e2558]: Tops Central World
+                - cell "CFR1819" [ref=e2559]
+                - cell "7" [ref=e2560]
+                - cell "0" [ref=e2561]:
+                  - generic [ref=e2562]: "0"
+                - cell "0" [ref=e2563]:
+                  - generic [ref=e2564]: "0"
+                - cell [ref=e2565]:
+                  - img [ref=e2566]
+              - row "Tops สุขุมวิท 39 CFR2669 3 0 0" [ref=e2568] [cursor=pointer]:
+                - cell "Tops สุขุมวิท 39" [ref=e2569]:
+                  - generic [ref=e2570]:
+                    - img [ref=e2571]
+                    - generic [ref=e2574]: Tops สุขุมวิท 39
+                - cell "CFR2669" [ref=e2575]
+                - cell "3" [ref=e2576]
+                - cell "0" [ref=e2577]:
+                  - generic [ref=e2578]: "0"
+                - cell "0" [ref=e2579]:
+                  - generic [ref=e2580]: "0"
+                - cell [ref=e2581]:
+                  - img [ref=e2582]
+              - row "Tops ทองหล่อ CFR7914 2 0 0" [ref=e2584] [cursor=pointer]:
+                - cell "Tops ทองหล่อ" [ref=e2585]:
+                  - generic [ref=e2586]:
+                    - img [ref=e2587]
+                    - generic [ref=e2590]: Tops ทองหล่อ
+                - cell "CFR7914" [ref=e2591]
+                - cell "2" [ref=e2592]
+                - cell "0" [ref=e2593]:
+                  - generic [ref=e2594]: "0"
+                - cell "0" [ref=e2595]:
+                  - generic [ref=e2596]: "0"
+                - cell [ref=e2597]:
+                  - img [ref=e2598]
+              - row "Tops สีลม คอมเพล็กซ์ CFR6299 3 0 0" [ref=e2600] [cursor=pointer]:
+                - cell "Tops สีลม คอมเพล็กซ์" [ref=e2601]:
+                  - generic [ref=e2602]:
+                    - img [ref=e2603]
+                    - generic [ref=e2606]: Tops สีลม คอมเพล็กซ์
+                - cell "CFR6299" [ref=e2607]
+                - cell "3" [ref=e2608]
+                - cell "0" [ref=e2609]:
+                  - generic [ref=e2610]: "0"
+                - cell "0" [ref=e2611]:
+                  - generic [ref=e2612]: "0"
+                - cell [ref=e2613]:
+                  - img [ref=e2614]
+              - row "Tops เอกมัย CFR4284 3 0 0" [ref=e2616] [cursor=pointer]:
+                - cell "Tops เอกมัย" [ref=e2617]:
+                  - generic [ref=e2618]:
+                    - img [ref=e2619]
+                    - generic [ref=e2622]: Tops เอกมัย
+                - cell "CFR4284" [ref=e2623]
+                - cell "3" [ref=e2624]
+                - cell "0" [ref=e2625]:
+                  - generic [ref=e2626]: "0"
+                - cell "0" [ref=e2627]:
+                  - generic [ref=e2628]: "0"
+                - cell [ref=e2629]:
+                  - img [ref=e2630]
+              - row "Tops พร้อมพงษ์ CFR6180 2 0 0" [ref=e2632] [cursor=pointer]:
+                - cell "Tops พร้อมพงษ์" [ref=e2633]:
+                  - generic [ref=e2634]:
+                    - img [ref=e2635]
+                    - generic [ref=e2638]: Tops พร้อมพงษ์
+                - cell "CFR6180" [ref=e2639]
+                - cell "2" [ref=e2640]
+                - cell "0" [ref=e2641]:
+                  - generic [ref=e2642]: "0"
+                - cell "0" [ref=e2643]:
+                  - generic [ref=e2644]: "0"
+                - cell [ref=e2645]:
+                  - img [ref=e2646]
+              - row "Tops จตุจักร CFR7820 2 0 0" [ref=e2648] [cursor=pointer]:
+                - cell "Tops จตุจักร" [ref=e2649]:
+                  - generic [ref=e2650]:
+                    - img [ref=e2651]
+                    - generic [ref=e2654]: Tops จตุจักร
+                - cell "CFR7820" [ref=e2655]
+                - cell "2" [ref=e2656]
+                - cell "0" [ref=e2657]:
+                  - generic [ref=e2658]: "0"
+                - cell "0" [ref=e2659]:
+                  - generic [ref=e2660]: "0"
+                - cell [ref=e2661]:
+                  - img [ref=e2662]
+      - contentinfo [ref=e2664]:
+        - generic [ref=e2666]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - generic [active]:
+    - generic [ref=e2669]:
+      - generic [ref=e2670]:
+        - generic [ref=e2671]:
+          - navigation [ref=e2672]:
+            - button "previous" [disabled] [ref=e2673]:
+              - img "previous" [ref=e2674]
+            - generic [ref=e2676]:
+              - generic [ref=e2677]: 1/
+              - text: "1"
+            - button "next" [disabled] [ref=e2678]:
+              - img "next" [ref=e2679]
+          - img
+        - generic [ref=e2681]:
+          - link "Next.js 16.0.7 (stale) Turbopack" [ref=e2682] [cursor=pointer]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e2683]
+            - generic "There is a newer version (16.1.2) available, upgrade recommended!" [ref=e2685]: Next.js 16.0.7 (stale)
+            - generic [ref=e2686]: Turbopack
+          - img
+      - dialog "Build Error" [ref=e2688]:
+        - generic [ref=e2691]:
+          - generic [ref=e2692]:
+            - generic [ref=e2693]:
+              - generic [ref=e2695]: Build Error
+              - generic [ref=e2696]:
+                - button "Copy Error Info" [ref=e2697] [cursor=pointer]:
+                  - img [ref=e2698]
+                - button "No related documentation found" [disabled] [ref=e2700]:
+                  - img [ref=e2701]
+                - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=e2703] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+                  - img [ref=e2704]
+            - generic [ref=e2713]: Parsing ecmascript source code failed
+          - generic [ref=e2715]:
+            - generic [ref=e2717]:
+              - img [ref=e2719]
+              - generic [ref=e2722]: ./app/inventory-new/stores/page.tsx (721:5)
+              - button "Open in editor" [ref=e2723] [cursor=pointer]:
+                - img [ref=e2725]
+            - generic [ref=e2728]:
+              - generic [ref=e2729]: Parsing ecmascript source code failed
+              - generic [ref=e2730]: 719 |
+              - generic [ref=e2731]: ")}"
+              - generic [ref=e2732]: 720 |
+              - text: </div> >
+              - generic [ref=e2733]: 721 |
+              - text: </DashboardShell >
+              - generic [ref=e2734]: "|"
+              - text: ^
+              - generic [ref=e2735]: 722 |
+              - generic [ref=e2736]: )
+              - generic [ref=e2737]: 723 |
+              - generic [ref=e2738]: "}"
+              - generic [ref=e2739]: 724 |
+              - generic [ref=e2740]: "Expression expected Import traces: Client Component Browser: ./app/inventory-new/stores/page.tsx [Client Component Browser] ./app/inventory-new/stores/page.tsx [Server Component] Client Component SSR: ./app/inventory-new/stores/page.tsx [Client Component SSR] ./app/inventory-new/stores/page.tsx [Server Component]"
+        - generic [ref=e2741]: "1"
+        - generic [ref=e2742]: "2"
+    - generic [ref=e2747] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e2748]:
+        - img [ref=e2749]
+      - button "Open issues overlay" [ref=e2753]:
+        - generic [ref=e2754]:
+          - generic [ref=e2755]: "0"
+          - generic [ref=e2756]: "1"
+        - generic [ref=e2757]: Issue
+  - alert [ref=e2367]
+```

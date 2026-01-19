@@ -1,0 +1,1795 @@
+### New console messages
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [LOG] [Fast Refresh] done in 227ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dis...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [LOG] [Fast Refresh] done in 224ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dis...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [LOG] [Fast Refresh] done in 260ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dis...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_7...
+- [LOG] [Fast Refresh] done in 242ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dis...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://l...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+- [LOG] Order ORD-SCENARIO-001: target=60s, elapsed=0s, remaining=60s, %remaining=100% @ http://localh...
+- [LOG] Order ORD-0001: target=327s, elapsed=250s, remaining=77s, %remaining=23.547400611620795% @ htt...
+- [LOG] Order ORD-0005: target=303s, elapsed=180s, remaining=123s, %remaining=40.5940594059406% @ http...
+- [LOG] Order ORD-0006: target=347s, elapsed=250s, remaining=97s, %remaining=27.953890489913547% @ htt...
+- [LOG] Order ORD-0007: target=438s, elapsed=350s, remaining=88s, %remaining=20.091324200913242% @ htt...
+- [LOG] Order ORD-0009: target=251s, elapsed=120s, remaining=131s, %remaining=52.191235059760956% @ ht...
+- [LOG] Order ORD-0010: target=350s, elapsed=180s, remaining=170s, %remaining=48.57142857142857% @ htt...
+- [LOG] Order ORD-0011: target=332s, elapsed=250s, remaining=82s, %remaining=24.69879518072289% @ http...
+- [LOG] Order ORD-0012: target=468s, elapsed=350s, remaining=118s, %remaining=25.213675213675213% @ ht...
+- [LOG] Order ORD-0014: target=252s, elapsed=120s, remaining=132s, %remaining=52.38095238095239% @ htt...
+- [LOG] Order ORD-0015: target=250s, elapsed=180s, remaining=70s, %remaining=28.000000000000004% @ htt...
+- [LOG] Order ORD-0017: target=256s, elapsed=350s, remaining=-94s, %remaining=-36.71875% @ http://loca...
+- [LOG] Order ORD-0018: target=181s, elapsed=0s, remaining=181s, %remaining=100% @ http://localhost:30...
+- [LOG] Order ORD-0019: target=227s, elapsed=120s, remaining=107s, %remaining=47.136563876651984% @ ht...
+- [LOG] Order ORD-0020: target=240s, elapsed=180s, remaining=60s, %remaining=25% @ http://localhost:30...
+- [LOG] Order ORD-0021: target=421s, elapsed=250s, remaining=171s, %remaining=40.61757719714964% @ htt...
+- [LOG] Order ORD-0022: target=456s, elapsed=350s, remaining=106s, %remaining=23.24561403508772% @ htt...
+
+### Page state
+- Page URL: http://localhost:3000/orders
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Dashboard
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - button "Inventory Management" [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]:
+            - img [ref=e23]
+            - generic [ref=e27]: Inventory Management
+          - img [ref=e29]
+        - generic "Dashboard (disabled)" [ref=e31]:
+          - img [ref=e32]
+          - generic [ref=e37]: Dashboard
+        - generic "Inventory (disabled)" [ref=e38]:
+          - img [ref=e39]
+          - generic [ref=e43]: Inventory
+        - generic "ATC Config (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e49]: ATC Config
+        - generic "Escalations (disabled)" [ref=e50]:
+          - img [ref=e51]
+          - generic [ref=e53]: Escalations
+        - generic "Style Guide (disabled)" [ref=e54]:
+          - img [ref=e55]
+          - generic [ref=e61]: Style Guide
+    - generic [ref=e62]:
+      - banner [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - img [ref=e67]
+            - generic [ref=e69]:
+              - heading "Central Group OMS" [level=1] [ref=e70]
+              - paragraph [ref=e71]: Enterprise Command Center
+          - generic [ref=e72]:
+            - button "Refresh" [ref=e73] [cursor=pointer]:
+              - img [ref=e74]
+            - generic [ref=e79]: "Last updated: 03:12:17"
+            - combobox "Select organization" [ref=e81] [cursor=pointer]:
+              - generic [ref=e82]:
+                - img [ref=e83]
+                - generic: All Organizations
+              - img [ref=e87]
+            - button "User" [ref=e150] [cursor=pointer]:
+              - img "User" [ref=e151]
+      - main [ref=e93]:
+        - generic [ref=e95]:
+          - heading "Order Management" [level=1] [ref=e96]
+          - paragraph [ref=e97]: View and manage orders across all channels.
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: Order Management
+              - generic [ref=e102]:
+                - button "Export" [ref=e152] [cursor=pointer]:
+                  - img
+                  - text: Export
+                - button "Refresh Data" [ref=e153] [cursor=pointer]:
+                  - img
+            - generic [ref=e103]:
+              - generic [ref=e104]: Main Filters
+              - generic [ref=e105]:
+                - generic [ref=e106]:
+                  - 'textbox "Search by order #, customer name, email, phone..." [ref=e107]'
+                  - img [ref=e108]
+                - combobox [ref=e111] [cursor=pointer]:
+                  - generic: All Status
+                  - img [ref=e112]
+                - combobox [ref=e114] [cursor=pointer]:
+                  - generic: All Stores
+                  - img [ref=e115]
+                - combobox [ref=e117] [cursor=pointer]:
+                  - generic: All Payment Status
+                  - img [ref=e118]
+                - combobox [ref=e120] [cursor=pointer]:
+                  - generic: All Channels
+                  - img [ref=e121]
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - generic [ref=e125]: Order Date From
+                  - button "Select date" [ref=e126] [cursor=pointer]:
+                    - img
+                    - text: Select date
+                - generic [ref=e127]:
+                  - generic [ref=e128]: Order Date To
+                  - button "Select date" [ref=e129] [cursor=pointer]:
+                    - img
+                    - text: Select date
+            - button "Show Advanced Filters" [ref=e131] [cursor=pointer]:
+              - img
+              - text: Show Advanced Filters
+              - img
+          - generic [ref=e154]:
+            - table [ref=e157]:
+              - rowgroup [ref=e158]:
+                - row "Order Number Customer Name Email Phone Number Order Total Store No Order Status SLA Status Return Status On Hold Order Type Payment Status Confirmed Channel Allow Substitution Created Date" [ref=e159]:
+                  - columnheader "Order Number" [ref=e160]
+                  - columnheader "Customer Name" [ref=e161]
+                  - columnheader "Email" [ref=e162]
+                  - columnheader "Phone Number" [ref=e163]
+                  - columnheader "Order Total" [ref=e164]
+                  - columnheader "Store No" [ref=e165]
+                  - columnheader "Order Status" [ref=e166]
+                  - columnheader "SLA Status" [ref=e167]
+                  - columnheader "Return Status" [ref=e168]
+                  - columnheader "On Hold" [ref=e169]
+                  - columnheader "Order Type" [ref=e170]
+                  - columnheader "Payment Status" [ref=e171]
+                  - columnheader "Confirmed" [ref=e172]
+                  - columnheader "Channel" [ref=e173]
+                  - columnheader "Allow Substitution" [ref=e174]
+                  - columnheader "Created Date" [ref=e175]
+              - rowgroup [ref=e176]:
+                - row "ORD-SCENARIO-001 Scenario Tester tester@example.com +66812345678 ฿20,300 STR-0001 PROCESSING 1m LEFT NONE NO DELIVERY PAID No web No 01/18/2026 02:04:45" [ref=e177]:
+                  - cell "ORD-SCENARIO-001" [ref=e178] [cursor=pointer]:
+                    - button "ORD-SCENARIO-001" [ref=e179]
+                  - cell "Scenario Tester" [ref=e180]
+                  - cell "tester@example.com" [ref=e181]
+                  - cell "+66812345678" [ref=e182]
+                  - cell "฿20,300" [ref=e183]
+                  - cell "STR-0001" [ref=e184]
+                  - cell "PROCESSING" [ref=e185]:
+                    - generic [ref=e186]: PROCESSING
+                  - cell "1m LEFT" [ref=e187]:
+                    - generic [ref=e188]:
+                      - img [ref=e189]
+                      - text: 1m LEFT
+                  - cell "NONE" [ref=e192]:
+                    - generic [ref=e193]: NONE
+                  - cell "NO" [ref=e194]:
+                    - generic [ref=e195]: "NO"
+                  - cell "DELIVERY" [ref=e196]:
+                    - generic [ref=e197]: DELIVERY
+                  - cell "PAID" [ref=e198]:
+                    - generic [ref=e199]: PAID
+                  - cell "No" [ref=e200]
+                  - cell "web" [ref=e201]:
+                    - generic [ref=e202]: web
+                  - cell "No" [ref=e203]
+                  - cell "01/18/2026 02:04:45" [ref=e204]
+                - row "W1156260115052036 วิริยงสุดา ศรีทอง 2510083814@dummy.com 0622424423 ฿1,289.68 TW001 DELIVERED - NONE NO DELIVERY PAID No web No 01/15/2026 19:41:00" [ref=e205]:
+                  - cell "W1156260115052036" [ref=e206] [cursor=pointer]:
+                    - button "W1156260115052036" [ref=e207]
+                  - cell "วิริยงสุดา ศรีทอง" [ref=e208]
+                  - cell "2510083814@dummy.com" [ref=e209]
+                  - cell "0622424423" [ref=e210]
+                  - cell "฿1,289.68" [ref=e211]
+                  - cell "TW001" [ref=e212]
+                  - cell "DELIVERED" [ref=e213]:
+                    - generic [ref=e214]: DELIVERED
+                  - cell "-" [ref=e215]:
+                    - generic [ref=e216]: "-"
+                  - cell "NONE" [ref=e217]:
+                    - generic [ref=e218]: NONE
+                  - cell "NO" [ref=e219]:
+                    - generic [ref=e220]: "NO"
+                  - cell "DELIVERY" [ref=e221]:
+                    - generic [ref=e222]: DELIVERY
+                  - cell "PAID" [ref=e223]:
+                    - generic [ref=e224]: PAID
+                  - cell "No" [ref=e225]
+                  - cell "web" [ref=e226]:
+                    - generic [ref=e227]: web
+                  - cell "No" [ref=e228]
+                  - cell "01/15/2026 19:41:00" [ref=e229]
+                - row "W1156251121946800 คุณสมชาย ใจดี somchai.jaidee@email.com +66891234567 ฿933 TW001 DELIVERED - NONE NO DELIVERY PAID No web No 11/21/2025 10:42:00" [ref=e230]:
+                  - cell "W1156251121946800" [ref=e231] [cursor=pointer]:
+                    - button "W1156251121946800" [ref=e232]
+                  - cell "คุณสมชาย ใจดี" [ref=e233]
+                  - cell "somchai.jaidee@email.com" [ref=e234]
+                  - cell "+66891234567" [ref=e235]
+                  - cell "฿933" [ref=e236]
+                  - cell "TW001" [ref=e237]
+                  - cell "DELIVERED" [ref=e238]:
+                    - generic [ref=e239]: DELIVERED
+                  - cell "-" [ref=e240]:
+                    - generic [ref=e241]: "-"
+                  - cell "NONE" [ref=e242]:
+                    - generic [ref=e243]: NONE
+                  - cell "NO" [ref=e244]:
+                    - generic [ref=e245]: "NO"
+                  - cell "DELIVERY" [ref=e246]:
+                    - generic [ref=e247]: DELIVERY
+                  - cell "PAID" [ref=e248]:
+                    - generic [ref=e249]: PAID
+                  - cell "No" [ref=e250]
+                  - cell "web" [ref=e251]:
+                    - generic [ref=e252]: web
+                  - cell "No" [ref=e253]
+                  - cell "11/21/2025 10:42:00" [ref=e254]
+                - row "ORD-0001 Customer 1 customer1@example.com +66159834913 ฿154.81 STR-3238 OUT_FOR_DELIVERY - NONE NO PICKUP PENDING No web No 01/18/2026 01:09:45" [ref=e255]:
+                  - cell "ORD-0001" [ref=e256] [cursor=pointer]:
+                    - button "ORD-0001" [ref=e257]
+                  - cell "Customer 1" [ref=e258]
+                  - cell "customer1@example.com" [ref=e259]
+                  - cell "+66159834913" [ref=e260]
+                  - cell "฿154.81" [ref=e261]
+                  - cell "STR-3238" [ref=e262]
+                  - cell "OUT_FOR_DELIVERY" [ref=e263]:
+                    - generic [ref=e264]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e265]:
+                    - generic [ref=e266]: "-"
+                  - cell "NONE" [ref=e267]:
+                    - generic [ref=e268]: NONE
+                  - cell "NO" [ref=e269]:
+                    - generic [ref=e270]: "NO"
+                  - cell "PICKUP" [ref=e271]:
+                    - generic [ref=e272]: PICKUP
+                  - cell "PENDING" [ref=e273]:
+                    - generic [ref=e274]: PENDING
+                  - cell "No" [ref=e275]
+                  - cell "web" [ref=e276]:
+                    - generic [ref=e277]: web
+                  - cell "No" [ref=e278]
+                  - cell "01/18/2026 01:09:45" [ref=e279]
+                - row "ORD-0002 Customer 2 customer2@example.com +66268409315 ฿1,217.1 STR-7726 DELIVERED - NONE NO PICKUP PENDING No lazada No 01/17/2026 23:24:45" [ref=e280]:
+                  - cell "ORD-0002" [ref=e281] [cursor=pointer]:
+                    - button "ORD-0002" [ref=e282]
+                  - cell "Customer 2" [ref=e283]
+                  - cell "customer2@example.com" [ref=e284]
+                  - cell "+66268409315" [ref=e285]
+                  - cell "฿1,217.1" [ref=e286]
+                  - cell "STR-7726" [ref=e287]
+                  - cell "DELIVERED" [ref=e288]:
+                    - generic [ref=e289]: DELIVERED
+                  - cell "-" [ref=e290]:
+                    - generic [ref=e291]: "-"
+                  - cell "NONE" [ref=e292]:
+                    - generic [ref=e293]: NONE
+                  - cell "NO" [ref=e294]:
+                    - generic [ref=e295]: "NO"
+                  - cell "PICKUP" [ref=e296]:
+                    - generic [ref=e297]: PICKUP
+                  - cell "PENDING" [ref=e298]:
+                    - generic [ref=e299]: PENDING
+                  - cell "No" [ref=e300]
+                  - cell "lazada" [ref=e301]:
+                    - generic [ref=e302]: lazada
+                  - cell "No" [ref=e303]
+                  - cell "01/17/2026 23:24:45" [ref=e304]
+                - row "ORD-0003 Customer 3 customer3@example.com +66169062431 ฿49.55 STR-2170 DELIVERED - NONE NO PICKUP PENDING No shopee No 01/17/2026 19:10:45" [ref=e305]:
+                  - cell "ORD-0003" [ref=e306] [cursor=pointer]:
+                    - button "ORD-0003" [ref=e307]
+                  - cell "Customer 3" [ref=e308]
+                  - cell "customer3@example.com" [ref=e309]
+                  - cell "+66169062431" [ref=e310]
+                  - cell "฿49.55" [ref=e311]
+                  - cell "STR-2170" [ref=e312]
+                  - cell "DELIVERED" [ref=e313]:
+                    - generic [ref=e314]: DELIVERED
+                  - cell "-" [ref=e315]:
+                    - generic [ref=e316]: "-"
+                  - cell "NONE" [ref=e317]:
+                    - generic [ref=e318]: NONE
+                  - cell "NO" [ref=e319]:
+                    - generic [ref=e320]: "NO"
+                  - cell "PICKUP" [ref=e321]:
+                    - generic [ref=e322]: PICKUP
+                  - cell "PENDING" [ref=e323]:
+                    - generic [ref=e324]: PENDING
+                  - cell "No" [ref=e325]
+                  - cell "shopee" [ref=e326]:
+                    - generic [ref=e327]: shopee
+                  - cell "No" [ref=e328]
+                  - cell "01/17/2026 19:10:45" [ref=e329]
+                - row "ORD-0004 Customer 4 customer4@example.com +66112154785 ฿195.98 STR-3300 CANCELLED - NONE NO PICKUP PAID No web No 01/17/2026 17:42:45" [ref=e330]:
+                  - cell "ORD-0004" [ref=e331] [cursor=pointer]:
+                    - button "ORD-0004" [ref=e332]
+                  - cell "Customer 4" [ref=e333]
+                  - cell "customer4@example.com" [ref=e334]
+                  - cell "+66112154785" [ref=e335]
+                  - cell "฿195.98" [ref=e336]
+                  - cell "STR-3300" [ref=e337]
+                  - cell "CANCELLED" [ref=e338]:
+                    - generic [ref=e339]: CANCELLED
+                  - cell "-" [ref=e340]:
+                    - generic [ref=e341]: "-"
+                  - cell "NONE" [ref=e342]:
+                    - generic [ref=e343]: NONE
+                  - cell "NO" [ref=e344]:
+                    - generic [ref=e345]: "NO"
+                  - cell "PICKUP" [ref=e346]:
+                    - generic [ref=e347]: PICKUP
+                  - cell "PAID" [ref=e348]:
+                    - generic [ref=e349]: PAID
+                  - cell "No" [ref=e350]
+                  - cell "web" [ref=e351]:
+                    - generic [ref=e352]: web
+                  - cell "No" [ref=e353]
+                  - cell "01/17/2026 17:42:45" [ref=e354]
+                - row "ORD-0005 Customer 5 customer5@example.com +66834915048 ฿843.13 STR-7567 SUBMITTED 3m LEFT NONE NO DELIVERY FAILED No lazada No 01/18/2026 01:51:45" [ref=e355]:
+                  - cell "ORD-0005" [ref=e356] [cursor=pointer]:
+                    - button "ORD-0005" [ref=e357]
+                  - cell "Customer 5" [ref=e358]
+                  - cell "customer5@example.com" [ref=e359]
+                  - cell "+66834915048" [ref=e360]
+                  - cell "฿843.13" [ref=e361]
+                  - cell "STR-7567" [ref=e362]
+                  - cell "SUBMITTED" [ref=e363]:
+                    - generic [ref=e364]: SUBMITTED
+                  - cell "3m LEFT" [ref=e365]:
+                    - generic [ref=e366]:
+                      - img [ref=e367]
+                      - text: 3m LEFT
+                  - cell "NONE" [ref=e370]:
+                    - generic [ref=e371]: NONE
+                  - cell "NO" [ref=e372]:
+                    - generic [ref=e373]: "NO"
+                  - cell "DELIVERY" [ref=e374]:
+                    - generic [ref=e375]: DELIVERY
+                  - cell "FAILED" [ref=e376]:
+                    - generic [ref=e377]: FAILED
+                  - cell "No" [ref=e378]
+                  - cell "lazada" [ref=e379]:
+                    - generic [ref=e380]: lazada
+                  - cell "No" [ref=e381]
+                  - cell "01/18/2026 01:51:45" [ref=e382]
+                - row "ORD-0006 Customer 6 customer6@example.com +66498948375 ฿468 STR-3936 OUT_FOR_DELIVERY - NONE NO PICKUP PAID No shopee No 01/18/2026 01:11:45" [ref=e383]:
+                  - cell "ORD-0006" [ref=e384] [cursor=pointer]:
+                    - button "ORD-0006" [ref=e385]
+                  - cell "Customer 6" [ref=e386]
+                  - cell "customer6@example.com" [ref=e387]
+                  - cell "+66498948375" [ref=e388]
+                  - cell "฿468" [ref=e389]
+                  - cell "STR-3936" [ref=e390]
+                  - cell "OUT_FOR_DELIVERY" [ref=e391]:
+                    - generic [ref=e392]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e393]:
+                    - generic [ref=e394]: "-"
+                  - cell "NONE" [ref=e395]:
+                    - generic [ref=e396]: NONE
+                  - cell "NO" [ref=e397]:
+                    - generic [ref=e398]: "NO"
+                  - cell "PICKUP" [ref=e399]:
+                    - generic [ref=e400]: PICKUP
+                  - cell "PAID" [ref=e401]:
+                    - generic [ref=e402]: PAID
+                  - cell "No" [ref=e403]
+                  - cell "shopee" [ref=e404]:
+                    - generic [ref=e405]: shopee
+                  - cell "No" [ref=e406]
+                  - cell "01/18/2026 01:11:45" [ref=e407]
+                - row "ORD-0007 Customer 7 customer7@example.com +66311597914 ฿826.22 STR-6180 SUBMITTED -2m BREACH NONE NO DELIVERY PAID No web No 01/18/2026 01:30:45" [ref=e408]:
+                  - cell "ORD-0007" [ref=e409] [cursor=pointer]:
+                    - button "ORD-0007" [ref=e410]
+                  - cell "Customer 7" [ref=e411]
+                  - cell "customer7@example.com" [ref=e412]
+                  - cell "+66311597914" [ref=e413]
+                  - cell "฿826.22" [ref=e414]
+                  - cell "STR-6180" [ref=e415]
+                  - cell "SUBMITTED" [ref=e416]:
+                    - generic [ref=e417]: SUBMITTED
+                  - cell "-2m BREACH" [ref=e418]:
+                    - generic [ref=e419]:
+                      - img [ref=e420]
+                      - text: "-2m BREACH"
+                  - cell "NONE" [ref=e422]:
+                    - generic [ref=e423]: NONE
+                  - cell "NO" [ref=e424]:
+                    - generic [ref=e425]: "NO"
+                  - cell "DELIVERY" [ref=e426]:
+                    - generic [ref=e427]: DELIVERY
+                  - cell "PAID" [ref=e428]:
+                    - generic [ref=e429]: PAID
+                  - cell "No" [ref=e430]
+                  - cell "web" [ref=e431]:
+                    - generic [ref=e432]: web
+                  - cell "No" [ref=e433]
+                  - cell "01/18/2026 01:30:45" [ref=e434]
+                - row "ORD-0008 Customer 8 customer8@example.com +66342693606 ฿656.94 STR-8803 CANCELLED - NONE YES DELIVERY PAID No lazada No 01/17/2026 17:25:45" [ref=e435]:
+                  - cell "ORD-0008" [ref=e436] [cursor=pointer]:
+                    - button "ORD-0008" [ref=e437]
+                  - cell "Customer 8" [ref=e438]
+                  - cell "customer8@example.com" [ref=e439]
+                  - cell "+66342693606" [ref=e440]
+                  - cell "฿656.94" [ref=e441]
+                  - cell "STR-8803" [ref=e442]
+                  - cell "CANCELLED" [ref=e443]:
+                    - generic [ref=e444]: CANCELLED
+                  - cell "-" [ref=e445]:
+                    - generic [ref=e446]: "-"
+                  - cell "NONE" [ref=e447]:
+                    - generic [ref=e448]: NONE
+                  - cell "YES" [ref=e449]:
+                    - generic [ref=e450]: "YES"
+                  - cell "DELIVERY" [ref=e451]:
+                    - generic [ref=e452]: DELIVERY
+                  - cell "PAID" [ref=e453]:
+                    - generic [ref=e454]: PAID
+                  - cell "No" [ref=e455]
+                  - cell "lazada" [ref=e456]:
+                    - generic [ref=e457]: lazada
+                  - cell "No" [ref=e458]
+                  - cell "01/17/2026 17:25:45" [ref=e459]
+                - row "ORD-0009 Customer 9 customer9@example.com +66776902266 ฿275.28 STR-9647 READY_FOR_PICKUP - NONE NO DELIVERY FAILED No shopee No 01/17/2026 19:11:45" [ref=e460]:
+                  - cell "ORD-0009" [ref=e461] [cursor=pointer]:
+                    - button "ORD-0009" [ref=e462]
+                  - cell "Customer 9" [ref=e463]
+                  - cell "customer9@example.com" [ref=e464]
+                  - cell "+66776902266" [ref=e465]
+                  - cell "฿275.28" [ref=e466]
+                  - cell "STR-9647" [ref=e467]
+                  - cell "READY_FOR_PICKUP" [ref=e468]:
+                    - generic [ref=e469]: READY_FOR_PICKUP
+                  - cell "-" [ref=e470]:
+                    - generic [ref=e471]: "-"
+                  - cell "NONE" [ref=e472]:
+                    - generic [ref=e473]: NONE
+                  - cell "NO" [ref=e474]:
+                    - generic [ref=e475]: "NO"
+                  - cell "DELIVERY" [ref=e476]:
+                    - generic [ref=e477]: DELIVERY
+                  - cell "FAILED" [ref=e478]:
+                    - generic [ref=e479]: FAILED
+                  - cell "No" [ref=e480]
+                  - cell "shopee" [ref=e481]:
+                    - generic [ref=e482]: shopee
+                  - cell "No" [ref=e483]
+                  - cell "01/17/2026 19:11:45" [ref=e484]
+                - row "ORD-0010 Customer 10 customer10@example.com +66685065539 ฿214.71 STR-1804 SUBMITTED 3m LEFT NONE YES PICKUP PENDING No web No 01/17/2026 20:54:45" [ref=e485]:
+                  - cell "ORD-0010" [ref=e486] [cursor=pointer]:
+                    - button "ORD-0010" [ref=e487]
+                  - cell "Customer 10" [ref=e488]
+                  - cell "customer10@example.com" [ref=e489]
+                  - cell "+66685065539" [ref=e490]
+                  - cell "฿214.71" [ref=e491]
+                  - cell "STR-1804" [ref=e492]
+                  - cell "SUBMITTED" [ref=e493]:
+                    - generic [ref=e494]: SUBMITTED
+                  - cell "3m LEFT" [ref=e495]:
+                    - generic [ref=e496]:
+                      - img [ref=e497]
+                      - text: 3m LEFT
+                  - cell "NONE" [ref=e500]:
+                    - generic [ref=e501]: NONE
+                  - cell "YES" [ref=e502]:
+                    - generic [ref=e503]: "YES"
+                  - cell "PICKUP" [ref=e504]:
+                    - generic [ref=e505]: PICKUP
+                  - cell "PENDING" [ref=e506]:
+                    - generic [ref=e507]: PENDING
+                  - cell "No" [ref=e508]
+                  - cell "web" [ref=e509]:
+                    - generic [ref=e510]: web
+                  - cell "No" [ref=e511]
+                  - cell "01/17/2026 20:54:45" [ref=e512]
+                - row "ORD-0011 Customer 11 customer11@example.com +66151455434 ฿175.51 STR-4141 OUT_FOR_DELIVERY - NONE NO PICKUP FAILED No lazada No 01/17/2026 21:57:45" [ref=e513]:
+                  - cell "ORD-0011" [ref=e514] [cursor=pointer]:
+                    - button "ORD-0011" [ref=e515]
+                  - cell "Customer 11" [ref=e516]
+                  - cell "customer11@example.com" [ref=e517]
+                  - cell "+66151455434" [ref=e518]
+                  - cell "฿175.51" [ref=e519]
+                  - cell "STR-4141" [ref=e520]
+                  - cell "OUT_FOR_DELIVERY" [ref=e521]:
+                    - generic [ref=e522]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e523]:
+                    - generic [ref=e524]: "-"
+                  - cell "NONE" [ref=e525]:
+                    - generic [ref=e526]: NONE
+                  - cell "NO" [ref=e527]:
+                    - generic [ref=e528]: "NO"
+                  - cell "PICKUP" [ref=e529]:
+                    - generic [ref=e530]: PICKUP
+                  - cell "FAILED" [ref=e531]:
+                    - generic [ref=e532]: FAILED
+                  - cell "No" [ref=e533]
+                  - cell "lazada" [ref=e534]:
+                    - generic [ref=e535]: lazada
+                  - cell "No" [ref=e536]
+                  - cell "01/17/2026 21:57:45" [ref=e537]
+                - row "ORD-0012 Customer 12 customer12@example.com +66131079038 ฿818.41 STR-1480 READY_FOR_PICKUP - NONE NO PICKUP PAID No shopee No 01/17/2026 19:09:45" [ref=e538]:
+                  - cell "ORD-0012" [ref=e539] [cursor=pointer]:
+                    - button "ORD-0012" [ref=e540]
+                  - cell "Customer 12" [ref=e541]
+                  - cell "customer12@example.com" [ref=e542]
+                  - cell "+66131079038" [ref=e543]
+                  - cell "฿818.41" [ref=e544]
+                  - cell "STR-1480" [ref=e545]
+                  - cell "READY_FOR_PICKUP" [ref=e546]:
+                    - generic [ref=e547]: READY_FOR_PICKUP
+                  - cell "-" [ref=e548]:
+                    - generic [ref=e549]: "-"
+                  - cell "NONE" [ref=e550]:
+                    - generic [ref=e551]: NONE
+                  - cell "NO" [ref=e552]:
+                    - generic [ref=e553]: "NO"
+                  - cell "PICKUP" [ref=e554]:
+                    - generic [ref=e555]: PICKUP
+                  - cell "PAID" [ref=e556]:
+                    - generic [ref=e557]: PAID
+                  - cell "No" [ref=e558]
+                  - cell "shopee" [ref=e559]:
+                    - generic [ref=e560]: shopee
+                  - cell "No" [ref=e561]
+                  - cell "01/17/2026 19:09:45" [ref=e562]
+                - row "ORD-0013 Customer 13 customer13@example.com +66171835754 ฿1,512.53 STR-2172 CANCELLED - NONE NO DELIVERY PENDING No web No 01/17/2026 18:32:45" [ref=e563]:
+                  - cell "ORD-0013" [ref=e564] [cursor=pointer]:
+                    - button "ORD-0013" [ref=e565]
+                  - cell "Customer 13" [ref=e566]
+                  - cell "customer13@example.com" [ref=e567]
+                  - cell "+66171835754" [ref=e568]
+                  - cell "฿1,512.53" [ref=e569]
+                  - cell "STR-2172" [ref=e570]
+                  - cell "CANCELLED" [ref=e571]:
+                    - generic [ref=e572]: CANCELLED
+                  - cell "-" [ref=e573]:
+                    - generic [ref=e574]: "-"
+                  - cell "NONE" [ref=e575]:
+                    - generic [ref=e576]: NONE
+                  - cell "NO" [ref=e577]:
+                    - generic [ref=e578]: "NO"
+                  - cell "DELIVERY" [ref=e579]:
+                    - generic [ref=e580]: DELIVERY
+                  - cell "PENDING" [ref=e581]:
+                    - generic [ref=e582]: PENDING
+                  - cell "No" [ref=e583]
+                  - cell "web" [ref=e584]:
+                    - generic [ref=e585]: web
+                  - cell "No" [ref=e586]
+                  - cell "01/17/2026 18:32:45" [ref=e587]
+                - row "ORD-0014 Customer 14 customer14@example.com +66232162830 ฿983.49 STR-4241 PROCESSING 3m LEFT NONE NO DELIVERY PAID No lazada No 01/18/2026 00:05:45" [ref=e588]:
+                  - cell "ORD-0014" [ref=e589] [cursor=pointer]:
+                    - button "ORD-0014" [ref=e590]
+                  - cell "Customer 14" [ref=e591]
+                  - cell "customer14@example.com" [ref=e592]
+                  - cell "+66232162830" [ref=e593]
+                  - cell "฿983.49" [ref=e594]
+                  - cell "STR-4241" [ref=e595]
+                  - cell "PROCESSING" [ref=e596]:
+                    - generic [ref=e597]: PROCESSING
+                  - cell "3m LEFT" [ref=e598]:
+                    - generic [ref=e599]:
+                      - img [ref=e600]
+                      - text: 3m LEFT
+                  - cell "NONE" [ref=e603]:
+                    - generic [ref=e604]: NONE
+                  - cell "NO" [ref=e605]:
+                    - generic [ref=e606]: "NO"
+                  - cell "DELIVERY" [ref=e607]:
+                    - generic [ref=e608]: DELIVERY
+                  - cell "PAID" [ref=e609]:
+                    - generic [ref=e610]: PAID
+                  - cell "No" [ref=e611]
+                  - cell "lazada" [ref=e612]:
+                    - generic [ref=e613]: lazada
+                  - cell "No" [ref=e614]
+                  - cell "01/18/2026 00:05:45" [ref=e615]
+                - row "ORD-0015 Customer 15 customer15@example.com +66981291393 ฿494.4 STR-7989 PROCESSING 2m LEFT NONE NO PICKUP PENDING No shopee No 01/17/2026 16:50:45" [ref=e616]:
+                  - cell "ORD-0015" [ref=e617] [cursor=pointer]:
+                    - button "ORD-0015" [ref=e618]
+                  - cell "Customer 15" [ref=e619]
+                  - cell "customer15@example.com" [ref=e620]
+                  - cell "+66981291393" [ref=e621]
+                  - cell "฿494.4" [ref=e622]
+                  - cell "STR-7989" [ref=e623]
+                  - cell "PROCESSING" [ref=e624]:
+                    - generic [ref=e625]: PROCESSING
+                  - cell "2m LEFT" [ref=e626]:
+                    - generic [ref=e627]:
+                      - img [ref=e628]
+                      - text: 2m LEFT
+                  - cell "NONE" [ref=e631]:
+                    - generic [ref=e632]: NONE
+                  - cell "NO" [ref=e633]:
+                    - generic [ref=e634]: "NO"
+                  - cell "PICKUP" [ref=e635]:
+                    - generic [ref=e636]: PICKUP
+                  - cell "PENDING" [ref=e637]:
+                    - generic [ref=e638]: PENDING
+                  - cell "No" [ref=e639]
+                  - cell "shopee" [ref=e640]:
+                    - generic [ref=e641]: shopee
+                  - cell "No" [ref=e642]
+                  - cell "01/17/2026 16:50:45" [ref=e643]
+                - row "ORD-0016 Customer 16 customer16@example.com +66624927190 ฿306.01 STR-9209 DELIVERED - NONE NO DELIVERY PAID No web No 01/17/2026 19:44:45" [ref=e644]:
+                  - cell "ORD-0016" [ref=e645] [cursor=pointer]:
+                    - button "ORD-0016" [ref=e646]
+                  - cell "Customer 16" [ref=e647]
+                  - cell "customer16@example.com" [ref=e648]
+                  - cell "+66624927190" [ref=e649]
+                  - cell "฿306.01" [ref=e650]
+                  - cell "STR-9209" [ref=e651]
+                  - cell "DELIVERED" [ref=e652]:
+                    - generic [ref=e653]: DELIVERED
+                  - cell "-" [ref=e654]:
+                    - generic [ref=e655]: "-"
+                  - cell "NONE" [ref=e656]:
+                    - generic [ref=e657]: NONE
+                  - cell "NO" [ref=e658]:
+                    - generic [ref=e659]: "NO"
+                  - cell "DELIVERY" [ref=e660]:
+                    - generic [ref=e661]: DELIVERY
+                  - cell "PAID" [ref=e662]:
+                    - generic [ref=e663]: PAID
+                  - cell "No" [ref=e664]
+                  - cell "web" [ref=e665]:
+                    - generic [ref=e666]: web
+                  - cell "No" [ref=e667]
+                  - cell "01/17/2026 19:44:45" [ref=e668]
+                - row "ORD-0017 Customer 17 customer17@example.com +66937673011 ฿468.26 STR-8501 OUT_FOR_DELIVERY - NONE NO PICKUP PAID No lazada No 01/17/2026 17:39:45" [ref=e669]:
+                  - cell "ORD-0017" [ref=e670] [cursor=pointer]:
+                    - button "ORD-0017" [ref=e671]
+                  - cell "Customer 17" [ref=e672]
+                  - cell "customer17@example.com" [ref=e673]
+                  - cell "+66937673011" [ref=e674]
+                  - cell "฿468.26" [ref=e675]
+                  - cell "STR-8501" [ref=e676]
+                  - cell "OUT_FOR_DELIVERY" [ref=e677]:
+                    - generic [ref=e678]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e679]:
+                    - generic [ref=e680]: "-"
+                  - cell "NONE" [ref=e681]:
+                    - generic [ref=e682]: NONE
+                  - cell "NO" [ref=e683]:
+                    - generic [ref=e684]: "NO"
+                  - cell "PICKUP" [ref=e685]:
+                    - generic [ref=e686]: PICKUP
+                  - cell "PAID" [ref=e687]:
+                    - generic [ref=e688]: PAID
+                  - cell "No" [ref=e689]
+                  - cell "lazada" [ref=e690]:
+                    - generic [ref=e691]: lazada
+                  - cell "No" [ref=e692]
+                  - cell "01/17/2026 17:39:45" [ref=e693]
+                - row "ORD-0018 Customer 18 customer18@example.com +66625664202 ฿437.27 STR-4000 OUT_FOR_DELIVERY - NONE YES PICKUP PAID No shopee No 01/18/2026 00:46:45" [ref=e694]:
+                  - cell "ORD-0018" [ref=e695] [cursor=pointer]:
+                    - button "ORD-0018" [ref=e696]
+                  - cell "Customer 18" [ref=e697]
+                  - cell "customer18@example.com" [ref=e698]
+                  - cell "+66625664202" [ref=e699]
+                  - cell "฿437.27" [ref=e700]
+                  - cell "STR-4000" [ref=e701]
+                  - cell "OUT_FOR_DELIVERY" [ref=e702]:
+                    - generic [ref=e703]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e704]:
+                    - generic [ref=e705]: "-"
+                  - cell "NONE" [ref=e706]:
+                    - generic [ref=e707]: NONE
+                  - cell "YES" [ref=e708]:
+                    - generic [ref=e709]: "YES"
+                  - cell "PICKUP" [ref=e710]:
+                    - generic [ref=e711]: PICKUP
+                  - cell "PAID" [ref=e712]:
+                    - generic [ref=e713]: PAID
+                  - cell "No" [ref=e714]
+                  - cell "shopee" [ref=e715]:
+                    - generic [ref=e716]: shopee
+                  - cell "No" [ref=e717]
+                  - cell "01/18/2026 00:46:45" [ref=e718]
+                - row "ORD-0019 Customer 19 customer19@example.com +66523995061 ฿379.26 STR-2763 SUBMITTED 2m LEFT NONE NO DELIVERY PAID No web No 01/17/2026 23:17:45" [ref=e719]:
+                  - cell "ORD-0019" [ref=e720] [cursor=pointer]:
+                    - button "ORD-0019" [ref=e721]
+                  - cell "Customer 19" [ref=e722]
+                  - cell "customer19@example.com" [ref=e723]
+                  - cell "+66523995061" [ref=e724]
+                  - cell "฿379.26" [ref=e725]
+                  - cell "STR-2763" [ref=e726]
+                  - cell "SUBMITTED" [ref=e727]:
+                    - generic [ref=e728]: SUBMITTED
+                  - cell "2m LEFT" [ref=e729]:
+                    - generic [ref=e730]:
+                      - img [ref=e731]
+                      - text: 2m LEFT
+                  - cell "NONE" [ref=e734]:
+                    - generic [ref=e735]: NONE
+                  - cell "NO" [ref=e736]:
+                    - generic [ref=e737]: "NO"
+                  - cell "DELIVERY" [ref=e738]:
+                    - generic [ref=e739]: DELIVERY
+                  - cell "PAID" [ref=e740]:
+                    - generic [ref=e741]: PAID
+                  - cell "No" [ref=e742]
+                  - cell "web" [ref=e743]:
+                    - generic [ref=e744]: web
+                  - cell "No" [ref=e745]
+                  - cell "01/17/2026 23:17:45" [ref=e746]
+                - row "ORD-0020 Customer 20 customer20@example.com +66272885142 ฿427.15 STR-2942 OUT_FOR_DELIVERY - NONE NO PICKUP PENDING No lazada No 01/17/2026 23:17:45" [ref=e747]:
+                  - cell "ORD-0020" [ref=e748] [cursor=pointer]:
+                    - button "ORD-0020" [ref=e749]
+                  - cell "Customer 20" [ref=e750]
+                  - cell "customer20@example.com" [ref=e751]
+                  - cell "+66272885142" [ref=e752]
+                  - cell "฿427.15" [ref=e753]
+                  - cell "STR-2942" [ref=e754]
+                  - cell "OUT_FOR_DELIVERY" [ref=e755]:
+                    - generic [ref=e756]: OUT_FOR_DELIVERY
+                  - cell "-" [ref=e757]:
+                    - generic [ref=e758]: "-"
+                  - cell "NONE" [ref=e759]:
+                    - generic [ref=e760]: NONE
+                  - cell "NO" [ref=e761]:
+                    - generic [ref=e762]: "NO"
+                  - cell "PICKUP" [ref=e763]:
+                    - generic [ref=e764]: PICKUP
+                  - cell "PENDING" [ref=e765]:
+                    - generic [ref=e766]: PENDING
+                  - cell "No" [ref=e767]
+                  - cell "lazada" [ref=e768]:
+                    - generic [ref=e769]: lazada
+                  - cell "No" [ref=e770]
+                  - cell "01/17/2026 23:17:45" [ref=e771]
+                - row "ORD-0021 Customer 21 customer21@example.com +66138128097 ฿482.2 STR-1291 PROCESSING 3m LEFT NONE NO PICKUP FAILED No shopee No 01/17/2026 22:04:45" [ref=e772]:
+                  - cell "ORD-0021" [ref=e773] [cursor=pointer]:
+                    - button "ORD-0021" [ref=e774]
+                  - cell "Customer 21" [ref=e775]
+                  - cell "customer21@example.com" [ref=e776]
+                  - cell "+66138128097" [ref=e777]
+                  - cell "฿482.2" [ref=e778]
+                  - cell "STR-1291" [ref=e779]
+                  - cell "PROCESSING" [ref=e780]:
+                    - generic [ref=e781]: PROCESSING
+                  - cell "3m LEFT" [ref=e782]:
+                    - generic [ref=e783]:
+                      - img [ref=e784]
+                      - text: 3m LEFT
+                  - cell "NONE" [ref=e787]:
+                    - generic [ref=e788]: NONE
+                  - cell "NO" [ref=e789]:
+                    - generic [ref=e790]: "NO"
+                  - cell "PICKUP" [ref=e791]:
+                    - generic [ref=e792]: PICKUP
+                  - cell "FAILED" [ref=e793]:
+                    - generic [ref=e794]: FAILED
+                  - cell "No" [ref=e795]
+                  - cell "shopee" [ref=e796]:
+                    - generic [ref=e797]: shopee
+                  - cell "No" [ref=e798]
+                  - cell "01/17/2026 22:04:45" [ref=e799]
+                - row "ORD-0022 Customer 22 customer22@example.com +66202513356 ฿524.23 STR-9650 PROCESSING -2m BREACH NONE YES PICKUP FAILED No web No 01/18/2026 00:44:45" [ref=e800]:
+                  - cell "ORD-0022" [ref=e801] [cursor=pointer]:
+                    - button "ORD-0022" [ref=e802]
+                  - cell "Customer 22" [ref=e803]
+                  - cell "customer22@example.com" [ref=e804]
+                  - cell "+66202513356" [ref=e805]
+                  - cell "฿524.23" [ref=e806]
+                  - cell "STR-9650" [ref=e807]
+                  - cell "PROCESSING" [ref=e808]:
+                    - generic [ref=e809]: PROCESSING
+                  - cell "-2m BREACH" [ref=e810]:
+                    - generic [ref=e811]:
+                      - img [ref=e812]
+                      - text: "-2m BREACH"
+                  - cell "NONE" [ref=e814]:
+                    - generic [ref=e815]: NONE
+                  - cell "YES" [ref=e816]:
+                    - generic [ref=e817]: "YES"
+                  - cell "PICKUP" [ref=e818]:
+                    - generic [ref=e819]: PICKUP
+                  - cell "FAILED" [ref=e820]:
+                    - generic [ref=e821]: FAILED
+                  - cell "No" [ref=e822]
+                  - cell "web" [ref=e823]:
+                    - generic [ref=e824]: web
+                  - cell "No" [ref=e825]
+                  - cell "01/18/2026 00:44:45" [ref=e826]
+            - generic [ref=e827]:
+              - paragraph [ref=e829]: "Last updated: 03:04:04"
+              - generic [ref=e830]:
+                - generic [ref=e831]:
+                  - generic [ref=e833]: Showing 1 to 25 of 153 orders
+                  - generic [ref=e834]:
+                    - generic [ref=e835]: "Show:"
+                    - combobox [ref=e836] [cursor=pointer]:
+                      - generic: "25"
+                      - img [ref=e837]
+                - generic [ref=e839]:
+                  - generic [ref=e840]:
+                    - button "First page" [disabled]:
+                      - img
+                    - button "Previous page" [disabled]:
+                      - img
+                    - generic [ref=e841]:
+                      - button "1" [ref=e843] [cursor=pointer]
+                      - button "2" [ref=e845] [cursor=pointer]
+                      - button "3" [ref=e847] [cursor=pointer]
+                      - button "4" [ref=e849] [cursor=pointer]
+                      - button "5" [ref=e851] [cursor=pointer]
+                      - button "6" [ref=e853] [cursor=pointer]
+                      - button "7" [ref=e855] [cursor=pointer]
+                    - button "Next page" [ref=e856] [cursor=pointer]:
+                      - img
+                    - button "Last page" [ref=e857] [cursor=pointer]:
+                      - img
+                  - generic [ref=e859]: Page 1 of 7
+        - generic [ref=e862]:
+          - generic [ref=e864]:
+            - generic [ref=e865]:
+              - button "Back to Orders" [ref=e866] [cursor=pointer]:
+                - img
+                - generic [ref=e867]: Back to Orders
+              - generic [ref=e868]:
+                - heading "Order Details" [level=1] [ref=e869]
+                - paragraph [ref=e870]: "Order #W1156251121946800"
+            - button [ref=e871] [cursor=pointer]:
+              - img
+          - generic [ref=e872]:
+            - generic [ref=e875]:
+              - paragraph [ref=e876]: Status
+              - generic [ref=e878]: DELIVERED
+            - generic [ref=e881]:
+              - paragraph [ref=e882]: Priority
+              - generic [ref=e884]: NORMAL
+            - generic [ref=e887]:
+              - paragraph [ref=e888]: Channel
+              - generic [ref=e890]: web
+            - generic [ref=e893]:
+              - generic [ref=e894]:
+                - paragraph [ref=e895]: Total Amount
+                - paragraph [ref=e896]: ฿933.00
+              - img [ref=e897]
+          - generic [ref=e899]:
+            - tablist [ref=e900]:
+              - tab "Overview" [ref=e901] [cursor=pointer]
+              - tab "Items (17)" [selected] [ref=e902] [cursor=pointer]
+              - tab "Payments" [ref=e903] [cursor=pointer]
+              - tab "Fulfillment" [ref=e904] [cursor=pointer]
+              - tab "Tracking" [ref=e905] [cursor=pointer]
+              - tab "Audit Trail" [ref=e906] [cursor=pointer]:
+                - img [ref=e907]
+                - text: Audit Trail
+            - tabpanel "Items (17)" [active] [ref=e1053]:
+              - generic [ref=e1054]:
+                - generic [ref=e1057]:
+                  - generic [ref=e1058]:
+                    - generic [ref=e1059]: Order Items
+                    - generic [ref=e1060]: 17 items in this order
+                  - generic [ref=e1061]:
+                    - generic [ref=e1062]:
+                      - img [ref=e1063]
+                      - searchbox "Search items..." [ref=e1066]
+                    - button "Expand All" [ref=e1067] [cursor=pointer]
+                - generic [ref=e1069]:
+                  - generic [ref=e1070]:
+                    - generic [ref=e1072] [cursor=pointer]:
+                      - img "Bon Aroma Classic Roast Coffee 200g" [ref=e1074]
+                      - generic [ref=e1075]:
+                        - generic [ref=e1076]:
+                          - generic [ref=e1077]:
+                            - generic [ref=e1078]: DELIVERED
+                            - heading "บอน อโรมา คลาสสิค โรสต์ กาแฟ 200ก. Bon Aroma Classic Roast Coffee 200g" [level=4] [ref=e1079]
+                            - paragraph [ref=e1081]: "SKU: 8851123456789"
+                          - img [ref=e1082]
+                        - generic [ref=e1084]:
+                          - generic [ref=e1086]:
+                            - paragraph [ref=e1087]: "Qty:"
+                            - paragraph [ref=e1088]: "1"
+                          - generic [ref=e1089]:
+                            - paragraph [ref=e1090]: ฿115.00
+                            - paragraph [ref=e1091]: ฿115.00 each
+                    - generic [ref=e1445]:
+                      - generic [ref=e1446]:
+                        - heading "Product Details" [level=5] [ref=e1448]
+                        - generic [ref=e1449]:
+                          - generic [ref=e1450]:
+                            - generic [ref=e1451]: UOM
+                            - generic [ref=e1452]: EA
+                          - generic [ref=e1453]:
+                            - generic [ref=e1454]: Supply Type ID
+                            - generic [ref=e1455]: On Hand Available
+                          - generic [ref=e1456]:
+                            - generic [ref=e1457]: Substitution
+                            - generic [ref=e1458]: "No"
+                          - generic [ref=e1459]:
+                            - generic [ref=e1460]: Gift Wrapped
+                            - generic [ref=e1461]: "No"
+                          - generic [ref=e1462]:
+                            - generic [ref=e1463]: Gift Message
+                            - generic [ref=e1464]: "-"
+                      - generic [ref=e1465]:
+                        - heading "Pricing & Promotions" [level=5] [ref=e1467]
+                        - generic [ref=e1468]:
+                          - generic [ref=e1469]:
+                            - generic [ref=e1470]:
+                              - generic [ref=e1471]: Price
+                              - generic [ref=e1472]: ฿115.00
+                            - generic [ref=e1473]:
+                              - generic [ref=e1474]: Qty
+                              - generic [ref=e1475]: "1"
+                            - generic [ref=e1476]:
+                              - generic [ref=e1477]: Total
+                              - generic [ref=e1478]: ฿115.00
+                          - generic [ref=e1480]:
+                            - paragraph [ref=e1481]: Promotions & Coupons
+                            - paragraph [ref=e1482]: No promotions or coupons applied
+                          - generic [ref=e1483]:
+                            - generic [ref=e1484]: Gift with Purchase
+                            - generic [ref=e1485]: "No"
+                      - generic [ref=e1486]:
+                        - heading "Fulfillment & Shipping" [level=5] [ref=e1488]
+                        - generic [ref=e1489]:
+                          - generic [ref=e1490]:
+                            - generic [ref=e1491]: Shipping Method
+                            - generic [ref=e1492]: 3H Delivery
+                          - generic [ref=e1493]:
+                            - generic [ref=e1494]: Fulfillment Status
+                            - generic [ref=e1495]: DELIVERED
+                          - generic [ref=e1496]:
+                            - generic [ref=e1497]: Bundle
+                            - generic [ref=e1498]: "No"
+                          - generic [ref=e1499]:
+                            - generic [ref=e1500]: Route
+                            - generic [ref=e1501]: สายรถบางม่วง
+                          - generic [ref=e1502]:
+                            - generic [ref=e1503]: Booking Slot From
+                            - generic [ref=e1504]: 11/21/2025 19:00:00
+                          - generic [ref=e1505]:
+                            - generic [ref=e1506]: Booking Slot To
+                            - generic [ref=e1507]: 11/21/2025 20:00:00
+                          - generic [ref=e1508]:
+                            - generic [ref=e1509]: ETA
+                            - generic [ref=e1510]: 21 Nov 2025 - 21 Nov 2025
+                          - generic [ref=e1511]:
+                            - paragraph [ref=e1512]: Price Breakdown
+                            - generic [ref=e1513]:
+                              - generic [ref=e1514]:
+                                - generic [ref=e1515]: Subtotal
+                                - generic [ref=e1516]: ฿115.00
+                              - generic [ref=e1517]:
+                                - generic [ref=e1518]: Discount
+                                - generic [ref=e1519]: "-฿0.00"
+                              - generic [ref=e1520]:
+                                - generic [ref=e1521]: Charges
+                                - generic [ref=e1522]: ฿0.00
+                              - generic [ref=e1523]:
+                                - generic [ref=e1524]: Amount Excl. Tax
+                                - generic [ref=e1525]: ฿107.48
+                              - generic [ref=e1526]:
+                                - generic [ref=e1527]: Taxes (7%)
+                                - generic [ref=e1528]: ฿7.52
+                              - generic [ref=e1529]:
+                                - generic [ref=e1530]: Amount Incl. Tax
+                                - generic [ref=e1531]: ฿115.00
+                              - generic [ref=e1532]:
+                                - generic [ref=e1533]: Total
+                                - generic [ref=e1534]: ฿115.00
+                  - generic [ref=e1092]:
+                    - generic [ref=e1094] [cursor=pointer]:
+                      - img "Bon Aroma Classic Roast Coffee 200g" [ref=e1096]
+                      - generic [ref=e1097]:
+                        - generic [ref=e1098]:
+                          - generic [ref=e1099]:
+                            - generic [ref=e1100]: DELIVERED
+                            - heading "บอน อโรมา คลาสสิค โรสต์ กาแฟ 200ก. Bon Aroma Classic Roast Coffee 200g" [level=4] [ref=e1101]
+                            - paragraph [ref=e1103]: "SKU: 8851123456789"
+                          - img [ref=e1104]
+                        - generic [ref=e1106]:
+                          - generic [ref=e1108]:
+                            - paragraph [ref=e1109]: "Qty:"
+                            - paragraph [ref=e1110]: "1"
+                          - generic [ref=e1111]:
+                            - paragraph [ref=e1112]: ฿115.00
+                            - paragraph [ref=e1113]: ฿115.00 each
+                    - generic [ref=e1536]:
+                      - generic [ref=e1537]:
+                        - heading "Product Details" [level=5] [ref=e1539]
+                        - generic [ref=e1540]:
+                          - generic [ref=e1541]:
+                            - generic [ref=e1542]: UOM
+                            - generic [ref=e1543]: EA
+                          - generic [ref=e1544]:
+                            - generic [ref=e1545]: Supply Type ID
+                            - generic [ref=e1546]: On Hand Available
+                          - generic [ref=e1547]:
+                            - generic [ref=e1548]: Substitution
+                            - generic [ref=e1549]: "No"
+                          - generic [ref=e1550]:
+                            - generic [ref=e1551]: Gift Wrapped
+                            - generic [ref=e1552]: "No"
+                          - generic [ref=e1553]:
+                            - generic [ref=e1554]: Gift Message
+                            - generic [ref=e1555]: "-"
+                      - generic [ref=e1556]:
+                        - heading "Pricing & Promotions" [level=5] [ref=e1558]
+                        - generic [ref=e1559]:
+                          - generic [ref=e1560]:
+                            - generic [ref=e1561]:
+                              - generic [ref=e1562]: Price
+                              - generic [ref=e1563]: ฿115.00
+                            - generic [ref=e1564]:
+                              - generic [ref=e1565]: Qty
+                              - generic [ref=e1566]: "1"
+                            - generic [ref=e1567]:
+                              - generic [ref=e1568]: Total
+                              - generic [ref=e1569]: ฿115.00
+                          - generic [ref=e1571]:
+                            - paragraph [ref=e1572]: Promotions & Coupons
+                            - paragraph [ref=e1573]: No promotions or coupons applied
+                          - generic [ref=e1574]:
+                            - generic [ref=e1575]: Gift with Purchase
+                            - generic [ref=e1576]: "No"
+                      - generic [ref=e1577]:
+                        - heading "Fulfillment & Shipping" [level=5] [ref=e1579]
+                        - generic [ref=e1580]:
+                          - generic [ref=e1581]:
+                            - generic [ref=e1582]: Shipping Method
+                            - generic [ref=e1583]: 3H Delivery
+                          - generic [ref=e1584]:
+                            - generic [ref=e1585]: Fulfillment Status
+                            - generic [ref=e1586]: DELIVERED
+                          - generic [ref=e1587]:
+                            - generic [ref=e1588]: Bundle
+                            - generic [ref=e1589]: "No"
+                          - generic [ref=e1590]:
+                            - generic [ref=e1591]: Route
+                            - generic [ref=e1592]: สายรถบางม่วง
+                          - generic [ref=e1593]:
+                            - generic [ref=e1594]: Booking Slot From
+                            - generic [ref=e1595]: 11/21/2025 19:00:00
+                          - generic [ref=e1596]:
+                            - generic [ref=e1597]: Booking Slot To
+                            - generic [ref=e1598]: 11/21/2025 20:00:00
+                          - generic [ref=e1599]:
+                            - generic [ref=e1600]: ETA
+                            - generic [ref=e1601]: 21 Nov 2025 - 21 Nov 2025
+                          - generic [ref=e1602]:
+                            - paragraph [ref=e1603]: Price Breakdown
+                            - generic [ref=e1604]:
+                              - generic [ref=e1605]:
+                                - generic [ref=e1606]: Subtotal
+                                - generic [ref=e1607]: ฿115.00
+                              - generic [ref=e1608]:
+                                - generic [ref=e1609]: Discount
+                                - generic [ref=e1610]: "-฿0.00"
+                              - generic [ref=e1611]:
+                                - generic [ref=e1612]: Charges
+                                - generic [ref=e1613]: ฿0.00
+                              - generic [ref=e1614]:
+                                - generic [ref=e1615]: Amount Excl. Tax
+                                - generic [ref=e1616]: ฿107.48
+                              - generic [ref=e1617]:
+                                - generic [ref=e1618]: Taxes (7%)
+                                - generic [ref=e1619]: ฿7.52
+                              - generic [ref=e1620]:
+                                - generic [ref=e1621]: Amount Incl. Tax
+                                - generic [ref=e1622]: ฿115.00
+                              - generic [ref=e1623]:
+                                - generic [ref=e1624]: Total
+                                - generic [ref=e1625]: ฿115.00
+                  - generic [ref=e1114]:
+                    - generic [ref=e1116] [cursor=pointer]:
+                      - img "Bon Aroma Classic Roast Coffee 200g" [ref=e1118]
+                      - generic [ref=e1119]:
+                        - generic [ref=e1120]:
+                          - generic [ref=e1121]:
+                            - generic [ref=e1122]: DELIVERED
+                            - heading "บอน อโรมา คลาสสิค โรสต์ กาแฟ 200ก. Bon Aroma Classic Roast Coffee 200g" [level=4] [ref=e1123]
+                            - paragraph [ref=e1125]: "SKU: 8851123456789"
+                          - img [ref=e1126]
+                        - generic [ref=e1128]:
+                          - generic [ref=e1130]:
+                            - paragraph [ref=e1131]: "Qty:"
+                            - paragraph [ref=e1132]: "1"
+                          - generic [ref=e1133]:
+                            - paragraph [ref=e1134]: ฿115.00
+                            - paragraph [ref=e1135]: ฿115.00 each
+                    - generic [ref=e1627]:
+                      - generic [ref=e1628]:
+                        - heading "Product Details" [level=5] [ref=e1630]
+                        - generic [ref=e1631]:
+                          - generic [ref=e1632]:
+                            - generic [ref=e1633]: UOM
+                            - generic [ref=e1634]: EA
+                          - generic [ref=e1635]:
+                            - generic [ref=e1636]: Supply Type ID
+                            - generic [ref=e1637]: On Hand Available
+                          - generic [ref=e1638]:
+                            - generic [ref=e1639]: Substitution
+                            - generic [ref=e1640]: "No"
+                          - generic [ref=e1641]:
+                            - generic [ref=e1642]: Gift Wrapped
+                            - generic [ref=e1643]: "No"
+                          - generic [ref=e1644]:
+                            - generic [ref=e1645]: Gift Message
+                            - generic [ref=e1646]: "-"
+                      - generic [ref=e1647]:
+                        - heading "Pricing & Promotions" [level=5] [ref=e1649]
+                        - generic [ref=e1650]:
+                          - generic [ref=e1651]:
+                            - generic [ref=e1652]:
+                              - generic [ref=e1653]: Price
+                              - generic [ref=e1654]: ฿115.00
+                            - generic [ref=e1655]:
+                              - generic [ref=e1656]: Qty
+                              - generic [ref=e1657]: "1"
+                            - generic [ref=e1658]:
+                              - generic [ref=e1659]: Total
+                              - generic [ref=e1660]: ฿115.00
+                          - generic [ref=e1662]:
+                            - paragraph [ref=e1663]: Promotions & Coupons
+                            - paragraph [ref=e1664]: No promotions or coupons applied
+                          - generic [ref=e1665]:
+                            - generic [ref=e1666]: Gift with Purchase
+                            - generic [ref=e1667]: "No"
+                      - generic [ref=e1668]:
+                        - heading "Fulfillment & Shipping" [level=5] [ref=e1670]
+                        - generic [ref=e1671]:
+                          - generic [ref=e1672]:
+                            - generic [ref=e1673]: Shipping Method
+                            - generic [ref=e1674]: 3H Delivery
+                          - generic [ref=e1675]:
+                            - generic [ref=e1676]: Fulfillment Status
+                            - generic [ref=e1677]: DELIVERED
+                          - generic [ref=e1678]:
+                            - generic [ref=e1679]: Bundle
+                            - generic [ref=e1680]: "No"
+                          - generic [ref=e1681]:
+                            - generic [ref=e1682]: Route
+                            - generic [ref=e1683]: สายรถบางม่วง
+                          - generic [ref=e1684]:
+                            - generic [ref=e1685]: Booking Slot From
+                            - generic [ref=e1686]: 11/21/2025 19:00:00
+                          - generic [ref=e1687]:
+                            - generic [ref=e1688]: Booking Slot To
+                            - generic [ref=e1689]: 11/21/2025 20:00:00
+                          - generic [ref=e1690]:
+                            - generic [ref=e1691]: ETA
+                            - generic [ref=e1692]: 21 Nov 2025 - 21 Nov 2025
+                          - generic [ref=e1693]:
+                            - paragraph [ref=e1694]: Price Breakdown
+                            - generic [ref=e1695]:
+                              - generic [ref=e1696]:
+                                - generic [ref=e1697]: Subtotal
+                                - generic [ref=e1698]: ฿115.00
+                              - generic [ref=e1699]:
+                                - generic [ref=e1700]: Discount
+                                - generic [ref=e1701]: "-฿0.00"
+                              - generic [ref=e1702]:
+                                - generic [ref=e1703]: Charges
+                                - generic [ref=e1704]: ฿0.00
+                              - generic [ref=e1705]:
+                                - generic [ref=e1706]: Amount Excl. Tax
+                                - generic [ref=e1707]: ฿107.48
+                              - generic [ref=e1708]:
+                                - generic [ref=e1709]: Taxes (7%)
+                                - generic [ref=e1710]: ฿7.52
+                              - generic [ref=e1711]:
+                                - generic [ref=e1712]: Amount Incl. Tax
+                                - generic [ref=e1713]: ฿115.00
+                              - generic [ref=e1714]:
+                                - generic [ref=e1715]: Total
+                                - generic [ref=e1716]: ฿115.00
+                  - generic [ref=e1136]:
+                    - generic [ref=e1138] [cursor=pointer]:
+                      - img "Betagro Egg Tofu 300g" [ref=e1140]
+                      - generic [ref=e1141]:
+                        - generic [ref=e1142]:
+                          - generic [ref=e1143]:
+                            - generic [ref=e1144]: DELIVERED
+                            - heading "เบทาโกร เต้าหู้ไข่ 300ก. Betagro Egg Tofu 300g" [level=4] [ref=e1145]
+                            - paragraph [ref=e1147]: "SKU: 8858998123456"
+                          - img [ref=e1148]
+                        - generic [ref=e1150]:
+                          - generic [ref=e1152]:
+                            - paragraph [ref=e1153]: "Qty:"
+                            - paragraph [ref=e1154]: "1"
+                          - generic [ref=e1155]:
+                            - paragraph [ref=e1156]: ฿11.00
+                            - paragraph [ref=e1157]: ฿11.00 each
+                    - generic [ref=e1718]:
+                      - generic [ref=e1719]:
+                        - heading "Product Details" [level=5] [ref=e1721]
+                        - generic [ref=e1722]:
+                          - generic [ref=e1723]:
+                            - generic [ref=e1724]: UOM
+                            - generic [ref=e1725]: EA
+                          - generic [ref=e1726]:
+                            - generic [ref=e1727]: Supply Type ID
+                            - generic [ref=e1728]: On Hand Available
+                          - generic [ref=e1729]:
+                            - generic [ref=e1730]: Substitution
+                            - generic [ref=e1731]: "No"
+                          - generic [ref=e1732]:
+                            - generic [ref=e1733]: Gift Wrapped
+                            - generic [ref=e1734]: "No"
+                          - generic [ref=e1735]:
+                            - generic [ref=e1736]: Gift Message
+                            - generic [ref=e1737]: "-"
+                      - generic [ref=e1738]:
+                        - heading "Pricing & Promotions" [level=5] [ref=e1740]
+                        - generic [ref=e1741]:
+                          - generic [ref=e1742]:
+                            - generic [ref=e1743]:
+                              - generic [ref=e1744]: Price
+                              - generic [ref=e1745]: ฿11.00
+                            - generic [ref=e1746]:
+                              - generic [ref=e1747]: Qty
+                              - generic [ref=e1748]: "1"
+                            - generic [ref=e1749]:
+                              - generic [ref=e1750]: Total
+                              - generic [ref=e1751]: ฿11.00
+                          - generic [ref=e1753]:
+                            - paragraph [ref=e1754]: Promotions & Coupons
+                            - generic [ref=e1755]:
+                              - generic [ref=e1756]:
+                                - generic [ref=e1757]:
+                                  - generic [ref=e1758]: Discount
+                                  - generic [ref=e1759]: ฿-5.50
+                                - generic [ref=e1760]:
+                                  - generic [ref=e1761]: Promo ID
+                                  - generic [ref=e1762]: "5200060159"
+                                - generic [ref=e1763]:
+                                  - generic [ref=e1764]: Type
+                                  - generic [ref=e1765]: BOGO
+                              - generic [ref=e1766]:
+                                - generic [ref=e1767]:
+                                  - generic [ref=e1768]: Discount
+                                  - generic [ref=e1769]: ฿-0.86
+                                - generic [ref=e1770]:
+                                  - generic [ref=e1771]: Promo ID
+                                  - generic [ref=e1772]: CPN-AUTOAPPLY
+                                - generic [ref=e1773]:
+                                  - generic [ref=e1774]: Type
+                                  - generic [ref=e1775]: Coupon
+                                - generic [ref=e1776]:
+                                  - generic [ref=e1777]: Code
+                                  - generic [ref=e1778]: AUTOAPPLY
+                          - generic [ref=e1779]:
+                            - generic [ref=e1780]: Gift with Purchase
+                            - generic [ref=e1781]: "No"
+                      - generic [ref=e1782]:
+                        - heading "Fulfillment & Shipping" [level=5] [ref=e1784]
+                        - generic [ref=e1785]:
+                          - generic [ref=e1786]:
+                            - generic [ref=e1787]: Shipping Method
+                            - generic [ref=e1788]: 3H Delivery
+                          - generic [ref=e1789]:
+                            - generic [ref=e1790]: Fulfillment Status
+                            - generic [ref=e1791]: DELIVERED
+                          - generic [ref=e1792]:
+                            - generic [ref=e1793]: Bundle
+                            - generic [ref=e1794]: "No"
+                          - generic [ref=e1795]:
+                            - generic [ref=e1796]: Route
+                            - generic [ref=e1797]: สายรถบางม่วง
+                          - generic [ref=e1798]:
+                            - generic [ref=e1799]: Booking Slot From
+                            - generic [ref=e1800]: 11/21/2025 19:00:00
+                          - generic [ref=e1801]:
+                            - generic [ref=e1802]: Booking Slot To
+                            - generic [ref=e1803]: 11/21/2025 20:00:00
+                          - generic [ref=e1804]:
+                            - generic [ref=e1805]: ETA
+                            - generic [ref=e1806]: 21 Nov 2025 - 21 Nov 2025
+                          - generic [ref=e1807]:
+                            - paragraph [ref=e1808]: Price Breakdown
+                            - generic [ref=e1809]:
+                              - generic [ref=e1810]:
+                                - generic [ref=e1811]: Subtotal
+                                - generic [ref=e1812]: ฿11.00
+                              - generic [ref=e1813]:
+                                - generic [ref=e1814]: Discount
+                                - generic [ref=e1815]: "-฿6.36"
+                              - generic [ref=e1816]:
+                                - generic [ref=e1817]: Charges
+                                - generic [ref=e1818]: ฿0.00
+                              - generic [ref=e1819]:
+                                - generic [ref=e1820]: Amount Excl. Tax
+                                - generic [ref=e1821]: ฿4.34
+                              - generic [ref=e1822]:
+                                - generic [ref=e1823]: Taxes (7%)
+                                - generic [ref=e1824]: ฿0.30
+                              - generic [ref=e1825]:
+                                - generic [ref=e1826]: Amount Incl. Tax
+                                - generic [ref=e1827]: ฿4.64
+                              - generic [ref=e1828]:
+                                - generic [ref=e1829]: Total
+                                - generic [ref=e1830]: ฿4.64
+                  - generic [ref=e1158]:
+                    - generic [ref=e1160] [cursor=pointer]:
+                      - img "Betagro Egg Tofu 300g" [ref=e1162]
+                      - generic [ref=e1163]:
+                        - generic [ref=e1164]:
+                          - generic [ref=e1165]:
+                            - generic [ref=e1166]: DELIVERED
+                            - heading "เบทาโกร เต้าหู้ไข่ 300ก. Betagro Egg Tofu 300g" [level=4] [ref=e1167]
+                            - paragraph [ref=e1169]: "SKU: 8858998123456"
+                          - img [ref=e1170]
+                        - generic [ref=e1172]:
+                          - generic [ref=e1174]:
+                            - paragraph [ref=e1175]: "Qty:"
+                            - paragraph [ref=e1176]: "1"
+                          - generic [ref=e1177]:
+                            - paragraph [ref=e1178]: ฿11.00
+                            - paragraph [ref=e1179]: ฿11.00 each
+                    - generic [ref=e1832]:
+                      - generic [ref=e1833]:
+                        - heading "Product Details" [level=5] [ref=e1835]
+                        - generic [ref=e1836]:
+                          - generic [ref=e1837]:
+                            - generic [ref=e1838]: UOM
+                            - generic [ref=e1839]: EA
+                          - generic [ref=e1840]:
+                            - generic [ref=e1841]: Supply Type ID
+                            - generic [ref=e1842]: On Hand Available
+                          - generic [ref=e1843]:
+                            - generic [ref=e1844]: Substitution
+                            - generic [ref=e1845]: "No"
+                          - generic [ref=e1846]:
+                            - generic [ref=e1847]: Gift Wrapped
+                            - generic [ref=e1848]: "No"
+                          - generic [ref=e1849]:
+                            - generic [ref=e1850]: Gift Message
+                            - generic [ref=e1851]: "-"
+                      - generic [ref=e1852]:
+                        - heading "Pricing & Promotions" [level=5] [ref=e1854]
+                        - generic [ref=e1855]:
+                          - generic [ref=e1856]:
+                            - generic [ref=e1857]:
+                              - generic [ref=e1858]: Price
+                              - generic [ref=e1859]: ฿11.00
+                            - generic [ref=e1860]:
+                              - generic [ref=e1861]: Qty
+                              - generic [ref=e1862]: "1"
+                            - generic [ref=e1863]:
+                              - generic [ref=e1864]: Total
+                              - generic [ref=e1865]: ฿11.00
+                          - generic [ref=e1867]:
+                            - paragraph [ref=e1868]: Promotions & Coupons
+                            - generic [ref=e1869]:
+                              - generic [ref=e1870]:
+                                - generic [ref=e1871]:
+                                  - generic [ref=e1872]: Discount
+                                  - generic [ref=e1873]: ฿-5.50
+                                - generic [ref=e1874]:
+                                  - generic [ref=e1875]: Promo ID
+                                  - generic [ref=e1876]: "5200060159"
+                                - generic [ref=e1877]:
+                                  - generic [ref=e1878]: Type
+                                  - generic [ref=e1879]: BOGO
+                              - generic [ref=e1880]:
+                                - generic [ref=e1881]:
+                                  - generic [ref=e1882]: Discount
+                                  - generic [ref=e1883]: ฿-0.87
+                                - generic [ref=e1884]:
+                                  - generic [ref=e1885]: Promo ID
+                                  - generic [ref=e1886]: CPN-AUTOAPPLY
+                                - generic [ref=e1887]:
+                                  - generic [ref=e1888]: Type
+                                  - generic [ref=e1889]: Coupon
+                                - generic [ref=e1890]:
+                                  - generic [ref=e1891]: Code
+                                  - generic [ref=e1892]: AUTOAPPLY
+                          - generic [ref=e1893]:
+                            - generic [ref=e1894]: Gift with Purchase
+                            - generic [ref=e1895]: "No"
+                      - generic [ref=e1896]:
+                        - heading "Fulfillment & Shipping" [level=5] [ref=e1898]
+                        - generic [ref=e1899]:
+                          - generic [ref=e1900]:
+                            - generic [ref=e1901]: Shipping Method
+                            - generic [ref=e1902]: 3H Delivery
+                          - generic [ref=e1903]:
+                            - generic [ref=e1904]: Fulfillment Status
+                            - generic [ref=e1905]: DELIVERED
+                          - generic [ref=e1906]:
+                            - generic [ref=e1907]: Bundle
+                            - generic [ref=e1908]: "No"
+                          - generic [ref=e1909]:
+                            - generic [ref=e1910]: Route
+                            - generic [ref=e1911]: สายรถบางม่วง
+                          - generic [ref=e1912]:
+                            - generic [ref=e1913]: Booking Slot From
+                            - generic [ref=e1914]: 11/21/2025 19:00:00
+                          - generic [ref=e1915]:
+                            - generic [ref=e1916]: Booking Slot To
+                            - generic [ref=e1917]: 11/21/2025 20:00:00
+                          - generic [ref=e1918]:
+                            - generic [ref=e1919]: ETA
+                            - generic [ref=e1920]: 21 Nov 2025 - 21 Nov 2025
+                          - generic [ref=e1921]:
+                            - paragraph [ref=e1922]: Price Breakdown
+                            - generic [ref=e1923]:
+                              - generic [ref=e1924]:
+                                - generic [ref=e1925]: Subtotal
+                                - generic [ref=e1926]: ฿11.00
+                              - generic [ref=e1927]:
+                                - generic [ref=e1928]: Discount
+                                - generic [ref=e1929]: "-฿6.37"
+                              - generic [ref=e1930]:
+                                - generic [ref=e1931]: Charges
+                                - generic [ref=e1932]: ฿0.00
+                              - generic [ref=e1933]:
+                                - generic [ref=e1934]: Amount Excl. Tax
+                                - generic [ref=e1935]: ฿4.34
+                              - generic [ref=e1936]:
+                                - generic [ref=e1937]: Taxes (7%)
+                                - generic [ref=e1938]: ฿0.29
+                              - generic [ref=e1939]:
+                                - generic [ref=e1940]: Amount Incl. Tax
+                                - generic [ref=e1941]: ฿4.63
+                              - generic [ref=e1942]:
+                                - generic [ref=e1943]: Total
+                                - generic [ref=e1944]: ฿4.63
+                  - generic [ref=e1182] [cursor=pointer]:
+                    - img "Smarter Dental Floss 50m" [ref=e1184]
+                    - generic [ref=e1185]:
+                      - generic [ref=e1186]:
+                        - generic [ref=e1187]:
+                          - generic [ref=e1188]: DELIVERED
+                          - heading "สมาร์ทเทอร์ ไหมขัดฟัน 50ม. Smarter Dental Floss 50m" [level=4] [ref=e1189]
+                          - paragraph [ref=e1191]: "SKU: 8851234567890"
+                        - img [ref=e1192]
+                      - generic [ref=e1194]:
+                        - generic [ref=e1196]:
+                          - paragraph [ref=e1197]: "Qty:"
+                          - paragraph [ref=e1198]: "1"
+                        - generic [ref=e1199]:
+                          - paragraph [ref=e1200]: ฿65.00
+                          - paragraph [ref=e1201]: ฿65.00 each
+                  - generic [ref=e1204] [cursor=pointer]:
+                    - img "Tops Frozen Salmon Steak 200g" [ref=e1206]
+                    - generic [ref=e1207]:
+                      - generic [ref=e1208]:
+                        - generic [ref=e1209]:
+                          - generic [ref=e1210]: DELIVERED
+                          - heading "ท็อปส์ สเต็กแซลมอนแช่แข็ง 200ก. Tops Frozen Salmon Steak 200g" [level=4] [ref=e1211]
+                          - paragraph [ref=e1213]: "SKU: 8852345678901"
+                        - img [ref=e1214]
+                      - generic [ref=e1216]:
+                        - generic [ref=e1218]:
+                          - paragraph [ref=e1219]: "Qty:"
+                          - paragraph [ref=e1220]: "1"
+                        - generic [ref=e1221]:
+                          - paragraph [ref=e1222]: ฿159.00
+                          - paragraph [ref=e1223]: ฿159.00 each
+                  - generic [ref=e1226] [cursor=pointer]:
+                    - img "Tops Frozen Salmon Steak 200g" [ref=e1228]
+                    - generic [ref=e1229]:
+                      - generic [ref=e1230]:
+                        - generic [ref=e1231]:
+                          - generic [ref=e1232]: DELIVERED
+                          - heading "ท็อปส์ สเต็กแซลมอนแช่แข็ง 200ก. Tops Frozen Salmon Steak 200g" [level=4] [ref=e1233]
+                          - paragraph [ref=e1235]: "SKU: 8852345678901"
+                        - img [ref=e1236]
+                      - generic [ref=e1238]:
+                        - generic [ref=e1240]:
+                          - paragraph [ref=e1241]: "Qty:"
+                          - paragraph [ref=e1242]: "1"
+                        - generic [ref=e1243]:
+                          - paragraph [ref=e1244]: ฿159.00
+                          - paragraph [ref=e1245]: ฿159.00 each
+                  - generic [ref=e1248] [cursor=pointer]:
+                    - img "Tops Frozen Salmon Steak 200g" [ref=e1250]
+                    - generic [ref=e1251]:
+                      - generic [ref=e1252]:
+                        - generic [ref=e1253]:
+                          - generic [ref=e1254]: DELIVERED
+                          - heading "ท็อปส์ สเต็กแซลมอนแช่แข็ง 200ก. Tops Frozen Salmon Steak 200g" [level=4] [ref=e1255]
+                          - paragraph [ref=e1257]: "SKU: 8852345678901"
+                        - img [ref=e1258]
+                      - generic [ref=e1260]:
+                        - generic [ref=e1262]:
+                          - paragraph [ref=e1263]: "Qty:"
+                          - paragraph [ref=e1264]: "1"
+                        - generic [ref=e1265]:
+                          - paragraph [ref=e1266]: ฿159.00
+                          - paragraph [ref=e1267]: ฿159.00 each
+                  - generic [ref=e1270] [cursor=pointer]:
+                    - img "Tops Frozen Salmon Steak 200g" [ref=e1272]
+                    - generic [ref=e1273]:
+                      - generic [ref=e1274]:
+                        - generic [ref=e1275]:
+                          - generic [ref=e1276]: DELIVERED
+                          - heading "ท็อปส์ สเต็กแซลมอนแช่แข็ง 200ก. Tops Frozen Salmon Steak 200g" [level=4] [ref=e1277]
+                          - paragraph [ref=e1279]: "SKU: 8852345678901"
+                        - img [ref=e1280]
+                      - generic [ref=e1282]:
+                        - generic [ref=e1284]:
+                          - paragraph [ref=e1285]: "Qty:"
+                          - paragraph [ref=e1286]: "1"
+                        - generic [ref=e1287]:
+                          - paragraph [ref=e1288]: ฿159.00
+                          - paragraph [ref=e1289]: ฿159.00 each
+                  - generic [ref=e1292] [cursor=pointer]:
+                    - img "N&P Hom Banana 1kg" [ref=e1294]
+                    - generic [ref=e1295]:
+                      - generic [ref=e1296]:
+                        - generic [ref=e1297]:
+                          - generic [ref=e1298]: DELIVERED
+                          - heading "เอ็น แอนด์ พี กล้วยหอม 1กก. N&P Hom Banana 1kg" [level=4] [ref=e1299]
+                          - paragraph [ref=e1301]: "SKU: 8853456789012"
+                        - img [ref=e1302]
+                      - generic [ref=e1304]:
+                        - generic [ref=e1306]:
+                          - paragraph [ref=e1307]: "Qty:"
+                          - paragraph [ref=e1308]: "1"
+                        - generic [ref=e1309]:
+                          - paragraph [ref=e1310]: ฿55.00
+                          - paragraph [ref=e1311]: ฿55.00 each
+                  - generic [ref=e1314] [cursor=pointer]:
+                    - img "Thammachart Seafood Salmon Fillet 200g" [ref=e1316]
+                    - generic [ref=e1317]:
+                      - generic [ref=e1318]:
+                        - generic [ref=e1319]:
+                          - generic [ref=e1320]: DELIVERED
+                          - heading "ธรรมชาติซีฟู้ด เนื้อแซลมอน 200ก. Thammachart Seafood Salmon Fillet 200g" [level=4] [ref=e1321]
+                          - paragraph [ref=e1323]: "SKU: 8854567890123"
+                        - img [ref=e1324]
+                      - generic [ref=e1326]:
+                        - generic [ref=e1328]:
+                          - paragraph [ref=e1329]: "Qty:"
+                          - paragraph [ref=e1330]: "1"
+                        - generic [ref=e1331]:
+                          - paragraph [ref=e1332]: ฿159.00
+                          - paragraph [ref=e1333]: ฿159.00 each
+                  - generic [ref=e1336] [cursor=pointer]:
+                    - img "Thammachart Seafood Salmon Fillet 200g" [ref=e1338]
+                    - generic [ref=e1339]:
+                      - generic [ref=e1340]:
+                        - generic [ref=e1341]:
+                          - generic [ref=e1342]: DELIVERED
+                          - heading "ธรรมชาติซีฟู้ด เนื้อแซลมอน 200ก. Thammachart Seafood Salmon Fillet 200g" [level=4] [ref=e1343]
+                          - paragraph [ref=e1345]: "SKU: 8854567890123"
+                        - img [ref=e1346]
+                      - generic [ref=e1348]:
+                        - generic [ref=e1350]:
+                          - paragraph [ref=e1351]: "Qty:"
+                          - paragraph [ref=e1352]: "1"
+                        - generic [ref=e1353]:
+                          - paragraph [ref=e1354]: ฿159.00
+                          - paragraph [ref=e1355]: ฿159.00 each
+                  - generic [ref=e1358] [cursor=pointer]:
+                    - img "Thammachart Seafood Salmon Fillet 200g" [ref=e1360]
+                    - generic [ref=e1361]:
+                      - generic [ref=e1362]:
+                        - generic [ref=e1363]:
+                          - generic [ref=e1364]: DELIVERED
+                          - heading "ธรรมชาติซีฟู้ด เนื้อแซลมอน 200ก. Thammachart Seafood Salmon Fillet 200g" [level=4] [ref=e1365]
+                          - paragraph [ref=e1367]: "SKU: 8854567890123"
+                        - img [ref=e1368]
+                      - generic [ref=e1370]:
+                        - generic [ref=e1372]:
+                          - paragraph [ref=e1373]: "Qty:"
+                          - paragraph [ref=e1374]: "1"
+                        - generic [ref=e1375]:
+                          - paragraph [ref=e1376]: ฿159.00
+                          - paragraph [ref=e1377]: ฿159.00 each
+                  - generic [ref=e1380] [cursor=pointer]:
+                    - img "Thammachart Seafood Salmon Fillet 200g" [ref=e1382]
+                    - generic [ref=e1383]:
+                      - generic [ref=e1384]:
+                        - generic [ref=e1385]:
+                          - generic [ref=e1386]: DELIVERED
+                          - heading "ธรรมชาติซีฟู้ด เนื้อแซลมอน 200ก. Thammachart Seafood Salmon Fillet 200g" [level=4] [ref=e1387]
+                          - paragraph [ref=e1389]: "SKU: 8854567890123"
+                        - img [ref=e1390]
+                      - generic [ref=e1392]:
+                        - generic [ref=e1394]:
+                          - paragraph [ref=e1395]: "Qty:"
+                          - paragraph [ref=e1396]: "1"
+                        - generic [ref=e1397]:
+                          - paragraph [ref=e1398]: ฿159.00
+                          - paragraph [ref=e1399]: ฿159.00 each
+                  - generic [ref=e1402] [cursor=pointer]:
+                    - img "Cubic Wheat Loaf 400g" [ref=e1404]
+                    - generic [ref=e1405]:
+                      - generic [ref=e1406]:
+                        - generic [ref=e1407]:
+                          - generic [ref=e1408]: DELIVERED
+                          - heading "คิวบิก ขนมปังโฮลวีท 400ก. Cubic Wheat Loaf 400g" [level=4] [ref=e1409]
+                          - paragraph [ref=e1411]: "SKU: 8855678901234"
+                        - img [ref=e1412]
+                      - generic [ref=e1414]:
+                        - generic [ref=e1416]:
+                          - paragraph [ref=e1417]: "Qty:"
+                          - paragraph [ref=e1418]: "1"
+                        - generic [ref=e1419]:
+                          - paragraph [ref=e1420]: ฿69.00
+                          - paragraph [ref=e1421]: ฿69.00 each
+                  - generic [ref=e1424] [cursor=pointer]:
+                    - img "Cubic Wheat Loaf 400g" [ref=e1426]
+                    - generic [ref=e1427]:
+                      - generic [ref=e1428]:
+                        - generic [ref=e1429]:
+                          - generic [ref=e1430]: DELIVERED
+                          - heading "คิวบิก ขนมปังโฮลวีท 400ก. Cubic Wheat Loaf 400g" [level=4] [ref=e1431]
+                          - paragraph [ref=e1433]: "SKU: 8855678901234"
+                        - img [ref=e1434]
+                      - generic [ref=e1436]:
+                        - generic [ref=e1438]:
+                          - paragraph [ref=e1439]: "Qty:"
+                          - paragraph [ref=e1440]: "1"
+                        - generic [ref=e1441]:
+                          - paragraph [ref=e1442]: ฿69.00
+                          - paragraph [ref=e1443]: ฿69.00 each
+      - contentinfo [ref=e137]:
+        - generic [ref=e139]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e145] [cursor=pointer]:
+    - img [ref=e146]
+  - alert [ref=e149]
+```

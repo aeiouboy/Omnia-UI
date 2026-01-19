@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
   ArrowLeft,
+  Ban,
   ChevronDown,
   PackageOpen,
   Search,
@@ -38,11 +39,17 @@ import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, ApiMetadata, ApiOrderItem } from "./order-management-hub" // Assuming Order and its sub-types are exported
+import { formatGMT7DateTime } from "@/lib/utils"
+import { formatCurrency } from "@/lib/currency-utils"
 import { DeliveryMethod } from "@/types/delivery"
-import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge } from "./order-badges";
+import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge, DeliveryTypeCodeBadge, getDeliveryTypeCodeLabel } from "./order-badges";
 import { AuditTrailTab } from "./order-detail/audit-trail-tab"
 import { FulfillmentTimeline } from "./order-detail/fulfillment-timeline"
 import { TrackingTab } from "./order-detail/tracking-tab"
+import { PaymentsTab } from "./order-detail/payments-tab"
+import { CancelOrderDialog } from "./order-detail/cancel-order-dialog"
+import { isOrderCancellable, getCancelDisabledReason } from "@/lib/order-status-utils"
+import { getCancelReasonById } from "@/lib/cancel-reasons"
 
 interface OrderDetailViewProps {
   order?: Order | null;
@@ -50,12 +57,21 @@ interface OrderDetailViewProps {
   orderId?: string;
 }
 
+// Helper function to map delivery codes to custom labels
+const getCustomDeliveryLabel = (code?: string): string => {
+  if (!code) return 'Standard';
+  const c = code.toUpperCase();
+  if (c.includes('EXP') || c.includes('FAST') || c.includes('1 HR')) return 'Express';
+  return 'Standard';
+}
+
 // Home Delivery Section Component
 interface HomeDeliverySectionProps {
   delivery: DeliveryMethod;
+  deliveryLabel?: string;
 }
 
-function HomeDeliverySection({ delivery }: HomeDeliverySectionProps) {
+function HomeDeliverySection({ delivery, deliveryLabel }: HomeDeliverySectionProps) {
   const details = delivery.homeDelivery;
   if (!details) return null;
 
@@ -66,7 +82,7 @@ function HomeDeliverySection({ delivery }: HomeDeliverySectionProps) {
         <div className="flex items-center gap-2">
           <Home className="h-5 w-5 text-blue-600" />
           <h4 className="font-medium text-gray-900">Home Delivery</h4>
-          <Badge className="bg-blue-100 text-blue-800 border-blue-300">DELIVERY</Badge>
+          <Badge className="bg-blue-100 text-blue-800 border-blue-300">{deliveryLabel || 'Standard'}</Badge>
         </div>
         <span className="text-sm text-gray-500">{delivery.itemCount} item{delivery.itemCount !== 1 ? 's' : ''}</span>
       </div>
@@ -107,9 +123,10 @@ function HomeDeliverySection({ delivery }: HomeDeliverySectionProps) {
 // Click & Collect Section Component
 interface ClickCollectSectionProps {
   delivery: DeliveryMethod;
+  deliveryLabel?: string;
 }
 
-function ClickCollectSection({ delivery }: ClickCollectSectionProps) {
+function ClickCollectSection({ delivery, deliveryLabel }: ClickCollectSectionProps) {
   const details = delivery.clickCollect;
   if (!details) return null;
 
@@ -120,7 +137,7 @@ function ClickCollectSection({ delivery }: ClickCollectSectionProps) {
         <div className="flex items-center gap-2">
           <Store className="h-5 w-5 text-purple-600" />
           <h4 className="font-medium text-gray-900">Click & Collect</h4>
-          <Badge className="bg-purple-100 text-purple-800 border-purple-300">PICKUP</Badge>
+          <Badge className="bg-purple-100 text-purple-800 border-purple-300">{deliveryLabel || 'Standard'}</Badge>
         </div>
         <span className="text-sm text-gray-500">{delivery.itemCount} item{delivery.itemCount !== 1 ? 's' : ''}</span>
       </div>
@@ -175,6 +192,27 @@ const formatOrderCreatedDate = (dateString?: string): string => {
   }
 }
 
+// Helper function to map customerTypeId to descriptive labels
+const getCustomerTypeLabel = (customerTypeId: string | undefined | null): string => {
+  if (!customerTypeId) return '-';
+
+  const clusterMapping: Record<string, string> = {
+    'cluster_1': 'Standard',
+    'cluster_2': 'Premium',
+    'cluster_3': 'Prime',
+    'cluster_4': 'VIP',
+  };
+
+  // Check if the ID is a cluster_X format
+  const clusterId = customerTypeId.toLowerCase().split(' ')[0]; // Handle "cluster_3 - Prime" format
+  if (clusterMapping[clusterId]) {
+    return `${clusterId} - ${clusterMapping[clusterId]}`;
+  }
+
+  // For non-cluster IDs, return as-is
+  return customerTypeId;
+};
+
 export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -183,6 +221,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const [copiedOrderId, setCopiedOrderId] = useState(false)
   const [allItemsExpanded, setAllItemsExpanded] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+
+  // Determine if order can be cancelled based on its status
+  const canCancelOrder = order?.status
+    ? isOrderCancellable(order.status)
+    : false
 
   const toggleItemExpansion = (sku: string) => {
     setExpandedItems((prev) => ({
@@ -225,18 +270,44 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     }
   }
 
+  const handleCancelOrder = async (reasonId: string) => {
+    setIsCancelling(true)
+    try {
+      // Note: In a real implementation, this would call an API to cancel the order
+      // For now, we simulate the cancellation with a delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const reason = getCancelReasonById(reasonId)
+      toast({
+        title: "Order Cancelled",
+        description: `Order ${order?.order_no} has been cancelled. Reason: ${reason?.shortDescription || reasonId}`,
+        variant: "default",
+      })
+      setShowCancelDialog(false)
+      // Note: In production, refresh order data here or update local state
+    } catch (error) {
+      toast({
+        title: "Cancellation Failed",
+        description: "Failed to cancel the order. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
   const filteredItems = order?.items
     ? order.items.filter((item: ApiOrderItem) => {
-        const searchTerm = itemSearchTerm.toLowerCase();
-        const productName = (item.product_name || '').toLowerCase();
-        const productSku = (item.product_sku || '').toLowerCase();
-        // product_details might contain description, but we don't have its type yet.
-        // For now, we'll only filter by name and SKU.
-        return (
-          productName.includes(searchTerm) ||
-          productSku.includes(searchTerm)
-        );
-      })
+      const searchTerm = itemSearchTerm.toLowerCase();
+      const productName = (item.product_name || '').toLowerCase();
+      const productSku = (item.product_sku || '').toLowerCase();
+      // product_details might contain description, but we don't have its type yet.
+      // For now, we'll only filter by name and SKU.
+      return (
+        productName.includes(searchTerm) ||
+        productSku.includes(searchTerm)
+      );
+    })
     : [];
 
   return (
@@ -255,13 +326,26 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               <p className="text-xs sm:text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={onClose} className="sm:hidden">
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowCancelDialog(true)}
+              disabled={!canCancelOrder || isCancelling}
+              className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
+              title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-        
+
         {/* Action Buttons - Mobile First Design */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        {/* <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3 flex-1">
             <Button variant="outline" size="sm" className="justify-center">
               <Download className="h-4 w-4 sm:mr-2" />
@@ -282,19 +366,21 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           <Button variant="outline" size="sm" onClick={onClose} className="hidden sm:flex">
             <X className="h-4 w-4" />
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* SLA Alert */}
-      {order?.sla_info?.status === "BREACH" && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-          <AlertDescription className="text-red-700">
-            <strong>SLA Breach:</strong> This order has exceeded the {order.sla_info.target_minutes}-minute processing target
-            by {order.sla_info.elapsed_minutes - order.sla_info.target_minutes} minutes.
-          </AlertDescription>
-        </Alert>
-      )}
+      {
+        order?.sla_info?.status === "BREACH" && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-700">
+              <strong>SLA Breach:</strong> This order has exceeded the {order.sla_info.target_minutes}-minute processing target
+              by {order.sla_info.elapsed_minutes - order.sla_info.target_minutes} minutes.
+            </AlertDescription>
+          </Alert>
+        )
+      }
 
       {/* Quick Info Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
@@ -343,15 +429,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto p-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Overview</TabsTrigger>
           <TabsTrigger value="items" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Items ({order?.items?.length || 0})</TabsTrigger>
+          <TabsTrigger value="payments" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Payments</TabsTrigger>
           <TabsTrigger value="fulfillment" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Fulfillment</TabsTrigger>
-          <TabsTrigger value="delivery" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Delivery</TabsTrigger>
+          {/* <TabsTrigger value="delivery" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Delivery</TabsTrigger> */}
           <TabsTrigger value="tracking" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Tracking</TabsTrigger>
-          <TabsTrigger value="timeline" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Timeline</TabsTrigger>
+          {/* <TabsTrigger value="timeline" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Timeline</TabsTrigger> */}
           <TabsTrigger value="audit" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap flex items-center gap-1">
             <History className="h-3 w-3 hidden sm:inline" />
             Audit Trail
           </TabsTrigger>
-          <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Notes</TabsTrigger>
+          {/* <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Notes</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -370,13 +457,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     <p className="text-sm text-enterprise-text-light">Name</p>
                     <p className="font-medium">{order?.customer?.name || '-'}</p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-enterprise-text-light">Customer ID</p>
                     <p className="font-mono text-sm">{order?.customer?.id || '-'}</p>
-                  </div>
+                  </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Customer Type</p>
-                    <p className="text-sm">{order?.customer?.customerType || '-'}</p>
+                    <p className="text-sm">{getCustomerTypeLabel(order?.customerTypeId)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Cust Ref</p>
@@ -427,17 +514,17 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                       </Button>
                     </div>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-enterprise-text-light">Payment Status</p>
                     <PaymentStatusBadge status={order?.payment_info?.status || '-'} />
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <p className="text-sm text-enterprise-text-light">Short Order ID</p>
                     <p className="font-mono text-sm">{order?.order_no || '-'}</p>
-                  </div>
+                  </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Store No.</p>
-                    <p className="font-medium">{order?.metadata?.store_no || order?.metadata?.store_name || '-'}</p>
+                    <p className="font-medium">{order?.metadata?.store_no || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order Created</p>
@@ -451,17 +538,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     <p className="text-sm text-enterprise-text-light">Business Unit</p>
                     <p className="font-medium">{order?.business_unit || '-'}</p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-enterprise-text-light">Order Type</p>
                     <Badge variant="outline">{order?.order_type || '-'}</Badge>
-                  </div>
+                  </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Full Tax Invoice</p>
                     <p className="text-sm">{order?.fullTaxInvoice ? 'Yes' : 'No'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-enterprise-text-light">Customer Type ID</p>
-                    <p className="font-mono text-sm">{order?.customerTypeId || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Selling Channel</p>
@@ -469,7 +552,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Allow Substitution</p>
-                    <p className="text-sm">{order?.allowSubstitution ? 'Yes' : 'No'}</p>
+                    <p className="text-sm">{order?.allow_substitution ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Tax ID</p>
@@ -496,6 +579,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Delivery Type Code - Commented out as per request
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-sm text-enterprise-text-light">Delivery Type</span>
+                  <div className="flex items-center gap-2">
+                    <DeliveryTypeCodeBadge deliveryTypeCode={order?.deliveryTypeCode} />
+                    <span className="text-xs text-muted-foreground">
+                      {getDeliveryTypeCodeLabel(order?.deliveryTypeCode)}
+                    </span>
+                  </div>
+                </div> */}
                 {order?.deliveryMethods && order.deliveryMethods.length > 0 ? (
                   <>
                     {/* Find home delivery and click collect methods */}
@@ -509,7 +602,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                           {/* Home Delivery Section */}
                           {homeDelivery && (
                             <div className={isMixed ? 'border-b border-gray-200 pb-4 mb-4' : ''}>
-                              <HomeDeliverySection delivery={homeDelivery} />
+                              <HomeDeliverySection
+                                delivery={homeDelivery}
+                                deliveryLabel={getCustomDeliveryLabel(order?.deliveryTypeCode)}
+                              />
                             </div>
                           )}
 
@@ -524,7 +620,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
                           {/* Click & Collect Section */}
                           {clickCollect && (
-                            <ClickCollectSection delivery={clickCollect} />
+                            <ClickCollectSection
+                              delivery={clickCollect}
+                              deliveryLabel={getCustomDeliveryLabel(order?.deliveryTypeCode)}
+                            />
                           )}
                         </>
                       );
@@ -558,32 +657,36 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Subtotal</span>
-                  <span className="text-sm font-mono">฿{order?.payment_info?.subtotal?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Discounts</span>
-                  <span className="text-sm font-mono">-฿{order?.payment_info?.discounts?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono text-red-600">-{formatCurrency(order?.payment_info?.discounts)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Charges</span>
-                  <span className="text-sm font-mono">฿{order?.payment_info?.charges?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.charges)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-enterprise-text-light">Shipping Fee</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.orderDeliveryFee)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Amount Included Taxes</span>
-                  <span className="text-sm font-mono">฿{order?.payment_info?.amountIncludedTaxes?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.amountIncludedTaxes)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Amount Excluded Taxes</span>
-                  <span className="text-sm font-mono">฿{order?.payment_info?.amountExcludedTaxes?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.amountExcludedTaxes)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Taxes</span>
-                  <span className="text-sm font-mono">฿{order?.payment_info?.taxes?.toFixed(2) || '0.00'}</span>
+                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.taxes)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center font-semibold">
                   <span>Total</span>
-                  <span className="text-lg font-mono">฿{order?.total_amount?.toFixed(2) || '0.00'}</span>
+                  <span className="text-lg font-mono">{formatCurrency(order?.total_amount)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -625,7 +728,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <CardContent className="px-3 sm:px-6">
               {filteredItems.length > 0 ? (
                 <div className="space-y-3">
-                  {filteredItems.map((item: ApiOrderItem) => {
+                  {filteredItems.map((item: ApiOrderItem, index) => {
                     // Helper function to get fulfillment status badge color
                     const getFulfillmentBadgeClass = (status?: string) => {
                       switch (status) {
@@ -638,7 +741,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     }
 
                     return (
-                      <Card key={item.product_sku} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
+                      <Card key={item.id || `${item.product_sku}-${index}`} className="border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
                         {/* Enhanced Item Header */}
                         <div
                           className="p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -678,17 +781,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     <p className="text-xs text-gray-500 font-mono">
                                       SKU: {item.product_sku || 'N/A'}
                                     </p>
-                                    {item.barcode && (
+                                    {/* {item.barcode && (
                                       <p className="text-xs text-gray-400 font-mono">
                                         | Barcode: {item.barcode}
                                       </p>
-                                    )}
+                                    )} */}
                                   </div>
                                 </div>
                                 <ChevronDown
-                                  className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 mt-1 ${
-                                    expandedItems[item.product_sku] ? "rotate-180" : ""
-                                  }`}
+                                  className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 mt-1 ${expandedItems[item.product_sku] ? "rotate-180" : ""
+                                    }`}
                                 />
                               </div>
 
@@ -711,7 +813,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     ฿{((item.unit_price || 0) * item.quantity).toFixed(2)}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    ฿{(item.unit_price || 0).toFixed(2)} each
+                                    each
                                   </p>
                                 </div>
                               </div>
@@ -720,191 +822,265 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                         </div>
 
                         {/* Collapsible Item Details - 3 Column Layout */}
-                        {expandedItems[item.product_sku] && (
-                          <div className="border-t border-gray-100 bg-gray-50">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-4">
-                              {/* Column 1 - Product Details */}
-                              <div className="p-3 sm:p-4">
-                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
-                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Product Details</h5>
+                        {expandedItems[item.product_sku] && (() => {
+                          const isPackUOM = ['PACK', 'BOX', 'SET', 'CASE', 'CTN', 'CARTON'].includes(item.uom?.toUpperCase() || '')
+                          return (
+                            <div className="border-t border-gray-100 bg-gray-50">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-4">
+                                {/* Column 1 - Product Details */}
+                                <div className="p-3 sm:p-4">
+                                  <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                    <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Product Details</h5>
+                                  </div>
+                                  <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">UOM</span>
+                                      <span className="text-gray-900 font-medium">{item.uom || 'EA'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Supply Type ID</span>
+                                      <span className="text-gray-900 font-medium">{item.supplyTypeId || 'N/A'}</span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Location</span>
+                                      <span className="text-gray-900 font-mono text-xs">{item.location || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Barcode</span>
+                                      <span className="text-gray-900 font-mono text-xs">{item.barcode || 'N/A'}</span>
+                                    </div> */}
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Substitution</span>
+                                      <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle</span>
+                                      <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle Ref Id</span>
+                                      <span className="text-gray-900 font-medium">{item.bundleRef || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Packed Ordered Qty</span>
+                                      <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Gift Wrapped</span>
+                                      <span className="text-gray-900 font-medium">{item.giftWrapped ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Gift Message</span>
+                                      <span className="text-gray-900 font-medium italic">
+                                        {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
+                                      </span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Brand</span>
+                                      <span className="text-gray-900 font-medium">{item.product_details?.brand || 'N/A'}</span>
+                                    </div> */}
+                                  </div>
                                 </div>
-                                <div className="space-y-3 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">UOM</span>
-                                    <span className="text-gray-900 font-medium">{item.uom || 'EA'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Supply Type ID</span>
-                                    <span className="text-gray-900 font-medium">{item.supplyTypeId || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Packed Ordered Qty</span>
-                                    <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Location</span>
-                                    <span className="text-gray-900 font-mono text-xs">{item.location || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Barcode</span>
-                                    <span className="text-gray-900 font-mono text-xs">{item.barcode || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Gift Wrapped</span>
-                                    <span className="text-gray-900 font-medium">{item.giftWrapped ? 'Yes' : 'No'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Gift Message</span>
-                                    <span className="text-gray-900 font-medium italic">
-                                      {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Substitution</span>
-                                    <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Brand</span>
-                                    <span className="text-gray-900 font-medium">{item.product_details?.brand || 'N/A'}</span>
-                                  </div>
-                                </div>
-                              </div>
 
-                              {/* Column 2 - Pricing & Promotions */}
-                              <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
-                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
-                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Pricing & Promotions</h5>
-                                </div>
-                                <div className="space-y-3 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Price</span>
-                                    <span className="text-gray-900 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
+                                {/* Column 2 - Pricing & Promotions */}
+                                <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
+                                  <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                    <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Pricing & Promotions</h5>
                                   </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Total</span>
-                                    <span className="text-gray-900 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Qty</span>
-                                    <span className="text-gray-900 font-medium">{item.quantity}</span>
-                                  </div>
-
-                                  {/* Promotions & Coupons Section */}
-                                  <div className="pt-2 border-t border-gray-200">
-                                    <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Promotions & Coupons</p>
-                                    {item.promotions && item.promotions.length > 0 ? (
-                                      <div className="space-y-2">
-                                        {item.promotions.map((promo, idx) => (
-                                          <div key={idx} className="bg-white p-2 rounded border border-gray-200 text-xs">
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500">Discount</span>
-                                              <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500">Promo ID</span>
-                                              <span className="text-gray-900 font-mono">{promo.promotionId}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-gray-500">Type</span>
-                                              <span className="text-gray-900">{promo.promotionType}</span>
-                                            </div>
-                                            {promo.secretCode && (
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-500">Code</span>
-                                                <span className="text-gray-900 font-mono">{promo.secretCode}</span>
-                                              </div>
+                                  <div className="space-y-3 text-sm">
+                                    {/* Weight-based conditional display */}
+                                    {(() => {
+                                      const hasWeight = item.weight && item.weight > 0;
+                                      return (
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                          {/* Row 1 */}
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Price</span>
+                                            <span className="text-green-600 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            {hasWeight ? (
+                                              <>
+                                                <span className="text-gray-500">Weight</span>
+                                                <span className="text-gray-900 font-medium">{item.weight} kg</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <span className="text-gray-500">Qty</span>
+                                                <span className="text-gray-900 font-medium">{item.quantity}</span>
+                                              </>
                                             )}
                                           </div>
-                                        ))}
-                                      </div>
-                                    ) : (
-                                      <p className="text-gray-400 text-xs">No promotions applied</p>
-                                    )}
-                                  </div>
+                                          {/* Row 2 */}
+                                          <div className="flex justify-between">
+                                            {hasWeight ? (
+                                              <>
+                                                <span className="text-gray-500">Weight (Actual)</span>
+                                                <span className="text-gray-900 font-medium">{item.actualWeight || item.weight} kg</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <span className="text-gray-500">Total</span>
+                                                <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                              </>
+                                            )}
+                                          </div>
+                                          <div className="flex justify-between">
+                                            {hasWeight ? (
+                                              <>
+                                                <span className="text-gray-500">Total</span>
+                                                <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                              </>
+                                            ) : (
+                                              <span></span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
 
-                                  <div className="flex justify-between pt-2">
-                                    <span className="text-gray-500">Gift with Purchase</span>
-                                    <span className="text-gray-900 font-medium">{item.giftWithPurchase || 'None'}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Column 3 - Fulfillment & Shipping */}
-                              <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
-                                <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
-                                  <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Fulfillment & Shipping</h5>
-                                </div>
-                                <div className="space-y-3 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Shipping Method</span>
-                                    <span className="text-gray-900 font-medium">{item.shippingMethod || 'Standard'}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-500">Fulfillment Status</span>
-                                    {item.fulfillmentStatus && (
-                                      <Badge className={`text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
-                                        {item.fulfillmentStatus}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">Bundle</span>
-                                    <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
-                                  </div>
-                                  {item.bundleRef && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-500">Bundle Ref</span>
-                                      <span className="text-gray-900 font-mono text-xs">{item.bundleRef}</span>
-                                    </div>
-                                  )}
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-500">ETA</span>
-                                    <span className="text-gray-900 text-xs text-right">
-                                      {item.eta ? `${item.eta.from.split(' ').slice(0, 3).join(' ')} - ${item.eta.to.split(' ').slice(0, 3).join(' ')}` : 'N/A'}
-                                    </span>
-                                  </div>
-
-                                  {/* Price Breakdown Section */}
-                                  {item.priceBreakdown && (
+                                    {/* Promotions & Coupons Section */}
                                     <div className="pt-2 border-t border-gray-200">
-                                      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Price Breakdown</p>
-                                      <div className="space-y-1 text-xs">
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Subtotal</span>
-                                          <span className="text-gray-900">฿{item.priceBreakdown.subtotal.toFixed(2)}</span>
+                                      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Promotions & Coupons</p>
+                                      {/* Item-level Promotions */}
+                                      {item.promotions && item.promotions.length > 0 && (
+                                        <div className="space-y-2">
+                                          {item.promotions.map((promo, idx) => (
+                                            <div key={promo.promotionId || `promo-${item.product_sku}-${idx}`} className="bg-white p-2 rounded border border-gray-200 text-xs">
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500">Discount</span>
+                                                <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500">{promo.couponId ? 'Coupon ID' : 'Promo ID'}</span>
+                                                <span className="text-gray-900 font-mono">{promo.couponId || promo.promotionId}</span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-gray-500">{promo.couponName ? 'Coupon Name' : 'Type'}</span>
+                                                <span className="text-gray-900">{promo.couponName || promo.promotionType}</span>
+                                              </div>
+                                              {promo.secretCode && !promo.couponId && (
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-500">Code</span>
+                                                  <span className="text-gray-900 font-mono">{promo.secretCode}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ))}
                                         </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Discount</span>
-                                          <span className="text-red-600">-฿{item.priceBreakdown.discount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Charges</span>
-                                          <span className="text-gray-900">฿{item.priceBreakdown.charges.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Amount Excl. Tax</span>
-                                          <span className="text-gray-900">฿{item.priceBreakdown.amountExcludedTaxes.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Taxes (7%)</span>
-                                          <span className="text-gray-900">฿{item.priceBreakdown.taxes.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-gray-500">Amount Incl. Tax</span>
-                                          <span className="text-gray-900">฿{item.priceBreakdown.amountIncludedTaxes.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between pt-1 border-t border-gray-300">
-                                          <span className="text-gray-700 font-semibold">Total</span>
-                                          <span className="text-green-600 font-semibold">฿{item.priceBreakdown.total.toFixed(2)}</span>
+                                      )}
+                                      {/* Empty state when no promotions */}
+                                      {!(item.promotions && item.promotions.length > 0) && (
+                                        <p className="text-gray-400 text-xs">No promotions or coupons applied</p>
+                                      )}
+                                    </div>
+
+                                    <div className="flex justify-between pt-2">
+                                      <span className="text-gray-500">Gift with Purchase</span>
+                                      <span className="text-gray-900 font-medium">{item.giftWithPurchase ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    {item.giftWithPurchase && (
+                                      <div className="flex justify-between pt-2">
+                                        <span className="text-gray-500">Gift with purchase item</span>
+                                        <span className="text-gray-900 font-medium">{item.giftWithPurchase}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Column 3 - Fulfillment & Shipping */}
+                                <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
+                                  <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
+                                    <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Fulfillment & Shipping</h5>
+                                  </div>
+                                  <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Shipping Method</span>
+                                      <span className="text-gray-900 font-medium">{item.shippingMethod || 'Standard'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-gray-500">Fulfillment Status</span>
+                                      {item.fulfillmentStatus && (
+                                        <Badge className={`text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
+                                          {item.fulfillmentStatus}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle</span>
+                                      <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
+                                    </div>
+                                    {item.bundleRef && (
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-500">Bundle Ref</span>
+                                        <span className="text-gray-900 font-mono text-xs">{item.bundleRef}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Route</span>
+                                      <span className="text-gray-900 font-medium">{item.route || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Booking Slot From</span>
+                                      <span className="text-gray-900 font-medium text-xs">
+                                        {item.bookingSlotFrom ? formatGMT7DateTime(item.bookingSlotFrom) : 'N/A'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Booking Slot To</span>
+                                      <span className="text-gray-900 font-medium text-xs">
+                                        {item.bookingSlotFrom ? formatGMT7DateTime(item.bookingSlotTo) : 'N/A'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">ETA</span>
+                                      <span className="text-gray-900 text-xs text-right">
+                                        {item.eta ? `${item.eta.from.split(' ').slice(0, 3).join(' ')} - ${item.eta.to.split(' ').slice(0, 3).join(' ')}` : 'N/A'}
+                                      </span>
+                                    </div>
+
+                                    {/* Price Breakdown Section */}
+                                    {item.priceBreakdown && (
+                                      <div className="pt-2 border-t border-gray-200">
+                                        <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold mb-2">Price Breakdown</p>
+                                        <div className="space-y-1 text-xs">
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Subtotal</span>
+                                            <span className="text-gray-900">฿{item.priceBreakdown.subtotal.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Discount</span>
+                                            <span className="text-red-600">-฿{item.priceBreakdown.discount.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Charges</span>
+                                            <span className="text-gray-900">฿{item.priceBreakdown.charges.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Amount Excl. Tax</span>
+                                            <span className="text-gray-900">฿{item.priceBreakdown.amountExcludedTaxes.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Taxes (7%)</span>
+                                            <span className="text-gray-900">฿{item.priceBreakdown.taxes.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-500">Amount Incl. Tax</span>
+                                            <span className="text-gray-900">฿{item.priceBreakdown.amountIncludedTaxes.toFixed(2)}</span>
+                                          </div>
+                                          <div className="flex justify-between pt-1 border-t border-gray-300">
+                                            <span className="text-gray-700 font-semibold">Total</span>
+                                            <span className="text-green-600 font-semibold">฿{item.priceBreakdown.total.toFixed(2)}</span>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )
+                        })()}
                       </Card>
                     )
                   })}
@@ -932,12 +1108,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </Card>
         </TabsContent>
 
+        <TabsContent value="payments" className="space-y-4">
+          {order && <PaymentsTab order={order} />}
+        </TabsContent>
+
         <TabsContent value="fulfillment" className="space-y-4">
           {/* Fulfillment Timeline */}
           <FulfillmentTimeline orderId={order?.id || ""} orderData={order} />
         </TabsContent>
 
-        <TabsContent value="delivery" className="space-y-4">
+        {/* <TabsContent value="delivery" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -990,13 +1170,13 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="tracking" className="space-y-4">
           <TrackingTab orderId={order?.id || ""} orderData={order} />
         </TabsContent>
 
-        <TabsContent value="timeline" className="space-y-4">
+        {/* <TabsContent value="timeline" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -1035,7 +1215,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="audit" className="space-y-4">
           <AuditTrailTab
@@ -1044,7 +1224,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           />
         </TabsContent>
 
-        <TabsContent value="notes" className="space-y-4">
+        {/* <TabsContent value="notes" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
@@ -1080,8 +1260,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
-    </div>
+
+      <CancelOrderDialog
+        open={showCancelDialog}
+        onOpenChange={setShowCancelDialog}
+        orderNo={order?.order_no || ''}
+        onConfirm={handleCancelOrder}
+        loading={isCancelling}
+      />
+    </div >
   );
 }

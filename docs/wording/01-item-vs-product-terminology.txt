@@ -1,0 +1,1 @@
+Standardize 'Item ID' to 'Product ID' across all pages. In Inventory Availability page (app/inventory-new/supply/page.tsx), change 'Item ID' search placeholder and table header to 'Product ID'. Update variable names from 'itemId' to 'productId' where appropriate for consistency.

@@ -196,6 +196,7 @@ export function UploadHistoryTable({
           {fileHistory.map((file) => (
             <TableRow
               key={file.id}
+              className="hover:bg-accent/50 transition-colors"
             >
               {/* File Name */}
               <TableCell>

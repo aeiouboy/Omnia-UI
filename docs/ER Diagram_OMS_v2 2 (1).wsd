@@ -1,0 +1,859 @@
+@startuml
+hide methods
+hide stereotypes
+skinparam linetype ortho
+skinparam ArrowColor #666
+skinparam class {
+  BackgroundColor White
+  BorderColor #333
+  FontSize 12
+}
+title oms-order ERD 
+
+' =======================
+' Tables (FULL COLUMNS)
+' =======================
+package "OMS-ORDER" {
+entity "orders" as orders {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255) <<UK>>
+  short_order_number : varchar(255)
+  customer_type_id : varchar(255)
+  customer_id : varchar(255)
+  customer_email : varchar(255)
+  customer_first_name : varchar(255)
+  customer_last_name : varchar(255)
+  customer_phone : varchar(255)
+  currency_code : varchar(255)
+  selling_channel : varchar(255)
+  org_id : varchar(255)
+  alternate_order_id : varchar(255)
+  max_fulfillment_status_id : varchar(255)
+  min_fulfillment_status_id : varchar(255)
+  order_sub_total : numeric(18, 4)
+  order_total : numeric(18, 4)
+  total_charges : numeric(18, 4)
+  total_discounts : numeric(18, 4)
+  total_taxes : numeric(18, 4)
+  cancelled_order_sub_total : numeric(18, 4)
+  is_on_hold : bool
+  cancel_allowed : bool
+  is_cancelled : bool
+  order_locale : varchar(255)
+  order_status : varchar(255)
+  fulfillment_status : varchar(255)
+  payment_status : varchar(255)
+  do_not_release_before : timestamptz
+  captured_date : timestamptz
+  doc_type : jsonb
+  order_hold : jsonb
+  order_actions : jsonb
+  order_extension1 : jsonb
+  order_charge_detail : jsonb
+  order_tax_detail : jsonb
+  order_type : jsonb
+  order_note : jsonb
+  cancel_reason : jsonb
+  change_log : jsonb
+  parent_id : int4
+  version : int4
+  is_active : bool
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "order_lines" as order_lines {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  order_line_id : varchar(255)
+  release_group_id : varchar(255)
+  shipping_method_id : varchar(255)
+  fulfillment_group_id : varchar(255)
+  max_fulfillment_status_id : varchar(255)
+  min_fulfillment_status_id : varchar(255)
+  ship_to_location_id : varchar(255)
+  ship_from_address_id : varchar(255)
+  item_id : varchar(255)
+  item_description : text
+  is_gift : bool
+  is_tax_included : bool
+  is_pre_order : bool
+  is_cancelled : bool
+  promised_delivery_date : timestamptz
+  small_image_uri : varchar(255)
+  uom : varchar(255)
+  quantity : numeric(18, 4)
+  unit_price : numeric(18, 4)
+  original_unit_price : numeric(18, 4)
+  order_line_sub_total : numeric(18, 4)
+  order_line_total : numeric(18, 4)
+  order_line_tax_total : numeric(18, 4)
+  max_appeasement_amount : numeric(18, 4)
+  total_discount_on_item : numeric(18, 4)
+  total_discounts : numeric(18, 4)
+  total_charges : numeric(18, 4)
+  cancelled_order_line_sub_total : numeric(18, 4)
+  cancelled_total_discounts : numeric(18, 4)
+  fulfillment_status : varchar(255)
+  order_line_status : varchar(255)
+  delivery_method : jsonb
+  order_line_note : jsonb
+  order_line_charge_detail : jsonb
+  order_line_tax_detail : jsonb
+  order_line_promising_info : jsonb
+  ship_to_address : jsonb
+  order_line_extension1 : jsonb
+  change_log : jsonb
+  parent_id : int4
+  version : int4
+  is_active : bool
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+  original_uom : varchar(255)
+  request_weight : numeric(18, 4)
+  actual_weight : numeric(18, 4)
+}
+
+entity "quantity_details" as quantity_details {
+  * id : serial4 <<PK>>
+  --
+  order_line_id : varchar(255)
+  order_id : varchar(255)
+  quantity_detail_id : varchar(255) <<UK>>
+  status_id : varchar(50)
+  process : varchar(100)
+  item_id : varchar(255)
+  quantity : int4
+  uom : varchar(20)
+  reason : varchar(255)
+  reason_type : varchar(100)
+  substitution_ratio : numeric(18, 4)
+  substitution_type : varchar(100)
+  web_url : varchar(500)
+  org_id : varchar(50)
+  status : jsonb
+  change_log : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(100)
+  updated_by : varchar(100)
+  original_uom : varchar(255)
+  is_weight_item : bool
+}
+
+package "PAYMENT" {
+entity "payments" as payments {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  payment_id : varchar(255) <<UK>>
+  org_id : varchar(255)
+  customer_id : varchar(255)
+  payment_group_id : varchar(255)
+  status_id : varchar(255)
+  message : text
+  is_anonymized : bool
+  is_cancelled : bool
+  purge_date : timestamptz
+  actions : jsonb
+  processing_mode : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "payment_methods" as payment_methods {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  payment_id : varchar(255)
+  payment_method_id : varchar(255)
+  messages : text
+  currency_code : varchar(255)
+  alternate_currency_amount : varchar(255)
+  account_number : varchar(255)
+  account_display_number : varchar(255)
+  name_on_card : varchar(255)
+  swipe_data : varchar(255)
+  card_expiry_month : varchar(255)
+  card_expiry_year : varchar(255)
+  gift_card_pin : varchar(25)
+  customer_signature : varchar(255)
+  customer_pay_signature : varchar(255)
+  charge_sequence : varchar(255)
+  routing_number : varchar(255)
+  routing_display_number : varchar(255)
+  check_number : varchar(255)
+  drivers_license_number : varchar(255)
+  drivers_license_state : varchar(255)
+  drivers_license_country : varchar(255)
+  business_name : varchar(255)
+  business_tax_id : varchar(255)
+  check_quantity : varchar(255)
+  original_amount : varchar(255)
+  parent_order_id : varchar(255)
+  parent_payment_group_id : varchar(255)
+  parent_payment_method_id : varchar(255)
+  gateway_account_id : varchar(255)
+  location_id : varchar(255)
+  transaction_reference_id : varchar(255)
+  org_id : varchar(255)
+  entry_type_id : varchar(255)
+  gateway_id : varchar(255)
+  captured_source : varchar(255)
+  shopper_reference : varchar(255)
+  suggested_amount : varchar(255)
+  purge_date : varchar(255)
+  account_type : varchar(255)
+  payment_category : varchar(255)
+  amount : numeric(18, 4)
+  current_auth_amount : numeric(18, 4)
+  current_settled_amount : numeric(18, 4)
+  current_refund_amount : numeric(18, 4)
+  current_failed_amount : numeric(18, 4)
+  merchandise_amount : numeric(18, 4)
+  change_amount : numeric(18, 4)
+  conversion_rate : numeric(18, 4)
+  captured_in_edge_mode : bool
+  is_suspended : bool
+  is_voided : bool
+  is_copied : bool
+  is_modifiable : bool
+  actions : jsonb
+  billing_address : jsonb
+  payment_method_attribute : jsonb
+  payment_method_encr_attribute : jsonb
+  payment_type : jsonb
+  card_type : jsonb
+  extended : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "payment_transactions" as payment_transactions {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  payment_method_id : varchar(255)
+  payment_transaction_id : varchar(255)
+  is_activation : bool
+  is_active : bool
+  is_copied : bool
+  is_valid_for_refund : bool
+  reconciliation_id : varchar(255)
+  request_id : varchar(255)
+  request_token : varchar(255)
+  processed_amount : numeric(18, 4)
+  requested_amount : numeric(18, 4)
+  transaction_date : timestamptz
+  payment_response_status : jsonb
+  status : jsonb
+  transmission_status : jsonb
+  transaction_type : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+}
+
+entity "allocations" as allocations {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  order_line_id : varchar(255)
+  allocation_id : varchar(255)
+  allocation_type : varchar(255)
+  status_id : varchar(255)
+  ship_from_location_id : varchar(255)
+  org_id : varchar(255)
+  item_id : varchar(255)
+  quantity : numeric(18, 4)
+  uom : varchar(255)
+  carrier_code : varchar(255)
+  allocated_on : timestamptz
+  reservation_request_id : varchar(255)
+  reservation_request_detail_id : varchar(255)
+  ship_to_location_id : varchar(255)
+  country_of_origin : varchar(255)
+  inventory_segment_id : varchar(255)
+  inventory_type_id : varchar(255)
+  substitution_type_id : varchar(255)
+  allocation_dependency_id : varchar(255)
+  group_id : varchar(255)
+  product_status_id : varchar(255)
+  ship_via_id : varchar(255)
+  asn_id : varchar(255)
+  asn_detail_id : varchar(255)
+  service_level_code : varchar(255)
+  process : varchar(255)
+  batch_number : varchar(255)
+  is_virtual : bool
+  earliest_delivery_date : timestamptz
+  earliest_ship_date : timestamptz
+  committed_delivery_date : timestamptz
+  committed_ship_date : timestamptz
+  latest_ship_date : timestamptz
+  latest_release_date : timestamptz
+  extended : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+  original_uom : varchar(255)
+  is_weight_item : bool
+  promising_request_id : varchar(255)
+  promising_request_detail_id : varchar(255)
+  po_id : varchar(255)
+  po_detail_id : varchar(255)
+  release_date : timestamptz
+  supply_type : varchar(255)
+}
+
+entity "releases" as releases {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  release_id : varchar(255) <<UK>>
+  org_id : varchar(255)
+  ship_from_location_id : varchar(255)
+  carrier_code : varchar(255)
+  delivery_method_id : varchar(255)
+  ship_to_location_id : varchar(255)
+  ship_via_id : varchar(255)
+  release_type : varchar(255)
+  process : varchar(255)
+  service_level_code : varchar(255)
+  destination_action : varchar(255)
+  effective_rank : int4
+  release_extension_1 : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "release_lines" as release_lines {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  order_line_id : varchar(255)
+  release_id : varchar(255)
+  release_line_id : varchar(255)
+  allocation_id : varchar(255)
+  org_id : varchar(255)
+  item_id : varchar(255)
+  quantity : numeric(18, 4)
+  uom : varchar(255)
+  fulfilled_quantity : numeric(18, 4)
+  cancelled_quantity : numeric(18, 4)
+  effective_rank : int4
+  process : varchar(255)
+  cancelled_date : timestamptz
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+  original_uom : varchar(255)
+  is_weight_item : bool
+}
+
+entity "fulfillment_details" as fulfillment_details {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  order_line_id : varchar(255)
+  release_id : varchar(255)
+  release_line_id : varchar(255)
+  fulfillment_id : varchar(255)
+  fulfillment_group_id : varchar(255)
+  event_type_id : varchar(255)
+  item_id : varchar(255)
+  quantity : numeric(18, 4)
+  uom : varchar(255)
+  status_id : varchar(255)
+  short_reason_id : varchar(255)
+  fulfillment_info : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+  original_uom : varchar(255)
+  is_weight_item : bool
+}
+
+package "PROMISING" {
+entity "promising_configurations" as promising_configurations {
+  * id : serial4 <<PK>>
+  --
+  org_id : varchar(255)
+  delivery_method : varchar(255)
+  delivery_method_id : varchar(255)
+  order_type_id : varchar(255)
+  shipping_method_id : varchar(255)
+  promising_config_name : varchar(255)
+  is_force_allocate : bool
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "promisings" as promisings {
+  * id : serial4 <<PK>>
+  --
+  promising_request_id : varchar(255) <<UK>>
+  requested_delivery_date : varchar(255)
+  request_type : varchar(255)
+  shipping_method_id : varchar(255)
+  is_confirmed : bool
+  reservation_expiry_date : timestamptz
+  delivery_method_id : varchar(255)
+  promising_config_name : varchar(255)
+  promising_request_status : varchar(255)
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "promising_details" as promising_details {
+  * id : serial4 <<PK>>
+  --
+  promising_request_id : varchar(255)
+  delivery_method_id : varchar(255)
+  item_id : varchar(255)
+  promising_request_detail_id : varchar(255)
+  quantity : int4
+  uom : varchar(255)
+  ship_from_location_id : varchar(255)
+  ship_to_location_id : varchar(255)
+  address : jsonb
+  created_at : timestamptz
+  updated_at : timestamptz
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+}
+
+' =======================
+' Master / Tracking
+' =======================
+
+package "MASTER" {
+
+entity "master_locations" as master_locations {
+  * location_id : varchar(100) <<PK>>
+  --
+  location_name : varchar(255)
+  location_type : varchar(8)
+  location_group : varchar(50)
+  address : varchar(500)
+  latitude : decimal(10,8)
+  longitude : decimal(10,8)
+  working_hour_start : time 
+  working_hour_end : time
+  operation_processing_time : number
+  status : varchar(30)
+  labor_cost : decimal(10,2)
+  location_sequence : varchar(20)
+  created_at : timestamp
+  updated_at : timestamp
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+
+entity "location_zones" as location_zones {
+  * id : serial4 <<PK>>
+  --
+  location_id : varchar(100)
+  county : varchar(100)
+  postal_code : varchar(100)
+  created_at : timestamp
+  updated_at : timestamp
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+}
+
+entity "order_tracking" as order_tracking {
+  * id : serial4 <<PK>>
+  --
+  order_id : varchar(255)
+  order_line_id : varchar(255)
+  order_attribute : jsonb
+  package_id : varchar(255)
+  shipment_id : varchar(255)
+  fulfillment_id : varchar(255)
+  release_id : varchar(255)
+  release_line_id : varchar(255)
+  tracking_number : varchar(255)
+  carrier_code : varchar(30)
+  tracking_detail_id : varchar(255)
+  tracking_date : datetime
+  city : varchar(255)
+  state : varchar(255)
+  postal_code : varchar(20)
+  country : varchar(100)
+  status : varchar(255)
+  status_sub_type : varchar(255)
+  status_description : varchar(255)
+  tracking_url : varchar(500)
+  created_at : timestamp
+  updated_at : timestamp
+  created_by : varchar(255)
+  updated_by : varchar(255)
+}
+}
+
+'============== Start QC ==============
+package "QC-ADAPTER" {
+ENTITY "PIM_MASTER_PRODUCT_BASE_INFO" AS adtMasPrdInfo {
+    * ID : serial4 <<PK>>
+    ---
+    PARENT_ID : serial4 <<FK>>
+    ---
+    * BARCODE : varchar{13}
+    * DESCRIPTION : varchar{max}
+    * IS_PACK_ITEM : boolean
+     PARENT_BARCODE : varchar{13}
+     PARENT_UOM : varchar{20}
+    * PACKQUANTITY : integer
+    * STATUS : ENUM{Active, Inactive} <product_status>
+    * IS_SOLD_BY_WEIGHT : boolean
+    * WEIGHT_VALUE : float
+    * WEIGHT_UNIT : varchar{8}
+    * IS_SELL_BY_PROMO_PRICE : boolean
+     IS_ROUND_UP : boolean
+    * NAME_TH : varchar{256}
+    * NAME_EN : varchar{256}
+    * IMAGE_URL : varchar{256}
+    * SHORT_DESCRIPTION : varchar{256}
+    * item_id : varchar{50}
+     bu_code : varchar{5}
+     sku_code : varchar{255}
+     SUPPLIER_BARCODE : varchar{13}
+     IS_RETURNABLE : boolean
+     IS_DIGITAL_PRODUCT : boolean
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "PIM_MASTER_PRODUCT_CHANNEL_INFO" AS adtMasPrdChan {
+    * ID : serial4 <<PK>>
+    ---
+    * PRODUCT_ID : serial4 <<FK>>
+    CATEGORY_PK_ID : varchar{64} <<FK>>
+    SUBCATEGORY_PK_ID : varchar{64} <<FK>>
+    ---
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+    * BARCODE : varchar{13}
+    * NAME_TH : varchar{256}
+    * NAME_EN : varchar{256}
+     EXTERNAL_ITEM_ID : varchar{50}
+    PHOTO_URLS : json
+    STOCK_ALLOCATION : integer
+     WEIGHT_COUNT : integer
+     WEIGHT_VALUE : float
+     WEIGHT_UNIT : varchar{8}
+    ORDER_MAX_COUNT : integer
+    * STATUS : varchar{16}
+    EFFECTIVE_START_DATE : date
+    EFFECTIVE_END_DATE : date
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "PIM_LOV_PRODUCT_CATEGORY_SEQUENCE" AS adtLovCatOrd {
+    * ID : serial4 <<PK>>
+    ---
+     STORE_BU_CODE : varchar{3}
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+    * STORE_FORMAT : ENUM{e.g. tops_food_hall, tops_market, pet_n_me ,etc..} <store_format>
+    * CATEGORY_SEQUENCE : jsonb
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+entity "PIM_LOV_PRODUCT_CATEGORY" as adtLovCat {
+    * ID : serial4 <<PK>>
+    ---
+     PARENT_ID : varchar{64} <<FK>>
+    ---
+     STORE_BU_CODE : varchar{3}
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+    * CATEGORY_ID : varchar{64}
+    * CATEGORY_NAME : varchar{80}
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+} 
+
+ENTITY "PLPP_MASTER_PRICE" AS adtMasPrice {
+    * ID : serial4 <<PK>>
+    ---
+    * LOCATION_ID : varchar{4}
+    * BARCODE : varchar{13}
+    * NORMAL_PRICE : decimal{15,2}
+    * PROMO_PRICE : decimal{15,2}
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+entity "safety_stock_level" as safety_stock_level {
+    * location_id : varchar(100)
+    * item_id : varchar(50)
+    * channel : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+    --
+    safety_stock : integer
+    created_at : timestamp
+    updated_at : timestamp
+    created_by : varchar(255)
+    updated_by : varchar(255)
+}
+
+ENTITY "INV_MASTER_STOCK" AS adtMasStock {
+    * ID : serial4 <<PK>>
+    ---
+    * LOCATION_ID : varchar{50}
+    * BARCODE : varchar{13}
+    * item_id : varchar{50}
+    * STOCK_ON_HAND : integer
+    * SAFETY_STOCK : integer
+    * SUPPLY_TYPE : varchar{255}
+    * STATUS : varchar{255}
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+
+ENTITY "PIM_CONFIG_GRABMART_PRODUCT_DUMMY" AS adtCfgGmPrdDummy { 
+    * ID : serial4 <<PK>>
+    ---
+    CATEGORY_PK_ID : serial4 <<FK>>
+    SUBCATEGORY_PK_ID : serial4 <<FK>>
+    ---
+    * BARCODE : varchar{13}
+    * NAME_TH : varchar{256}
+    * NAME_EN : varchar{256}
+    PHOTO_URLS : json
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "PLPP_TRANSACTION_GRABMART_PROMOTION" AS adtTrnGmPrm #lightgrey {
+    * ID : serial4 <<PK>> 
+    ---
+    * LOCATION_ID : serial4 <<FK>>
+    ---
+    * BATCH_ID : varchar{50}
+    * BARCODE : varchar{13}
+    * PROMO_METHOD : varchar{20}
+    * PROMO_GROUP : varchar{20}
+     PROMO_TYPE : varchar{50}
+    * PROMO_NO : varchar{50}
+     START_DATE : timestamp
+     END_DATE : timestamp
+     NORMAL_PRICE : decimal{15,2}
+     PROMO_PRICE : decimal{15,2}
+     DISCOUNT_AMOUNT : decimal{15,2}
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "CHANNEL_MASTER_STORE_INFO" AS adtMasChnInfo {
+    * ID : serial4 <<PK>>
+    ---
+    * SELLER_ID : varchar{16}
+    * SELLER_NAME : varchar{255}
+    * LOCATION_ID : varchar{4} 
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+     STORE_BU_CODE : varchar{3}
+    * STORE_FORMAT : ENUM{e.g. tops_food_hall, tops_market, pet_n_me ,etc..} <store_format>
+    * STATUS : ENUM{Active, Inactive} <status>
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "CHANNEL_CONFIG_STORE_FORMAT" AS adtCfgAssort {
+    * STORE_FORMAT : ENUM{e.g. tops_food_hall, tops_market, pet_n_me ,etc..} <store_format>  <<PK>>
+    * PRODUCT_ID : serial4 <<PK>>
+    ---
+    * BARCODE : varchar{13}
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "CHANNEL_MASTER_STORE_ASSORTMENT" AS adMasAssortment{
+    * ID : serial4 <<PK>>
+    ---
+    * STORE_PK_ID : serial4 <<FK>>
+    * PRODUCT_ID : serial4 <<FK>>
+    * PRODUCT_CHANNEL_ID : serial4 <<FK>>
+    * PRICE_ID : serial4 <<FK>>
+    * STOCK_ID : serial4 <<FK>>
+    ---
+    * SELLER_ID : varchar{16}
+    * LOCATION_ID : varchar{4}
+    * BARCODE : varchar{13}
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+}
+
+ENTITY "PIM_CONFIG_PRODUCT_SELL_SCHEDULE" AS adtCfgPrdSellSchd {
+    * ID : serial4 <<PK>>
+    ---
+    * PRODUCT_ID : serial4 <<FK>>
+    ---
+    * BARCODE : varchar{13}
+    * SELL_OPEN_TIME : time
+    * SELL_CLOSE_TIME : time
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "EXTERNAL_TRANSACTION_PRODUCT_INFO" AS extTrnPrdInfo #darkgrey {
+    * ID : serial4 <<PK>>
+    ---
+    * REQUEST_ID : varchar{50}
+    * CHANNEL : ENUM{grabmart, lineman, gokoo, shopeemart} <channel>
+    * STORE_BU_CODE : varchar{3}
+    * SOURCE : jsonb
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+ENTITY "PLPP_CONFIG_GRABMART_CAMPAIGN" AS adtCfgGmCamp #lightgrey {
+    * ID : serial4 <<PK>>
+    ---
+    * PROMOTION_TYPE : varchar{50}
+    * PROMOTION_GROUP : varchar{20}
+     PROMOTION_NAME : time
+     CUSTOM_TAG : varchar{100}
+     BUNDLE_QUANTITY : integer
+    * CREATED_BY : varchar{255}
+    * CREATED_AT : timestamp
+    UPDATED_BY : varchar{255}
+    UPDATED_AT : timestamp
+}
+
+adtMasPrdInfo ||..|| adtMasPrdInfo : [PARENT_ID > ID]\n(Pack item to individual)
+adtMasPrdChan }|..|| adtLovCat : [CATEGORY_ID, SUBCATEGORY_ID]
+adtLovCat ||..|| adtLovCat : [PARENT_ID > ID]
+adtMasPrdInfo ||..|{ adtMasPrdChan : [BARCODE]
+adtCfgGmPrdDummy }|..|| adtLovCat : [ID : CATEGORY_PK_ID, SUBCATEGORY_PK_ID]
+adtMasChnInfo }|..|| adtCfgAssort : [STORE_FORMAT]
+adMasAssortment }|..|| adtMasPrdInfo: [PRODUCT_ID > ID]
+adMasAssortment ||..|| adtMasPrdChan: [PRODUCT_CHANNEL_ID > ID]
+adMasAssortment }|..|| adtMasStock: [STOCK_ID > ID]
+adMasAssortment }|..|| adtMasPrice: [PRICE_ID > ID]
+adMasAssortment ||..|| adtMasChnInfo: [STORE_PK_ID > ID]
+adtLovCat ||..|{ adtLovCatOrd: [ORDERING > ID]
+adtMasChnInfo ||..|{ adtTrnGmPrm : [LOCATION_ID]
+adtCfgGmCamp ||..|{ adtTrnGmPrm : [PROMOTION_TYPE]
+adtMasChnInfo ||..|| adtLovCatOrd : [STORE_FORMAT]
+adtMasPrdInfo ||..|| adtCfgPrdSellSchd : [PRODUCT_ID > ID]
+adtMasPrdChan --- extTrnPrdInfo : update external_item_id, ..
+}
+'============== End QC ==============
+
+' =======================
+' Relationships (LOGICAL / INFERRED)
+' =======================
+
+orders ||--o{ order_lines : "order_id"
+orders ||--o{ payments : "order_id"
+orders ||--o{ payment_methods : "order_id"
+payments ||--o{ payment_methods : "payment_id"
+
+orders ||--o{ payment_transactions : "order_id"
+payment_methods ||--o{ payment_transactions : "payment_method_id"
+
+orders ||--o{ allocations : "order_id"
+order_lines ||--o{ allocations : "order_line_id"
+
+orders ||--o{ releases : "order_id"
+orders ||--o{ release_lines : "order_id"
+order_lines ||--o{ release_lines : "order_line_id"
+releases ||--o{ release_lines : "release_id"
+allocations ||--o{ release_lines : "allocation_id"
+
+orders ||--o{ fulfillment_details : "order_id"
+order_lines ||--o{ fulfillment_details : "order_line_id"
+releases ||--o{ fulfillment_details : "release_id"
+release_lines ||--o{ fulfillment_details : "release_line_id"
+
+orders ||--o{ quantity_details : "order_id"
+order_lines ||--o{ quantity_details : "order_line_id"
+
+promisings ||--o{ promising_details : "promising_request_id"
+promising_configurations ||--o{ promisings : "promising_config_name"
+promisings ||--o{ allocations : "promising_request_id"
+promising_details ||--o{ allocations : "promising_request_detail_id"
+
+orders ||--o{ orders : "parent_id (self)"
+
+' Master references (logical)
+adtMasPrdInfo ||--o{ order_lines : "item_id"
+adtMasPrdInfo ||--o{ quantity_details : "item_id"
+adtMasPrdInfo ||--o{ allocations : "item_id"
+adtMasPrdInfo ||--o{ release_lines : "item_id"
+adtMasPrdInfo ||--o{ fulfillment_details : "item_id"
+adtMasPrdInfo ||--o{ promising_details : "item_id"
+
+master_locations ||--o{ location_zones: "location_id"
+safety_stock_level ||--o{ adtMasStock : "location_id"
+safety_stock_level ||--o{ adtMasStock : "item_id"
+
+master_locations ||--o{ order_lines : "ship_to_location_id"
+master_locations ||--o{ allocations : "ship_from_location_id"
+master_locations ||--o{ allocations : "ship_to_location_id"
+master_locations ||--o{ releases : "ship_from_location_id"
+master_locations ||--o{ releases : "ship_to_location_id"
+master_locations ||--o{ promising_details : "ship_from_location_id"
+master_locations ||--o{ promising_details : "ship_to_location_id"
+
+' Tracking references (logical)
+orders ||--o{ order_tracking : "order_id"
+order_lines ||--o{ order_tracking : "order_line_id"
+releases ||--o{ order_tracking : "release_id"
+release_lines ||--o{ order_tracking : "release_line_id"
+fulfillment_details ||--o{ order_tracking : "fulfillment_id"
+
+
+'Inventory
+adtMasStock ||--o{ allocations: "location_id->ship_from_location_id"
+adtMasStock ||--o{ allocations: "item_id"
+
+@enduml

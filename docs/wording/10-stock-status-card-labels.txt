@@ -1,0 +1,1 @@
+Standardize KPI card titles for stock status. In Stock Card (app/inventory-new/stores/page.tsx) commented summary cards section, ensure labels are 'Low Stock Items' and 'Out of Stock Items' (not 'Stores with Low Stock'). In Inventory Management (app/inventory-new/page.tsx), verify KPI cards use 'Low Stock' and 'Out of Stock' consistently.

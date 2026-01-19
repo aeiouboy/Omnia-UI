@@ -326,7 +326,7 @@ export function EnhancedFilterPanel({
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap gap-2 mt-3 p-3 bg-blue-50 rounded-lg">
             {getFilterSummary().map((filter, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
+              <Badge key={`filter-summary-${index}`} variant="secondary" className="text-xs">
                 {filter}
               </Badge>
             ))}
@@ -389,7 +389,7 @@ export function EnhancedFilterPanel({
                 <div className="space-y-2">
                   {smartSuggestions.map((suggestion, index) => (
                     <button
-                      key={index}
+                      key={`suggestion-${index}`}
                       onClick={suggestion.action}
                       className="block w-full text-left text-sm text-yellow-700 hover:text-yellow-900 hover:bg-yellow-100 p-2 rounded transition-colors"
                     >

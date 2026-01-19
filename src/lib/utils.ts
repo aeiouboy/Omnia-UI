@@ -6,12 +6,23 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Simple time formatting function that should always work
-export function formatGMT7TimeString(): string {
+export function formatGMT7TimeString(date?: Date | string | number): string {
   try {
-    return new Date().toLocaleString("en-US", {
+    let inputDate: Date
+    if (date === undefined || date === null) {
+      inputDate = new Date()
+    } else if (date instanceof Date) {
+      inputDate = date
+    } else {
+      inputDate = new Date(date)
+      if (isNaN(inputDate.getTime())) {
+        inputDate = new Date()
+      }
+    }
+    return inputDate.toLocaleString("en-US", {
       timeZone: "Asia/Bangkok",
       hour: "2-digit",
-      minute: "2-digit", 
+      minute: "2-digit",
       second: "2-digit",
       hour12: false,
     })
@@ -61,7 +72,7 @@ export function formatGMT7DateString(date?: Date | string | number): string {
 }
 
 export function formatGMT7DateTime(date?: Date | string | number): string {
-  return `${formatGMT7DateString(date)} ${formatGMT7TimeString()}`
+  return `${formatGMT7DateString(date)} ${formatGMT7TimeString(date)}`
 }
 
 export function safeParseDate(dateValue: any): Date {
@@ -128,4 +139,32 @@ export function safeToISOString(
 
   // Return valid ISO string
   return dateObj.toISOString()
+}
+
+/**
+ * Generate a unique React key combining multiple fallback values
+ * @param values - Array of potential key values, first non-empty is used
+ * @param prefix - Optional prefix for the key
+ * @param index - Fallback index if all values are empty
+ * @returns A unique string suitable for use as a React key
+ *
+ * @example
+ * // Use with array map
+ * items.map((item, index) => (
+ *   <div key={generateUniqueKey([item.id, item.sku], 'product', index)}>
+ *     {item.name}
+ *   </div>
+ * ))
+ */
+export function generateUniqueKey(
+  values: (string | number | undefined | null)[],
+  prefix: string = 'item',
+  index?: number
+): string {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== '') {
+      return `${prefix}-${value}`;
+    }
+  }
+  return `${prefix}-${index ?? Math.random().toString(36).substr(2, 9)}`;
 }

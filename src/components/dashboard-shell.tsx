@@ -161,14 +161,12 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <div className="text-sm hidden sm:block text-white/80">
                 <span className="text-white/70">Last updated:</span> <span className="text-white/90">{isMounted ? currentTime : "--:--:--"}</span>
               </div>
-              {/* Organization selector with label */}
-              <div className="hidden sm:flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60 mb-1">Organization</span>
+              {/* Organization selector */}
+              <div className="hidden sm:block">
                 <OrganizationSelector />
               </div>
-              {/* Profile section with label */}
-              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60 mb-1 hidden sm:block">Profile</span>
+              {/* Profile section */}
+              <div>
                 <UserNav />
               </div>
             </div>

@@ -1,0 +1,1 @@
+Standardize search field placeholders to use 'Search [FieldName]...' pattern. Update all search input placeholders across pages to follow consistent format: 'Search Product ID...', 'Search Product Name...', 'Search Store ID...', 'Search Store Name...', 'Search Barcode...' in files: app/inventory-new/supply/page.tsx, app/inventory-new/stores/page.tsx, app/inventory-new/page.tsx.

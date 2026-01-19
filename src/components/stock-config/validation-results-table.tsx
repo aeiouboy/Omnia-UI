@@ -96,12 +96,12 @@ export function ValidationResultsTable({
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <span className="text-sm text-gray-500">Valid:</span>
-              <Badge className="bg-green-100 text-green-800">{parseResult.validRows}</Badge>
+              <Badge className="bg-green-600 text-white hover:bg-green-700">{parseResult.validRows}</Badge>
             </div>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <span className="text-sm text-gray-500">Invalid:</span>
-              <Badge className="bg-red-100 text-red-800">{parseResult.invalidRows}</Badge>
+              <Badge className="bg-red-600 text-white hover:bg-red-700">{parseResult.invalidRows}</Badge>
             </div>
             {parseResult.warnings.length > 0 && (
               <div className="flex items-center gap-2">

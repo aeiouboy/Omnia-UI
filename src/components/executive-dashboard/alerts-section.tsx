@@ -154,7 +154,7 @@ function SLABreachSection({
       </div>
       
       {alerts.slice(0, 1).map((alert, index) => (
-        <div key={index} className="border-l-4 border-red-500 bg-white p-4 rounded-r-lg shadow-sm">
+        <div key={alert.id || alert.order_number || `alert-breach-${index}`} className="border-l-4 border-red-500 bg-white p-4 rounded-r-lg shadow-sm">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-600 mb-1">Order ID:</p>
@@ -206,7 +206,7 @@ function ApproachingSLASection({ alerts }: { alerts: OrderAlert[] }) {
       </div>
       
       {alerts.slice(0, 4).map((alert, index) => (
-        <div key={index} className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+        <div key={alert.id || alert.order_number || `alert-approaching-${index}`} className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">

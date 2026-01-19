@@ -1,0 +1,164 @@
+### Open tabs
+- 0: (current) [Central Group OMS] (http://localhost:3000/inventory-new/supply)
+- 1: [] (about:blank)
+- 2: [] (about:blank)
+- 3: [] (about:blank)
+- 4: [] (about:blank)
+- 5: [] (about:blank)
+- 6: [] (about:blank)
+- 7: [] (about:blank)
+- 8: [] (about:blank)
+- 9: [] (about:blank)
+- 10: [] (about:blank)
+
+### Page state
+- Page URL: http://localhost:3000/inventory-new/supply
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - generic [ref=e17]: Dashboard
+        - link "Order Search" [ref=e18] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e19]
+          - generic [ref=e22]: Order Search
+        - link "Order Analysis" [ref=e23] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e24]
+          - generic [ref=e26]: Order Analysis
+        - link "Inventory" [ref=e27] [cursor=pointer]:
+          - /url: /inventory
+          - img [ref=e28]
+          - generic [ref=e32]: Inventory
+        - generic [ref=e33]:
+          - button "Inventory Management" [ref=e34] [cursor=pointer]:
+            - generic [ref=e35]:
+              - img [ref=e36]
+              - generic [ref=e40]: Inventory Management
+            - img [ref=e42]
+          - generic [ref=e44]:
+            - link "Inventory Supply" [ref=e45] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e46]
+              - generic [ref=e48]: Inventory Supply
+            - link "Stock Card" [ref=e49] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e50]
+              - generic [ref=e52]: Stock Card
+            - link "Stock Config" [ref=e53] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e54]
+              - generic [ref=e56]: Stock Config
+        - link "ATC Config" [ref=e57] [cursor=pointer]:
+          - /url: /atc-config
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - link "Escalations" [ref=e63] [cursor=pointer]:
+          - /url: /escalations
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - link "Style Guide" [ref=e67] [cursor=pointer]:
+          - /url: /style-guide
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 22:59:32"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Inventory Supply" [level=1] [ref=e110]
+              - paragraph [ref=e111]: View and manage inventory supply levels across all stores and items
+            - button "Refresh" [ref=e113] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - img [ref=e117]
+                - textbox "Search Store ID..." [ref=e120]
+              - generic [ref=e121]:
+                - img [ref=e122]
+                - textbox "Search Store Name..." [ref=e125]
+              - generic [ref=e126]:
+                - img [ref=e127]
+                - textbox "Search Item ID..." [active] [ref=e130]: PROD-001
+              - generic [ref=e131]:
+                - img [ref=e132]
+                - textbox "Search Product Name..." [ref=e135]
+              - combobox [ref=e136] [cursor=pointer]:
+                - generic: All Types
+                - img [ref=e137]
+              - combobox [ref=e139] [cursor=pointer]:
+                - generic: All Views
+                - img [ref=e140]
+            - button "Clear All" [ref=e2368] [cursor=pointer]
+          - generic [ref=e143]:
+            - table [ref=e146]:
+              - rowgroup [ref=e147]:
+                - row "Store ID ↑ Store Name Item ID Product Name Quantity Available Qty Supply Type" [ref=e148]:
+                  - columnheader "Store ID ↑" [ref=e149] [cursor=pointer]:
+                    - generic [ref=e150]:
+                      - text: Store ID
+                      - generic [ref=e2369]: ↑
+                  - columnheader "Store Name" [ref=e152]
+                  - columnheader "Item ID" [ref=e153] [cursor=pointer]:
+                    - generic [ref=e154]: Item ID
+                  - columnheader "Product Name" [ref=e155]
+                  - columnheader "Quantity" [ref=e156] [cursor=pointer]:
+                    - generic [ref=e157]: Quantity
+                  - columnheader "Available Qty" [ref=e158] [cursor=pointer]:
+                    - generic [ref=e159]: Available Qty
+                  - columnheader "Supply Type" [ref=e160] [cursor=pointer]:
+                    - generic [ref=e161]: Supply Type
+              - rowgroup [ref=e162]:
+                - row "CFR1819 Tops Central World PROD-001 Fresh Vegetables Mix 245 220 On Hand Available" [ref=e1340]:
+                  - cell "CFR1819" [ref=e1341]
+                  - cell "Tops Central World" [ref=e1342]
+                  - cell "PROD-001" [ref=e1343]
+                  - cell "Fresh Vegetables Mix" [ref=e1344]
+                  - cell "245" [ref=e1345]:
+                    - generic [ref=e1346]: "245"
+                  - cell "220" [ref=e1347]:
+                    - generic [ref=e1348]: "220"
+                  - cell "On Hand Available" [ref=e1349]:
+                    - generic [ref=e1350]: On Hand Available
+            - generic [ref=e2352]:
+              - paragraph [ref=e2353]: 1 record displayed
+              - paragraph [ref=e2354]: Filtered from 199 total records
+      - contentinfo [ref=e2355]:
+        - generic [ref=e2357]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e2363] [cursor=pointer]:
+    - img [ref=e2364]
+  - alert [ref=e2367]
+```

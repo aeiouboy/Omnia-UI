@@ -10,13 +10,36 @@ export function formatCurrencyInt(amount: number | undefined | null, showCurrenc
   if (amount === undefined || amount === null || isNaN(amount)) {
     return showCurrency ? '฿0' : '0'
   }
-  
+
   // Round to nearest integer
   const roundedAmount = Math.round(amount)
-  
+
   // Format with Thai locale for thousand separators
   const formatted = roundedAmount.toLocaleString('th-TH')
-  
+
+  return showCurrency ? `฿${formatted}` : formatted
+}
+
+/**
+ * Format currency amount with decimals and Thai locale
+ * @param amount - The amount to format
+ * @param showCurrency - Whether to include the currency symbol
+ * @param decimals - Number of decimal places (default 2)
+ * @returns Formatted currency string
+ */
+export function formatCurrency(amount: number | undefined | null, showCurrency = true, decimals = 2): string {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    const zero = 0
+    const formattedZero = zero.toFixed(decimals)
+    return showCurrency ? `฿${formattedZero}` : formattedZero
+  }
+
+  // Format with Thai locale for thousand separators
+  const formatted = amount.toLocaleString('th-TH', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  })
+
   return showCurrency ? `฿${formatted}` : formatted
 }
 
@@ -30,10 +53,10 @@ export function formatCurrencyShort(amount: number | undefined | null, decimals 
   if (amount === undefined || amount === null || isNaN(amount)) {
     return '฿0'
   }
-  
+
   const absAmount = Math.abs(amount)
   const sign = amount < 0 ? '-' : ''
-  
+
   if (absAmount >= 1_000_000_000) {
     return `${sign}฿${(absAmount / 1_000_000_000).toFixed(decimals)}B`
   } else if (absAmount >= 1_000_000) {
@@ -41,7 +64,7 @@ export function formatCurrencyShort(amount: number | undefined | null, decimals 
   } else if (absAmount >= 1_000) {
     return `${sign}฿${(absAmount / 1_000).toFixed(decimals)}K`
   }
-  
+
   return `${sign}฿${Math.round(absAmount).toLocaleString('th-TH')}`
 }
 

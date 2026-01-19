@@ -26,6 +26,7 @@ import {
   Calendar as CalendarIcon,
   X,
   Download,
+  Plus,
 } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -36,6 +37,7 @@ import { StockConfigTable } from "@/components/stock-config/stock-config-table"
 import { ProcessingProgressModal } from "@/components/stock-config/processing-progress-modal"
 import { PostProcessingReport } from "@/components/stock-config/post-processing-report"
 import { UploadHistoryTable } from "@/components/stock-config/upload-history-table"
+import { StockConfigFormModal } from "@/components/stock-config/stock-config-form-modal"
 import {
   getStockConfigs,
   getFileHistory,
@@ -57,7 +59,7 @@ import type {
 import { useToast } from "@/hooks/use-toast"
 
 type SupplyTab = "all" | "PreOrder" | "OnHand"
-type SortField = "locationId" | "itemId" | "quantity" | "supplyTypeId" | "createdAt"
+type SortField = "locationId" | "itemId" | "quantity" | "supplyTypeId" | "channel" | "createdAt"
 
 export default function StockConfigPage() {
   const { toast } = useToast()
@@ -70,6 +72,8 @@ export default function StockConfigPage() {
 
   // Modal state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editingConfig, setEditingConfig] = useState<StockConfigItem | null>(null)
   const [validationModalOpen, setValidationModalOpen] = useState(false)
   const [currentParseResult, setCurrentParseResult] = useState<FileParseResult | null>(null)
 
@@ -97,6 +101,7 @@ export default function StockConfigPage() {
   const [locationIdFilter, setLocationIdFilter] = useState("")
   const [itemIdFilter, setItemIdFilter] = useState("")
   const [frequencyFilter, setFrequencyFilter] = useState<"all" | "Daily" | "One-time">("all")
+  const [channelFilter, setChannelFilter] = useState<"all" | "TOL" | "MKP" | "QC">("all")
   const [sortField, setSortField] = useState<SortField>("createdAt")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [uploadHistoryFilter, setUploadHistoryFilter] = useState<"all" | "pending" | "processed" | "error">("all")
@@ -129,6 +134,7 @@ export default function StockConfigPage() {
     return {
       supplyType,
       frequency: frequencyFilter === "all" ? "all" : frequencyFilter,
+      channel: channelFilter,
       locationIdFilter,
       itemIdFilter,
       page,
@@ -136,7 +142,7 @@ export default function StockConfigPage() {
       sortBy: sortField,
       sortOrder,
     }
-  }, [activeTab, frequencyFilter, locationIdFilter, itemIdFilter, page, pageSize, sortField, sortOrder])
+  }, [activeTab, frequencyFilter, channelFilter, locationIdFilter, itemIdFilter, page, pageSize, sortField, sortOrder])
 
   // Load data
   const loadData = useCallback(async (showLoadingState = true) => {
@@ -216,6 +222,11 @@ export default function StockConfigPage() {
 
   const handleFrequencyChange = (value: string) => {
     setFrequencyFilter(value as "all" | "Daily" | "One-time")
+    setPage(1)
+  }
+
+  const handleChannelChange = (value: string) => {
+    setChannelFilter(value as "all" | "TOL" | "MKP" | "QC")
     setPage(1)
   }
 
@@ -446,9 +457,49 @@ export default function StockConfigPage() {
     setUploadModalOpen(true)
   }
 
-  const handleViewConfig = (item: StockConfigItem) => {
-    // TODO: Implement view details modal
-    console.log("View config:", item)
+  const handleCreateSubmit = async (data: any) => {
+    try {
+      // Map data.channels to multiple items (one per channel)
+      const items = data.channels.map((channel: any) => ({
+        locationId: data.locationId,
+        itemId: data.itemId,
+        quantity: data.quantity,
+        supplyTypeId: data.supplyTypeId,
+        frequency: data.frequency,
+        channel: channel,
+        startDate: data.startDate || undefined,
+        endDate: data.endDate || undefined
+      }))
+
+      await saveStockConfig(items)
+
+      toast({
+        title: "Success",
+        description: `Configuration created for ${items.length} channel(s).`
+      })
+
+      // Refresh data
+      loadData(false)
+    } catch (error) {
+      console.error("Failed to create config:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create configuration.",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleEditConfig = (item: StockConfigItem) => {
+    setEditingConfig(item)
+    setCreateModalOpen(true)
+  }
+
+  const handleCreateModalOpenChange = (open: boolean) => {
+    setCreateModalOpen(open)
+    if (!open) {
+      setEditingConfig(null)
+    }
   }
 
   const handleDeleteConfig = (item: StockConfigItem) => {
@@ -593,6 +644,12 @@ export default function StockConfigPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
+            {/* Create Config button - hidden per user request
+            <Button onClick={() => setCreateModalOpen(true)} variant="secondary">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Config
+            </Button>
+            */}
             <Button onClick={() => setUploadModalOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
               Upload Config
@@ -702,56 +759,64 @@ export default function StockConfigPage() {
                   </div>
 
                   {/* Filters row - location/item filters + date range + frequency + supply type tabs */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                    <div className="flex flex-wrap gap-3 items-center">
                     {/* Location ID Filter */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter by Location ID"
-                        value={locationIdFilter}
-                        onChange={handleLocationIdChange}
-                        className="w-40 pl-9 pr-8 h-9 text-sm"
-                      />
-                      {locationIdFilter && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setLocationIdFilter("")
-                            setPage(1)
-                          }}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Clear location filter</span>
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Location</span>
+                      <div className="relative">
+                        <Input
+                          placeholder="Search Location ID..."
+                          value={locationIdFilter}
+                          onChange={handleLocationIdChange}
+                          className="min-w-[160px] h-9 text-sm"
+                        />
+                        {locationIdFilter && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setLocationIdFilter("")
+                              setPage(1)
+                            }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Clear location filter</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Item ID Filter */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Filter by Item ID"
-                        value={itemIdFilter}
-                        onChange={handleItemIdChange}
-                        className="w-40 pl-9 pr-8 h-9 text-sm"
-                      />
-                      {itemIdFilter && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setItemIdFilter("")
-                            setPage(1)
-                          }}
-                          className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Clear item filter</span>
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Item</span>
+                      <div className="relative">
+                        <Input
+                          placeholder="Search Item ID..."
+                          value={itemIdFilter}
+                          onChange={handleItemIdChange}
+                          className="min-w-[160px] h-9 text-sm"
+                        />
+                        {itemIdFilter && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setItemIdFilter("")
+                              setPage(1)
+                            }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Clear item filter</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Vertical Divider */}
+                    <div className="hidden lg:block h-8 w-px bg-border" />
 
                     {/* Date Range Filter */}
                     <div className="flex items-center gap-2">
@@ -825,6 +890,19 @@ export default function StockConfigPage() {
                       )}
                     </div>
 
+                    {/* Channel Dropdown */}
+                    <Select value={channelFilter} onValueChange={handleChannelChange}>
+                      <SelectTrigger className="w-[140px] h-9">
+                        <SelectValue placeholder="All Channels" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Channels</SelectItem>
+                        <SelectItem value="TOL">TOL</SelectItem>
+                        <SelectItem value="MKP">MKP</SelectItem>
+                        <SelectItem value="QC">QC</SelectItem>
+                      </SelectContent>
+                    </Select>
+
                     {/* Frequency Dropdown */}
                     <Select value={frequencyFilter} onValueChange={handleFrequencyChange}>
                       <SelectTrigger className="w-[180px] h-9">
@@ -843,6 +921,7 @@ export default function StockConfigPage() {
                       <TabsTrigger value="PreOrder">PreOrder</TabsTrigger>
                       <TabsTrigger value="OnHand">OnHand</TabsTrigger>
                     </TabsList>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -851,7 +930,7 @@ export default function StockConfigPage() {
                   items={filteredStockConfigs}
                   loading={loading}
                   onSort={handleSort}
-                  onView={handleViewConfig}
+                  onView={handleEditConfig}
                   onDelete={handleDeleteConfig}
                   sortBy={sortField}
                   sortOrder={sortOrder}
@@ -905,27 +984,30 @@ export default function StockConfigPage() {
               </div>
 
               {/* Filters row - search + date range + status tabs */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <div className="flex flex-wrap gap-3 items-center">
                 {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search files..."
-                    value={uploadHistorySearch}
-                    onChange={(e) => setUploadHistorySearch(e.target.value)}
-                    className="w-[180px] pl-9 pr-8 h-9"
-                  />
-                  {uploadHistorySearch && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setUploadHistorySearch("")}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Clear search</span>
-                    </Button>
-                  )}
+                <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">File</span>
+                  <div className="relative">
+                    <Input
+                      placeholder="Search files..."
+                      value={uploadHistorySearch}
+                      onChange={(e) => setUploadHistorySearch(e.target.value)}
+                      className="w-[180px] h-9 text-sm"
+                    />
+                    {uploadHistorySearch && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setUploadHistorySearch("")}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-transparent"
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Clear search</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Date Range Filter */}
@@ -1021,6 +1103,7 @@ export default function StockConfigPage() {
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -1044,6 +1127,13 @@ export default function StockConfigPage() {
         onUploadComplete={handleUploadComplete}
         onReviewResults={handleReviewResults}
         onStartProcessing={handleStartProcessing}
+      />
+
+      <StockConfigFormModal
+        open={createModalOpen}
+        onOpenChange={handleCreateModalOpenChange}
+        onSubmit={handleCreateSubmit}
+        initialData={editingConfig}
       />
 
       <ValidationResultsTable

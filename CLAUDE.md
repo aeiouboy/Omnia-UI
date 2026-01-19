@@ -146,6 +146,35 @@ const isNearBreach = remainingSeconds <= criticalThreshold && remainingSeconds >
 - Swipeable components using custom hooks in `hooks/`
 - Pull-to-refresh functionality where applicable
 
+### UI Consistency Standards
+
+**Search/Filter Input Widths**:
+- All search and filter input fields use `min-w-[160px]` minimum width
+- Prevents placeholder text truncation across all pages
+- Ensures consistent visual alignment in filter sections
+
+**Empty State Icon Sizes**:
+- Card-level empty states: `h-16 w-16` (64px) icons
+- Inline/table empty states: `h-12 w-12` (48px) icons
+- Consistent Package/BarChart3 icons with `text-muted-foreground/50` color
+
+**Clear All Button Styling**:
+- All "Clear All" buttons use `hover:bg-gray-100` hover effect
+- Provides subtle, consistent feedback for secondary actions
+- Applies across inventory, order management, and stock card pages
+
+**Dropdown Filter Widths**:
+- Short dropdowns (single field): `min-w-[160px]`
+- Medium dropdowns (e.g., Supply Types): `min-w-[160px]`
+- Long dropdowns with descriptions (View Types): `w-[280px]` (fixed width prevents layout shift)
+
+**Horizontal Scroll Indicators** (future enhancement):
+- Data tables with overflow should show visual scroll indicators
+- Helps users discover horizontal scrolling capability
+- Not yet fully implemented across all tables
+
+**Reference**: See `specs/chore-f5c2c63c-standardize-ui-patterns-global-consistency.md` for detailed implementation.
+
 ### Environment Configuration
 
 **Required Variables**:

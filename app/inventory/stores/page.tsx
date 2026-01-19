@@ -37,7 +37,7 @@ import type { StorePerformance } from "@/types/inventory"
 
 type FilterType = "all" | "critical" | "low"
 type ViewMode = "cards" | "table"
-type SortField = "storeName" | "totalProducts" | "lowStockItems" | "criticalStockItems" | "healthScore" | "storeStatus"
+type SortField = "storeName" | "storeId" | "totalProducts" | "lowStockItems" | "criticalStockItems" | "healthScore" | "storeStatus"
 type SortOrder = "asc" | "desc"
 
 function getHealthScoreColor(score: number): string {
@@ -52,8 +52,23 @@ function getHealthScoreBackground(score: number): string {
   return "bg-red-100"
 }
 
+import { useInventoryView } from "@/contexts/inventory-view-context"
+import { useOrganization } from "@/contexts/organization-context"
+
+// ... (imports remain)
+
 export default function StockByStorePage() {
   const router = useRouter()
+
+  // Get inventory view context
+  const {
+    selectedViewType,
+    channels: viewChannels,
+    businessUnit: viewBusinessUnit,
+  } = useInventoryView()
+
+  // Get organization context
+  const { selectedOrganization } = useOrganization()
 
   // State management
   const [storeData, setStoreData] = useState<StorePerformance[]>([])
@@ -64,7 +79,7 @@ export default function StockByStorePage() {
   // Filter state
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState<FilterType>("all")
-  const [viewMode, setViewMode] = useState<ViewMode>("cards")
+  const [viewMode, setViewMode] = useState<ViewMode>("table") // Default to table view
 
   // Sorting state
   const [sortField, setSortField] = useState<SortField>("criticalStockItems")
@@ -80,7 +95,14 @@ export default function StockByStorePage() {
     setError(null)
 
     try {
-      const response = await fetchStorePerformance()
+      // Create filters based on current context
+      const filters = {
+        view: selectedViewType || "all",
+        businessUnit: selectedOrganization !== 'ALL' ? selectedOrganization : (viewBusinessUnit || undefined),
+        channels: viewChannels.length > 0 ? viewChannels : undefined,
+      }
+
+      const response = await fetchStorePerformance(filters)
       setStoreData(response.stores)
     } catch (err) {
       console.error("Failed to load store performance data:", err)
@@ -93,7 +115,7 @@ export default function StockByStorePage() {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [selectedViewType])
 
   // Calculate summary statistics
   const summary = useMemo(() => {
@@ -131,6 +153,8 @@ export default function StockByStorePage() {
       switch (sortField) {
         case "storeName":
           return multiplier * a.storeName.localeCompare(b.storeName)
+        case "storeId":
+          return multiplier * (a.storeId || "").localeCompare(b.storeId || "")
         case "totalProducts":
           return multiplier * (a.totalProducts - b.totalProducts)
         case "lowStockItems":
@@ -250,19 +274,28 @@ export default function StockByStorePage() {
               Back to Inventory
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Stock by Store</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Stock Card</h1>
               <p className="text-muted-foreground">
-                View inventory performance and stock levels across all Tops stores
+                View inventory performance and stock levels across all store locations
               </p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <div className="flex flex-col gap-2 items-end">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadData(false)}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Summary KPI Cards */}
+        {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -271,7 +304,7 @@ export default function StockByStorePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary.totalStores}</div>
-              <p className="text-xs text-muted-foreground">Active Tops locations</p>
+              <p className="text-xs text-muted-foreground">Active locations</p>
             </CardContent>
           </Card>
 
@@ -325,6 +358,7 @@ export default function StockByStorePage() {
                 className="pl-9 w-[240px]"
               />
             </div>
+            {/* Filter buttons - hidden per user request
             <div className="flex gap-2">
               <Button
                 variant={filterType === "all" ? "default" : "outline"}
@@ -348,8 +382,9 @@ export default function StockByStorePage() {
                 Out of Stock ({summary.totalOutOfStock})
               </Button>
             </div>
+            */}
           </div>
-          {/* View Toggle */}
+          {/* View Toggle - hidden per user request, only table view shown
           <div className="flex gap-1 border rounded-md p-1">
             <Button
               variant={viewMode === "cards" ? "secondary" : "ghost"}
@@ -368,9 +403,10 @@ export default function StockByStorePage() {
               <List className="h-4 w-4" />
             </Button>
           </div>
+          */}
         </div>
 
-        {/* Store Cards Grid View */}
+        {/* Store Cards Grid View - hidden per user request
         {viewMode === "cards" && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredAndSortedStores.length === 0 ? (
@@ -401,11 +437,10 @@ export default function StockByStorePage() {
                               : "bg-gray-100 text-gray-600 border-gray-300 text-xs"
                           }
                         >
-                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${
-                            (store.storeStatus || 'Active') === 'Active'
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${(store.storeStatus || 'Active') === 'Active'
                               ? "bg-green-500"
                               : "bg-gray-400"
-                          }`} />
+                            }`} />
                           {store.storeStatus || 'Active'}
                         </Badge>
                         <Badge
@@ -418,7 +453,6 @@ export default function StockByStorePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Health Score Progress */}
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>Health Score</span>
@@ -429,12 +463,10 @@ export default function StockByStorePage() {
                         className={`h-2 ${store.healthScore >= 80 ? "[&>div]:bg-green-500" : store.healthScore >= 60 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"}`}
                       />
                     </div>
-
-                    {/* Stats Grid */}
                     <div className="grid grid-cols-3 gap-2">
                       <div className="text-center p-2 rounded-lg bg-gray-50">
                         <div className="text-lg font-bold">{store.totalProducts}</div>
-                        <div className="text-xs text-muted-foreground">Total SKUs</div>
+                        <div className="text-xs text-muted-foreground">Total Products</div>
                       </div>
                       <div className="text-center p-2 rounded-lg bg-yellow-50">
                         <div className="text-lg font-bold text-yellow-700">{store.lowStockItems}</div>
@@ -445,8 +477,6 @@ export default function StockByStorePage() {
                         <div className="text-xs text-red-600">Out of Stock</div>
                       </div>
                     </div>
-
-                    {/* View Store Button */}
                     <Button variant="outline" className="w-full" size="sm">
                       View Inventory
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -457,9 +487,11 @@ export default function StockByStorePage() {
             )}
           </div>
         )}
+        */}
 
         {/* Store Table View */}
-        {viewMode === "table" && (
+        {/* Always show table view since grid is hidden */}
+        {true && (
           <Card>
             <CardContent className="p-0">
               <div className="rounded-md border overflow-x-auto">
@@ -471,8 +503,17 @@ export default function StockByStorePage() {
                         onClick={() => handleSort("storeName")}
                       >
                         <div className="flex items-center">
-                          Store Name
+                          Store
                           <SortIcon field="storeName" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("storeId")}
+                      >
+                        <div className="flex items-center">
+                          Store ID
+                          <SortIcon field="storeId" />
                         </div>
                       </TableHead>
                       <TableHead
@@ -480,7 +521,7 @@ export default function StockByStorePage() {
                         onClick={() => handleSort("totalProducts")}
                       >
                         <div className="flex items-center justify-center">
-                          Total SKUs
+                          Total Products
                           <SortIcon field="totalProducts" />
                         </div>
                       </TableHead>
@@ -502,6 +543,7 @@ export default function StockByStorePage() {
                           <SortIcon field="criticalStockItems" />
                         </div>
                       </TableHead>
+                      {/* Health Score column - hidden per user request
                       <TableHead
                         className="text-center cursor-pointer hover:bg-muted/50"
                         onClick={() => handleSort("healthScore")}
@@ -511,6 +553,8 @@ export default function StockByStorePage() {
                           <SortIcon field="healthScore" />
                         </div>
                       </TableHead>
+                      */}
+                      {/* Store Status column - hidden per user request
                       <TableHead
                         className="text-center cursor-pointer hover:bg-muted/50"
                         onClick={() => handleSort("storeStatus")}
@@ -520,6 +564,7 @@ export default function StockByStorePage() {
                           <SortIcon field="storeStatus" />
                         </div>
                       </TableHead>
+                      */}
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -543,6 +588,9 @@ export default function StockByStorePage() {
                               <span className="font-medium">{store.storeName}</span>
                             </div>
                           </TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground">
+                            {store.storeId || "—"}
+                          </TableCell>
                           <TableCell className="text-center font-semibold">
                             {store.totalProducts}
                           </TableCell>
@@ -562,6 +610,7 @@ export default function StockByStorePage() {
                               {store.criticalStockItems}
                             </Badge>
                           </TableCell>
+                          {/* Health Score cell - hidden per user request
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-2">
                               <Progress
@@ -573,6 +622,8 @@ export default function StockByStorePage() {
                               </span>
                             </div>
                           </TableCell>
+                          */}
+                          {/* Store Status cell - hidden per user request
                           <TableCell className="text-center">
                             <Badge
                               variant="outline"
@@ -590,6 +641,7 @@ export default function StockByStorePage() {
                               {store.storeStatus || 'Active'}
                             </Badge>
                           </TableCell>
+                          */}
                           <TableCell>
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </TableCell>

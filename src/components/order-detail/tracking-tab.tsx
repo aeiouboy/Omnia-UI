@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Truck, Package, ExternalLink, Store } from "lucide-react"
-import { TrackingShipment, TrackingEvent, ShipmentStatus, CCTrackingShipment } from "@/types/audit"
+import { TrackingShipment, TrackingEvent, ShipmentStatus, CCTrackingShipment, ShippedItem } from "@/types/audit"
 import { generateTrackingData } from "@/lib/mock-data"
 import { CCShipmentDetailsSection } from "./cc-shipment-details-section"
 
@@ -157,6 +157,87 @@ function TrackingLinkSection({ shipment }: { shipment: TrackingShipment }) {
   )
 }
 
+/**
+ * CRC Tracking Link Section - Displays the CRC tracking link with label
+ */
+function CRCTrackingLinkSection({ trackingUrl }: { trackingUrl: string }) {
+  return (
+    <div className="mb-4">
+      <div className="flex items-start gap-2">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">CRC tracking link:</span>
+        <a
+          href={trackingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline break-all"
+        >
+          {trackingUrl}
+          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+        </a>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Shipped Items Section - Card-style list showing individual units
+ * Each unit is displayed as a separate row with product name, barcode, and qty badge
+ */
+function ShippedItemsSection({ shippedItems }: { shippedItems: ShippedItem[] }) {
+  // Expand aggregated items into individual unit entries
+  const expandedItems = useMemo(() => {
+    const items: Array<{ productName: string; sku: string; unitIndex: number; totalUnits: number }> = []
+    shippedItems.forEach((item) => {
+      const qty = item.shippedQty || 1
+      for (let i = 0; i < qty; i++) {
+        items.push({
+          productName: item.productName,
+          sku: item.sku,
+          unitIndex: i,
+          totalUnits: qty
+        })
+      }
+    })
+    return items
+  }, [shippedItems])
+
+  if (expandedItems.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="mb-4">
+      <h4 className="text-sm font-medium mb-2">Shipped Items</h4>
+      <div className="space-y-2">
+        {expandedItems.map((item, index) => (
+          <div
+            key={`${item.sku}-${index}`}
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-700"
+          >
+            {/* Left side - Product info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {item.productName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-mono">{item.sku}</span>
+                <span className="mx-1.5">•</span>
+                <span>1PCS</span>
+              </p>
+            </div>
+            {/* Right side - Qty badge */}
+            <div className="flex-shrink-0 ml-3">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                x1
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
   // Generate tracking data
   const shipments = useMemo(() => {
@@ -261,8 +342,18 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
                   <ShipmentDetailsSection shipment={shipment} />
                 )}
 
-                {/* External Tracking Link - Only if URL exists */}
-                {shipment.trackingUrl && (
+                {/* CRC Tracking Link - Only for Home Delivery with URL */}
+                {!isClickCollectShipment && shipment.trackingUrl && (
+                  <CRCTrackingLinkSection trackingUrl={shipment.trackingUrl} />
+                )}
+
+                {/* Shipped Items Table - Only if shippedItems exists */}
+                {shipment.shippedItems && shipment.shippedItems.length > 0 && (
+                  <ShippedItemsSection shippedItems={shipment.shippedItems} />
+                )}
+
+                {/* External Tracking Link for Click & Collect - Only if URL exists */}
+                {isClickCollectShipment && shipment.trackingUrl && (
                   <TrackingLinkSection shipment={shipment} />
                 )}
 

@@ -18,6 +18,7 @@ import type {
   FileParseResult,
   SupplyTypeID,
   Frequency,
+  Channel,
   ProcessingResult,
   PreSubmissionValidationResult,
   ErrorCode,
@@ -41,6 +42,7 @@ const mockStockConfigs: StockConfigItem[] = [
     quantity: 100,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
+    channel: "TOL",
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
@@ -51,6 +53,7 @@ const mockStockConfigs: StockConfigItem[] = [
     quantity: 50,
     supplyTypeId: "On Hand Available",
     frequency: "Daily",
+    channel: "MKP",
     startDate: "2024-01-20 10:00:00",
     endDate: "2024-02-20 18:00:00",
     createdAt: "2024-01-16T11:00:00Z",
@@ -63,6 +66,7 @@ const mockStockConfigs: StockConfigItem[] = [
     quantity: 200,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
+    channel: "QC",
     createdAt: "2024-01-17T09:00:00Z",
     updatedAt: "2024-01-17T09:00:00Z",
   },
@@ -73,6 +77,7 @@ const mockStockConfigs: StockConfigItem[] = [
     quantity: 999999,
     supplyTypeId: "On Hand Available",
     frequency: "Daily",
+    channel: "TOL",
     startDate: "2024-01-01 00:00:00",
     endDate: "2024-12-31 23:59:59",
     createdAt: "2024-01-18T14:00:00Z",
@@ -85,6 +90,7 @@ const mockStockConfigs: StockConfigItem[] = [
     quantity: 75,
     supplyTypeId: "PreOrder",
     frequency: "One-time",
+    channel: "MKP",
     createdAt: "2024-01-19T08:00:00Z",
     updatedAt: "2024-01-19T08:00:00Z",
   },
@@ -228,6 +234,7 @@ function mapHeaders(headers: string[]): Record<string, number> {
     quantity: ["quantity", "qty", "amount"],
     supplyTypeId: ["supplytypeid", "supply_type_id", "supplytype", "supply_type", "type"],
     frequency: ["frequency", "freq"],
+    channel: ["channel", "channel_code", "channelcode", "sales_channel"],
     startDate: ["startdate", "start_date", "start"],
     endDate: ["enddate", "end_date", "end"],
   }
@@ -306,6 +313,7 @@ function parseRow(
   const quantityStr = getValue("quantity")
   const supplyTypeId = getValue("supplyTypeId")
   const frequency = getValue("frequency")
+  const channel = getValue("channel")
   const startDate = getValue("startDate")
   const endDate = getValue("endDate")
 
@@ -343,6 +351,12 @@ function parseRow(
     errors.push({ row: rowNumber, field: "frequency", value: frequency, message: "Frequency must be 'One-time' or 'Daily'", severity: "error" })
   }
 
+  // Validate channel if provided (TOL, MKP, QC)
+  const validChannels: Channel[] = ["TOL", "MKP", "QC"]
+  if (channel && !validChannels.includes(channel as Channel)) {
+    errors.push({ row: rowNumber, field: "channel", value: channel, message: "Channel must be 'TOL', 'MKP', or 'QC'", severity: "error" })
+  }
+
   // Validate date fields for OnHand/On Hand Available type
   if (supplyTypeId === "OnHand" || supplyTypeId === "On Hand Available") {
     if (!startDate) {
@@ -372,6 +386,7 @@ function parseRow(
     quantity,
     supplyTypeId,
     frequency,
+    channel,
     startDate,
     endDate,
     isValid: errors.length === 0,
@@ -463,6 +478,10 @@ export async function getStockConfigs(
 
   if (filters?.frequency && filters.frequency !== "all") {
     filtered = filtered.filter((item) => item.frequency === filters.frequency)
+  }
+
+  if (filters?.channel && filters.channel !== "all") {
+    filtered = filtered.filter((item) => item.channel === filters.channel)
   }
 
   if (filters?.locationIdFilter) {
@@ -695,6 +714,7 @@ export const ERROR_MESSAGE_TEMPLATES: Record<ErrorCode, { template: string; seve
   INVALID_SUPPLY_TYPE: { template: "Supply Type must be PreOrder or On Hand Available", severity: "critical" },
   INVALID_FREQUENCY: { template: "Frequency must be One-time or Daily", severity: "critical" },
   QUANTITY_INVALID: { template: "Quantity must be a positive number", severity: "critical" },
+  INVALID_CHANNEL: { template: "Channel must be TOL, MKP, or QC", severity: "critical" },
 }
 
 /**
@@ -752,6 +772,11 @@ export function validateFilePreSubmission(rows: ParsedStockConfigRow[]): PreSubm
     // Validate frequency (business spec: "One-time" and "Daily")
     if (!row.frequency || !["One-time", "Daily", "Onetime"].includes(row.frequency)) {
       rowErrors.push({ row: row.rowNumber, field: "frequency", value: row.frequency, message: getErrorMessage("INVALID_FREQUENCY"), severity: "error" })
+    }
+
+    // Validate channel if provided (TOL, MKP, QC)
+    if (row.channel && !["TOL", "MKP", "QC"].includes(row.channel)) {
+      rowErrors.push({ row: row.rowNumber, field: "channel", value: row.channel, message: getErrorMessage("INVALID_CHANNEL"), severity: "error" })
     }
 
     // Validate date format for OnHand/On Hand Available type (supports both YYYY-MM-DD and YYYY-MM-DD HH:MM:SS)
@@ -938,6 +963,7 @@ export function generateErrorReport(results: ProcessingResult[]): Blob {
     "Quantity",
     "Supply Type",
     "Frequency",
+    "Channel",
     "Start Date",
     "End Date",
     "Status",
@@ -956,6 +982,7 @@ export function generateErrorReport(results: ProcessingResult[]): Blob {
       row.quantity ?? "",
       escapeCSV(row.supplyTypeId),
       escapeCSV(row.frequency),
+      escapeCSV(row.channel),
       escapeCSV(row.startDate),
       escapeCSV(row.endDate),
       result.status,

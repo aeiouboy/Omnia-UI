@@ -455,7 +455,7 @@ export function InteractiveChart({
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Insights</h4>
                 <div className="space-y-2">
                   {insights.map((insight, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-sm">
+                    <div key={`insight-${index}`} className="flex items-center space-x-2 text-sm">
                       <insight.icon className={`h-4 w-4 ${insight.color}`} />
                       <span className="text-gray-700">{insight.text}</span>
                     </div>

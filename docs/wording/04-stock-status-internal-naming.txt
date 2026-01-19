@@ -1,0 +1,1 @@
+Align stock status internal code values with display labels. In inventory types and services, rename 'critical' status to 'outOfStock', rename 'healthy' status to 'inStock'. Update all files that reference these status values: src/types/inventory.ts, src/lib/inventory-service.ts, app/inventory-new/page.tsx, and related components.

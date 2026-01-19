@@ -14,6 +14,7 @@ import {
   generateMockStockHistory,
   generateMockTransactions,
   generateStorePerformanceFromInventory,
+  filterMockTransactions,
   BRANDS,
 } from "./mock-inventory-data"
 import type {
@@ -27,6 +28,8 @@ import type {
   InventoryItemDB,
   StockTransaction,
   StockHistoryPoint,
+  TransactionHistoryFilters,
+  TransactionHistoryResponse,
 } from "@/types/inventory"
 
 /**
@@ -111,14 +114,18 @@ function applyFilters(
 
   // Filter by item type
   if (filters.itemType && filters.itemType !== "all") {
+    // Support both legacy "weight/unit" and specific item types
     if (filters.itemType === "weight") {
       filtered = filtered.filter((item) =>
         item.itemType === "weight" || item.itemType === "pack_weight"
       )
-    } else {
+    } else if (filters.itemType === "unit") {
       filtered = filtered.filter((item) =>
         item.itemType === "pack" || item.itemType === "normal"
       )
+    } else {
+      // Exact match for specific item types (pack, pack_weight, normal)
+      filtered = filtered.filter((item) => item.itemType === filters.itemType)
     }
   }
 
@@ -132,6 +139,14 @@ function applyFilters(
     filtered = filtered.filter((item) => item.brand === filters.brand)
   }
 
+  // Filter by view
+  // Note: We skip strict view filtering for mock data because mock items have randomized views.
+  // Filter by View Type (Strict filtering based on item.view assignment)
+  // This is critical because businessUnit and channels alone might be ambiguous in mock data
+  if (filters.view && filters.view !== "all") {
+    filtered = filtered.filter((item) => item.view === filters.view)
+  }
+
   // Filter by business unit
   if (filters.businessUnit) {
     filtered = filtered.filter((item) => item.businessUnit === filters.businessUnit)
@@ -139,12 +154,89 @@ function applyFilters(
 
   // Filter by channels
   if (filters.channels && filters.channels.length > 0) {
+    // Map ViewTypeChannel codes to InventoryChannels used in mock data
+    const mappedChannels: string[] = []
+
+    filters.channels.forEach(vc => {
+      if (vc === "TOL" || vc === "STD") mappedChannels.push("website")
+      if (vc === "MKP") mappedChannels.push("Shopee", "Lazada")
+      if (vc === "QC" || vc === "EXP") mappedChannels.push("Grab", "LINE MAN", "Gokoo", "Foodpanda")
+    })
+
     filtered = filtered.filter((item) =>
-      filters.channels!.some((channel) => item.channels?.includes(channel))
+      item.channels?.some((channel) => mappedChannels.includes(channel) || filters.channels!.includes(channel as any))
     )
   }
 
-  // Filter by search query
+  // Filter by inventory view (mandatory view filtering)
+  if (filters.inventoryView && filters.inventoryView !== "all-inventory") {
+    switch (filters.inventoryView) {
+      case "available-stock":
+        filtered = filtered.filter((item) => item.availableStock > 0)
+        break
+      case "low-stock":
+        filtered = filtered.filter((item) => item.status === "low")
+        break
+      case "out-of-stock":
+        filtered = filtered.filter((item) => item.status === "outOfStock")
+        break
+      case "reserved-stock":
+        filtered = filtered.filter((item) => item.reservedStock > 0)
+        break
+      case "damaged-quarantine":
+        filtered = filtered.filter((item) =>
+          item.warehouseLocations?.some(
+            (loc) => (loc.stockUnusable || 0) > 0 || (loc.stockOnHold || 0) > 0
+          )
+        )
+        break
+      // by-warehouse and by-channel use existing warehouseCode and channels filters
+    }
+  }
+
+  // Filter by product name search
+  if (filters.productNameSearch && filters.productNameSearch.trim() !== "") {
+    const query = filters.productNameSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.productName.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by barcode search
+  if (filters.barcodeSearch && filters.barcodeSearch.trim() !== "") {
+    const query = filters.barcodeSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      (item.barcode && item.barcode.toLowerCase().includes(query)) ||
+      item.productId.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by store ID search
+  if (filters.storeIdSearch && filters.storeIdSearch.trim() !== "") {
+    const query = filters.storeIdSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.storeId && item.storeId.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by store name search
+  if (filters.storeNameSearch && filters.storeNameSearch.trim() !== "") {
+    const query = filters.storeNameSearch.toLowerCase()
+    filtered = filtered.filter((item) =>
+      item.storeName && item.storeName.toLowerCase().includes(query)
+    )
+  }
+
+  // Filter by config status
+  if (filters.configStatus && filters.configStatus !== "all") {
+    if (filters.configStatus === "valid") {
+      filtered = filtered.filter((item) => item.stockConfigStatus === "valid")
+    } else if (filters.configStatus === "invalid") {
+      filtered = filtered.filter((item) => item.stockConfigStatus !== "valid")
+    }
+  }
+
+  // Legacy: Filter by search query (for backward compatibility)
   if (filters.searchQuery && filters.searchQuery.trim() !== "") {
     const query = filters.searchQuery.toLowerCase()
     filtered = filtered.filter(
@@ -329,7 +421,7 @@ export async function fetchInventoryData(
  *
  * @returns Promise<StorePerformanceResponse>
  */
-export async function fetchStorePerformance(): Promise<StorePerformanceResponse> {
+export async function fetchStorePerformance(filters?: InventoryFilters): Promise<StorePerformanceResponse> {
   try {
     if (isSupabaseAvailable()) {
       // Try to fetch aggregated store performance from database
@@ -342,9 +434,20 @@ export async function fetchStorePerformance(): Promise<StorePerformanceResponse>
     console.warn("Failed to fetch store performance from database:", error)
   }
 
-  // Generate store performance dynamically from inventory items
+  // Generate store performance dynamically from filtered inventory items
   // This ensures data consistency between store overview and detail views
-  const stores = generateStorePerformanceFromInventory()
+  let itemsToProcess = mockInventoryItems
+
+  // If filters are provided, filter the items first
+  if (filters) {
+    itemsToProcess = applyFilters(mockInventoryItems, filters)
+  }
+
+  const stores = generateStorePerformanceFromInventory(itemsToProcess)
+
+  // Use the count from filtered stores, or maybe the total of filtered items...
+  // The original implementation returned stores.length (number of stores).
+  // We want to return the performance metrics for the stores based on the filtered data.
 
   return {
     stores,
@@ -381,11 +484,11 @@ export async function fetchStockAlerts(
   }
 
   try {
-    // Fetch items with low or critical status from database
+    // Fetch items with low or outOfStock status from database
     let query = supabase!
       .from("inventory_items")
       .select("*")
-      .in("status", ["low", "critical"])
+      .in("status", ["low", "outOfStock"])
 
     const { data, error } = await query
 
@@ -405,9 +508,9 @@ export async function fetchStockAlerts(
       currentStock: item.currentStock,
       reorderPoint: item.reorderPoint,
       status: item.status,
-      severity: item.status === "critical" ? "critical" : "warning",
+      severity: item.status === "outOfStock" ? "critical" : "warning",
       message:
-        item.status === "critical"
+        item.status === "outOfStock"
           ? `Critical: Only ${item.currentStock} units remaining. Immediate reorder required.`
           : `Low stock: ${item.currentStock} units remaining. Consider reordering soon.`,
       createdAt: new Date().toISOString(),
@@ -448,22 +551,25 @@ export async function fetchStockAlerts(
 /**
  * Get inventory summary statistics
  *
- * This function calculates summary KPIs across ALL inventory items, not just
- * a single page. For mock data, we use mockInventoryItems directly for efficiency.
- * For Supabase, we fetch all items by setting a large pageSize.
+ * This function calculates summary KPIs based on the provided filters.
+ * For mock data, we apply filters to mockInventoryItems.
+ * For Supabase, we fetch filtered items.
+ *
+ * @param filters - Optional filter parameters (view, brand, etc.)
  */
-export async function fetchInventorySummary() {
+export async function fetchInventorySummary(filters?: InventoryFilters) {
   try {
     // For efficiency, use mockInventoryItems directly when Supabase is not available
-    // This ensures we count ALL items, not just the first page (default pageSize: 25)
+    // Apply filters to get accurate counts for the selected view
     if (!isSupabaseAvailable()) {
-      const items = mockInventoryItems
+      // Apply filters if provided, otherwise use all items
+      const items = filters ? applyFilters(mockInventoryItems, filters) : mockInventoryItems
 
       return {
         totalProducts: items.length,
-        healthyItems: items.filter((item) => item.status === "healthy").length,
+        healthyItems: items.filter((item) => item.status === "inStock").length,
         lowStockItems: items.filter((item) => item.status === "low").length,
-        criticalStockItems: items.filter((item) => item.status === "critical").length,
+        criticalStockItems: items.filter((item) => item.status === "outOfStock").length,
         totalInventoryValue: items.reduce(
           (sum, item) => sum + item.currentStock * item.unitPrice,
           0
@@ -471,8 +577,8 @@ export async function fetchInventorySummary() {
       }
     }
 
-    // For Supabase, fetch all items by setting a large pageSize
-    const data = await fetchInventoryData({ pageSize: 1000 })
+    // For Supabase, fetch filtered items by setting a large pageSize
+    const data = await fetchInventoryData({ ...filters, pageSize: 1000 })
     const items = data.items
 
     // Handle empty data gracefully
@@ -488,9 +594,9 @@ export async function fetchInventorySummary() {
 
     return {
       totalProducts: items.length,
-      healthyItems: items.filter((item) => item.status === "healthy").length,
+      healthyItems: items.filter((item) => item.status === "inStock").length,
       lowStockItems: items.filter((item) => item.status === "low").length,
-      criticalStockItems: items.filter((item) => item.status === "critical").length,
+      criticalStockItems: items.filter((item) => item.status === "outOfStock").length,
       totalInventoryValue: items.reduce(
         (sum, item) => sum + item.currentStock * item.unitPrice,
         0
@@ -607,6 +713,43 @@ export async function fetchRecentTransactions(
   // Use mock data generator
   const allTransactions = generateMockTransactions(productId)
   return allTransactions.slice(0, limit)
+}
+
+/**
+ * Fetch full transaction history for a product with pagination and filtering
+ *
+ * @param productId - Product ID or inventory item ID
+ * @param filters - Optional filter parameters (page, pageSize, dateFrom, dateTo, transactionType)
+ * @returns Promise<TransactionHistoryResponse>
+ */
+export async function fetchTransactionHistory(
+  productId: string,
+  filters?: TransactionHistoryFilters
+): Promise<TransactionHistoryResponse> {
+  try {
+    if (isSupabaseAvailable()) {
+      // TODO: Implement database query for full transaction history
+      // This would require a stock_transactions table with proper indexing
+      // Query should support:
+      // - Pagination (LIMIT/OFFSET)
+      // - Date range filtering (WHERE timestamp BETWEEN ...)
+      // - Transaction type filtering (WHERE type = ...)
+      // - Ordering (ORDER BY timestamp DESC)
+      console.info("Transaction history from database not yet implemented, using mock data")
+    }
+  } catch (error) {
+    console.warn("Failed to fetch transaction history from database:", error)
+  }
+
+  // Use mock data generator with filtering
+  const allTransactions = generateMockTransactions(productId)
+  return filterMockTransactions(allTransactions, {
+    page: filters?.page,
+    pageSize: filters?.pageSize,
+    dateFrom: filters?.dateFrom,
+    dateTo: filters?.dateTo,
+    transactionType: filters?.transactionType,
+  })
 }
 
 /**
