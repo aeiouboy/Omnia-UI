@@ -813,7 +813,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     ฿{((item.unit_price || 0) * item.quantity).toFixed(2)}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    ฿{(item.unit_price || 0).toFixed(2)} each
+                                    each
                                   </p>
                                 </div>
                               </div>
