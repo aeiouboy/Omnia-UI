@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { format } from "date-fns"
 import { DashboardShell } from "@/components/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Table,
   TableBody,
@@ -38,6 +41,8 @@ import {
   ChevronRight,
   TrendingUp,
   Activity,
+  Calendar as CalendarIcon,
+  X,
 } from "lucide-react"
 import { fetchStorePerformance } from "@/lib/inventory-service"
 import type { StorePerformance } from "@/types/inventory"
@@ -104,6 +109,12 @@ export default function StockByStorePage() {
   const [filterType, setFilterType] = useState<FilterType>("all")
   const [viewMode, setViewMode] = useState<ViewMode>("table") // Default to table view
 
+  // Date range state for mandatory date selection
+  const [dateRange, setDateRange] = useState<{ startDate: Date | undefined; endDate: Date | undefined }>({
+    startDate: undefined,
+    endDate: undefined,
+  })
+
   // Debounce ref for search inputs
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -116,13 +127,16 @@ export default function StockByStorePage() {
   const hasValidStoreNameSearch = storeNameSearch.trim().length >= MIN_SEARCH_CHARS
   const hasValidSearchCriteria = hasValidStoreIdSearch || hasValidStoreNameSearch
 
+  // Derived validation state for date range
+  const hasValidDateRange = dateRange.startDate !== undefined && dateRange.endDate !== undefined
+
+  // Derived validation for view type filter
+  const hasViewTypeFilter = selectedViewType && selectedViewType !== "all"
+
   // Load store performance data
   const loadData = async (showLoadingState = true) => {
-    // Check if either filter is active
-    const hasViewTypeFilter = selectedViewType && selectedViewType !== "all"
-
-    // Only show empty state when NEITHER filter is provided (with minimum character validation)
-    if (!hasViewTypeFilter && !hasValidSearchCriteria) {
+    // Require BOTH view type AND date range to be selected before fetching data
+    if (!hasViewTypeFilter || !hasValidDateRange) {
       if (!isContextLoading) {
         setLoading(false)
         setStoreData([])
@@ -169,7 +183,7 @@ export default function StockByStorePage() {
         clearTimeout(debounceTimeoutRef.current)
       }
     }
-  }, [selectedViewType, storeIdSearch, storeNameSearch, isContextLoading, hasValidSearchCriteria])
+  }, [selectedViewType, storeIdSearch, storeNameSearch, isContextLoading, hasValidSearchCriteria, hasValidDateRange, dateRange])
 
   // Calculate summary statistics
   const summary = useMemo(() => {
@@ -410,7 +424,7 @@ export default function StockByStorePage() {
         <div className="flex flex-wrap items-center gap-4">
           {/* View Type Filter - Primary Filter */}
           <Select value={selectedViewType || "all"} onValueChange={handleViewChange}>
-            <SelectTrigger className="w-[280px] h-10 bg-primary/5 border-primary/30">
+            <SelectTrigger className={`w-[280px] h-10 bg-primary/5 border-primary/30 ${!hasViewTypeFilter ? "border-orange-400 ring-1 ring-orange-400" : ""}`}>
               <SelectValue placeholder="All Views" />
             </SelectTrigger>
             <SelectContent>
@@ -426,11 +440,89 @@ export default function StockByStorePage() {
             </SelectContent>
           </Select>
 
+          {/* Date Range Filter */}
+          <div className="flex items-center gap-2">
+            {/* From Date Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`w-[130px] h-10 justify-start text-left font-normal ${
+                    !hasValidDateRange ? "border-orange-400 ring-1 ring-orange-400" : ""
+                  }`}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.startDate
+                    ? format(dateRange.startDate, "MMM d, yyyy")
+                    : "From"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateRange.startDate}
+                  onSelect={(date) =>
+                    setDateRange((prev) => ({ ...prev, startDate: date }))
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <span className="text-muted-foreground">-</span>
+
+            {/* To Date Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`w-[130px] h-10 justify-start text-left font-normal ${
+                    !hasValidDateRange ? "border-orange-400 ring-1 ring-orange-400" : ""
+                  }`}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.endDate
+                    ? format(dateRange.endDate, "MMM d, yyyy")
+                    : "To"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateRange.endDate}
+                  onSelect={(date) =>
+                    setDateRange((prev) => ({ ...prev, endDate: date }))
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Clear Date Button (show only when dates are set) */}
+            {(dateRange.startDate || dateRange.endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setDateRange({ startDate: undefined, endDate: undefined })
+                }
+                className="h-10 w-10 p-0"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Clear date filter</span>
+              </Button>
+            )}
+          </div>
+
           {/* Vertical Divider */}
           <div className="h-8 w-px bg-border" />
 
           {/* Store Search Group */}
-          <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
+          <div className={`flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5 ${
+            (!hasViewTypeFilter || !hasValidDateRange) ? "opacity-50 pointer-events-none" : ""
+          }`}>
             <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Store</span>
 
             {/* Store ID Search */}
@@ -467,8 +559,9 @@ export default function StockByStorePage() {
               clearViewType()
               setStoreIdSearch("")
               setStoreNameSearch("")
+              setDateRange({ startDate: undefined, endDate: undefined })
             }}
-            disabled={!selectedViewType && !storeIdSearch && !storeNameSearch}
+            disabled={!selectedViewType && !storeIdSearch && !storeNameSearch && !dateRange.startDate && !dateRange.endDate}
             className="h-10 hover:bg-gray-100 transition-colors"
           >
             Clear All
@@ -605,26 +698,16 @@ export default function StockByStorePage() {
         )}
         */}
 
-        {/* Empty State - Show when no view type is selected AND no valid search criteria */}
-        {((!selectedViewType || selectedViewType === "all") && !hasValidSearchCriteria) && (
+        {/* Empty State - Show when view type is not selected OR date range is not complete */}
+        {(!hasViewTypeFilter || !hasValidDateRange) && (
           <InventoryEmptyState
-            message={
-              (storeIdSearch.trim().length > 0 && storeIdSearch.trim().length < MIN_SEARCH_CHARS) ||
-              (storeNameSearch.trim().length > 0 && storeNameSearch.trim().length < MIN_SEARCH_CHARS)
-                ? "Enter at least 2 characters to search"
-                : "Select a view type or search for a store to display data"
-            }
-            subtitle={
-              (storeIdSearch.trim().length > 0 && storeIdSearch.trim().length < MIN_SEARCH_CHARS) ||
-              (storeNameSearch.trim().length > 0 && storeNameSearch.trim().length < MIN_SEARCH_CHARS)
-                ? "Store ID and Store Name searches require at least 2 characters"
-                : undefined
-            }
+            message="Please select a View Type and Date Range to view stock card data"
+            subtitle="Both View Type and Date Range (From/To) are required to display store data"
           />
         )}
 
-        {/* Store Table View - Show when EITHER view type is selected OR valid search criteria is entered */}
-        {((selectedViewType && selectedViewType !== "all") || hasValidSearchCriteria) && (
+        {/* Store Table View - Show when BOTH view type is selected AND date range is complete */}
+        {(hasViewTypeFilter && hasValidDateRange) && (
           <Card>
             <CardContent className="p-0">
               <div className="rounded-md border overflow-x-auto">
