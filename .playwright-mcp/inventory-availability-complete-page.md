@@ -1,0 +1,632 @@
+### Page state
+- Page URL: https://v0-ris-oms.vercel.app/inventory-new?view=ECOM-TH-CFR-LOCD-STD
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Analysis" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Analysis
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - generic [ref=e20]:
+          - button "Inventory Management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - generic [ref=e27]: Inventory Management
+            - img [ref=e29]
+          - generic [ref=e31]:
+            - link "Inventory Availability" [ref=e32] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e33]
+              - generic [ref=e35]: Inventory Availability
+            - link "Stock Card" [ref=e36] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e37]
+              - generic [ref=e39]: Stock Card
+            - link "Stock Config" [ref=e40] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e41]
+              - generic [ref=e43]: Stock Config
+        - generic "Dashboard (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e50]: Dashboard
+        - generic "Inventory (disabled)" [ref=e51]:
+          - img [ref=e52]
+          - generic [ref=e56]: Inventory
+        - generic "ATC Config (disabled)" [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - generic "Escalations (disabled)" [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - generic "Style Guide (disabled)" [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 17:50:17"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Inventory Management" [level=1] [ref=e193]
+              - paragraph [ref=e194]: Monitor stock levels and manage inventory across all Tops stores
+            - generic [ref=e195]:
+              - button "Stock Card" [ref=e196] [cursor=pointer]:
+                - img
+                - text: Stock Card
+              - button "Export" [ref=e197] [cursor=pointer]:
+                - img
+                - text: Export
+          - generic [ref=e116]:
+            - generic [ref=e198]:
+              - generic [ref=e199]:
+                - generic [ref=e200]: "View:"
+                - combobox [ref=e202] [cursor=pointer]:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                        - generic: ECOM-TH-CFR-LOCD-STD
+                      - generic: CFR - TOL Channel (TOL)
+                  - img [ref=e203]
+              - generic [ref=e205]: ECOM-TH-CFR-LOCD-STD
+            - button "Clear View" [ref=e206] [cursor=pointer]
+          - generic [ref=e207]:
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]: Total Products
+                - img [ref=e211]
+              - generic [ref=e215]:
+                - generic [ref=e216]: "24"
+                - paragraph [ref=e217]: Across all stores
+            - generic [ref=e218]:
+              - generic [ref=e219]:
+                - generic [ref=e220]: Low Stock
+                - img [ref=e221]
+              - generic [ref=e224]:
+                - generic [ref=e225]: "0"
+                - paragraph [ref=e226]: Needs attention
+            - generic [ref=e227]:
+              - generic [ref=e228]:
+                - generic [ref=e229]: Out of Stock
+                - img [ref=e230]
+              - generic [ref=e232]:
+                - generic [ref=e233]: "0"
+                - paragraph [ref=e234]: Immediate attention required
+          - generic [ref=e237]:
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - generic [ref=e240]:
+                  - generic [ref=e241]: All Products
+                  - generic [ref=e242]: Showing 24 of 24 products
+                - tablist [ref=e243]:
+                  - tab "All Products" [selected] [ref=e244] [cursor=pointer]
+                  - tab "Low Stock" [ref=e245] [cursor=pointer]
+                  - tab "Out of Stock" [ref=e246] [cursor=pointer]
+              - generic [ref=e247]:
+                - generic [ref=e248]:
+                  - img [ref=e249]
+                  - textbox "Search Product Name..." [ref=e252]
+                - generic [ref=e253]:
+                  - img [ref=e254]
+                  - textbox "Search Barcode..." [ref=e257]
+                - combobox [ref=e258] [cursor=pointer]:
+                  - generic: All Item Types
+                  - img [ref=e259]
+                - combobox [ref=e261] [cursor=pointer]:
+                  - generic: All Stock Config
+                  - img [ref=e262]
+                - combobox [ref=e264] [cursor=pointer]:
+                  - generic: All Brands
+                  - img [ref=e265]
+            - table [ref=e269]:
+              - rowgroup [ref=e270]:
+                - row "Image Product Name Barcode Brand Item Type Config Available / Total" [ref=e271]:
+                  - columnheader "Image" [ref=e272]
+                  - columnheader "Product Name" [ref=e273] [cursor=pointer]:
+                    - generic [ref=e274]:
+                      - text: Product Name
+                      - img [ref=e275]
+                  - columnheader "Barcode" [ref=e277] [cursor=pointer]:
+                    - generic [ref=e278]:
+                      - text: Barcode
+                      - img [ref=e279]
+                  - columnheader "Brand" [ref=e282] [cursor=pointer]:
+                    - generic [ref=e283]:
+                      - text: Brand
+                      - img [ref=e284]
+                  - columnheader "Item Type" [ref=e287]
+                  - columnheader "Config" [ref=e288]
+                  - columnheader "Available / Total" [ref=e289] [cursor=pointer]:
+                    - generic [ref=e290]:
+                      - text: Available / Total
+                      - img [ref=e291]
+                  - columnheader [ref=e294]
+              - rowgroup [ref=e295]:
+                - row "Betagen Fermented Milk 400ml Betagen Fermented Milk 400ml 885000000001 Oishi Pack In stock 42/52" [ref=e296] [cursor=pointer]:
+                  - cell "Betagen Fermented Milk 400ml" [ref=e297]:
+                    - img "Betagen Fermented Milk 400ml" [ref=e298]
+                  - cell "Betagen Fermented Milk 400ml" [ref=e299]
+                  - cell "885000000001" [ref=e300]
+                  - cell "Oishi" [ref=e301]
+                  - cell "Pack" [ref=e302]:
+                    - generic [ref=e303]:
+                      - img [ref=e304]
+                      - generic [ref=e308]: Pack
+                  - cell [ref=e309]:
+                    - img [ref=e311]
+                  - cell "In stock 42/52" [ref=e313]:
+                    - generic [ref=e314]:
+                      - generic "In Stock (42 units)" [ref=e315]:
+                        - img "In stock" [ref=e316]
+                      - generic [ref=e319]: 42/52
+                  - cell [ref=e320]:
+                    - img [ref=e321]
+                - row "Betagen Fermented Milk 400ml (Batch 2) Betagen Fermented Milk 400ml (Batch 2) 885000000011 Dutch Mill Pack Weight In stock 62/72" [ref=e323] [cursor=pointer]:
+                  - cell "Betagen Fermented Milk 400ml (Batch 2)" [ref=e324]:
+                    - img "Betagen Fermented Milk 400ml (Batch 2)" [ref=e325]
+                  - cell "Betagen Fermented Milk 400ml (Batch 2)" [ref=e326]
+                  - cell "885000000011" [ref=e327]
+                  - cell "Dutch Mill" [ref=e328]
+                  - cell "Pack Weight" [ref=e329]:
+                    - generic [ref=e330]:
+                      - img [ref=e331]
+                      - generic [ref=e335]: Pack Weight
+                  - cell [ref=e336]:
+                    - img [ref=e338]
+                  - cell "In stock 62/72" [ref=e340]:
+                    - generic [ref=e341]:
+                      - generic "In Stock (62 units)" [ref=e342]:
+                        - img "In stock" [ref=e343]
+                      - generic [ref=e346]: 62/72
+                  - cell [ref=e347]:
+                    - img [ref=e348]
+                - row "Betagro Chicken Breast Skinless (Family Pack) Betagro Chicken Breast Skinless (Family Pack) 2000001000002 Betagro Pack Weight In stock 12/15" [ref=e350] [cursor=pointer]:
+                  - cell "Betagro Chicken Breast Skinless (Family Pack)" [ref=e351]:
+                    - img "Betagro Chicken Breast Skinless (Family Pack)" [ref=e352]
+                  - cell "Betagro Chicken Breast Skinless (Family Pack)" [ref=e353]
+                  - cell "2000001000002" [ref=e354]
+                  - cell "Betagro" [ref=e355]
+                  - cell "Pack Weight" [ref=e356]:
+                    - generic [ref=e357]:
+                      - img [ref=e358]
+                      - generic [ref=e362]: Pack Weight
+                  - cell [ref=e363]
+                  - cell "In stock 12/15" [ref=e364]:
+                    - generic [ref=e365]:
+                      - generic "In Stock (12 units)" [ref=e366]:
+                        - img "In stock" [ref=e367]
+                      - generic [ref=e370]: 12/15
+                  - cell [ref=e371]:
+                    - img [ref=e372]
+                - row "Cavendish Bananas (Premium Grade) Cavendish Bananas (Premium Grade) 2000001000001 Chiquita Weight In stock 20/25.5" [ref=e374] [cursor=pointer]:
+                  - cell "Cavendish Bananas (Premium Grade)" [ref=e375]:
+                    - img "Cavendish Bananas (Premium Grade)" [ref=e376]
+                  - cell "Cavendish Bananas (Premium Grade)" [ref=e377]
+                  - cell "2000001000001" [ref=e378]
+                  - cell "Chiquita" [ref=e379]
+                  - cell "Weight" [ref=e380]:
+                    - generic [ref=e381]:
+                      - img [ref=e382]
+                      - generic [ref=e386]: Weight
+                  - cell [ref=e387]:
+                    - img [ref=e389]
+                  - cell "In stock 20/25.5" [ref=e391]:
+                    - generic [ref=e392]:
+                      - generic "In Stock (20 units)" [ref=e393]:
+                        - img "In stock" [ref=e394]
+                      - generic [ref=e397]: 20/25.5
+                  - cell [ref=e398]:
+                    - img [ref=e399]
+                - row "Coca-Cola Original Taste 1.5L (Batch 2) Coca-Cola Original Taste 1.5L (Batch 2) 885000000013 Oishi Pack In stock 66/76" [ref=e401] [cursor=pointer]:
+                  - cell "Coca-Cola Original Taste 1.5L (Batch 2)" [ref=e402]:
+                    - img "Coca-Cola Original Taste 1.5L (Batch 2)" [ref=e403]
+                  - cell "Coca-Cola Original Taste 1.5L (Batch 2)" [ref=e404]
+                  - cell "885000000013" [ref=e405]
+                  - cell "Oishi" [ref=e406]
+                  - cell "Pack" [ref=e407]:
+                    - generic [ref=e408]:
+                      - img [ref=e409]
+                      - generic [ref=e413]: Pack
+                  - cell [ref=e414]:
+                    - img [ref=e416]
+                  - cell "In stock 66/76" [ref=e418]:
+                    - generic [ref=e419]:
+                      - generic "In Stock (66 units)" [ref=e420]:
+                        - img "In stock" [ref=e421]
+                      - generic [ref=e424]: 66/76
+                  - cell [ref=e425]:
+                    - img [ref=e426]
+                - row "Coca-Cola Original Taste 1.5L (Batch 3) Coca-Cola Original Taste 1.5L (Batch 3) 885000000023 Dutch Mill Pack Weight In stock 86/96" [ref=e428] [cursor=pointer]:
+                  - cell "Coca-Cola Original Taste 1.5L (Batch 3)" [ref=e429]:
+                    - img "Coca-Cola Original Taste 1.5L (Batch 3)" [ref=e430]
+                  - cell "Coca-Cola Original Taste 1.5L (Batch 3)" [ref=e431]
+                  - cell "885000000023" [ref=e432]
+                  - cell "Dutch Mill" [ref=e433]
+                  - cell "Pack Weight" [ref=e434]:
+                    - generic [ref=e435]:
+                      - img [ref=e436]
+                      - generic [ref=e440]: Pack Weight
+                  - cell [ref=e441]:
+                    - img [ref=e443]
+                  - cell "In stock 86/96" [ref=e445]:
+                    - generic [ref=e446]:
+                      - generic "In Stock (86 units)" [ref=e447]:
+                        - img "In stock" [ref=e448]
+                      - generic [ref=e451]: 86/96
+                  - cell [ref=e452]:
+                    - img [ref=e453]
+                - row "Kikkoman Soy Sauce 600ml Kikkoman Soy Sauce 600ml 885000000007 Tipco Pack Weight In stock 54/64" [ref=e455] [cursor=pointer]:
+                  - cell "Kikkoman Soy Sauce 600ml" [ref=e456]:
+                    - img "Kikkoman Soy Sauce 600ml" [ref=e457]
+                  - cell "Kikkoman Soy Sauce 600ml" [ref=e458]
+                  - cell "885000000007" [ref=e459]
+                  - cell "Tipco" [ref=e460]
+                  - cell "Pack Weight" [ref=e461]:
+                    - generic [ref=e462]:
+                      - img [ref=e463]
+                      - generic [ref=e467]: Pack Weight
+                  - cell [ref=e468]:
+                    - img [ref=e470]
+                  - cell "In stock 54/64" [ref=e472]:
+                    - generic [ref=e473]:
+                      - generic "In Stock (54 units)" [ref=e474]:
+                        - img "In stock" [ref=e475]
+                      - generic [ref=e478]: 54/64
+                  - cell [ref=e479]:
+                    - img [ref=e480]
+                - row "Kikkoman Soy Sauce 600ml (Batch 2) Kikkoman Soy Sauce 600ml (Batch 2) 885000000017 Oishi Pack In stock 74/84" [ref=e482] [cursor=pointer]:
+                  - cell "Kikkoman Soy Sauce 600ml (Batch 2)" [ref=e483]:
+                    - img "Kikkoman Soy Sauce 600ml (Batch 2)" [ref=e484]
+                  - cell "Kikkoman Soy Sauce 600ml (Batch 2)" [ref=e485]
+                  - cell "885000000017" [ref=e486]
+                  - cell "Oishi" [ref=e487]
+                  - cell "Pack" [ref=e488]:
+                    - generic [ref=e489]:
+                      - img [ref=e490]
+                      - generic [ref=e494]: Pack
+                  - cell [ref=e495]:
+                    - img [ref=e497]
+                  - cell "In stock 74/84" [ref=e499]:
+                    - generic [ref=e500]:
+                      - generic "In Stock (74 units)" [ref=e501]:
+                        - img "In stock" [ref=e502]
+                      - generic [ref=e505]: 74/84
+                  - cell [ref=e506]:
+                    - img [ref=e507]
+                - row "Kodomo Baby Bottle Cleanser 600ml Kodomo Baby Bottle Cleanser 600ml 885000000008 Oishi Normal In stock 56/66" [ref=e509] [cursor=pointer]:
+                  - cell "Kodomo Baby Bottle Cleanser 600ml" [ref=e510]:
+                    - img "Kodomo Baby Bottle Cleanser 600ml" [ref=e511]
+                  - cell "Kodomo Baby Bottle Cleanser 600ml" [ref=e512]
+                  - cell "885000000008" [ref=e513]
+                  - cell "Oishi" [ref=e514]
+                  - cell "Normal" [ref=e515]:
+                    - generic [ref=e516]:
+                      - img [ref=e517]
+                      - generic [ref=e521]: Normal
+                  - cell [ref=e522]:
+                    - img [ref=e524]
+                  - cell "In stock 56/66" [ref=e526]:
+                    - generic [ref=e527]:
+                      - generic "In Stock (56 units)" [ref=e528]:
+                        - img "In stock" [ref=e529]
+                      - generic [ref=e532]: 56/66
+                  - cell [ref=e533]:
+                    - img [ref=e534]
+                - row "Kodomo Baby Bottle Cleanser 600ml (Batch 3) Kodomo Baby Bottle Cleanser 600ml (Batch 3) 885000000028 Tipco Normal In stock 96/106" [ref=e536] [cursor=pointer]:
+                  - cell "Kodomo Baby Bottle Cleanser 600ml (Batch 3)" [ref=e537]:
+                    - img "Kodomo Baby Bottle Cleanser 600ml (Batch 3)" [ref=e538]
+                  - cell "Kodomo Baby Bottle Cleanser 600ml (Batch 3)" [ref=e539]
+                  - cell "885000000028" [ref=e540]
+                  - cell "Tipco" [ref=e541]
+                  - cell "Normal" [ref=e542]:
+                    - generic [ref=e543]:
+                      - img [ref=e544]
+                      - generic [ref=e548]: Normal
+                  - cell [ref=e549]:
+                    - img [ref=e551]
+                  - cell "In stock 96/106" [ref=e553]:
+                    - generic [ref=e554]:
+                      - generic "In Stock (96 units)" [ref=e555]:
+                        - img "In stock" [ref=e556]
+                      - generic [ref=e559]: 96/106
+                  - cell [ref=e560]:
+                    - img [ref=e561]
+                - row "Lay's Classic Potato Chips 158g Lay's Classic Potato Chips 158g 885000000002 Oishi Weight In stock 44/54" [ref=e563] [cursor=pointer]:
+                  - cell "Lay's Classic Potato Chips 158g" [ref=e564]:
+                    - img "Lay's Classic Potato Chips 158g" [ref=e565]
+                  - cell "Lay's Classic Potato Chips 158g" [ref=e566]
+                  - cell "885000000002" [ref=e567]
+                  - cell "Oishi" [ref=e568]
+                  - cell "Weight" [ref=e569]:
+                    - generic [ref=e570]:
+                      - img [ref=e571]
+                      - generic [ref=e575]: Weight
+                  - cell [ref=e576]:
+                    - img [ref=e578]
+                  - cell "In stock 44/54" [ref=e580]:
+                    - generic [ref=e581]:
+                      - generic "In Stock (44 units)" [ref=e582]:
+                        - img "In stock" [ref=e583]
+                      - generic [ref=e586]: 44/54
+                  - cell [ref=e587]:
+                    - img [ref=e588]
+                - row "Lay's Classic Potato Chips 158g (Batch 3) Lay's Classic Potato Chips 158g (Batch 3) 885000000022 Tipco Weight In stock 84/94" [ref=e590] [cursor=pointer]:
+                  - cell "Lay's Classic Potato Chips 158g (Batch 3)" [ref=e591]:
+                    - img "Lay's Classic Potato Chips 158g (Batch 3)" [ref=e592]
+                  - cell "Lay's Classic Potato Chips 158g (Batch 3)" [ref=e593]
+                  - cell "885000000022" [ref=e594]
+                  - cell "Tipco" [ref=e595]
+                  - cell "Weight" [ref=e596]:
+                    - generic [ref=e597]:
+                      - img [ref=e598]
+                      - generic [ref=e602]: Weight
+                  - cell [ref=e603]:
+                    - img [ref=e605]
+                  - cell "In stock 84/94" [ref=e607]:
+                    - generic [ref=e608]:
+                      - generic "In Stock (84 units)" [ref=e609]:
+                        - img "In stock" [ref=e610]
+                      - generic [ref=e613]: 84/94
+                  - cell [ref=e614]:
+                    - img [ref=e615]
+                - row "Mama Instant Noodles Minced Pork Flavor 60g (Batch 2) Mama Instant Noodles Minced Pork Flavor 60g (Batch 2) 885000000019 Tipco Pack Weight In stock 78/88" [ref=e617] [cursor=pointer]:
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g (Batch 2)" [ref=e618]:
+                    - img "Mama Instant Noodles Minced Pork Flavor 60g (Batch 2)" [ref=e619]
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g (Batch 2)" [ref=e620]
+                  - cell "885000000019" [ref=e621]
+                  - cell "Tipco" [ref=e622]
+                  - cell "Pack Weight" [ref=e623]:
+                    - generic [ref=e624]:
+                      - img [ref=e625]
+                      - generic [ref=e629]: Pack Weight
+                  - cell [ref=e630]:
+                    - img [ref=e632]
+                  - cell "In stock 78/88" [ref=e634]:
+                    - generic [ref=e635]:
+                      - generic "In Stock (78 units)" [ref=e636]:
+                        - img "In stock" [ref=e637]
+                      - generic [ref=e640]: 78/88
+                  - cell [ref=e641]:
+                    - img [ref=e642]
+                - row "Mama Instant Noodles Minced Pork Flavor 60g (Batch 3) Mama Instant Noodles Minced Pork Flavor 60g (Batch 3) 885000000029 Oishi Pack In stock 98/108" [ref=e644] [cursor=pointer]:
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g (Batch 3)" [ref=e645]:
+                    - img "Mama Instant Noodles Minced Pork Flavor 60g (Batch 3)" [ref=e646]
+                  - cell "Mama Instant Noodles Minced Pork Flavor 60g (Batch 3)" [ref=e647]
+                  - cell "885000000029" [ref=e648]
+                  - cell "Oishi" [ref=e649]
+                  - cell "Pack" [ref=e650]:
+                    - generic [ref=e651]:
+                      - img [ref=e652]
+                      - generic [ref=e656]: Pack
+                  - cell [ref=e657]:
+                    - img [ref=e659]
+                  - cell "In stock 98/108" [ref=e661]:
+                    - generic [ref=e662]:
+                      - generic "In Stock (98 units)" [ref=e663]:
+                        - img "In stock" [ref=e664]
+                      - generic [ref=e667]: 98/108
+                  - cell [ref=e668]:
+                    - img [ref=e669]
+                - row "My Choice Australian Strawberries 250g (Batch 2) My Choice Australian Strawberries 250g (Batch 2) 885000000010 Oishi Weight In stock 60/70" [ref=e671] [cursor=pointer]:
+                  - cell "My Choice Australian Strawberries 250g (Batch 2)" [ref=e672]:
+                    - img "My Choice Australian Strawberries 250g (Batch 2)" [ref=e673]
+                  - cell "My Choice Australian Strawberries 250g (Batch 2)" [ref=e674]
+                  - cell "885000000010" [ref=e675]
+                  - cell "Oishi" [ref=e676]
+                  - cell "Weight" [ref=e677]:
+                    - generic [ref=e678]:
+                      - img [ref=e679]
+                      - generic [ref=e683]: Weight
+                  - cell [ref=e684]:
+                    - img [ref=e686]
+                  - cell "In stock 60/70" [ref=e688]:
+                    - generic [ref=e689]:
+                      - generic "In Stock (60 units)" [ref=e690]:
+                        - img "In stock" [ref=e691]
+                      - generic [ref=e694]: 60/70
+                  - cell [ref=e695]:
+                    - img [ref=e696]
+                - row "My Choice Australian Strawberries 250g (Batch 3) My Choice Australian Strawberries 250g (Batch 3) 885000000020 Lay's Normal In stock 80/90" [ref=e698] [cursor=pointer]:
+                  - cell "My Choice Australian Strawberries 250g (Batch 3)" [ref=e699]:
+                    - img "My Choice Australian Strawberries 250g (Batch 3)" [ref=e700]
+                  - cell "My Choice Australian Strawberries 250g (Batch 3)" [ref=e701]
+                  - cell "885000000020" [ref=e702]
+                  - cell "Lay's" [ref=e703]
+                  - cell "Normal" [ref=e704]:
+                    - generic [ref=e705]:
+                      - img [ref=e706]
+                      - generic [ref=e710]: Normal
+                  - cell [ref=e711]:
+                    - img [ref=e713]
+                  - cell "In stock 80/90" [ref=e715]:
+                    - generic [ref=e716]:
+                      - generic "In Stock (80 units)" [ref=e717]:
+                        - img "In stock" [ref=e718]
+                      - generic [ref=e721]: 80/90
+                  - cell [ref=e722]:
+                    - img [ref=e723]
+                - row "Royal Umbrella Thai Jasmine Rice 5kg Royal Umbrella Thai Jasmine Rice 5kg 885000000004 Tipco Normal In stock 48/58" [ref=e725] [cursor=pointer]:
+                  - cell "Royal Umbrella Thai Jasmine Rice 5kg" [ref=e726]:
+                    - img "Royal Umbrella Thai Jasmine Rice 5kg" [ref=e727]
+                  - cell "Royal Umbrella Thai Jasmine Rice 5kg" [ref=e728]
+                  - cell "885000000004" [ref=e729]
+                  - cell "Tipco" [ref=e730]
+                  - cell "Normal" [ref=e731]:
+                    - generic [ref=e732]:
+                      - img [ref=e733]
+                      - generic [ref=e737]: Normal
+                  - cell [ref=e738]:
+                    - img [ref=e740]
+                  - cell "In stock 48/58" [ref=e742]:
+                    - generic [ref=e743]:
+                      - generic "In Stock (48 units)" [ref=e744]:
+                        - img "In stock" [ref=e745]
+                      - generic [ref=e748]: 48/58
+                  - cell [ref=e749]:
+                    - img [ref=e750]
+                - row "Royal Umbrella Thai Jasmine Rice 5kg (Batch 2) Royal Umbrella Thai Jasmine Rice 5kg (Batch 2) 885000000014 Oishi Weight In stock 68/78" [ref=e752] [cursor=pointer]:
+                  - cell "Royal Umbrella Thai Jasmine Rice 5kg (Batch 2)" [ref=e753]:
+                    - img "Royal Umbrella Thai Jasmine Rice 5kg (Batch 2)" [ref=e754]
+                  - cell "Royal Umbrella Thai Jasmine Rice 5kg (Batch 2)" [ref=e755]
+                  - cell "885000000014" [ref=e756]
+                  - cell "Oishi" [ref=e757]
+                  - cell "Weight" [ref=e758]:
+                    - generic [ref=e759]:
+                      - img [ref=e760]
+                      - generic [ref=e764]: Weight
+                  - cell [ref=e765]:
+                    - img [ref=e767]
+                  - cell "In stock 68/78" [ref=e769]:
+                    - generic [ref=e770]:
+                      - generic "In Stock (68 units)" [ref=e771]:
+                        - img "In stock" [ref=e772]
+                      - generic [ref=e775]: 68/78
+                  - cell [ref=e776]:
+                    - img [ref=e777]
+                - row "S-Pure Chicken Beast Fillet 400g S-Pure Chicken Beast Fillet 400g 885000000005 HomeMart Pack In stock 50/60" [ref=e779] [cursor=pointer]:
+                  - cell "S-Pure Chicken Beast Fillet 400g" [ref=e780]:
+                    - img "S-Pure Chicken Beast Fillet 400g" [ref=e781]
+                  - cell "S-Pure Chicken Beast Fillet 400g" [ref=e782]
+                  - cell "885000000005" [ref=e783]
+                  - cell "HomeMart" [ref=e784]
+                  - cell "Pack" [ref=e785]:
+                    - generic [ref=e786]:
+                      - img [ref=e787]
+                      - generic [ref=e791]: Pack
+                  - cell [ref=e792]:
+                    - img [ref=e794]
+                  - cell "In stock 50/60" [ref=e796]:
+                    - generic [ref=e797]:
+                      - generic "In Stock (50 units)" [ref=e798]:
+                        - img "In stock" [ref=e799]
+                      - generic [ref=e802]: 50/60
+                  - cell [ref=e803]:
+                    - img [ref=e804]
+                - row "S-Pure Chicken Beast Fillet 400g (Batch 3) S-Pure Chicken Beast Fillet 400g (Batch 3) 885000000025 Betagro Pack In stock 90/100" [ref=e806] [cursor=pointer]:
+                  - cell "S-Pure Chicken Beast Fillet 400g (Batch 3)" [ref=e807]:
+                    - img "S-Pure Chicken Beast Fillet 400g (Batch 3)" [ref=e808]
+                  - cell "S-Pure Chicken Beast Fillet 400g (Batch 3)" [ref=e809]
+                  - cell "885000000025" [ref=e810]
+                  - cell "Betagro" [ref=e811]
+                  - cell "Pack" [ref=e812]:
+                    - generic [ref=e813]:
+                      - img [ref=e814]
+                      - generic [ref=e818]: Pack
+                  - cell [ref=e819]
+                  - cell "In stock 90/100" [ref=e820]:
+                    - generic [ref=e821]:
+                      - generic "In Stock (90 units)" [ref=e822]:
+                        - img "In stock" [ref=e823]
+                      - generic [ref=e826]: 90/100
+                  - cell [ref=e827]:
+                    - img [ref=e828]
+                - row "Schwepes Manao Soda 330ml (Pack 6) Schwepes Manao Soda 330ml (Pack 6) 8851959000001 Schweppes Pack In stock 45/50" [ref=e830] [cursor=pointer]:
+                  - cell "Schwepes Manao Soda 330ml (Pack 6)" [ref=e831]:
+                    - img "Schwepes Manao Soda 330ml (Pack 6)" [ref=e832]
+                  - cell "Schwepes Manao Soda 330ml (Pack 6)" [ref=e833]
+                  - cell "8851959000001" [ref=e834]
+                  - cell "Schweppes" [ref=e835]
+                  - cell "Pack" [ref=e836]:
+                    - generic [ref=e837]:
+                      - img [ref=e838]
+                      - generic [ref=e842]: Pack
+                  - cell [ref=e843]
+                  - cell "In stock 45/50" [ref=e844]:
+                    - generic [ref=e845]:
+                      - generic "In Stock (45 units)" [ref=e846]:
+                        - img "In stock" [ref=e847]
+                      - generic [ref=e850]: 45/50
+                  - cell [ref=e851]:
+                    - img [ref=e852]
+                - row "Tipco 100% Orange Juice Tangerine 1000ml Tipco 100% Orange Juice Tangerine 1000ml 8851011000001 Tipco Normal In stock 110/120" [ref=e854] [cursor=pointer]:
+                  - cell "Tipco 100% Orange Juice Tangerine 1000ml" [ref=e855]:
+                    - img "Tipco 100% Orange Juice Tangerine 1000ml" [ref=e856]
+                  - cell "Tipco 100% Orange Juice Tangerine 1000ml" [ref=e857]
+                  - cell "8851011000001" [ref=e858]
+                  - cell "Tipco" [ref=e859]
+                  - cell "Normal" [ref=e860]:
+                    - generic [ref=e861]:
+                      - img [ref=e862]
+                      - generic [ref=e866]: Normal
+                  - cell [ref=e867]:
+                    - img [ref=e869]
+                  - cell "In stock 110/120" [ref=e871]:
+                    - generic [ref=e872]:
+                      - generic "In Stock (110 units)" [ref=e873]:
+                        - img "In stock" [ref=e874]
+                      - generic [ref=e877]: 110/120
+                  - cell [ref=e878]:
+                    - img [ref=e879]
+                - row "Tipco 100% Tangerine Orange Juice 1L (Batch 2) Tipco 100% Tangerine Orange Juice 1L (Batch 2) 885000000016 Oishi Normal In stock 72/82" [ref=e881] [cursor=pointer]:
+                  - cell "Tipco 100% Tangerine Orange Juice 1L (Batch 2)" [ref=e882]:
+                    - img "Tipco 100% Tangerine Orange Juice 1L (Batch 2)" [ref=e883]
+                  - cell "Tipco 100% Tangerine Orange Juice 1L (Batch 2)" [ref=e884]
+                  - cell "885000000016" [ref=e885]
+                  - cell "Oishi" [ref=e886]
+                  - cell "Normal" [ref=e887]:
+                    - generic [ref=e888]:
+                      - img [ref=e889]
+                      - generic [ref=e893]: Normal
+                  - cell [ref=e894]
+                  - cell "In stock 72/82" [ref=e895]:
+                    - generic [ref=e896]:
+                      - generic "In Stock (72 units)" [ref=e897]:
+                        - img "In stock" [ref=e898]
+                      - generic [ref=e901]: 72/82
+                  - cell [ref=e902]:
+                    - img [ref=e903]
+                - row "Tipco 100% Tangerine Orange Juice 1L (Batch 3) Tipco 100% Tangerine Orange Juice 1L (Batch 3) 885000000026 Dutch Mill Weight In stock 92/102" [ref=e905] [cursor=pointer]:
+                  - cell "Tipco 100% Tangerine Orange Juice 1L (Batch 3)" [ref=e906]:
+                    - img "Tipco 100% Tangerine Orange Juice 1L (Batch 3)" [ref=e907]
+                  - cell "Tipco 100% Tangerine Orange Juice 1L (Batch 3)" [ref=e908]
+                  - cell "885000000026" [ref=e909]
+                  - cell "Dutch Mill" [ref=e910]
+                  - cell "Weight" [ref=e911]:
+                    - generic [ref=e912]:
+                      - img [ref=e913]
+                      - generic [ref=e917]: Weight
+                  - cell [ref=e918]:
+                    - img [ref=e920]
+                  - cell "In stock 92/102" [ref=e922]:
+                    - generic [ref=e923]:
+                      - generic "In Stock (92 units)" [ref=e924]:
+                        - img "In stock" [ref=e925]
+                      - generic [ref=e928]: 92/102
+                  - cell [ref=e929]:
+                    - img [ref=e930]
+      - contentinfo [ref=e133]:
+        - generic [ref=e135]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e136]
+```
