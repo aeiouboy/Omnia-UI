@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
@@ -282,6 +283,7 @@ export default function StockByStorePage() {
   // By Product view state
   const [productTransactionType, setProductTransactionType] = useState<ProductTransactionType | "all">("all")
   const [searchNotes, setSearchNotes] = useState("")
+  const [showMerchantSku, setShowMerchantSku] = useState(false)
   const [productTransactions, setProductTransactions] = useState<ProductTransaction[]>([])
   const [productViewLoading, setProductViewLoading] = useState(false)
   const [productViewPage, setProductViewPage] = useState(1)
@@ -433,6 +435,19 @@ export default function StockByStorePage() {
     }
   }, [searchNotes, viewTab])
 
+  // Load Merchant SKU toggle state from localStorage on mount
+  useEffect(() => {
+    const savedValue = localStorage.getItem("stockCard-showMerchantSku")
+    if (savedValue !== null) {
+      setShowMerchantSku(savedValue === "true")
+    }
+  }, [])
+
+  // Save Merchant SKU toggle state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("stockCard-showMerchantSku", String(showMerchantSku))
+  }, [showMerchantSku])
+
   // Calculate summary statistics
   const summary = useMemo(() => {
     return {
@@ -550,7 +565,8 @@ export default function StockByStorePage() {
     exportStockCardToCSV(
       productTransactions,
       { productId, productName },
-      { startDate: dateRange.startDate, endDate: dateRange.endDate }
+      { startDate: dateRange.startDate, endDate: dateRange.endDate },
+      { includeMerchantSku: showMerchantSku }
     )
   }
 
@@ -1028,6 +1044,18 @@ export default function StockByStorePage() {
                   />
                 </div>
 
+                {/* Merchant SKU Toggle */}
+                <div className="flex items-center gap-2">
+                  <label htmlFor="show-merchant-sku" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                    Show Merchant SKU
+                  </label>
+                  <Switch
+                    id="show-merchant-sku"
+                    checked={showMerchantSku}
+                    onCheckedChange={setShowMerchantSku}
+                  />
+                </div>
+
                 {/* Spacer */}
                 <div className="flex-1" />
 
@@ -1122,6 +1150,9 @@ export default function StockByStorePage() {
                                 <TableHead className="text-right whitespace-nowrap">Qty</TableHead>
                                 <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
                                 <TableHead>Notes</TableHead>
+                                {showMerchantSku && (
+                                  <TableHead className="whitespace-nowrap">Merchant SKU</TableHead>
+                                )}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1184,6 +1215,11 @@ export default function StockByStorePage() {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TableCell>
+                                    {showMerchantSku && (
+                                      <TableCell className="font-mono text-sm text-muted-foreground">
+                                        {txn.merchantSku || "-"}
+                                      </TableCell>
+                                    )}
                                   </TableRow>
                                 )
                               })}
@@ -1253,6 +1289,16 @@ export default function StockByStorePage() {
                                       )}
                                     </div>
                                   </div>
+
+                                  {/* Merchant SKU Section */}
+                                  {showMerchantSku && (
+                                    <div className="mt-3">
+                                      <div className="text-xs text-muted-foreground">Merchant SKU</div>
+                                      <div className="text-sm font-mono">
+                                        {txn.merchantSku || "-"}
+                                      </div>
+                                    </div>
+                                  )}
                                 </CardContent>
                               </Card>
                             )

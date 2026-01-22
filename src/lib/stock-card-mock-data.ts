@@ -32,6 +32,7 @@ export interface ProductTransaction {
   storeName: string
   storeId: string
   personName: string
+  merchantSku: string
 }
 
 /**
@@ -228,6 +229,9 @@ export function generateMockProductTransactions(
   // Start with a reasonable opening balance
   const openingBalance = randomInt(500, 2000)
 
+  // Generate consistent Merchant SKU for this product
+  const merchantSku = 'MSKU-' + productId.replace(/\D/g, '').padStart(6, '0').slice(-6)
+
   // Transaction type weights (to make some types more common)
   const typeWeights: [ProductTransactionType, number][] = [
     ["RECEIPT_IN", 20],
@@ -305,6 +309,7 @@ export function generateMockProductTransactions(
       storeName: store.storeName,
       storeId: store.storeId,
       personName,
+      merchantSku,
     }
 
     transactions.push(transaction)
@@ -411,6 +416,18 @@ export function filterTransactionsByNotes(
       t.notes.toLowerCase().includes(search) ||
       t.referenceNo.toLowerCase().includes(search)
   )
+}
+
+/**
+ * Filter transactions by merchant SKU search
+ */
+export function filterTransactionsByMerchantSku(
+  transactions: ProductTransaction[],
+  searchText: string
+): ProductTransaction[] {
+  if (!searchText.trim()) return transactions
+  const search = searchText.toLowerCase()
+  return transactions.filter((t) => t.merchantSku.toLowerCase().includes(search))
 }
 
 /**

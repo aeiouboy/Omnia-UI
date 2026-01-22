@@ -1,0 +1,34 @@
+### Page state
+- Page URL: https://crcpp-auth.omni.manh.com/auth/realms/maactive/protocol/openid-connect/auth?scope=openid&client_id=zuulserver.1.0.0&redirect_uri=https://crcpp.omni.manh.com/login&response_type=code&state=Oa4nbM
+- Page Title: Sign in to MA Product
+- Page Snapshot:
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - img "Logo" [ref=e7]
+    - generic [ref=e9]:
+      - text: © Copyright 2017 - 2026
+      - link "Manhattan Associates, Inc." [ref=e10] [cursor=pointer]:
+        - /url: https://www.manh.com
+  - generic [ref=e13]:
+    - banner [ref=e14]:
+      - heading "Welcome! Please log in." [level=1] [ref=e18]
+    - generic [ref=e21]:
+      - generic [ref=e23]:
+        - textbox "Username" [active] [ref=e25]
+        - textbox [ref=e27]:
+          - /placeholder: Password
+        - link "Forgot Password ?" [ref=e31] [cursor=pointer]:
+          - /url: /auth/realms/maactive/login-actions/reset-credentials?client_id=zuulserver.1.0.0&tab_id=BUinWwLsFxg
+        - button "Log In" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - separator [ref=e35]
+        - heading "Or sign in with" [level=4] [ref=e36]
+        - list [ref=e37]:
+          - listitem [ref=e38]:
+            - link "MA Users" [ref=e39] [cursor=pointer]:
+              - /url: /auth/realms/maactive/broker/oidc/login?client_id=zuulserver.1.0.0&tab_id=BUinWwLsFxg&session_code=7MjmsIzI1bIiuK58CKRJj2TRtkJraxEOAG002i-4yEI
+          - listitem [ref=e40]:
+            - link "Central Group Users" [ref=e41] [cursor=pointer]:
+              - /url: /auth/realms/maactive/broker/saml/login?client_id=zuulserver.1.0.0&tab_id=BUinWwLsFxg&session_code=7MjmsIzI1bIiuK58CKRJj2TRtkJraxEOAG002i-4yEI
+```

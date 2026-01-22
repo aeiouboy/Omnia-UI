@@ -462,6 +462,9 @@ export interface StockTransaction {
 
   /** Type of allocation for allocation transactions */
   allocationType?: "order" | "hold" | "reserve"
+
+  /** Merchant SKU identifier for this transaction */
+  merchantSku?: string
 }
 
 /**

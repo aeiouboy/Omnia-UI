@@ -53,4 +53,11 @@
 | #4055 | 11:07 PM | 🟣 | Stock Card By Product View Wireframe Specification | ~415 |
 | #3995 | 8:16 PM | ✅ | Navigation Icon Specification Updated to Lucide React ChevronRight | ~322 |
 | #3993 | 8:14 PM | ✅ | Stock Card Wireframe Enhanced with Store Listing and Status Visual Design | ~510 |
+
+### Jan 22, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4304 | 6:37 PM | 🟣 | Merchant SKU Toggle Switch Implementation Plan Created | ~945 |
+| #4273 | 5:39 PM | ⚖️ | Merchant SKU Implementation Specification and Column Positioning Strategy | ~918 |
 </claude-mem-context>
