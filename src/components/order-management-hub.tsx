@@ -149,6 +149,15 @@ export interface ApiOrderItem {
   parentLineId?: string  // Original order line ID for split items
   splitIndex?: number  // Position in split sequence (0-based)
   splitReason?: string  // Reason for split, e.g., "quantity-normalization"
+  // Product Variant Fields
+  secretCode?: string  // Secret code for gift items
+  style?: string  // Product style variant
+  color?: string  // Product color
+  size?: string  // Product size
+  // Additional Product Fields
+  reason?: string  // Reason code or description
+  temperature?: string  // Temperature requirement (e.g., "Frozen", "Chilled")
+  expiry?: string  // Expiry date
 }
 
 // FMS Extended Fields - Delivery Time Slot

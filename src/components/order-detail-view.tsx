@@ -875,6 +875,34 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                         {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
                                       </span>
                                     </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Secret Code</span>
+                                      <span className="text-gray-900 font-medium">{item.secretCode || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Style</span>
+                                      <span className="text-gray-900 font-medium">{item.style || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Color</span>
+                                      <span className="text-gray-900 font-medium">{item.color || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Size</span>
+                                      <span className="text-gray-900 font-medium">{item.size || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Reason</span>
+                                      <span className="text-gray-900 font-medium">{item.reason || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Temperature</span>
+                                      <span className="text-gray-900 font-medium">{item.temperature || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Expiry</span>
+                                      <span className="text-gray-900 font-medium">{item.expiry || 'N/A'}</span>
+                                    </div>
                                     {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Brand</span>
                                       <span className="text-gray-900 font-medium">{item.product_details?.brand || 'N/A'}</span>

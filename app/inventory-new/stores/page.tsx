@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
@@ -71,6 +72,8 @@ import {
   type ProductTransactionType,
 } from "@/lib/stock-card-mock-data"
 import { exportStockCardToCSV } from "@/lib/stock-card-export"
+import { ProductInfoCard } from "@/components/inventory/product-info-card"
+import type { InventoryItem } from "@/types/inventory"
 
 // Minimum characters required for search to trigger
 const MIN_SEARCH_CHARS = 2
@@ -282,10 +285,12 @@ export default function StockByStorePage() {
   // By Product view state
   const [productTransactionType, setProductTransactionType] = useState<ProductTransactionType | "all">("all")
   const [searchNotes, setSearchNotes] = useState("")
+  const [showMerchantSku, setShowMerchantSku] = useState(false)
   const [productTransactions, setProductTransactions] = useState<ProductTransaction[]>([])
   const [productViewLoading, setProductViewLoading] = useState(false)
   const [productViewPage, setProductViewPage] = useState(1)
   const [productViewPageSize, setProductViewPageSize] = useState(25)
+  const [showProductCard, setShowProductCard] = useState(false)
 
   // By Product view - Store filter state (mandatory)
   const [byProductStoreIdSearch, setByProductStoreIdSearch] = useState("")
@@ -320,8 +325,8 @@ export default function StockByStorePage() {
   // By Store view: Has valid View Type selected (not "all")
   const hasViewTypeFilter = selectedViewType && selectedViewType !== "all"
 
-  // All mandatory filters for By Store view: View Type selected AND valid Store search criteria
-  const hasAllMandatoryFiltersForStore = hasViewTypeFilter && hasValidSearchCriteria
+  // All mandatory filters for By Store view: Only View Type selected (Store search is optional)
+  const hasAllMandatoryFiltersForStore = hasViewTypeFilter
 
   // All mandatory filters for By Product view: Date range AND Product criteria AND Store criteria
   const hasAllMandatoryFiltersForProduct = hasValidDateRange && hasValidProductCriteria && hasValidByProductStoreCriteria
@@ -396,6 +401,7 @@ export default function StockByStorePage() {
       }
 
       setProductTransactions(filtered)
+      setShowProductCard(true) // Show product info card when data loads
 
       setProductViewLoading(false)
       setProductViewPage(1) // Reset to first page
@@ -432,6 +438,19 @@ export default function StockByStorePage() {
       }
     }
   }, [searchNotes, viewTab])
+
+  // Load Merchant SKU toggle state from localStorage on mount
+  useEffect(() => {
+    const savedValue = localStorage.getItem("stockCard-showMerchantSku")
+    if (savedValue !== null) {
+      setShowMerchantSku(savedValue === "true")
+    }
+  }, [])
+
+  // Save Merchant SKU toggle state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("stockCard-showMerchantSku", String(showMerchantSku))
+  }, [showMerchantSku])
 
   // Calculate summary statistics
   const summary = useMemo(() => {
@@ -509,6 +528,59 @@ export default function StockByStorePage() {
 
   const totalProductPages = Math.ceil(productTransactions.length / productViewPageSize)
 
+  // Create mock InventoryItem from search state for ProductInfoCard
+  const mockProductFromSearch = useMemo((): InventoryItem | null => {
+    if (!hasAllMandatoryFiltersForProduct) return null
+
+    const productId = productIdSearch || productNameSearch
+    const productName = productNameSearch || `Product ${productId}`
+    const storeName = byProductStoreNameSearch || byProductStoreIdSearch || "Unknown Store"
+
+    // Use first transaction timestamp if available for last restocked date
+    const lastRestocked = productTransactions.length > 0
+      ? productTransactions[productTransactions.length - 1].timestamp
+      : new Date().toISOString()
+
+    return {
+      id: `mock-${productId}`,
+      productId,
+      productName,
+      category: "Pantry",
+      storeName,
+      storeId: byProductStoreIdSearch || undefined,
+      currentStock: 0,
+      availableStock: 0,
+      reservedStock: 0,
+      safetyStock: 0,
+      minStockLevel: 0,
+      maxStockLevel: 0,
+      unitPrice: 0,
+      lastRestocked,
+      status: "inStock" as const,
+      supplier: "Unknown",
+      reorderPoint: 0,
+      demandForecast: 0,
+      imageUrl: "",
+      barcode: productIdSearch || undefined,
+      itemType: "normal" as const,
+      supplyType: "On Hand Available" as const,
+      stockConfigStatus: "valid" as const,
+    }
+  }, [hasAllMandatoryFiltersForProduct, productIdSearch, productNameSearch, byProductStoreIdSearch, byProductStoreNameSearch, productTransactions])
+
+  // Handler for closing the Product Info Card
+  const handleCloseProductCard = useCallback(() => {
+    setShowProductCard(false)
+  }, [])
+
+  // Handler for viewing product details
+  const handleViewProductDetails = useCallback(() => {
+    const productId = productIdSearch || productNameSearch
+    if (productId) {
+      router.push(`/inventory-new/${encodeURIComponent(productId)}`)
+    }
+  }, [productIdSearch, productNameSearch, router])
+
   // Clear all filters for By Store view
   const handleClearByStoreFilters = () => {
     clearViewType()
@@ -550,7 +622,8 @@ export default function StockByStorePage() {
     exportStockCardToCSV(
       productTransactions,
       { productId, productName },
-      { startDate: dateRange.startDate, endDate: dateRange.endDate }
+      { startDate: dateRange.startDate, endDate: dateRange.endDate },
+      { includeMerchantSku: showMerchantSku }
     )
   }
 
@@ -564,6 +637,7 @@ export default function StockByStorePage() {
     setProductTransactionType("all")
     setSearchNotes("")
     setProductTransactions([])
+    setShowProductCard(false) // Hide product card when filters are cleared
   }
 
   // Sort icon component
@@ -628,30 +702,21 @@ export default function StockByStorePage() {
             {/* Filters - View Type and Store Search */}
             <div className="flex flex-wrap lg:flex-nowrap items-center gap-4">
               {/* FILTER VALIDATION PATTERN:
-                  Orange borders indicate mandatory filters that need completion.
-                  This pattern matches the By Product view for UI consistency.
-                  - View Type dropdown: Shows orange border when criteria not met
-                  - Store Search Group: Shows orange border when criteria not met
-                  - Pattern reference: By Product view lines 847-970 */}
+                  Orange border indicates mandatory filter that needs completion.
+                  - View Type dropdown: Shows orange border when not selected (mandatory)
+                  - Store Search: Optional filter for narrowing results */}
 
               {/* By Store View Filter Validation:
-                  - Requires BOTH View Type selected (not "all") AND Store search (2+ chars)
+                  - Requires ONLY View Type selected (not "all")
                   - View Type filter: selectedViewType && selectedViewType !== "all"
-                  - Store search: storeIdSearch >= 2 chars OR storeNameSearch >= 2 chars
-                  - Orange borders shown when individual filter criteria not met
+                  - Store search is OPTIONAL (no longer mandatory)
+                  - Orange border shown only on View Type when not selected
                   - fetchStorePerformance() only called when hasAllMandatoryFiltersForStore = true
 
                   VALIDATION TEST SCENARIOS:
-                  1. Initial load: Both filters show orange borders, empty state visible
-                  2. Select View Type only: View Type border removed, Store still orange, no data
-                  3. Type 2+ chars in Store only: Store border removed, View Type still orange, no data
-                  4. Select View Type AND type 2+ chars in Store: Both borders removed, data loads
-                  5. Clear either filter: Orange border returns on cleared filter, no data
-
-                  Visual validation pattern matches By Product view:
-                  - Date Range filter: lines 847-905
-                  - Product search filter: lines 911-937
-                  - Store search filter: lines 943-969 */}
+                  1. Initial load: View Type shows orange border, empty state visible
+                  2. Select View Type: Orange border removed, data loads
+                  3. Store search is optional and filters results when provided */}
 
               {/* View Type Dropdown */}
               <div className={`${
@@ -687,10 +752,8 @@ export default function StockByStorePage() {
               {/* Vertical Divider */}
               <div className="h-8 w-px bg-border" />
 
-              {/* Store Search Group */}
-              <div className={`flex items-center gap-1.5 p-1.5 border rounded-md bg-muted/5 ${
-                !hasValidSearchCriteria ? "border-orange-400 ring-1 ring-orange-400" : "border-border/40"
-              }`}>
+              {/* Store Search Group (optional filter) */}
+              <div className="flex items-center gap-1.5 p-1.5 border border-border/40 rounded-md bg-muted/5">
                 <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Store</span>
 
                 {/* Store ID Search */}
@@ -746,8 +809,8 @@ export default function StockByStorePage() {
             {/* Empty State - Show when mandatory filter criteria not met */}
             {!hasAllMandatoryFiltersForStore && (
               <InventoryEmptyState
-                message="Select View Type and enter store search (2+ chars)"
-                subtitle="Complete all filters with orange borders to load data."
+                message="Select View Type to view stock card"
+                subtitle="Choose a view type from the dropdown to load store data."
               />
             )}
 
@@ -1028,6 +1091,18 @@ export default function StockByStorePage() {
                   />
                 </div>
 
+                {/* Merchant SKU Toggle */}
+                <div className="flex items-center gap-2">
+                  <label htmlFor="show-merchant-sku" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                    Show Merchant SKU
+                  </label>
+                  <Switch
+                    id="show-merchant-sku"
+                    checked={showMerchantSku}
+                    onCheckedChange={setShowMerchantSku}
+                  />
+                </div>
+
                 {/* Spacer */}
                 <div className="flex-1" />
 
@@ -1080,6 +1155,15 @@ export default function StockByStorePage() {
                 </Card>
               )}
 
+              {/* Product Info Card - displays above Transaction History when filters are met */}
+              {hasAllMandatoryFiltersForProduct && showProductCard && mockProductFromSearch && (
+                <ProductInfoCard
+                  product={mockProductFromSearch}
+                  onClose={handleCloseProductCard}
+                  onViewDetails={handleViewProductDetails}
+                />
+              )}
+
               {/* Transaction History Table */}
               {hasAllMandatoryFiltersForProduct && (
                 <Card>
@@ -1122,6 +1206,9 @@ export default function StockByStorePage() {
                                 <TableHead className="text-right whitespace-nowrap">Qty</TableHead>
                                 <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
                                 <TableHead>Notes</TableHead>
+                                {showMerchantSku && (
+                                  <TableHead className="whitespace-nowrap">Merchant SKU</TableHead>
+                                )}
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1184,6 +1271,11 @@ export default function StockByStorePage() {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TableCell>
+                                    {showMerchantSku && (
+                                      <TableCell className="font-mono text-sm text-muted-foreground">
+                                        {txn.merchantSku || "-"}
+                                      </TableCell>
+                                    )}
                                   </TableRow>
                                 )
                               })}
@@ -1253,6 +1345,16 @@ export default function StockByStorePage() {
                                       )}
                                     </div>
                                   </div>
+
+                                  {/* Merchant SKU Section */}
+                                  {showMerchantSku && (
+                                    <div className="mt-3">
+                                      <div className="text-xs text-muted-foreground">Merchant SKU</div>
+                                      <div className="text-sm font-mono">
+                                        {txn.merchantSku || "-"}
+                                      </div>
+                                    </div>
+                                  )}
                                 </CardContent>
                               </Card>
                             )

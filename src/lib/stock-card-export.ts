@@ -75,13 +75,23 @@ export interface ExportDateRange {
 }
 
 /**
+ * Export options
+ */
+export interface ExportOptions {
+  includeMerchantSku?: boolean
+}
+
+/**
  * Export stock card transactions to CSV format
  */
 export function exportStockCardToCSV(
   transactions: ProductTransaction[],
   productInfo: ExportProductInfo,
-  dateRange: ExportDateRange
+  dateRange: ExportDateRange,
+  options: ExportOptions = {}
 ): void {
+  const { includeMerchantSku = true } = options
+
   // Build CSV content
   const lines: string[] = []
 
@@ -95,7 +105,11 @@ export function exportStockCardToCSV(
   lines.push("")
 
   // Add header row
-  lines.push("Date & Time,Transaction Type,Quantity,Balance,Reference No,Notes")
+  const headers = ["Date & Time", "Transaction Type", "Quantity", "Balance", "Reference No", "Notes"]
+  if (includeMerchantSku) {
+    headers.push("Merchant SKU")
+  }
+  lines.push(headers.join(","))
 
   // Add data rows
   for (const txn of transactions) {
@@ -106,8 +120,11 @@ export function exportStockCardToCSV(
       escapeCSVField(txn.balance),
       escapeCSVField(txn.referenceNo),
       escapeCSVField(txn.notes),
-    ].join(",")
-    lines.push(row)
+    ]
+    if (includeMerchantSku) {
+      row.push(escapeCSVField(txn.merchantSku || "-"))
+    }
+    lines.push(row.join(","))
   }
 
   // Join all lines

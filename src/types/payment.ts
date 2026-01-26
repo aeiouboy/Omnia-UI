@@ -6,6 +6,11 @@
  */
 
 /**
+ * Transaction type for payment operations
+ */
+export type TransactionType = 'AUTHORIZATION' | 'SETTLEMENT' | 'REFUNDED'
+
+/**
  * Payment transaction details
  */
 export interface PaymentTransaction {
@@ -19,6 +24,8 @@ export interface PaymentTransaction {
   gateway?: string
   cardNumber?: string
   expiryDate?: string
+  transactionType?: TransactionType
+  invoiceNo?: string
 }
 
 /**
