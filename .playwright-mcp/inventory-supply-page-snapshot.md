@@ -1,0 +1,115 @@
+### New console messages
+- [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v0-ris-oms.v...
+
+### Page state
+- Page URL: https://v0-ris-oms.vercel.app/inventory-new/supply
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Analysis" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Analysis
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - generic [ref=e20]:
+          - button "Inventory Management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - generic [ref=e27]: Inventory Management
+            - img [ref=e29]
+          - generic [ref=e31]:
+            - link "Inventory Availability" [ref=e32] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e33]
+              - generic [ref=e35]: Inventory Availability
+            - link "Stock Card" [ref=e36] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e37]
+              - generic [ref=e39]: Stock Card
+            - link "Stock Config" [ref=e40] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e41]
+              - generic [ref=e43]: Stock Config
+        - generic "Dashboard (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e50]: Dashboard
+        - generic "Inventory (disabled)" [ref=e51]:
+          - img [ref=e52]
+          - generic [ref=e56]: Inventory
+        - generic "ATC Config (disabled)" [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - generic "Escalations (disabled)" [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - generic "Style Guide (disabled)" [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 17:43:09"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e144] [cursor=pointer]:
+              - img "User" [ref=e145]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Inventory Availability" [level=1] [ref=e110]
+              - paragraph [ref=e111]: View and manage inventory supply levels across all stores and items
+            - button "Refresh" [ref=e113] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]: Store
+                - textbox "Search Store ID..." [ref=e118]
+                - textbox "Search Store Name..." [ref=e119]
+              - generic [ref=e121]:
+                - generic [ref=e122]: Product
+                - textbox "Search Product ID..." [ref=e123]
+                - textbox "Search Product Name..." [ref=e124]
+              - combobox [ref=e125] [cursor=pointer]:
+                - generic: All Supply Types
+                - img [ref=e126]
+              - combobox [ref=e128] [cursor=pointer]:
+                - generic: All View Types
+                - img [ref=e129]
+            - generic [ref=e131]:
+              - button "Clear All" [disabled]
+          - generic [ref=e133]:
+            - img [ref=e134]
+            - paragraph [ref=e138]: Please enter a Store ID, Store Name, Product ID, or Item Name to search inventory
+            - paragraph [ref=e139]: Use the search fields above to find inventory data
+      - contentinfo [ref=e140]:
+        - generic [ref=e142]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e143]
+```

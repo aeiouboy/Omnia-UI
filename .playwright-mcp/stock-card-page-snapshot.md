@@ -1,0 +1,227 @@
+### Page state
+- Page URL: https://v0-ris-oms.vercel.app/inventory-new/stores
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Analysis" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Analysis
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - generic [ref=e20]:
+          - button "Inventory Management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - generic [ref=e27]: Inventory Management
+            - img [ref=e29]
+          - generic [ref=e31]:
+            - link "Inventory Availability" [ref=e32] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e33]
+              - generic [ref=e35]: Inventory Availability
+            - link "Stock Card" [ref=e36] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e37]
+              - generic [ref=e39]: Stock Card
+            - link "Stock Config" [ref=e40] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e41]
+              - generic [ref=e43]: Stock Config
+        - generic "Dashboard (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e50]: Dashboard
+        - generic "Inventory (disabled)" [ref=e51]:
+          - img [ref=e52]
+          - generic [ref=e56]: Inventory
+        - generic "ATC Config (disabled)" [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - generic "Escalations (disabled)" [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - generic "Style Guide (disabled)" [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 17:53:03"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Stock Card" [level=1] [ref=e137]
+              - paragraph [ref=e138]: View inventory performance and stock levels across all store locations
+            - button "Refresh" [ref=e140] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e112]:
+            - combobox [ref=e141] [cursor=pointer]:
+              - generic:
+                - generic:
+                  - generic: ECOM-TH-CFR-LOCD-STD
+                  - generic: CFR - TOL
+              - img [ref=e142]
+            - generic [ref=e145]:
+              - generic [ref=e146]: Store
+              - generic [ref=e147]:
+                - img [ref=e148]
+                - textbox "Search Store ID..." [ref=e151]
+              - generic [ref=e152]:
+                - img [ref=e153]
+                - textbox "Search Store Name..." [ref=e156]
+            - button "Clear All" [ref=e157] [cursor=pointer]
+          - table [ref=e162]:
+            - rowgroup [ref=e163]:
+              - row "Store Name Store ID Total Products Low Stock Out of Stock ↓" [ref=e164]:
+                - columnheader "Store Name" [ref=e165] [cursor=pointer]:
+                  - generic [ref=e166]: Store Name
+                - columnheader "Store ID" [ref=e167] [cursor=pointer]:
+                  - generic [ref=e168]: Store ID
+                - columnheader "Total Products" [ref=e169] [cursor=pointer]:
+                  - generic [ref=e170]: Total Products
+                - columnheader "Low Stock" [ref=e171] [cursor=pointer]:
+                  - generic [ref=e172]: Low Stock
+                - columnheader "Out of Stock ↓" [ref=e173] [cursor=pointer]:
+                  - generic [ref=e174]:
+                    - text: Out of Stock
+                    - generic [ref=e175]: ↓
+                - columnheader [ref=e176]
+            - rowgroup [ref=e177]:
+              - row "Tops Central Plaza ลาดพร้าว CFR3841 2 0 0" [ref=e178] [cursor=pointer]:
+                - cell "Tops Central Plaza ลาดพร้าว" [ref=e179]:
+                  - generic [ref=e180]:
+                    - img [ref=e181]
+                    - generic [ref=e184]: Tops Central Plaza ลาดพร้าว
+                - cell "CFR3841" [ref=e185]
+                - cell "2" [ref=e186]
+                - cell "0" [ref=e187]:
+                  - generic [ref=e188]: "0"
+                - cell "0" [ref=e189]:
+                  - generic [ref=e190]: "0"
+                - cell [ref=e191]:
+                  - img [ref=e192]
+              - row "Tops Central World CFR1819 7 0 0" [ref=e194] [cursor=pointer]:
+                - cell "Tops Central World" [ref=e195]:
+                  - generic [ref=e196]:
+                    - img [ref=e197]
+                    - generic [ref=e200]: Tops Central World
+                - cell "CFR1819" [ref=e201]
+                - cell "7" [ref=e202]
+                - cell "0" [ref=e203]:
+                  - generic [ref=e204]: "0"
+                - cell "0" [ref=e205]:
+                  - generic [ref=e206]: "0"
+                - cell [ref=e207]:
+                  - img [ref=e208]
+              - row "Tops สุขุมวิท 39 CFR2669 3 0 0" [ref=e210] [cursor=pointer]:
+                - cell "Tops สุขุมวิท 39" [ref=e211]:
+                  - generic [ref=e212]:
+                    - img [ref=e213]
+                    - generic [ref=e216]: Tops สุขุมวิท 39
+                - cell "CFR2669" [ref=e217]
+                - cell "3" [ref=e218]
+                - cell "0" [ref=e219]:
+                  - generic [ref=e220]: "0"
+                - cell "0" [ref=e221]:
+                  - generic [ref=e222]: "0"
+                - cell [ref=e223]:
+                  - img [ref=e224]
+              - row "Tops ทองหล่อ CFR7914 2 0 0" [ref=e226] [cursor=pointer]:
+                - cell "Tops ทองหล่อ" [ref=e227]:
+                  - generic [ref=e228]:
+                    - img [ref=e229]
+                    - generic [ref=e232]: Tops ทองหล่อ
+                - cell "CFR7914" [ref=e233]
+                - cell "2" [ref=e234]
+                - cell "0" [ref=e235]:
+                  - generic [ref=e236]: "0"
+                - cell "0" [ref=e237]:
+                  - generic [ref=e238]: "0"
+                - cell [ref=e239]:
+                  - img [ref=e240]
+              - row "Tops สีลม คอมเพล็กซ์ CFR6299 3 0 0" [ref=e242] [cursor=pointer]:
+                - cell "Tops สีลม คอมเพล็กซ์" [ref=e243]:
+                  - generic [ref=e244]:
+                    - img [ref=e245]
+                    - generic [ref=e248]: Tops สีลม คอมเพล็กซ์
+                - cell "CFR6299" [ref=e249]
+                - cell "3" [ref=e250]
+                - cell "0" [ref=e251]:
+                  - generic [ref=e252]: "0"
+                - cell "0" [ref=e253]:
+                  - generic [ref=e254]: "0"
+                - cell [ref=e255]:
+                  - img [ref=e256]
+              - row "Tops เอกมัย CFR4284 3 0 0" [ref=e258] [cursor=pointer]:
+                - cell "Tops เอกมัย" [ref=e259]:
+                  - generic [ref=e260]:
+                    - img [ref=e261]
+                    - generic [ref=e264]: Tops เอกมัย
+                - cell "CFR4284" [ref=e265]
+                - cell "3" [ref=e266]
+                - cell "0" [ref=e267]:
+                  - generic [ref=e268]: "0"
+                - cell "0" [ref=e269]:
+                  - generic [ref=e270]: "0"
+                - cell [ref=e271]:
+                  - img [ref=e272]
+              - row "Tops พร้อมพงษ์ CFR6180 2 0 0" [ref=e274] [cursor=pointer]:
+                - cell "Tops พร้อมพงษ์" [ref=e275]:
+                  - generic [ref=e276]:
+                    - img [ref=e277]
+                    - generic [ref=e280]: Tops พร้อมพงษ์
+                - cell "CFR6180" [ref=e281]
+                - cell "2" [ref=e282]
+                - cell "0" [ref=e283]:
+                  - generic [ref=e284]: "0"
+                - cell "0" [ref=e285]:
+                  - generic [ref=e286]: "0"
+                - cell [ref=e287]:
+                  - img [ref=e288]
+              - row "Tops จตุจักร CFR7820 2 0 0" [ref=e290] [cursor=pointer]:
+                - cell "Tops จตุจักร" [ref=e291]:
+                  - generic [ref=e292]:
+                    - img [ref=e293]
+                    - generic [ref=e296]: Tops จตุจักร
+                - cell "CFR7820" [ref=e297]
+                - cell "2" [ref=e298]
+                - cell "0" [ref=e299]:
+                  - generic [ref=e300]: "0"
+                - cell "0" [ref=e301]:
+                  - generic [ref=e302]: "0"
+                - cell [ref=e303]:
+                  - img [ref=e304]
+      - contentinfo [ref=e133]:
+        - generic [ref=e135]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e136]
+```

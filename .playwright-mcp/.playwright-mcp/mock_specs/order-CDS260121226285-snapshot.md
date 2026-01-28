@@ -1,0 +1,1275 @@
+### Page state
+- Page URL: https://crcpp.omni.manh.com/customerengagementfacade/app/orderstatus?orderId=CDS260121226285&selectedOrg=DS
+- Page Title: Call center
+- Page Snapshot:
+```yaml
+- generic [ref=e5]:
+  - generic [ref=e9]:
+    - generic [ref=e11]:
+      - heading "CONTACT CENTER" [level=2] [ref=e12]
+      - button "DS" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]:
+          - heading "DS" [level=5] [ref=e15]
+          - generic [ref=e16]: arrow_down
+    - button "Standard UI" [ref=e18] [cursor=pointer]:
+      - generic [ref=e19]:
+        - heading "Standard UI" [level=5] [ref=e20]
+        - generic [ref=e21]: arrow_down
+    - generic [ref=e23]:
+      - button [ref=e25] [cursor=pointer]:
+        - generic [ref=e27]: help_icon_circle
+      - button "Naruechon Woraphatphawan" [ref=e28] [cursor=pointer]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: user_profile_circle
+          - heading "Naruechon Woraphatphawan" [level=5] [ref=e32]
+  - generic [ref=e34]:
+    - generic [ref=e38]:
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: home
+        - heading "Home" [level=5] [ref=e41]
+      - generic [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]: items
+        - heading "Item Search" [level=5] [ref=e44]
+      - generic [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: orders
+        - heading "Orders" [level=5] [ref=e47]
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e58]:
+          - generic [ref=e61]:
+            - heading "ธนวัฒน์ สิงห์แพรก" [level=2] [ref=e63] [cursor=pointer]
+            - generic [ref=e65] [cursor=pointer]: arrow_down
+          - generic [ref=e69]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: phone_circle
+              - paragraph [ref=e73] [cursor=pointer]: "0922643514"
+            - generic [ref=e75]:
+              - generic [ref=e76]: email_circle
+              - paragraph [ref=e77] [cursor=pointer]: thanawat4596@gmail.com
+            - generic [ref=e79]:
+              - generic [ref=e80]: user_profile_circle
+              - paragraph [ref=e81]: Not Registered
+          - generic [ref=e83]:
+            - paragraph
+        - generic [ref=e85] [cursor=pointer]: close
+      - generic [ref=e88]:
+        - generic [ref=e91]:
+          - generic [ref=e93]:
+            - heading "Order Status" [level=2] [ref=e94]
+            - heading "DELIVERED" [level=4] [ref=e96]
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - heading "Order No.:" [level=4] [ref=e100]
+                - heading "CDS260121226285" [level=5] [ref=e101]
+              - generic [ref=e102]:
+                - heading "Created:" [level=4] [ref=e103]
+                - heading "01/21/2026 11:49 +07" [level=5] [ref=e104]
+              - generic [ref=e105]:
+                - heading "Order type:" [level=4] [ref=e106]
+                - heading "RT-HD-STD" [level=5] [ref=e107]
+            - generic [ref=e108]:
+              - heading "Store No.:" [level=4] [ref=e110]
+              - generic [ref=e111]:
+                - heading "Related Cases:" [level=4] [ref=e112]
+                - heading "undefined" [level=5]:
+                  - link:
+                    - /url: /customerengagementfacade/app/casedetail/undefined?isArchiveCase=false&selectedOrg=DS
+            - generic [ref=e113]:
+              - generic [ref=e117]: Full Tax Invoicefalse
+              - generic [ref=e121]: Customer Type Id :General
+              - generic [ref=e125]: The1 member8031630388
+              - generic [ref=e129]: Selling channel :Web
+              - generic [ref=e133]: Allow substitution :false
+              - generic [ref=e137]: Cust Ref :2400777864
+              - generic [ref=e141]: "Tax Id :"
+              - generic [ref=e145]: "Company Name :"
+              - generic [ref=e149]: "Branch No. :"
+              - generic [ref=e153]: Captured Date :01/21/2026 11:49 +07
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - heading "PAYMENT INFO" [level=2] [ref=e158]
+              - heading "PAID" [level=4] [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - heading "CREDIT CARD:" [level=4] [ref=e167]
+                  - heading "525669XXXXXX0005" [level=5] [ref=e168]
+                - generic [ref=e169]:
+                  - heading "Expiry Date" [level=4] [ref=e170]
+                  - heading ":" [level=4] [ref=e171]
+                  - heading "**/****" [level=5] [ref=e172]
+                - generic [ref=e173]:
+                  - heading "Amount to be charged:" [level=4] [ref=e174]
+                  - heading "฿4,551.25" [level=5] [ref=e175]
+                - generic [ref=e176]:
+                  - heading "Amount charged:" [level=4] [ref=e177]
+                  - heading "฿4,551.25" [level=5] [ref=e178]
+                - generic [ref=e180]:
+                  - generic [ref=e184]:
+                    - generic [ref=e185]: "Billing Address :"
+                    - generic [ref=e186]: 88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี (รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ),-,-,
+                  - generic [ref=e191]: หนองปรือ,บางละมุง,ชลบุรี,TH,20150
+                  - generic [ref=e195]: Billing Name :ธนวัฒน์ สิงห์แพรก
+              - button [ref=e201] [cursor=pointer]:
+                - generic [ref=e203]: menu
+        - generic [ref=e204]:
+          - generic [ref=e207]:
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - heading "0" [level=4] [ref=e211]
+                - heading "ORDER PROMOTIONS" [level=4] [ref=e212]
+                - generic [ref=e213]:
+                  - heading "&" [level=4] [ref=e214]
+                  - heading "0" [level=4] [ref=e215]
+                  - heading "ORDER APPEASEMENTS" [level=4] [ref=e216]
+                - heading "&" [level=4] [ref=e217]
+                - heading "0" [level=4] [ref=e218]
+                - heading "ORDER COUPONS APPLIED" [level=4] [ref=e219]
+              - generic [ref=e222]: filter-solid
+            - generic [ref=e223]:
+              - generic [ref=e224]:
+                - heading "ITEMS" [level=4] [ref=e225]
+                - generic [ref=e227] [cursor=pointer]:
+                  - text: notes
+                  - generic [ref=e228]: "0"
+              - generic [ref=e234]:
+                - generic [ref=e238]:
+                  - generic [ref=e240]:
+                    - generic [ref=e241]:
+                      - generic [ref=e242]:
+                        - heading "Girl T-Shirt Short Sleeves Round Neck Kuromi Viole" [level=4] [ref=e244]
+                        - generic [ref=e246]:
+                          - heading "SKU:" [level=6] [ref=e247]
+                          - paragraph [ref=e248]: CDS23576490
+                        - generic [ref=e250]:
+                          - heading "ETA:" [level=6] [ref=e251]
+                          - paragraph [ref=e252]: 01/23/2026
+                        - generic [ref=e254] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e255]: "0"
+                      - generic [ref=e256]:
+                        - generic [ref=e258]:
+                          - generic [ref=e260]:
+                            - heading "Style:" [level=6] [ref=e261]
+                            - paragraph
+                          - generic [ref=e263]:
+                            - heading "Color:" [level=6] [ref=e264]
+                            - paragraph
+                          - generic [ref=e266]:
+                            - heading "Size:" [level=6] [ref=e267]
+                            - paragraph
+                        - generic [ref=e269]:
+                          - generic [ref=e270] [cursor=pointer]: 1Promotions
+                          - text: "&"
+                          - generic [ref=e271] [cursor=pointer]: 1Coupons
+                          - text: "&"
+                          - generic [ref=e272] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e274]:
+                          - heading "PRICE:" [level=6] [ref=e275]
+                          - paragraph [ref=e276]: ฿395.00
+                    - generic [ref=e278]:
+                      - generic [ref=e282]:
+                        - generic [ref=e283]: "Shipping Method :"
+                        - generic [ref=e284]: Standard Delivery
+                      - generic [ref=e289]: "Route :"
+                      - generic [ref=e294]: "Booking slot from :"
+                      - generic [ref=e299]: "Booking slot to :"
+                      - generic [ref=e303]:
+                        - generic [ref=e304]: "SupplyTypeId :"
+                        - generic [ref=e305]: On Hand Available
+                      - generic [ref=e309]: Bundle :false
+                      - generic [ref=e313]: "Bundle Ref Id :"
+                      - generic [ref=e317]: Packed Ordered Qty :0
+                      - generic [ref=e321]: "NumberOfPack :"
+                      - generic [ref=e326]: "PackitemDescription :"
+                      - generic [ref=e330]: UOM :PCS
+                      - generic [ref=e334]: "Actual weight :"
+                      - generic [ref=e339]: "Promotion Id :"
+                      - generic [ref=e344]: "Promotion Type :"
+                      - generic [ref=e349]: "Secret code :"
+                      - generic [ref=e353]:
+                        - generic [ref=e354]: "Gift with purchase :"
+                        - generic [ref=e355]: "false"
+                      - generic [ref=e360]: "Gift with purchase item :"
+                      - generic [ref=e365]: "Gift wrapped :"
+                  - generic [ref=e366]:
+                    - generic [ref=e367]:
+                      - heading "DELIVERED" [level=4] [ref=e372]
+                      - generic [ref=e374]:
+                        - generic [ref=e377]:
+                          - generic [ref=e381]: "1"
+                          - heading "Ordered" [level=5] [ref=e382]
+                        - generic [ref=e385]:
+                          - generic [ref=e389]: "1"
+                          - heading "Allocated" [level=5] [ref=e390]
+                        - generic [ref=e393]:
+                          - generic [ref=e397]: "1"
+                          - heading "Released" [level=5] [ref=e398]
+                        - generic [ref=e401]:
+                          - generic [ref=e405]: "1"
+                          - heading "Fulfilled" [level=5] [ref=e406]
+                        - generic [ref=e409]:
+                          - generic [ref=e413]: "1"
+                          - heading "Delivered" [level=5] [ref=e414]
+                      - generic [ref=e419]:
+                        - generic [ref=e420]:
+                          - heading "Subtotal" [level=5] [ref=e421]
+                          - heading "Discount" [level=5] [ref=e422]
+                          - heading "Charges" [level=5] [ref=e423]
+                          - heading "Taxes" [level=5] [ref=e424]
+                          - heading [level=5] [ref=e425]
+                          - heading "Total" [level=4] [ref=e426]
+                          - heading "Informational Taxes" [level=5] [ref=e427]
+                        - generic [ref=e428]:
+                          - heading [level=5] [ref=e429]
+                          - heading "-" [level=5] [ref=e430]
+                          - heading "+" [level=5] [ref=e431]
+                          - heading "+" [level=5] [ref=e432]
+                          - heading [level=5] [ref=e433]
+                          - heading "=" [level=4] [ref=e434]
+                          - heading [level=5] [ref=e435]
+                        - generic [ref=e436]:
+                          - heading "฿395.00" [level=5] [ref=e437]
+                          - heading "฿128.07" [level=5] [ref=e438]
+                          - heading "฿0.00" [level=5] [ref=e439]
+                          - heading "฿0.00" [level=5] [ref=e440]
+                          - heading [level=5] [ref=e441]
+                          - heading "฿266.93" [level=4] [ref=e442]
+                          - heading "฿17.46" [level=5] [ref=e443]
+                    - button "More Info" [ref=e455] [cursor=pointer]: More Info
+                - generic [ref=e459]:
+                  - generic [ref=e461]:
+                    - generic [ref=e462]:
+                      - generic [ref=e463]:
+                        - heading "Girl Pants Wide Legs Kuromi Denim" [level=4] [ref=e465]
+                        - generic [ref=e467]:
+                          - heading "SKU:" [level=6] [ref=e468]
+                          - paragraph [ref=e469]: CDS23576551
+                        - generic [ref=e471]:
+                          - heading "ETA:" [level=6] [ref=e472]
+                          - paragraph [ref=e473]: 01/23/2026
+                        - generic [ref=e475] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e476]: "0"
+                      - generic [ref=e477]:
+                        - generic [ref=e479]:
+                          - generic [ref=e481]:
+                            - heading "Style:" [level=6] [ref=e482]
+                            - paragraph
+                          - generic [ref=e484]:
+                            - heading "Color:" [level=6] [ref=e485]
+                            - paragraph
+                          - generic [ref=e487]:
+                            - heading "Size:" [level=6] [ref=e488]
+                            - paragraph
+                        - generic [ref=e490]:
+                          - generic [ref=e491] [cursor=pointer]: 1Promotions
+                          - text: "&"
+                          - generic [ref=e492] [cursor=pointer]: 1Coupons
+                          - text: "&"
+                          - generic [ref=e493] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e495]:
+                          - heading "PRICE:" [level=6] [ref=e496]
+                          - paragraph [ref=e497]: ฿645.00
+                    - generic [ref=e499]:
+                      - generic [ref=e503]:
+                        - generic [ref=e504]: "Shipping Method :"
+                        - generic [ref=e505]: Standard Delivery
+                      - generic [ref=e510]: "Route :"
+                      - generic [ref=e515]: "Booking slot from :"
+                      - generic [ref=e520]: "Booking slot to :"
+                      - generic [ref=e524]:
+                        - generic [ref=e525]: "SupplyTypeId :"
+                        - generic [ref=e526]: On Hand Available
+                      - generic [ref=e530]: Bundle :false
+                      - generic [ref=e534]: "Bundle Ref Id :"
+                      - generic [ref=e538]: Packed Ordered Qty :0
+                      - generic [ref=e542]: "NumberOfPack :"
+                      - generic [ref=e547]: "PackitemDescription :"
+                      - generic [ref=e551]: UOM :PCS
+                      - generic [ref=e555]: "Actual weight :"
+                      - generic [ref=e560]: "Promotion Id :"
+                      - generic [ref=e565]: "Promotion Type :"
+                      - generic [ref=e570]: "Secret code :"
+                      - generic [ref=e574]:
+                        - generic [ref=e575]: "Gift with purchase :"
+                        - generic [ref=e576]: "false"
+                      - generic [ref=e581]: "Gift with purchase item :"
+                      - generic [ref=e586]: "Gift wrapped :"
+                  - generic [ref=e587]:
+                    - generic [ref=e588]:
+                      - heading "DELIVERED" [level=4] [ref=e593]
+                      - generic [ref=e595]:
+                        - generic [ref=e598]:
+                          - generic [ref=e602]: "1"
+                          - heading "Ordered" [level=5] [ref=e603]
+                        - generic [ref=e606]:
+                          - generic [ref=e610]: "1"
+                          - heading "Allocated" [level=5] [ref=e611]
+                        - generic [ref=e614]:
+                          - generic [ref=e618]: "1"
+                          - heading "Released" [level=5] [ref=e619]
+                        - generic [ref=e622]:
+                          - generic [ref=e626]: "1"
+                          - heading "Fulfilled" [level=5] [ref=e627]
+                        - generic [ref=e630]:
+                          - generic [ref=e634]: "1"
+                          - heading "Delivered" [level=5] [ref=e635]
+                      - generic [ref=e640]:
+                        - generic [ref=e641]:
+                          - heading "Subtotal" [level=5] [ref=e642]
+                          - heading "Discount" [level=5] [ref=e643]
+                          - heading "Charges" [level=5] [ref=e644]
+                          - heading "Taxes" [level=5] [ref=e645]
+                          - heading [level=5] [ref=e646]
+                          - heading "Total" [level=4] [ref=e647]
+                          - heading "Informational Taxes" [level=5] [ref=e648]
+                        - generic [ref=e649]:
+                          - heading [level=5] [ref=e650]
+                          - heading "-" [level=5] [ref=e651]
+                          - heading "+" [level=5] [ref=e652]
+                          - heading "+" [level=5] [ref=e653]
+                          - heading [level=5] [ref=e654]
+                          - heading "=" [level=4] [ref=e655]
+                          - heading [level=5] [ref=e656]
+                        - generic [ref=e657]:
+                          - heading "฿645.00" [level=5] [ref=e658]
+                          - heading "฿209.13" [level=5] [ref=e659]
+                          - heading "฿0.00" [level=5] [ref=e660]
+                          - heading "฿0.00" [level=5] [ref=e661]
+                          - heading [level=5] [ref=e662]
+                          - heading "฿435.87" [level=4] [ref=e663]
+                          - heading "฿28.51" [level=5] [ref=e664]
+                    - button "More Info" [ref=e676] [cursor=pointer]: More Info
+              - generic [ref=e679]:
+                - generic [ref=e682]: "*Includes various service charges for the order."
+                - generic [ref=e684]:
+                  - generic [ref=e685]:
+                    - heading "Item Subtotal" [level=5] [ref=e686]
+                    - heading "Total Discounts" [level=5] [ref=e687]
+                    - heading "Estimated S&H" [level=5] [ref=e688]
+                    - heading "Other Charges:*" [level=5] [ref=e689]
+                    - heading "Estimated Taxes" [level=5] [ref=e690]
+                    - heading [level=5] [ref=e691]
+                    - heading "Order Total" [level=4] [ref=e692]
+                    - heading "Informational Taxes" [level=5] [ref=e693]
+                  - generic [ref=e694]:
+                    - heading [level=5] [ref=e695]
+                    - heading "-" [level=5] [ref=e696]
+                    - heading "+" [level=5] [ref=e697]
+                    - heading "+" [level=5] [ref=e698]
+                    - heading "+" [level=5] [ref=e699]
+                    - heading [level=5] [ref=e700]
+                    - heading "=" [level=4] [ref=e701]
+                    - heading [level=5] [ref=e702]
+                  - generic [ref=e703]:
+                    - heading "฿9,460.00" [level=5] [ref=e704]
+                    - heading "฿4,908.75" [level=5] [ref=e705]
+                    - heading "฿0.00" [level=5] [ref=e706]
+                    - heading "฿0.00" [level=5] [ref=e707]
+                    - heading "฿0.00" [level=5] [ref=e708]
+                    - heading [level=5] [ref=e709]
+                    - heading "฿4,551.25" [level=4] [ref=e710]
+                    - heading "฿297.70" [level=5] [ref=e711]
+          - generic [ref=e716]:
+            - heading "STATUS SUMMARY" [level=4] [ref=e719]
+            - generic [ref=e723]:
+              - generic [ref=e725]:
+                - button "COMPLETED SHIPMENTS (3)" [expanded] [ref=e726] [cursor=pointer]:
+                  - heading "COMPLETED SHIPMENTS (3)" [level=5] [ref=e728]
+                - region "COMPLETED SHIPMENTS (3)" [ref=e730]:
+                  - generic [ref=e736]:
+                    - generic [ref=e740]:
+                      - generic [ref=e741]:
+                        - generic [ref=e742]:
+                          - heading "Package Appeasement Options" [level=4] [ref=e743]
+                          - generic [ref=e744]:
+                            - generic [ref=e746] [cursor=pointer]:
+                              - generic [ref=e747]:
+                                - checkbox "Include Charges" [checked] [ref=e748]
+                                - generic:
+                                  - img
+                              - generic [ref=e749]: Include Charges
+                            - button "APPEASE" [ref=e750] [cursor=pointer]:
+                              - generic [ref=e751]: APPEASE
+                        - generic [ref=e752]:
+                          - generic [ref=e753]:
+                            - generic [ref=e754]:
+                              - heading "Status:" [level=4] [ref=e755]
+                              - heading "DELIVERED" [level=5] [ref=e756]
+                            - generic [ref=e757]:
+                              - heading "Tracking number:" [level=4] [ref=e758]
+                              - heading "DHL0842601006994" [level=5] [ref=e759]
+                            - generic [ref=e761]:
+                              - heading "ETA:" [level=4] [ref=e762]
+                              - heading "01/23/2026" [level=4] [ref=e763]
+                            - generic [ref=e764]:
+                              - heading "Shipped on:" [level=4] [ref=e765]
+                              - heading "01/21/2026" [level=5] [ref=e766]
+                            - generic [ref=e767]:
+                              - heading "Rel No.:" [level=4] [ref=e768]
+                              - heading "CDS2601212262851" [level=5] [ref=e769]
+                            - generic [ref=e770]:
+                              - heading "Shipped from:" [level=4] [ref=e771]
+                              - heading "Central Online Warehouse" [level=5] [ref=e772]
+                            - generic [ref=e775]:
+                              - generic [ref=e779]: Subdistrict :หนองปรือ
+                              - generic [ref=e783]:
+                                - generic [ref=e784]: "CRC tracking link :"
+                                - generic [ref=e785]: https://www.dhl.com/th-en/home/tracking.html?tracking-id=DHL0842601006994
+                          - generic [ref=e786]:
+                            - generic [ref=e787]:
+                              - heading "Ship to Address" [level=4] [ref=e789]
+                              - heading "thanawat4596@gmail.com" [level=5] [ref=e790]
+                            - heading "คุณ อภิญญา สิงห์แพรก" [level=5] [ref=e792]
+                            - heading "88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี (รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ)" [level=5] [ref=e794]
+                            - heading "-" [level=5] [ref=e796]
+                            - heading "-" [level=5] [ref=e798]
+                            - heading "บางละมุง, ชลบุรี 20150" [level=5] [ref=e800]
+                            - generic [ref=e801]:
+                              - heading "Allocation Type:" [level=4] [ref=e802]
+                              - heading "Delivery" [level=5] [ref=e803]
+                            - generic [ref=e805]:
+                              - generic [ref=e806]: "Phone :"
+                              - generic [ref=e807]: "0922643514"
+                      - generic [ref=e812]:
+                        - generic [ref=e815]:
+                          - generic [ref=e816]:
+                            - heading "Girl Pants Hello Kitty Blue" [level=4] [ref=e818]
+                            - generic [ref=e819]:
+                              - heading "Shipped Qty:" [level=6] [ref=e820]
+                              - paragraph [ref=e821]: "1"
+                            - generic [ref=e827]: UOM :PCS
+                          - generic [ref=e828]:
+                            - heading "CDS23582996" [level=4] [ref=e830]
+                            - generic [ref=e831]:
+                              - heading "Ordered Qty:" [level=6] [ref=e832]
+                              - paragraph [ref=e833]: "1"
+                        - generic [ref=e836]:
+                          - generic [ref=e837]:
+                            - heading "Girl Leggings Hello Kitty Red" [level=4] [ref=e839]
+                            - generic [ref=e840]:
+                              - heading "Shipped Qty:" [level=6] [ref=e841]
+                              - paragraph [ref=e842]: "1"
+                            - generic [ref=e848]: UOM :PCS
+                          - generic [ref=e849]:
+                            - heading "CDS23583115" [level=4] [ref=e851]
+                            - generic [ref=e852]:
+                              - heading "Ordered Qty:" [level=6] [ref=e853]
+                              - paragraph [ref=e854]: "1"
+                        - generic [ref=e857]:
+                          - generic [ref=e858]:
+                            - heading "Girl Dress Cap Sleeves Hello Kitty Blue" [level=4] [ref=e860]
+                            - generic [ref=e861]:
+                              - heading "Shipped Qty:" [level=6] [ref=e862]
+                              - paragraph [ref=e863]: "1"
+                            - generic [ref=e869]: UOM :PCS
+                          - generic [ref=e870]:
+                            - heading "CDS24077910" [level=4] [ref=e872]
+                            - generic [ref=e873]:
+                              - heading "Ordered Qty:" [level=6] [ref=e874]
+                              - paragraph [ref=e875]: "1"
+                        - generic [ref=e878]:
+                          - generic [ref=e879]:
+                            - heading "Girl Toddler Dress Short Sleeves Gingham Cinnamoro" [level=4] [ref=e881]
+                            - generic [ref=e882]:
+                              - heading "Shipped Qty:" [level=6] [ref=e883]
+                              - paragraph [ref=e884]: "1"
+                            - generic [ref=e890]: UOM :PCS
+                          - generic [ref=e891]:
+                            - heading "CDS24097840" [level=4] [ref=e893]
+                            - generic [ref=e894]:
+                              - heading "Ordered Qty:" [level=6] [ref=e895]
+                              - paragraph [ref=e896]: "1"
+                        - generic [ref=e899]:
+                          - generic [ref=e900]:
+                            - heading "Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue" [level=4] [ref=e902]
+                            - generic [ref=e903]:
+                              - heading "Shipped Qty:" [level=6] [ref=e904]
+                              - paragraph [ref=e905]: "1"
+                            - generic [ref=e911]: UOM :PCS
+                          - generic [ref=e912]:
+                            - heading "CDS24098465" [level=4] [ref=e914]
+                            - generic [ref=e915]:
+                              - heading "Ordered Qty:" [level=6] [ref=e916]
+                              - paragraph [ref=e917]: "1"
+                    - generic [ref=e922]:
+                      - generic [ref=e923]:
+                        - generic [ref=e924]:
+                          - heading "Package Appeasement Options" [level=4] [ref=e925]
+                          - generic [ref=e926]:
+                            - generic [ref=e928] [cursor=pointer]:
+                              - generic [ref=e929]:
+                                - checkbox "Include Charges" [checked] [ref=e930]
+                                - generic:
+                                  - img
+                              - generic [ref=e931]: Include Charges
+                            - button "APPEASE" [ref=e932] [cursor=pointer]:
+                              - generic [ref=e933]: APPEASE
+                        - generic [ref=e934]:
+                          - generic [ref=e935]:
+                            - generic [ref=e936]:
+                              - heading "Status:" [level=4] [ref=e937]
+                              - heading "DELIVERED" [level=5] [ref=e938]
+                            - generic [ref=e939]:
+                              - heading "Tracking number:" [level=4] [ref=e940]
+                              - heading "KNJ0202601010946" [level=5] [ref=e942] [cursor=pointer]: KNJ0202601010946
+                            - generic [ref=e943]:
+                              - heading "ETA:" [level=4] [ref=e944]
+                              - heading "01/23/2026" [level=4] [ref=e945]
+                            - generic [ref=e946]:
+                              - heading "Shipped on:" [level=4] [ref=e947]
+                              - heading "01/21/2026" [level=5] [ref=e948]
+                            - generic [ref=e949]:
+                              - heading "Rel No.:" [level=4] [ref=e950]
+                              - heading "CDS2601212262853" [level=5] [ref=e951]
+                            - generic [ref=e952]:
+                              - heading "Shipped from:" [level=4] [ref=e953]
+                              - heading "Bangna" [level=5] [ref=e954]
+                            - generic [ref=e957]:
+                              - generic [ref=e961]: Subdistrict :หนองปรือ
+                              - generic [ref=e965]:
+                                - generic [ref=e966]: "CRC tracking link :"
+                                - generic [ref=e967]: https://th.kex-express.com/th/track/?track=KNJ0202601010946
+                          - generic [ref=e968]:
+                            - generic [ref=e969]:
+                              - heading "Ship to Address" [level=4] [ref=e971]
+                              - heading "thanawat4596@gmail.com" [level=5] [ref=e972]
+                            - heading "คุณ อภิญญา สิงห์แพรก" [level=5] [ref=e974]
+                            - heading "88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี (รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ)" [level=5] [ref=e976]
+                            - heading "-" [level=5] [ref=e978]
+                            - heading "-" [level=5] [ref=e980]
+                            - heading "บางละมุง, ชลบุรี 20150" [level=5] [ref=e982]
+                            - generic [ref=e983]:
+                              - heading "Allocation Type:" [level=4] [ref=e984]
+                              - heading "Delivery" [level=5] [ref=e985]
+                            - generic [ref=e987]:
+                              - generic [ref=e988]: "Phone :"
+                              - generic [ref=e989]: "0922643514"
+                      - generic [ref=e994]:
+                        - generic [ref=e997]:
+                          - generic [ref=e998]:
+                            - heading "Girl T-Shirt Short Sleeves Round Neck Kuromi Viole" [level=4] [ref=e1000]
+                            - generic [ref=e1001]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1002]
+                              - paragraph [ref=e1003]: "1"
+                            - generic [ref=e1009]: UOM :PCS
+                          - generic [ref=e1010]:
+                            - heading "CDS23576490" [level=4] [ref=e1012]
+                            - generic [ref=e1013]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1014]
+                              - paragraph [ref=e1015]: "1"
+                        - generic [ref=e1018]:
+                          - generic [ref=e1019]:
+                            - heading "Girl Pants Wide Legs Kuromi Denim" [level=4] [ref=e1021]
+                            - generic [ref=e1022]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1023]
+                              - paragraph [ref=e1024]: "1"
+                            - generic [ref=e1030]: UOM :PCS
+                          - generic [ref=e1031]:
+                            - heading "CDS23576551" [level=4] [ref=e1033]
+                            - generic [ref=e1034]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1035]
+                              - paragraph [ref=e1036]: "1"
+                        - generic [ref=e1039]:
+                          - generic [ref=e1040]:
+                            - heading "Girl Dress Short Sleeves Gingham Hello Kitty Cherr" [level=4] [ref=e1042]
+                            - generic [ref=e1043]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1044]
+                              - paragraph [ref=e1045]: "1"
+                            - generic [ref=e1051]: UOM :PCS
+                          - generic [ref=e1052]:
+                            - heading "CDS24098083" [level=4] [ref=e1054]
+                            - generic [ref=e1055]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1056]
+                              - paragraph [ref=e1057]: "1"
+                        - generic [ref=e1060]:
+                          - generic [ref=e1061]:
+                            - heading "Girl T-Shirt Short Sleeves Round Neck Hello Kitty" [level=4] [ref=e1063]
+                            - generic [ref=e1064]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1065]
+                              - paragraph [ref=e1066]: "1"
+                            - generic [ref=e1072]: UOM :PCS
+                          - generic [ref=e1073]:
+                            - heading "CDS24098281" [level=4] [ref=e1075]
+                            - generic [ref=e1076]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1077]
+                              - paragraph [ref=e1078]: "1"
+                        - generic [ref=e1081]:
+                          - generic [ref=e1082]:
+                            - heading "Girl Toddler Pyjamas Set Dress Long Sleeves With R" [level=4] [ref=e1084]
+                            - generic [ref=e1085]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1086]
+                              - paragraph [ref=e1087]: "1"
+                            - generic [ref=e1093]: UOM :PCS
+                          - generic [ref=e1094]:
+                            - heading "CDS24820752" [level=4] [ref=e1096]
+                            - generic [ref=e1097]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1098]
+                              - paragraph [ref=e1099]: "1"
+                        - generic [ref=e1102]:
+                          - generic [ref=e1103]:
+                            - heading "Girl Toddler Pyjamas Set Dress Long Sleeves With R" [level=4] [ref=e1105]
+                            - generic [ref=e1106]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1107]
+                              - paragraph [ref=e1108]: "1"
+                            - generic [ref=e1114]: UOM :PCS
+                          - generic [ref=e1115]:
+                            - heading "CDS24820776" [level=4] [ref=e1117]
+                            - generic [ref=e1118]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1119]
+                              - paragraph [ref=e1120]: "1"
+                    - generic [ref=e1125]:
+                      - generic [ref=e1126]:
+                        - generic [ref=e1127]:
+                          - heading "Package Appeasement Options" [level=4] [ref=e1128]
+                          - generic [ref=e1129]:
+                            - generic [ref=e1131] [cursor=pointer]:
+                              - generic [ref=e1132]:
+                                - checkbox "Include Charges" [checked] [ref=e1133]
+                                - generic:
+                                  - img
+                              - generic [ref=e1134]: Include Charges
+                            - button "APPEASE" [ref=e1135] [cursor=pointer]:
+                              - generic [ref=e1136]: APPEASE
+                        - generic [ref=e1137]:
+                          - generic [ref=e1138]:
+                            - generic [ref=e1139]:
+                              - heading "Status:" [level=4] [ref=e1140]
+                              - heading "DELIVERED" [level=5] [ref=e1141]
+                            - generic [ref=e1142]:
+                              - heading "Tracking number:" [level=4] [ref=e1143]
+                              - heading "KNJ0202601010865" [level=5] [ref=e1145] [cursor=pointer]: KNJ0202601010865
+                            - generic [ref=e1146]:
+                              - heading "ETA:" [level=4] [ref=e1147]
+                              - heading "01/23/2026" [level=4] [ref=e1148]
+                            - generic [ref=e1149]:
+                              - heading "Shipped on:" [level=4] [ref=e1150]
+                              - heading "01/21/2026" [level=5] [ref=e1151]
+                            - generic [ref=e1152]:
+                              - heading "Rel No.:" [level=4] [ref=e1153]
+                              - heading "CDS2601212262852" [level=5] [ref=e1154]
+                            - generic [ref=e1155]:
+                              - heading "Shipped from:" [level=4] [ref=e1156]
+                              - heading "Lardprao" [level=5] [ref=e1157]
+                            - generic [ref=e1160]:
+                              - generic [ref=e1164]: Subdistrict :หนองปรือ
+                              - generic [ref=e1168]:
+                                - generic [ref=e1169]: "CRC tracking link :"
+                                - generic [ref=e1170]: https://th.kex-express.com/th/track/?track=KNJ0202601010865
+                          - generic [ref=e1171]:
+                            - generic [ref=e1172]:
+                              - heading "Ship to Address" [level=4] [ref=e1174]
+                              - heading "thanawat4596@gmail.com" [level=5] [ref=e1175]
+                            - heading "คุณ อภิญญา สิงห์แพรก" [level=5] [ref=e1177]
+                            - heading "88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี (รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ)" [level=5] [ref=e1179]
+                            - heading "-" [level=5] [ref=e1181]
+                            - heading "-" [level=5] [ref=e1183]
+                            - heading "บางละมุง, ชลบุรี 20150" [level=5] [ref=e1185]
+                            - generic [ref=e1186]:
+                              - heading "Allocation Type:" [level=4] [ref=e1187]
+                              - heading "Delivery" [level=5] [ref=e1188]
+                            - generic [ref=e1190]:
+                              - generic [ref=e1191]: "Phone :"
+                              - generic [ref=e1192]: "0922643514"
+                      - generic [ref=e1197]:
+                        - generic [ref=e1200]:
+                          - generic [ref=e1201]:
+                            - heading "Girl Toddler T-Shirt Puff Sleeves Hello Kitty Whit" [level=4] [ref=e1203]
+                            - generic [ref=e1204]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1205]
+                              - paragraph [ref=e1206]: "1"
+                            - generic [ref=e1212]: UOM :PCS
+                          - generic [ref=e1213]:
+                            - heading "CDS24097574" [level=4] [ref=e1215]
+                            - generic [ref=e1216]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1217]
+                              - paragraph [ref=e1218]: "1"
+                        - generic [ref=e1221]:
+                          - generic [ref=e1222]:
+                            - heading "Girl Toddler Shorts Hello Kitty Cherry Blossom Pin" [level=4] [ref=e1224]
+                            - generic [ref=e1225]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1226]
+                              - paragraph [ref=e1227]: "1"
+                            - generic [ref=e1233]: UOM :PCS
+                          - generic [ref=e1234]:
+                            - heading "CDS24097635" [level=4] [ref=e1236]
+                            - generic [ref=e1237]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1238]
+                              - paragraph [ref=e1239]: "1"
+              - button "IN PROCESS SHIPMENTS (0)" [ref=e1243] [cursor=pointer]:
+                - heading "IN PROCESS SHIPMENTS (0)" [level=5] [ref=e1245]
+              - button "PLANNED SHIPMENTS (0)" [ref=e1249] [cursor=pointer]:
+                - heading "PLANNED SHIPMENTS (0)" [level=5] [ref=e1251]
+              - generic [ref=e1254]:
+                - button "PAYMENTS AND SETTLEMENTS (3)" [expanded] [ref=e1255] [cursor=pointer]:
+                  - heading "PAYMENTS AND SETTLEMENTS (3)" [level=5] [ref=e1257]
+                - region "PAYMENTS AND SETTLEMENTS (3)" [ref=e1259]:
+                  - generic [ref=e1265]:
+                    - generic [ref=e1268]:
+                      - generic [ref=e1270]:
+                        - generic [ref=e1271]:
+                          - generic [ref=e1272]:
+                            - heading "Invoice type:" [level=4] [ref=e1273]
+                            - heading "Shipment" [level=5] [ref=e1274]
+                          - generic [ref=e1276]:
+                            - heading "Invoice No.:" [level=4] [ref=e1277]
+                            - heading "17689833173984144989" [level=5] [ref=e1278]
+                          - generic [ref=e1279]:
+                            - heading "Invoice status:" [level=4] [ref=e1280]
+                            - heading "Closed" [level=5] [ref=e1281]
+                        - generic [ref=e1283]:
+                          - generic [ref=e1284]:
+                            - heading "Invoice date:" [level=4] [ref=e1285]
+                            - heading "01/21/2026" [level=5] [ref=e1286]
+                          - generic [ref=e1287]:
+                            - heading "Invoice amount:" [level=4] [ref=e1288]
+                            - heading "฿1,875.25" [level=5] [ref=e1289]
+                      - generic [ref=e1294]:
+                        - generic [ref=e1296]:
+                          - generic [ref=e1298]:
+                            - heading "Girl Pants Hello Kitty Blue" [level=4] [ref=e1300]
+                            - generic [ref=e1301]:
+                              - heading "Qty:" [level=6] [ref=e1302]
+                              - paragraph [ref=e1303]: "1"
+                          - generic [ref=e1305]:
+                            - generic [ref=e1306]:
+                              - heading "CDS23582996" [level=4] [ref=e1308]
+                              - generic [ref=e1309]:
+                                - heading "Unit price:" [level=4] [ref=e1310]
+                                - heading "฿1,290.00" [level=5] [ref=e1311]
+                            - generic [ref=e1312]:
+                              - generic [ref=e1313]:
+                                - heading "Subtotal:" [level=5] [ref=e1314]
+                                - heading "฿1,290.00" [level=5] [ref=e1315]
+                              - generic [ref=e1316]:
+                                - heading "Discount:" [level=5] [ref=e1317]
+                                - heading "฿854.13" [level=5] [ref=e1318]
+                              - generic [ref=e1319]:
+                                - heading "Charges:" [level=5] [ref=e1320]
+                                - heading "฿0.00" [level=5] [ref=e1321]
+                              - generic [ref=e1322]:
+                                - heading "Taxes:" [level=5] [ref=e1323]
+                                - heading "฿0.00" [level=5] [ref=e1324]
+                              - generic [ref=e1325]:
+                                - heading "Total:" [level=4] [ref=e1326]
+                                - heading "฿435.87" [level=4] [ref=e1327]
+                              - generic [ref=e1328]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1329]
+                                - heading "฿28.51" [level=5] [ref=e1330]
+                        - generic [ref=e1332]:
+                          - generic [ref=e1334]:
+                            - heading "Girl Leggings Hello Kitty Red" [level=4] [ref=e1336]
+                            - generic [ref=e1337]:
+                              - heading "Qty:" [level=6] [ref=e1338]
+                              - paragraph [ref=e1339]: "1"
+                          - generic [ref=e1341]:
+                            - generic [ref=e1342]:
+                              - heading "CDS23583115" [level=4] [ref=e1344]
+                              - generic [ref=e1345]:
+                                - heading "Unit price:" [level=4] [ref=e1346]
+                                - heading "฿790.00" [level=5] [ref=e1347]
+                            - generic [ref=e1348]:
+                              - generic [ref=e1349]:
+                                - heading "Subtotal:" [level=5] [ref=e1350]
+                                - heading "฿790.00" [level=5] [ref=e1351]
+                              - generic [ref=e1352]:
+                                - heading "Discount:" [level=5] [ref=e1353]
+                                - heading "฿523.07" [level=5] [ref=e1354]
+                              - generic [ref=e1355]:
+                                - heading "Charges:" [level=5] [ref=e1356]
+                                - heading "฿0.00" [level=5] [ref=e1357]
+                              - generic [ref=e1358]:
+                                - heading "Taxes:" [level=5] [ref=e1359]
+                                - heading "฿0.00" [level=5] [ref=e1360]
+                              - generic [ref=e1361]:
+                                - heading "Total:" [level=4] [ref=e1362]
+                                - heading "฿266.93" [level=4] [ref=e1363]
+                              - generic [ref=e1364]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1365]
+                                - heading "฿17.46" [level=5] [ref=e1366]
+                        - generic [ref=e1368]:
+                          - generic [ref=e1370]:
+                            - heading "Girl Dress Cap Sleeves Hello Kitty Blue" [level=4] [ref=e1372]
+                            - generic [ref=e1373]:
+                              - heading "Qty:" [level=6] [ref=e1374]
+                              - paragraph [ref=e1375]: "1"
+                          - generic [ref=e1377]:
+                            - generic [ref=e1378]:
+                              - heading "CDS24077910" [level=4] [ref=e1380]
+                              - generic [ref=e1381]:
+                                - heading "Unit price:" [level=4] [ref=e1382]
+                                - heading "฿1,390.00" [level=5] [ref=e1383]
+                            - generic [ref=e1384]:
+                              - generic [ref=e1385]:
+                                - heading "Subtotal:" [level=5] [ref=e1386]
+                                - heading "฿1,390.00" [level=5] [ref=e1387]
+                              - generic [ref=e1388]:
+                                - heading "Discount:" [level=5] [ref=e1389]
+                                - heading "฿920.35" [level=5] [ref=e1390]
+                              - generic [ref=e1391]:
+                                - heading "Charges:" [level=5] [ref=e1392]
+                                - heading "฿0.00" [level=5] [ref=e1393]
+                              - generic [ref=e1394]:
+                                - heading "Taxes:" [level=5] [ref=e1395]
+                                - heading "฿0.00" [level=5] [ref=e1396]
+                              - generic [ref=e1397]:
+                                - heading "Total:" [level=4] [ref=e1398]
+                                - heading "฿469.65" [level=4] [ref=e1399]
+                              - generic [ref=e1400]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1401]
+                                - heading "฿30.72" [level=5] [ref=e1402]
+                        - generic [ref=e1404]:
+                          - generic [ref=e1406]:
+                            - heading "Girl Toddler Dress Short Sleeves Gingham Cinnamoro" [level=4] [ref=e1408]
+                            - generic [ref=e1409]:
+                              - heading "Qty:" [level=6] [ref=e1410]
+                              - paragraph [ref=e1411]: "1"
+                          - generic [ref=e1413]:
+                            - generic [ref=e1414]:
+                              - heading "CDS24097840" [level=4] [ref=e1416]
+                              - generic [ref=e1417]:
+                                - heading "Unit price:" [level=4] [ref=e1418]
+                                - heading "฿645.00" [level=5] [ref=e1419]
+                            - generic [ref=e1420]:
+                              - generic [ref=e1421]:
+                                - heading "Subtotal:" [level=5] [ref=e1422]
+                                - heading "฿645.00" [level=5] [ref=e1423]
+                              - generic [ref=e1424]:
+                                - heading "Discount:" [level=5] [ref=e1425]
+                                - heading "฿209.13" [level=5] [ref=e1426]
+                              - generic [ref=e1427]:
+                                - heading "Charges:" [level=5] [ref=e1428]
+                                - heading "฿0.00" [level=5] [ref=e1429]
+                              - generic [ref=e1430]:
+                                - heading "Taxes:" [level=5] [ref=e1431]
+                                - heading "฿0.00" [level=5] [ref=e1432]
+                              - generic [ref=e1433]:
+                                - heading "Total:" [level=4] [ref=e1434]
+                                - heading "฿435.87" [level=4] [ref=e1435]
+                              - generic [ref=e1436]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1437]
+                                - heading "฿28.51" [level=5] [ref=e1438]
+                        - generic [ref=e1440]:
+                          - generic [ref=e1442]:
+                            - heading "Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue" [level=4] [ref=e1444]
+                            - generic [ref=e1445]:
+                              - heading "Qty:" [level=6] [ref=e1446]
+                              - paragraph [ref=e1447]: "1"
+                          - generic [ref=e1449]:
+                            - generic [ref=e1450]:
+                              - heading "CDS24098465" [level=4] [ref=e1452]
+                              - generic [ref=e1453]:
+                                - heading "Unit price:" [level=4] [ref=e1454]
+                                - heading "฿395.00" [level=5] [ref=e1455]
+                            - generic [ref=e1456]:
+                              - generic [ref=e1457]:
+                                - heading "Subtotal:" [level=5] [ref=e1458]
+                                - heading "฿395.00" [level=5] [ref=e1459]
+                              - generic [ref=e1460]:
+                                - heading "Discount:" [level=5] [ref=e1461]
+                                - heading "฿128.07" [level=5] [ref=e1462]
+                              - generic [ref=e1463]:
+                                - heading "Charges:" [level=5] [ref=e1464]
+                                - heading "฿0.00" [level=5] [ref=e1465]
+                              - generic [ref=e1466]:
+                                - heading "Taxes:" [level=5] [ref=e1467]
+                                - heading "฿0.00" [level=5] [ref=e1468]
+                              - generic [ref=e1469]:
+                                - heading "Total:" [level=4] [ref=e1470]
+                                - heading "฿266.93" [level=4] [ref=e1471]
+                              - generic [ref=e1472]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1473]
+                                - heading "฿17.46" [level=5] [ref=e1474]
+                      - generic [ref=e1476]:
+                        - generic [ref=e1485]:
+                          - heading "525669XXXXXX0005" [level=4] [ref=e1487]
+                          - generic [ref=e1488]:
+                            - heading "Transaction date:" [level=4] [ref=e1489]
+                            - heading [level=5] [ref=e1490]
+                          - generic [ref=e1491]:
+                            - heading "Amount Charged:" [level=4] [ref=e1492]
+                            - heading "฿1,875.25" [level=5] [ref=e1493]
+                        - generic [ref=e1496]:
+                          - generic [ref=e1497]:
+                            - heading "Item Subtotal:" [level=5] [ref=e1498]
+                            - heading [level=5] [ref=e1499]
+                            - heading "฿4,510.00" [level=5] [ref=e1500]
+                          - generic [ref=e1501]:
+                            - heading "Total Discounts:" [level=5] [ref=e1502]
+                            - heading "-" [level=5] [ref=e1503]
+                            - heading "฿2,634.75" [level=5] [ref=e1504]
+                          - generic [ref=e1505]:
+                            - heading "Total Charges:" [level=5] [ref=e1506]
+                            - heading "+" [level=5] [ref=e1507]
+                            - heading "฿0.00" [level=5] [ref=e1508]
+                          - generic [ref=e1509]:
+                            - heading "Total Taxes:" [level=5] [ref=e1510]
+                            - heading "+" [level=5] [ref=e1511]
+                            - heading "฿0.00" [level=5] [ref=e1512]
+                          - generic [ref=e1513]:
+                            - heading "Shipment Total:" [level=4] [ref=e1514]
+                            - heading "=" [level=4] [ref=e1515]
+                            - heading "฿1,875.25" [level=4] [ref=e1516]
+                          - generic [ref=e1517]:
+                            - heading "Informational Taxes:" [level=5] [ref=e1518]
+                            - heading [level=5] [ref=e1519]
+                            - heading "฿122.66" [level=5] [ref=e1520]
+                    - generic [ref=e1523]:
+                      - generic [ref=e1525]:
+                        - generic [ref=e1526]:
+                          - generic [ref=e1527]:
+                            - heading "Invoice type:" [level=4] [ref=e1528]
+                            - heading "Shipment" [level=5] [ref=e1529]
+                          - generic [ref=e1531]:
+                            - heading "Invoice No.:" [level=4] [ref=e1532]
+                            - heading "17689839997298882773" [level=5] [ref=e1533]
+                          - generic [ref=e1534]:
+                            - heading "Invoice status:" [level=4] [ref=e1535]
+                            - heading "Closed" [level=5] [ref=e1536]
+                        - generic [ref=e1538]:
+                          - generic [ref=e1539]:
+                            - heading "Invoice date:" [level=4] [ref=e1540]
+                            - heading "01/21/2026" [level=5] [ref=e1541]
+                          - generic [ref=e1542]:
+                            - heading "Invoice amount:" [level=4] [ref=e1543]
+                            - heading "฿567.64" [level=5] [ref=e1544]
+                      - generic [ref=e1549]:
+                        - generic [ref=e1551]:
+                          - generic [ref=e1553]:
+                            - heading "Girl Toddler T-Shirt Puff Sleeves Hello Kitty Whit" [level=4] [ref=e1555]
+                            - generic [ref=e1556]:
+                              - heading "Qty:" [level=6] [ref=e1557]
+                              - paragraph [ref=e1558]: "1"
+                          - generic [ref=e1560]:
+                            - generic [ref=e1561]:
+                              - heading "CDS24097574" [level=4] [ref=e1563]
+                              - generic [ref=e1564]:
+                                - heading "Unit price:" [level=4] [ref=e1565]
+                                - heading "฿345.00" [level=5] [ref=e1566]
+                            - generic [ref=e1567]:
+                              - generic [ref=e1568]:
+                                - heading "Subtotal:" [level=5] [ref=e1569]
+                                - heading "฿345.00" [level=5] [ref=e1570]
+                              - generic [ref=e1571]:
+                                - heading "Discount:" [level=5] [ref=e1572]
+                                - heading "฿111.86" [level=5] [ref=e1573]
+                              - generic [ref=e1574]:
+                                - heading "Charges:" [level=5] [ref=e1575]
+                                - heading "฿0.00" [level=5] [ref=e1576]
+                              - generic [ref=e1577]:
+                                - heading "Taxes:" [level=5] [ref=e1578]
+                                - heading "฿0.00" [level=5] [ref=e1579]
+                              - generic [ref=e1580]:
+                                - heading "Total:" [level=4] [ref=e1581]
+                                - heading "฿233.14" [level=4] [ref=e1582]
+                              - generic [ref=e1583]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1584]
+                                - heading "฿15.25" [level=5] [ref=e1585]
+                        - generic [ref=e1587]:
+                          - generic [ref=e1589]:
+                            - heading "Girl Toddler Shorts Hello Kitty Cherry Blossom Pin" [level=4] [ref=e1591]
+                            - generic [ref=e1592]:
+                              - heading "Qty:" [level=6] [ref=e1593]
+                              - paragraph [ref=e1594]: "1"
+                          - generic [ref=e1596]:
+                            - generic [ref=e1597]:
+                              - heading "CDS24097635" [level=4] [ref=e1599]
+                              - generic [ref=e1600]:
+                                - heading "Unit price:" [level=4] [ref=e1601]
+                                - heading "฿495.00" [level=5] [ref=e1602]
+                            - generic [ref=e1603]:
+                              - generic [ref=e1604]:
+                                - heading "Subtotal:" [level=5] [ref=e1605]
+                                - heading "฿495.00" [level=5] [ref=e1606]
+                              - generic [ref=e1607]:
+                                - heading "Discount:" [level=5] [ref=e1608]
+                                - heading "฿160.50" [level=5] [ref=e1609]
+                              - generic [ref=e1610]:
+                                - heading "Charges:" [level=5] [ref=e1611]
+                                - heading "฿0.00" [level=5] [ref=e1612]
+                              - generic [ref=e1613]:
+                                - heading "Taxes:" [level=5] [ref=e1614]
+                                - heading "฿0.00" [level=5] [ref=e1615]
+                              - generic [ref=e1616]:
+                                - heading "Total:" [level=4] [ref=e1617]
+                                - heading "฿334.50" [level=4] [ref=e1618]
+                              - generic [ref=e1619]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1620]
+                                - heading "฿21.88" [level=5] [ref=e1621]
+                      - generic [ref=e1623]:
+                        - generic [ref=e1632]:
+                          - heading "525669XXXXXX0005" [level=4] [ref=e1634]
+                          - generic [ref=e1635]:
+                            - heading "Transaction date:" [level=4] [ref=e1636]
+                            - heading [level=5] [ref=e1637]
+                          - generic [ref=e1638]:
+                            - heading "Amount Charged:" [level=4] [ref=e1639]
+                            - heading "฿567.64" [level=5] [ref=e1640]
+                        - generic [ref=e1643]:
+                          - generic [ref=e1644]:
+                            - heading "Item Subtotal:" [level=5] [ref=e1645]
+                            - heading [level=5] [ref=e1646]
+                            - heading "฿840.00" [level=5] [ref=e1647]
+                          - generic [ref=e1648]:
+                            - heading "Total Discounts:" [level=5] [ref=e1649]
+                            - heading "-" [level=5] [ref=e1650]
+                            - heading "฿272.36" [level=5] [ref=e1651]
+                          - generic [ref=e1652]:
+                            - heading "Total Charges:" [level=5] [ref=e1653]
+                            - heading "+" [level=5] [ref=e1654]
+                            - heading "฿0.00" [level=5] [ref=e1655]
+                          - generic [ref=e1656]:
+                            - heading "Total Taxes:" [level=5] [ref=e1657]
+                            - heading "+" [level=5] [ref=e1658]
+                            - heading "฿0.00" [level=5] [ref=e1659]
+                          - generic [ref=e1660]:
+                            - heading "Shipment Total:" [level=4] [ref=e1661]
+                            - heading "=" [level=4] [ref=e1662]
+                            - heading "฿567.64" [level=4] [ref=e1663]
+                          - generic [ref=e1664]:
+                            - heading "Informational Taxes:" [level=5] [ref=e1665]
+                            - heading [level=5] [ref=e1666]
+                            - heading "฿37.13" [level=5] [ref=e1667]
+                    - generic [ref=e1670]:
+                      - generic [ref=e1672]:
+                        - generic [ref=e1673]:
+                          - generic [ref=e1674]:
+                            - heading "Invoice type:" [level=4] [ref=e1675]
+                            - heading "Shipment" [level=5] [ref=e1676]
+                          - generic [ref=e1678]:
+                            - heading "Invoice No.:" [level=4] [ref=e1679]
+                            - heading "17689858488467027983" [level=5] [ref=e1680]
+                          - generic [ref=e1681]:
+                            - heading "Invoice status:" [level=4] [ref=e1682]
+                            - heading "Closed" [level=5] [ref=e1683]
+                        - generic [ref=e1685]:
+                          - generic [ref=e1686]:
+                            - heading "Invoice date:" [level=4] [ref=e1687]
+                            - heading "01/21/2026" [level=5] [ref=e1688]
+                          - generic [ref=e1689]:
+                            - heading "Invoice amount:" [level=4] [ref=e1690]
+                            - heading "฿2,108.36" [level=5] [ref=e1691]
+                      - generic [ref=e1696]:
+                        - generic [ref=e1698]:
+                          - generic [ref=e1700]:
+                            - heading "Girl T-Shirt Short Sleeves Round Neck Kuromi Viole" [level=4] [ref=e1702]
+                            - generic [ref=e1703]:
+                              - heading "Qty:" [level=6] [ref=e1704]
+                              - paragraph [ref=e1705]: "1"
+                          - generic [ref=e1707]:
+                            - generic [ref=e1708]:
+                              - heading "CDS23576490" [level=4] [ref=e1710]
+                              - generic [ref=e1711]:
+                                - heading "Unit price:" [level=4] [ref=e1712]
+                                - heading "฿395.00" [level=5] [ref=e1713]
+                            - generic [ref=e1714]:
+                              - generic [ref=e1715]:
+                                - heading "Subtotal:" [level=5] [ref=e1716]
+                                - heading "฿395.00" [level=5] [ref=e1717]
+                              - generic [ref=e1718]:
+                                - heading "Discount:" [level=5] [ref=e1719]
+                                - heading "฿128.07" [level=5] [ref=e1720]
+                              - generic [ref=e1721]:
+                                - heading "Charges:" [level=5] [ref=e1722]
+                                - heading "฿0.00" [level=5] [ref=e1723]
+                              - generic [ref=e1724]:
+                                - heading "Taxes:" [level=5] [ref=e1725]
+                                - heading "฿0.00" [level=5] [ref=e1726]
+                              - generic [ref=e1727]:
+                                - heading "Total:" [level=4] [ref=e1728]
+                                - heading "฿266.93" [level=4] [ref=e1729]
+                              - generic [ref=e1730]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1731]
+                                - heading "฿17.46" [level=5] [ref=e1732]
+                        - generic [ref=e1734]:
+                          - generic [ref=e1736]:
+                            - heading "Girl Pants Wide Legs Kuromi Denim" [level=4] [ref=e1738]
+                            - generic [ref=e1739]:
+                              - heading "Qty:" [level=6] [ref=e1740]
+                              - paragraph [ref=e1741]: "1"
+                          - generic [ref=e1743]:
+                            - generic [ref=e1744]:
+                              - heading "CDS23576551" [level=4] [ref=e1746]
+                              - generic [ref=e1747]:
+                                - heading "Unit price:" [level=4] [ref=e1748]
+                                - heading "฿645.00" [level=5] [ref=e1749]
+                            - generic [ref=e1750]:
+                              - generic [ref=e1751]:
+                                - heading "Subtotal:" [level=5] [ref=e1752]
+                                - heading "฿645.00" [level=5] [ref=e1753]
+                              - generic [ref=e1754]:
+                                - heading "Discount:" [level=5] [ref=e1755]
+                                - heading "฿209.13" [level=5] [ref=e1756]
+                              - generic [ref=e1757]:
+                                - heading "Charges:" [level=5] [ref=e1758]
+                                - heading "฿0.00" [level=5] [ref=e1759]
+                              - generic [ref=e1760]:
+                                - heading "Taxes:" [level=5] [ref=e1761]
+                                - heading "฿0.00" [level=5] [ref=e1762]
+                              - generic [ref=e1763]:
+                                - heading "Total:" [level=4] [ref=e1764]
+                                - heading "฿435.87" [level=4] [ref=e1765]
+                              - generic [ref=e1766]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1767]
+                                - heading "฿28.51" [level=5] [ref=e1768]
+                        - generic [ref=e1770]:
+                          - generic [ref=e1772]:
+                            - heading "Girl Dress Short Sleeves Gingham Hello Kitty Cherr" [level=4] [ref=e1774]
+                            - generic [ref=e1775]:
+                              - heading "Qty:" [level=6] [ref=e1776]
+                              - paragraph [ref=e1777]: "1"
+                          - generic [ref=e1779]:
+                            - generic [ref=e1780]:
+                              - heading "CDS24098083" [level=4] [ref=e1782]
+                              - generic [ref=e1783]:
+                                - heading "Unit price:" [level=4] [ref=e1784]
+                                - heading "฿695.00" [level=5] [ref=e1785]
+                            - generic [ref=e1786]:
+                              - generic [ref=e1787]:
+                                - heading "Subtotal:" [level=5] [ref=e1788]
+                                - heading "฿695.00" [level=5] [ref=e1789]
+                              - generic [ref=e1790]:
+                                - heading "Discount:" [level=5] [ref=e1791]
+                                - heading "฿225.37" [level=5] [ref=e1792]
+                              - generic [ref=e1793]:
+                                - heading "Charges:" [level=5] [ref=e1794]
+                                - heading "฿0.00" [level=5] [ref=e1795]
+                              - generic [ref=e1796]:
+                                - heading "Taxes:" [level=5] [ref=e1797]
+                                - heading "฿0.00" [level=5] [ref=e1798]
+                              - generic [ref=e1799]:
+                                - heading "Total:" [level=4] [ref=e1800]
+                                - heading "฿469.63" [level=4] [ref=e1801]
+                              - generic [ref=e1802]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1803]
+                                - heading "฿30.72" [level=5] [ref=e1804]
+                        - generic [ref=e1806]:
+                          - generic [ref=e1808]:
+                            - heading "Girl T-Shirt Short Sleeves Round Neck Hello Kitty" [level=4] [ref=e1810]
+                            - generic [ref=e1811]:
+                              - heading "Qty:" [level=6] [ref=e1812]
+                              - paragraph [ref=e1813]: "1"
+                          - generic [ref=e1815]:
+                            - generic [ref=e1816]:
+                              - heading "CDS24098281" [level=4] [ref=e1818]
+                              - generic [ref=e1819]:
+                                - heading "Unit price:" [level=4] [ref=e1820]
+                                - heading "฿395.00" [level=5] [ref=e1821]
+                            - generic [ref=e1822]:
+                              - generic [ref=e1823]:
+                                - heading "Subtotal:" [level=5] [ref=e1824]
+                                - heading "฿395.00" [level=5] [ref=e1825]
+                              - generic [ref=e1826]:
+                                - heading "Discount:" [level=5] [ref=e1827]
+                                - heading "฿128.07" [level=5] [ref=e1828]
+                              - generic [ref=e1829]:
+                                - heading "Charges:" [level=5] [ref=e1830]
+                                - heading "฿0.00" [level=5] [ref=e1831]
+                              - generic [ref=e1832]:
+                                - heading "Taxes:" [level=5] [ref=e1833]
+                                - heading "฿0.00" [level=5] [ref=e1834]
+                              - generic [ref=e1835]:
+                                - heading "Total:" [level=4] [ref=e1836]
+                                - heading "฿266.93" [level=4] [ref=e1837]
+                              - generic [ref=e1838]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1839]
+                                - heading "฿17.46" [level=5] [ref=e1840]
+                        - generic [ref=e1842]:
+                          - generic [ref=e1844]:
+                            - heading "Girl Toddler Pyjamas Set Dress Long Sleeves With R" [level=4] [ref=e1846]
+                            - generic [ref=e1847]:
+                              - heading "Qty:" [level=6] [ref=e1848]
+                              - paragraph [ref=e1849]: "1"
+                          - generic [ref=e1851]:
+                            - generic [ref=e1852]:
+                              - heading "CDS24820752" [level=4] [ref=e1854]
+                              - generic [ref=e1855]:
+                                - heading "Unit price:" [level=4] [ref=e1856]
+                                - heading "฿990.00" [level=5] [ref=e1857]
+                            - generic [ref=e1858]:
+                              - generic [ref=e1859]:
+                                - heading "Subtotal:" [level=5] [ref=e1860]
+                                - heading "฿990.00" [level=5] [ref=e1861]
+                              - generic [ref=e1862]:
+                                - heading "Discount:" [level=5] [ref=e1863]
+                                - heading "฿655.50" [level=5] [ref=e1864]
+                              - generic [ref=e1865]:
+                                - heading "Charges:" [level=5] [ref=e1866]
+                                - heading "฿0.00" [level=5] [ref=e1867]
+                              - generic [ref=e1868]:
+                                - heading "Taxes:" [level=5] [ref=e1869]
+                                - heading "฿0.00" [level=5] [ref=e1870]
+                              - generic [ref=e1871]:
+                                - heading "Total:" [level=4] [ref=e1872]
+                                - heading "฿334.50" [level=4] [ref=e1873]
+                              - generic [ref=e1874]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1875]
+                                - heading "฿21.88" [level=5] [ref=e1876]
+                        - generic [ref=e1878]:
+                          - generic [ref=e1880]:
+                            - heading "Girl Toddler Pyjamas Set Dress Long Sleeves With R" [level=4] [ref=e1882]
+                            - generic [ref=e1883]:
+                              - heading "Qty:" [level=6] [ref=e1884]
+                              - paragraph [ref=e1885]: "1"
+                          - generic [ref=e1887]:
+                            - generic [ref=e1888]:
+                              - heading "CDS24820776" [level=4] [ref=e1890]
+                              - generic [ref=e1891]:
+                                - heading "Unit price:" [level=4] [ref=e1892]
+                                - heading "฿990.00" [level=5] [ref=e1893]
+                            - generic [ref=e1894]:
+                              - generic [ref=e1895]:
+                                - heading "Subtotal:" [level=5] [ref=e1896]
+                                - heading "฿990.00" [level=5] [ref=e1897]
+                              - generic [ref=e1898]:
+                                - heading "Discount:" [level=5] [ref=e1899]
+                                - heading "฿655.50" [level=5] [ref=e1900]
+                              - generic [ref=e1901]:
+                                - heading "Charges:" [level=5] [ref=e1902]
+                                - heading "฿0.00" [level=5] [ref=e1903]
+                              - generic [ref=e1904]:
+                                - heading "Taxes:" [level=5] [ref=e1905]
+                                - heading "฿0.00" [level=5] [ref=e1906]
+                              - generic [ref=e1907]:
+                                - heading "Total:" [level=4] [ref=e1908]
+                                - heading "฿334.50" [level=4] [ref=e1909]
+                              - generic [ref=e1910]:
+                                - heading "Informational Taxes:" [level=5] [ref=e1911]
+                                - heading "฿21.88" [level=5] [ref=e1912]
+                      - generic [ref=e1914]:
+                        - generic [ref=e1923]:
+                          - heading "525669XXXXXX0005" [level=4] [ref=e1925]
+                          - generic [ref=e1926]:
+                            - heading "Transaction date:" [level=4] [ref=e1927]
+                            - heading [level=5] [ref=e1928]
+                          - generic [ref=e1929]:
+                            - heading "Amount Charged:" [level=4] [ref=e1930]
+                            - heading "฿2,108.36" [level=5] [ref=e1931]
+                        - generic [ref=e1934]:
+                          - generic [ref=e1935]:
+                            - heading "Item Subtotal:" [level=5] [ref=e1936]
+                            - heading [level=5] [ref=e1937]
+                            - heading "฿4,110.00" [level=5] [ref=e1938]
+                          - generic [ref=e1939]:
+                            - heading "Total Discounts:" [level=5] [ref=e1940]
+                            - heading "-" [level=5] [ref=e1941]
+                            - heading "฿2,001.64" [level=5] [ref=e1942]
+                          - generic [ref=e1943]:
+                            - heading "Total Charges:" [level=5] [ref=e1944]
+                            - heading "+" [level=5] [ref=e1945]
+                            - heading "฿0.00" [level=5] [ref=e1946]
+                          - generic [ref=e1947]:
+                            - heading "Total Taxes:" [level=5] [ref=e1948]
+                            - heading "+" [level=5] [ref=e1949]
+                            - heading "฿0.00" [level=5] [ref=e1950]
+                          - generic [ref=e1951]:
+                            - heading "Shipment Total:" [level=4] [ref=e1952]
+                            - heading "=" [level=4] [ref=e1953]
+                            - heading "฿2,108.36" [level=4] [ref=e1954]
+                          - generic [ref=e1955]:
+                            - heading "Informational Taxes:" [level=5] [ref=e1956]
+                            - heading [level=5] [ref=e1957]
+                            - heading "฿137.91" [level=5] [ref=e1958]
+```

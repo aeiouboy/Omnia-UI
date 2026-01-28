@@ -40,6 +40,8 @@ import {
   X,
 } from "lucide-react"
 import StockAvailabilityIndicator from "@/components/inventory/stock-availability-indicator"
+import { ProductInfoCard } from "@/components/inventory/product-info-card"
+import { TransactionHistorySection } from "@/components/inventory/transaction-history-section"
 import {
   fetchInventoryData,
   getUniqueBrands,
@@ -151,6 +153,9 @@ export default function InventoryPage() {
 
   // Tab state
   const [activeTab, setActiveTab] = useState<"all" | "low" | "outOfStock">("all")
+
+  // Selected product state for Product Info Card
+  const [selectedProduct, setSelectedProduct] = useState<InventoryItem | null>(null)
 
   // Filter state - separate Product Name and Barcode search fields
   const [productNameSearch, setProductNameSearch] = useState("")
@@ -384,6 +389,28 @@ export default function InventoryPage() {
       : <ArrowDown className="h-4 w-4 ml-1" />
   }
 
+  // Product Info Card handlers
+  const handleRowClick = (item: InventoryItem) => {
+    // Toggle selection: if clicking same product, close; otherwise open
+    if (selectedProduct?.id === item.id) {
+      setSelectedProduct(null)
+    } else {
+      setSelectedProduct(item)
+    }
+  }
+
+  const handleCloseCard = () => {
+    setSelectedProduct(null)
+  }
+
+  const handleViewDetails = () => {
+    if (selectedProduct) {
+      const url = `/inventory-new/${selectedProduct.id}`
+      const params = activeStoreFilter ? `?store=${encodeURIComponent(activeStoreFilter)}` : ''
+      router.push(`${url}${params}`)
+    }
+  }
+
   // Action button handlers
   const handleExport = () => {
     // TODO: Implement export functionality
@@ -569,6 +596,23 @@ export default function InventoryPage() {
               </Card>
             </div>
 
+            {/* Product Info Card - Shows when a product is selected */}
+            {selectedProduct && (
+              <div className="space-y-4">
+                <ProductInfoCard
+                  product={selectedProduct}
+                  onClose={handleCloseCard}
+                  onViewDetails={handleViewDetails}
+                />
+                <TransactionHistorySection
+                  productId={selectedProduct.id}
+                  productName={selectedProduct.productName}
+                  itemType={selectedProduct.itemType}
+                  storeContext={activeStoreFilter || undefined}
+                />
+              </div>
+            )}
+
             {/* Products Table */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
               <div className="space-y-4">
@@ -735,12 +779,10 @@ export default function InventoryPage() {
                           inventoryItems.map((item) => (
                             <TableRow
                               key={item.id}
-                              className="h-16 cursor-pointer hover:bg-muted/50 transition-colors"
-                              onClick={() => {
-                                const url = `/inventory-new/${item.id}`
-                                const params = activeStoreFilter ? `?store=${encodeURIComponent(activeStoreFilter)}` : ''
-                                router.push(`${url}${params}`)
-                              }}
+                              className={`h-16 cursor-pointer hover:bg-muted/50 transition-colors ${
+                                selectedProduct?.id === item.id ? 'bg-primary/5 border-l-2 border-l-primary' : ''
+                              }`}
+                              onClick={() => handleRowClick(item)}
                             >
                               <TableCell>
                                 <Image

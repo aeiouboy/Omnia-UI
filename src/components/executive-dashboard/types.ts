@@ -49,6 +49,18 @@ export interface ApiOrderItem {
   unit_price: number
   total_price: number
   product_details: ApiProductDetails
+  /** Secret code for gift items */
+  secretCode?: string
+  /** Product style variant */
+  style?: string
+  /** Product color */
+  color?: string
+  /** Product size */
+  size?: string
+  /** Whether the item is gift wrapped */
+  giftWrapped?: boolean
+  /** Gift wrapping message */
+  giftWrappedMessage?: string
 }
 
 export interface ApiOrder {

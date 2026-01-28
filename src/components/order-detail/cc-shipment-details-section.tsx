@@ -44,7 +44,8 @@ function formatStatus(status: string, allocationType: string): string {
  */
 export function CCShipmentDetailsSection({ shipment }: CCShipmentDetailsSectionProps) {
   const statusColors = getStatusColor(shipment.status)
-  const allocationType = shipment.shipToAddress.allocationType
+  const shipTo = shipment.shipToAddress || (shipment as any).shipToStore
+  const allocationType = shipTo?.allocationType || 'Pickup'
   const isPickup = allocationType === 'Pickup'
   const isMerge = allocationType === 'Merge'
 
@@ -113,25 +114,25 @@ export function CCShipmentDetailsSection({ shipment }: CCShipmentDetailsSectionP
           {/* Email */}
           <div className="flex items-start gap-2">
             <span className="text-sm text-muted-foreground w-28">Email:</span>
-            <span className="text-sm break-all">{shipment.shipToAddress.email}</span>
+            <span className="text-sm break-all">{shipTo?.email || '-'}</span>
           </div>
 
           {/* Store Name (for both Pickup and Merge) */}
           <div className="flex items-start gap-2">
             <span className="text-sm text-muted-foreground w-28">Store name:</span>
-            <span className="text-sm">{shipment.shipToAddress.name}</span>
+            <span className="text-sm">{shipTo?.name || '-'}</span>
           </div>
 
           {/* Store Address */}
           <div className="flex items-start gap-2">
             <span className="text-sm text-muted-foreground w-28">Store address:</span>
-            <span className="text-sm">{shipment.shipToAddress.address}</span>
+            <span className="text-sm">{shipTo?.address || '-'}</span>
           </div>
 
           {/* Full Address */}
           <div className="flex items-start gap-2">
             <span className="text-sm text-muted-foreground w-28">Full address:</span>
-            <span className="text-sm">{shipment.shipToAddress.fullAddress}</span>
+            <span className="text-sm">{shipTo?.fullAddress || '-'}</span>
           </div>
 
           {/* Allocation Type */}
@@ -143,7 +144,7 @@ export function CCShipmentDetailsSection({ shipment }: CCShipmentDetailsSectionP
           {/* Phone */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground w-28">Phone:</span>
-            <span className="text-sm font-mono">{shipment.shipToAddress.phone}</span>
+            <span className="text-sm font-mono">{shipTo?.phone || '-'}</span>
           </div>
         </div>
       </div>

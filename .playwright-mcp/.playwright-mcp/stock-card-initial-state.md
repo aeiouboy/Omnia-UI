@@ -1,0 +1,117 @@
+### Page state
+- Page URL: http://localhost:3000/inventory-new/stores
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Analysis" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Analysis
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - generic [ref=e20]:
+          - button "Inventory Management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - generic [ref=e27]: Inventory Management
+            - img [ref=e29]
+          - generic [ref=e31]:
+            - link "Inventory Availability" [ref=e32] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e33]
+              - generic [ref=e35]: Inventory Availability
+            - link "Stock Card" [ref=e36] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e37]
+              - generic [ref=e39]: Stock Card
+            - link "Stock Config" [ref=e40] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e41]
+              - generic [ref=e43]: Stock Config
+        - generic "Dashboard (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e50]: Dashboard
+        - generic "Inventory (disabled)" [ref=e51]:
+          - img [ref=e52]
+          - generic [ref=e56]: Inventory
+        - generic "ATC Config (disabled)" [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - generic "Escalations (disabled)" [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - generic "Style Guide (disabled)" [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 23:20:06"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Stock Card" [level=1] [ref=e146]
+              - paragraph [ref=e147]: View inventory performance and stock levels across all store locations
+            - button "Refresh" [ref=e149] [cursor=pointer]:
+              - img
+              - text: Refresh
+          - generic [ref=e112]:
+            - combobox [ref=e150] [cursor=pointer]:
+              - generic: All Views
+              - img [ref=e151]
+            - generic [ref=e153]:
+              - button "From" [ref=e154] [cursor=pointer]:
+                - img
+                - text: From
+              - generic [ref=e155]: "-"
+              - button "To" [ref=e156] [cursor=pointer]:
+                - img
+                - text: To
+            - generic:
+              - generic: Store
+              - generic:
+                - img
+                - textbox "Search Store ID..."
+              - generic:
+                - img
+                - textbox "Search Store Name..."
+            - button "Clear All" [disabled]
+          - generic [ref=e159]:
+            - img [ref=e160]
+            - paragraph [ref=e164]: Please select a View Type and Date Range to view stock card data
+            - paragraph [ref=e165]: Both View Type and Date Range (From/To) are required to display store data
+      - contentinfo [ref=e133]:
+        - generic [ref=e135]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e141] [cursor=pointer]:
+    - img [ref=e142]
+  - alert [ref=e145]
+```

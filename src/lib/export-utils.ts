@@ -147,7 +147,7 @@ export function exportToCSV<T extends Record<string, any>>(
 }
 
 /**
- * Default columns for transaction export
+ * Default columns for transaction export (aligned with Recent Transactions table structure)
  */
 export const transactionExportColumns: ExportColumn[] = [
   {
@@ -157,19 +157,14 @@ export const transactionExportColumns: ExportColumn[] = [
   },
   {
     key: "type",
-    header: "Transaction Type",
+    header: "Type",
     formatter: (value) => formatTransactionType(value),
   },
   {
-    key: "channel",
-    header: "Channel",
-    formatter: (value) => value || "-",
-  },
-  {
     key: "quantity",
-    header: "Quantity",
+    header: "Qty",
     formatter: (value, row) => {
-      const sign = row.type === "stock_out" ? "-" : "+"
+      const sign = row.type === "stock_out" || row.type === "allocation" ? "-" : "+"
       const formatted = row.itemType
         ? formatStockQuantity(value, row.itemType, false)
         : String(value)
@@ -178,7 +173,7 @@ export const transactionExportColumns: ExportColumn[] = [
   },
   {
     key: "balanceAfter",
-    header: "Balance After",
+    header: "Balance",
     formatter: (value, row) => {
       return row.itemType
         ? formatStockQuantity(value, row.itemType, false)
@@ -186,47 +181,57 @@ export const transactionExportColumns: ExportColumn[] = [
     },
   },
   {
-    key: "warehouseCode",
-    header: "Warehouse",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "locationCode",
-    header: "Location",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "referenceId",
-    header: "Order/Reference ID",
-    formatter: (value) => value || "-",
-  },
-  {
     key: "notes",
     header: "Notes",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "user",
-    header: "Action By",
-    formatter: (value) => value || "-",
+    formatter: (value, row) => {
+      const parts: string[] = []
+      if (row.user) parts.push(`${row.user}:`)
+      if (value) parts.push(value)
+      if (row.referenceId) parts.push(`(${row.referenceId})`)
+      return parts.join(" ") || "-"
+    },
   },
 ]
+
+/**
+ * Merchant SKU column for conditional inclusion in export
+ */
+const merchantSkuColumn: ExportColumn = {
+  key: "merchantSku",
+  header: "Merchant SKU",
+  formatter: (value) => value || "-",
+}
+
+/**
+ * Export options for transactions CSV
+ */
+export interface TransactionExportOptions {
+  includeMerchantSku?: boolean
+}
 
 /**
  * Export transactions to CSV
  *
  * @param transactions - Array of stock transactions
  * @param productName - Name of the product (used in filename)
+ * @param options - Export options (e.g., includeMerchantSku)
  */
 export function exportTransactionsToCSV(
   transactions: StockTransaction[],
-  productName: string
+  productName: string,
+  options?: TransactionExportOptions
 ): void {
   const filename = `transactions-${productName.replace(/[^a-zA-Z0-9]/g, "-")}-${
     new Date().toISOString().split("T")[0]
   }`
 
-  exportToCSV(transactions, filename, transactionExportColumns)
+  // Build columns based on options
+  const columns = [...transactionExportColumns]
+  if (options?.includeMerchantSku) {
+    columns.push(merchantSkuColumn)
+  }
+
+  exportToCSV(transactions, filename, columns)
 }
 
 /**
