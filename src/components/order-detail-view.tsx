@@ -474,17 +474,6 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowCancelDialog(true)}
-              disabled={!canCancelOrder || isCancelling}
-              className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
-              title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
-            >
-              <Ban className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button
               variant="ghost"
               size="icon"
               className="relative"
@@ -1453,6 +1442,23 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </Card>
         </TabsContent> */}
       </Tabs>
+
+      {/* Sticky Bottom Cancel Button */}
+      <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-4">
+        <div className="max-w-3xl mx-auto flex justify-center">
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={() => setShowCancelDialog(true)}
+            disabled={!canCancelOrder || isCancelling}
+            className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
+            title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
+          >
+            <Ban className="h-4 w-4 mr-2" />
+            Cancel Order
+          </Button>
+        </div>
+      </div>
 
       <CancelOrderDialog
         open={showCancelDialog}
