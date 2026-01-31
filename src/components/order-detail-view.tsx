@@ -35,11 +35,11 @@ import {
   Home,
   Store,
   StickyNote,
+  Plus,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
@@ -67,33 +67,35 @@ interface OrderDetailViewProps {
 interface Note {
   id: string
   orderId: string
-  noteType: string // Note type (e.g., "instruction", "communication")
   content: string
   createdBy: string // Auto-populated from currentUser.email (e.g., "buabsupattra@central.co.th")
-  createdAt: string // Auto-populated: ISO format "2026-01-30T15:10:00"
-  category: 'instruction' | 'communication' // Category for tab filtering
+  createdAt: string // Auto-populated: GMT+7 format "01/13/2026 13:13 +07"
 }
 
-// Note type options
-const NOTE_TYPES = [
-  { value: 'general', label: 'General Note' },
-  { value: 'delivery', label: 'Delivery Instruction' },
-  { value: 'customer_request', label: 'Customer Request' },
-  { value: 'internal', label: 'Internal Note' },
-]
-
-// Helper function to format timestamp in ISO format "2026-01-30T15:10:00"
-const formatISOTimestamp = (date: Date): string => {
+// Helper function to format timestamp as "01/13/2026 13:13 +07"
+const formatGMT7NoteTimestamp = (date: Date): string => {
   const pad = (n: number) => n.toString().padStart(2, '0')
 
-  const year = date.getFullYear()
-  const month = pad(date.getMonth() + 1)
-  const day = pad(date.getDate())
-  const hours = pad(date.getHours())
-  const minutes = pad(date.getMinutes())
-  const seconds = pad(date.getSeconds())
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }
 
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+  const formatter = new Intl.DateTimeFormat('en-US', options)
+  const parts = formatter.formatToParts(date)
+
+  const month = parts.find(p => p.type === 'month')?.value
+  const day = parts.find(p => p.type === 'day')?.value
+  const year = parts.find(p => p.type === 'year')?.value
+  const hour = parts.find(p => p.type === 'hour')?.value
+  const minute = parts.find(p => p.type === 'minute')?.value
+
+  return `${month}/${day}/${year} ${hour}:${minute} +07`
 }
 
 // Helper function to map delivery codes to custom labels
@@ -268,8 +270,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [showNotesPanel, setShowNotesPanel] = useState(false)
   const [notes, setNotes] = useState<Note[]>([])
   const [newNote, setNewNote] = useState("")
-  const [newNoteType, setNewNoteType] = useState("general")
-  const [activeNoteTab, setActiveNoteTab] = useState<'instruction' | 'communication'>('instruction')
+  const [showAddNoteForm, setShowAddNoteForm] = useState(false)
   const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
 
   // Determine if order can be cancelled based on its status
@@ -279,9 +280,6 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
   // Compute note count for badge (total of all notes)
   const noteCount = notes.length
-
-  // Filter notes by active tab
-  const filteredNotes = notes.filter(note => note.category === activeNoteTab)
 
   // Fetch notes and user on mount
   useEffect(() => {
@@ -298,29 +296,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       {
         id: '1',
         orderId: order?.id || '',
-        noteType: 'delivery',
-        content: 'Please deliver to the back door',
+        content: 'Customer requested gift wrapping',
         createdBy: 'buabsupattra@central.co.th',
-        createdAt: '2026-01-30T15:10:00',
-        category: 'instruction',
+        createdAt: '01/13/2026 13:13 +07',
       },
       {
         id: '2',
         orderId: order?.id || '',
-        noteType: 'customer_request',
-        content: 'Customer requested gift wrapping',
+        content: 'Address verified with customer',
         createdBy: 'jane.smith@central.co.th',
-        createdAt: '2026-01-30T10:15:00',
-        category: 'communication',
-      },
-      {
-        id: '3',
-        orderId: order?.id || '',
-        noteType: 'internal',
-        content: 'Order verified with customer via phone',
-        createdBy: 'john.doe@central.co.th',
-        createdAt: '2026-01-29T14:30:00',
-        category: 'communication',
+        createdAt: '01/13/2026 10:15 +07',
       },
     ]
     setNotes(mockNotes)
@@ -338,11 +323,9 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     try {
       const noteData = {
         orderId: order?.id || '',
-        noteType: newNoteType,
         content: newNote.trim(),
         createdBy: currentUser?.email || 'system@central.co.th', // Auto-populated
-        createdAt: formatISOTimestamp(new Date()), // Auto-populated: "2026-01-30T15:10:00"
-        category: activeNoteTab, // Save to current active tab category
+        createdAt: formatGMT7NoteTimestamp(new Date()), // Auto-populated: "01/13/2026 13:13 +07"
       }
 
       // TODO: Replace with actual API call
@@ -363,9 +346,9 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       // Update local state (add to beginning - newest first)
       setNotes([savedNote, ...notes])
 
-      // Reset form
+      // Reset form and hide it
       setNewNote("")
-      setNewNoteType("general")
+      setShowAddNoteForm(false)
 
       toast({
         title: 'Note saved successfully',
@@ -1495,55 +1478,46 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       <Dialog open={showNotesPanel} onOpenChange={setShowNotesPanel}>
         <DialogContent className="max-w-[1200px] max-h-[80vh] flex flex-col p-0">
           <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle className="text-xl font-semibold">NOTES</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Order Notes</DialogTitle>
           </DialogHeader>
 
-          {/* Tabs for Note Categories */}
-          <Tabs value={activeNoteTab} onValueChange={(value) => setActiveNoteTab(value as 'instruction' | 'communication')} className="flex-1 flex flex-col">
-            <TabsList className="w-full justify-start rounded-none border-b px-6 bg-transparent h-auto p-0">
-              <TabsTrigger value="instruction" className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3">
-                Instruction Note
-              </TabsTrigger>
-              <TabsTrigger value="communication" className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3">
-                Communication Note
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={activeNoteTab} className="flex-1 overflow-auto px-6 py-4 m-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[200px]">NOTE TYPE</TableHead>
-                    <TableHead>NOTE</TableHead>
-                    <TableHead className="w-[200px]">CREATED BY</TableHead>
-                    <TableHead className="w-[180px]">CREATED ON</TableHead>
-                    <TableHead className="w-[50px]">+</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {/* Add Form Row - ALWAYS AT TOP */}
+          {/* Notes Table - NO TABS */}
+          <div className="flex-1 overflow-auto px-6 py-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[60px]">No.</TableHead>
+                  <TableHead>NOTE</TableHead>
+                  <TableHead className="w-[200px]">CREATED BY</TableHead>
+                  <TableHead className="w-[180px]">CREATED ON</TableHead>
+                  <TableHead className="w-[50px]">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowAddNoteForm(!showAddNoteForm)}
+                      className="h-6 w-6"
+                      title={showAddNoteForm ? "Hide add form" : "Add note"}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Add Form Row - CONDITIONAL (only show when showAddNoteForm is true) */}
+                {showAddNoteForm && (
                   <TableRow className="bg-muted/30">
-                    <TableCell className="align-top pt-3">
-                      <Select value={newNoteType} onValueChange={setNewNoteType}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {NOTE_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                      {/* Empty - will be numbered after save */}
                     </TableCell>
                     <TableCell className="align-top pt-3">
                       <Textarea
-                        placeholder="Type your note here..."
+                        placeholder="Thai text content..."
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
                         className="min-h-[80px] resize-none text-sm"
                         maxLength={500}
+                        autoFocus
                       />
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm align-top pt-3">
@@ -1558,59 +1532,57 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                         size="icon"
                         onClick={() => {
                           setNewNote("")
-                          setNewNoteType("general")
+                          setShowAddNoteForm(false)
                         }}
                         className="h-8 w-8"
-                        title="Clear form"
+                        title="Clear and hide form"
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
+                )}
 
-                  {/* Existing Notes */}
-                  {filteredNotes.map((note) => (
-                    <TableRow key={note.id}>
-                      <TableCell className="align-top">
-                        <p className="text-sm">
-                          {NOTE_TYPES.find(t => t.value === note.noteType)?.label || note.noteType}
-                        </p>
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground align-top">
-                        {note.createdBy}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground align-top">
-                        {note.createdAt}
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteNote(note.id)}
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          title="Delete note"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                {/* Existing Notes */}
+                {notes.map((note, index) => (
+                  <TableRow key={note.id}>
+                    <TableCell className="text-center text-sm font-medium align-top">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground align-top">
+                      {note.createdBy}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground align-top">
+                      {note.createdAt}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        title="Delete note"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
 
-                  {/* Empty State */}
-                  {filteredNotes.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
-                        No notes yet. Add your first note above.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TabsContent>
-          </Tabs>
+                {/* Empty State */}
+                {notes.length === 0 && !showAddNoteForm && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                      No notes yet. Click + button to add your first note.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Footer with CANCEL and SAVE buttons */}
           <div className="border-t px-6 py-4 flex justify-end gap-3">
@@ -1619,15 +1591,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
               onClick={() => {
                 setShowNotesPanel(false)
                 setNewNote("")
-                setNewNoteType("general")
+                setShowAddNoteForm(false)
               }}
             >
               CANCEL
             </Button>
             <Button
               onClick={handleSaveNote}
-              disabled={!newNote.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+              disabled={!newNote.trim() || !showAddNoteForm}
             >
               SAVE
             </Button>
