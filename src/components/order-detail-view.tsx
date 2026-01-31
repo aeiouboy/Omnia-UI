@@ -69,33 +69,21 @@ interface Note {
   orderId: string
   content: string
   createdBy: string // Auto-populated from currentUser.email (e.g., "buabsupattra@central.co.th")
-  createdAt: string // Auto-populated: GMT+7 format "01/13/2026 13:13 +07"
+  createdAt: string // Auto-populated: ISO format "2026-01-21T11:50:00"
 }
 
-// Helper function to format timestamp as "01/13/2026 13:13 +07"
-const formatGMT7NoteTimestamp = (date: Date): string => {
+// Helper function to format timestamp as "2026-01-21T11:50:00"
+const formatNoteTimestamp = (date: Date): string => {
   const pad = (n: number) => n.toString().padStart(2, '0')
 
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
 
-  const formatter = new Intl.DateTimeFormat('en-US', options)
-  const parts = formatter.formatToParts(date)
-
-  const month = parts.find(p => p.type === 'month')?.value
-  const day = parts.find(p => p.type === 'day')?.value
-  const year = parts.find(p => p.type === 'year')?.value
-  const hour = parts.find(p => p.type === 'hour')?.value
-  const minute = parts.find(p => p.type === 'minute')?.value
-
-  return `${month}/${day}/${year} ${hour}:${minute} +07`
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
 }
 
 // Helper function to map delivery codes to custom labels
@@ -298,14 +286,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         orderId: order?.id || '',
         content: 'Customer requested gift wrapping',
         createdBy: 'buabsupattra@central.co.th',
-        createdAt: '01/13/2026 13:13 +07',
+        createdAt: '2026-01-13T13:13:00',
       },
       {
         id: '2',
         orderId: order?.id || '',
         content: 'Address verified with customer',
         createdBy: 'jane.smith@central.co.th',
-        createdAt: '01/13/2026 10:15 +07',
+        createdAt: '2026-01-13T10:15:00',
       },
     ]
     setNotes(mockNotes)
@@ -325,7 +313,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         orderId: order?.id || '',
         content: newNote.trim(),
         createdBy: currentUser?.email || 'system@central.co.th', // Auto-populated
-        createdAt: formatGMT7NoteTimestamp(new Date()), // Auto-populated: "01/13/2026 13:13 +07"
+        createdAt: formatNoteTimestamp(new Date()), // Auto-populated: "2026-01-21T11:50:00"
       }
 
       // TODO: Replace with actual API call
@@ -1478,7 +1466,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       <Dialog open={showNotesPanel} onOpenChange={setShowNotesPanel}>
         <DialogContent className="max-w-[1200px] max-h-[80vh] flex flex-col p-0">
           <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle className="text-xl font-semibold">Order Notes</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Note</DialogTitle>
           </DialogHeader>
 
           {/* Notes Table - NO TABS */}
@@ -1486,7 +1474,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[60px]">No.</TableHead>
+                  <TableHead className="w-[150px]">Note Type</TableHead>
                   <TableHead>NOTE</TableHead>
                   <TableHead className="w-[200px]">CREATED BY</TableHead>
                   <TableHead className="w-[180px]">CREATED ON</TableHead>
@@ -1544,10 +1532,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                 )}
 
                 {/* Existing Notes */}
-                {notes.map((note, index) => (
+                {notes.map((note) => (
                   <TableRow key={note.id}>
-                    <TableCell className="text-center text-sm font-medium align-top">
-                      {index + 1}
+                    <TableCell className="text-sm align-top">
+                      Order Remark
                     </TableCell>
                     <TableCell className="align-top">
                       <p className="text-sm whitespace-pre-wrap">{note.content}</p>
