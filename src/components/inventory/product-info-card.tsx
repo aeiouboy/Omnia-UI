@@ -13,7 +13,7 @@ import {
   XCircle,
   Circle,
   Clock,
-  ExternalLink,
+  Tag,
   Info,
 } from "lucide-react"
 import {
@@ -28,7 +28,7 @@ import type { InventoryItem } from "@/types/inventory"
 interface ProductInfoCardProps {
   product: InventoryItem
   onClose: () => void
-  onViewDetails: () => void
+  refId?: string
 }
 
 /**
@@ -94,7 +94,7 @@ function formatLastRestocked(timestamp: string | undefined): string {
 export function ProductInfoCard({
   product,
   onClose,
-  onViewDetails,
+  refId,
 }: ProductInfoCardProps) {
   const displayBarcode = product.barcode || product.productId
   const displayBrand = product.brand || product.productName
@@ -160,9 +160,9 @@ export function ProductInfoCard({
               {/* Separator */}
               <div className="border-t mb-4" />
 
-              {/* Three-column grid: Barcode, Item Type, Supply Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                {/* Barcode */}
+              {/* Four-column grid: Barcode, Ref ID, Item Type, Supply Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                {/* Barcode - Column 1 */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
@@ -171,7 +171,18 @@ export function ProductInfoCard({
                   <span className="font-mono text-sm">{displayBarcode}</span>
                 </div>
 
-                {/* Item Type */}
+                {/* Ref ID - Column 2 (positioned near Barcode) */}
+                {refId && (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Tag className="h-4 w-4" />
+                      <span>Ref ID</span>
+                    </div>
+                    <span className="font-mono text-sm text-foreground break-all">{refId}</span>
+                  </div>
+                )}
+
+                {/* Item Type - Column 3 */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     {product.itemType === "weight" || product.itemType === "pack_weight" ? (
@@ -189,7 +200,7 @@ export function ProductInfoCard({
                   </Badge>
                 </div>
 
-                {/* Supply Type */}
+                {/* Supply Type - Column 4 */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
@@ -245,7 +256,7 @@ export function ProductInfoCard({
               </div>
 
               {/* Last Restocked */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
                   <span>Last Restocked</span>
@@ -254,12 +265,6 @@ export function ProductInfoCard({
                   {formatLastRestocked(product.lastRestocked)}
                 </span>
               </div>
-
-              {/* View Full Details Button */}
-              <Button onClick={onViewDetails} variant="outline">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Full Details
-              </Button>
             </div>
           </div>
         </CardContent>

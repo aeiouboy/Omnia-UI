@@ -154,7 +154,7 @@ export function AdvancedFilterPanel({
     if (filters.orderDateFrom) activeFilters.push(`From: ${filters.orderDateFrom.toLocaleDateString()}`)
     if (filters.orderDateTo) activeFilters.push(`To: ${filters.orderDateTo.toLocaleDateString()}`)
     if (filters.orderStatus !== "all-status") activeFilters.push(`Status: ${filters.orderStatus}`)
-    if (filters.exceedSLA) activeFilters.push("SLA Breached")
+    // if (filters.exceedSLA) activeFilters.push("SLA Breached") // Disabled SLA elements
     if (filters.sellingChannel !== "all-channels") activeFilters.push(`Channel: ${filters.sellingChannel}`)
     if (filters.paymentStatus !== "all-payment") activeFilters.push(`Payment: ${filters.paymentStatus}`)
     if (filters.fulfillmentLocationId) activeFilters.push(`Location: ${filters.fulfillmentLocationId}`)
@@ -309,8 +309,8 @@ export function AdvancedFilterPanel({
           </Select>
         </div>
 
-        {/* Exceed SLA */}
-        <div className="space-y-2">
+        {/* Exceed SLA - DISABLED */}
+        {/* <div className="space-y-2">
           <Label htmlFor="exceedSLA" className="text-xs text-deep-navy">
             Exceed SLA
           </Label>
@@ -327,7 +327,7 @@ export function AdvancedFilterPanel({
               Show only SLA breached orders
             </label>
           </div>
-        </div>
+        </div> */}
 
         {/* Selling channel */}
         <div className="space-y-2">

@@ -1,0 +1,808 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e229]:
+    - generic [ref=e231]:
+      - button "Collapse sidebar" [ref=e233] [cursor=pointer]:
+        - img [ref=e234]
+      - generic [ref=e235]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e236]
+      - navigation [ref=e237]:
+        - link "Order Analysis" [ref=e238] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e239]
+          - generic [ref=e241]: Order Analysis
+        - link "Order Management" [ref=e242] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e243]
+          - generic [ref=e246]: Order Management
+        - button "Inventory Management" [ref=e248] [cursor=pointer]:
+          - generic [ref=e249]:
+            - img [ref=e250]
+            - generic [ref=e254]: Inventory Management
+          - img [ref=e256]
+        - generic "Dashboard (disabled)" [ref=e258]:
+          - img [ref=e259]
+          - generic [ref=e264]: Dashboard
+        - generic "Inventory (disabled)" [ref=e265]:
+          - img [ref=e266]
+          - generic [ref=e270]: Inventory
+        - generic "ATC Config (disabled)" [ref=e271]:
+          - img [ref=e272]
+          - generic [ref=e276]: ATC Config
+        - generic "Escalations (disabled)" [ref=e277]:
+          - img [ref=e278]
+          - generic [ref=e280]: Escalations
+        - generic "Style Guide (disabled)" [ref=e281]:
+          - img [ref=e282]
+          - generic [ref=e288]: Style Guide
+    - generic [ref=e289]:
+      - banner [ref=e290]:
+        - generic [ref=e291]:
+          - generic [ref=e292]:
+            - img [ref=e294]
+            - generic [ref=e296]:
+              - heading "Central Group OMS" [level=1] [ref=e297]
+              - paragraph [ref=e298]: Enterprise Command Center
+          - generic [ref=e299]:
+            - button "Refresh" [ref=e300] [cursor=pointer]:
+              - img [ref=e301]
+            - generic [ref=e306]: "Last updated: 18:27:03"
+            - combobox "Select organization" [ref=e308] [cursor=pointer]:
+              - generic [ref=e309]:
+                - img [ref=e310]
+                - generic: All Organizations
+              - img [ref=e314]
+            - button "User" [ref=e317] [cursor=pointer]:
+              - img "User" [ref=e319]
+      - main [ref=e320]:
+        - generic [ref=e322]:
+          - heading "Order Management" [level=1] [ref=e323]
+          - paragraph [ref=e324]: View and manage orders across all channels.
+        - generic [ref=e325]:
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - generic [ref=e328]: Order Management
+              - generic [ref=e329]:
+                - button "Export" [ref=e330] [cursor=pointer]:
+                  - img
+                  - text: Export
+                - button "Refresh Data" [ref=e331] [cursor=pointer]:
+                  - img
+            - generic [ref=e332]:
+              - generic [ref=e333]:
+                - 'textbox "Search by order #, customer name, email, phone..." [ref=e334]'
+                - img [ref=e335]
+              - generic [ref=e338]:
+                - generic [ref=e339]:
+                  - generic [ref=e340]: Order
+                  - combobox [ref=e341] [cursor=pointer]:
+                    - generic: All Status
+                    - img [ref=e342]
+                  - combobox [ref=e345] [cursor=pointer]:
+                    - generic: All Stores
+                    - img [ref=e346]
+                  - combobox [ref=e349] [cursor=pointer]:
+                    - generic: All Channels
+                    - img [ref=e350]
+                - generic [ref=e352]:
+                  - generic [ref=e353]: Payment
+                  - combobox [ref=e354] [cursor=pointer]:
+                    - generic: All Status
+                    - img [ref=e355]
+                  - combobox [ref=e358] [cursor=pointer]:
+                    - generic: All Methods
+                    - img [ref=e359]
+                - generic [ref=e361]:
+                  - generic [ref=e362]: Order Date
+                  - button "From" [ref=e363] [cursor=pointer]:
+                    - img
+                    - text: From
+                  - generic [ref=e364]: "-"
+                  - button "To" [ref=e365] [cursor=pointer]:
+                    - img
+                    - text: To
+            - button "Show Advanced Filters" [ref=e367] [cursor=pointer]:
+              - img
+              - text: Show Advanced Filters
+              - img
+          - generic [ref=e369]:
+            - table [ref=e372]:
+              - rowgroup [ref=e373]:
+                - row "Order Number Customer Name Email Phone Number Order Total Store No Order Status SLA Status Return Status On Hold Order Type Payment Status Confirmed Channel Allow Substitution Created Date" [ref=e374]:
+                  - columnheader "Order Number" [ref=e375]
+                  - columnheader "Customer Name" [ref=e376]
+                  - columnheader "Email" [ref=e377]
+                  - columnheader "Phone Number" [ref=e378]
+                  - columnheader "Order Total" [ref=e379]
+                  - columnheader "Store No" [ref=e380]
+                  - columnheader "Order Status" [ref=e381]
+                  - columnheader "SLA Status" [ref=e382]
+                  - columnheader "Return Status" [ref=e383]
+                  - columnheader "On Hold" [ref=e384]
+                  - columnheader "Order Type" [ref=e385]
+                  - columnheader "Payment Status" [ref=e386]
+                  - columnheader "Confirmed" [ref=e387]
+                  - columnheader "Channel" [ref=e388]
+                  - columnheader "Allow Substitution" [ref=e389]
+                  - columnheader "Created Date" [ref=e390]
+              - rowgroup [ref=e391]:
+                - row "W1156251121946800 WEERAPAT WIRUNTANGTRAKUL wee.wirun@gmail.com 0804411221 ฿933 - DELIVERED - NONE NO DELIVERY PAID No web Yes 11/21/2025 10:42:00" [ref=e392]:
+                  - cell "W1156251121946800" [ref=e393] [cursor=pointer]:
+                    - button "W1156251121946800" [ref=e394]
+                  - cell "WEERAPAT WIRUNTANGTRAKUL" [ref=e395]
+                  - cell "wee.wirun@gmail.com" [ref=e396]
+                  - cell "0804411221" [ref=e397]
+                  - cell "฿933" [ref=e398]
+                  - cell "-" [ref=e399]
+                  - cell "DELIVERED" [ref=e400]:
+                    - generic [ref=e401]: DELIVERED
+                  - cell "-" [ref=e402]:
+                    - generic [ref=e403]: "-"
+                  - cell "NONE" [ref=e404]:
+                    - generic [ref=e405]: NONE
+                  - cell "NO" [ref=e406]:
+                    - generic [ref=e407]: "NO"
+                  - cell "DELIVERY" [ref=e408]:
+                    - generic [ref=e409]: DELIVERY
+                  - cell "PAID" [ref=e410]:
+                    - generic [ref=e411]: PAID
+                  - cell "No" [ref=e412]
+                  - cell "web" [ref=e413]:
+                    - generic [ref=e414]: web
+                  - cell "Yes" [ref=e415]
+                  - cell "11/21/2025 10:42:00" [ref=e416]
+                - row "W1156260115052036 วิริยงสุดา ศรีทอง 2510083814@dummy.com 0622424423 ฿1,289.68 - DELIVERED - NONE NO DELIVERY PAID No web No 01/15/2026 19:41:00" [ref=e417]:
+                  - cell "W1156260115052036" [ref=e418] [cursor=pointer]:
+                    - button "W1156260115052036" [ref=e419]
+                  - cell "วิริยงสุดา ศรีทอง" [ref=e420]
+                  - cell "2510083814@dummy.com" [ref=e421]
+                  - cell "0622424423" [ref=e422]
+                  - cell "฿1,289.68" [ref=e423]
+                  - cell "-" [ref=e424]
+                  - cell "DELIVERED" [ref=e425]:
+                    - generic [ref=e426]: DELIVERED
+                  - cell "-" [ref=e427]:
+                    - generic [ref=e428]: "-"
+                  - cell "NONE" [ref=e429]:
+                    - generic [ref=e430]: NONE
+                  - cell "NO" [ref=e431]:
+                    - generic [ref=e432]: "NO"
+                  - cell "DELIVERY" [ref=e433]:
+                    - generic [ref=e434]: DELIVERY
+                  - cell "PAID" [ref=e435]:
+                    - generic [ref=e436]: PAID
+                  - cell "No" [ref=e437]
+                  - cell "web" [ref=e438]:
+                    - generic [ref=e439]: web
+                  - cell "No" [ref=e440]
+                  - cell "01/15/2026 19:41:00" [ref=e441]
+                - row "CDS260121226285 ธนวัฒน์ สิงห์แพรก thanawat4596@gmail.com 0922643514 ฿4,551.25 - DELIVERED - NONE NO RT-HD-STD PAID No shopee No 01/21/2026 11:49:00" [ref=e442]:
+                  - cell "CDS260121226285" [ref=e443] [cursor=pointer]:
+                    - button "CDS260121226285" [ref=e444]
+                  - cell "ธนวัฒน์ สิงห์แพรก" [ref=e445]
+                  - cell "thanawat4596@gmail.com" [ref=e446]
+                  - cell "0922643514" [ref=e447]
+                  - cell "฿4,551.25" [ref=e448]
+                  - cell "-" [ref=e449]
+                  - cell "DELIVERED" [ref=e450]:
+                    - generic [ref=e451]: DELIVERED
+                  - cell "-" [ref=e452]:
+                    - generic [ref=e453]: "-"
+                  - cell "NONE" [ref=e454]:
+                    - generic [ref=e455]: NONE
+                  - cell "NO" [ref=e456]:
+                    - generic [ref=e457]: "NO"
+                  - cell "RT-HD-STD" [ref=e458]:
+                    - generic [ref=e459]: RT-HD-STD
+                  - cell "PAID" [ref=e460]:
+                    - generic [ref=e461]: PAID
+                  - cell "No" [ref=e462]
+                  - cell "shopee" [ref=e463]:
+                    - generic [ref=e464]: shopee
+                  - cell "No" [ref=e465]
+                  - cell "01/21/2026 11:49:00" [ref=e466]
+                - row "CDS251229874674 ภัคพล พีระภาค 2512230626@dummy.com 0829359993 ฿1,221 RBS20106 DELIVERED - NONE NO RT-MIX-STD PAID No web No 12/29/2025 03:33:00" [ref=e467]:
+                  - cell "CDS251229874674" [ref=e468] [cursor=pointer]:
+                    - button "CDS251229874674" [ref=e469]
+                  - cell "ภัคพล พีระภาค" [ref=e470]
+                  - cell "2512230626@dummy.com" [ref=e471]
+                  - cell "0829359993" [ref=e472]
+                  - cell "฿1,221" [ref=e473]
+                  - cell "RBS20106" [ref=e474]
+                  - cell "DELIVERED" [ref=e475]:
+                    - generic [ref=e476]: DELIVERED
+                  - cell "-" [ref=e477]:
+                    - generic [ref=e478]: "-"
+                  - cell "NONE" [ref=e479]:
+                    - generic [ref=e480]: NONE
+                  - cell "NO" [ref=e481]:
+                    - generic [ref=e482]: "NO"
+                  - cell "RT-MIX-STD" [ref=e483]:
+                    - generic [ref=e484]: RT-MIX-STD
+                  - cell "PAID" [ref=e485]:
+                    - generic [ref=e486]: PAID
+                  - cell "No" [ref=e487]
+                  - cell "web" [ref=e488]:
+                    - generic [ref=e489]: web
+                  - cell "No" [ref=e490]
+                  - cell "12/29/2025 03:33:00" [ref=e491]
+                - row "ORD-SCENARIO-001 Scenario Tester tester@example.com +66812345678 ฿20,300 STR-0001 PROCESSING 4m BREACH NONE NO DELIVERY PAID No lazada No 01/30/2026 18:25:43" [ref=e492]:
+                  - cell "ORD-SCENARIO-001" [ref=e493] [cursor=pointer]:
+                    - button "ORD-SCENARIO-001" [ref=e494]
+                  - cell "Scenario Tester" [ref=e495]
+                  - cell "tester@example.com" [ref=e496]
+                  - cell "+66812345678" [ref=e497]
+                  - cell "฿20,300" [ref=e498]
+                  - cell "STR-0001" [ref=e499]
+                  - cell "PROCESSING" [ref=e500]:
+                    - generic [ref=e501]: PROCESSING
+                  - cell "4m BREACH" [ref=e502]:
+                    - generic [ref=e503]:
+                      - img [ref=e504]
+                      - text: 4m BREACH
+                  - cell "NONE" [ref=e506]:
+                    - generic [ref=e507]: NONE
+                  - cell "NO" [ref=e508]:
+                    - generic [ref=e509]: "NO"
+                  - cell "DELIVERY" [ref=e510]:
+                    - generic [ref=e511]: DELIVERY
+                  - cell "PAID" [ref=e512]:
+                    - generic [ref=e513]: PAID
+                  - cell "No" [ref=e514]
+                  - cell "lazada" [ref=e515]:
+                    - generic [ref=e516]: lazada
+                  - cell "No" [ref=e517]
+                  - cell "01/30/2026 18:25:43" [ref=e518]
+                - row "ORD-0001 Customer 1 customer1@example.com +66542708012 ฿1,122.52 STR-6681 DELIVERED - NONE NO DELIVERY PENDING No shopee No 01/30/2026 10:41:43" [ref=e519]:
+                  - cell "ORD-0001" [ref=e520] [cursor=pointer]:
+                    - button "ORD-0001" [ref=e521]
+                  - cell "Customer 1" [ref=e522]
+                  - cell "customer1@example.com" [ref=e523]
+                  - cell "+66542708012" [ref=e524]
+                  - cell "฿1,122.52" [ref=e525]
+                  - cell "STR-6681" [ref=e526]
+                  - cell "DELIVERED" [ref=e527]:
+                    - generic [ref=e528]: DELIVERED
+                  - cell "-" [ref=e529]:
+                    - generic [ref=e530]: "-"
+                  - cell "NONE" [ref=e531]:
+                    - generic [ref=e532]: NONE
+                  - cell "NO" [ref=e533]:
+                    - generic [ref=e534]: "NO"
+                  - cell "DELIVERY" [ref=e535]:
+                    - generic [ref=e536]: DELIVERY
+                  - cell "PENDING" [ref=e537]:
+                    - generic [ref=e538]: PENDING
+                  - cell "No" [ref=e539]
+                  - cell "shopee" [ref=e540]:
+                    - generic [ref=e541]: shopee
+                  - cell "No" [ref=e542]
+                  - cell "01/30/2026 10:41:43" [ref=e543]
+                - row "ORD-0002 Customer 2 customer2@example.com +66454200938 ฿79.62 STR-5907 SUBMITTED 4m LEFT NONE NO DELIVERY PENDING No web No 01/30/2026 09:43:43" [ref=e544]:
+                  - cell "ORD-0002" [ref=e545] [cursor=pointer]:
+                    - button "ORD-0002" [ref=e546]
+                  - cell "Customer 2" [ref=e547]
+                  - cell "customer2@example.com" [ref=e548]
+                  - cell "+66454200938" [ref=e549]
+                  - cell "฿79.62" [ref=e550]
+                  - cell "STR-5907" [ref=e551]
+                  - cell "SUBMITTED" [ref=e552]:
+                    - generic [ref=e553]: SUBMITTED
+                  - cell "4m LEFT" [ref=e554]:
+                    - generic [ref=e555]:
+                      - img [ref=e556]
+                      - text: 4m LEFT
+                  - cell "NONE" [ref=e559]:
+                    - generic [ref=e560]: NONE
+                  - cell "NO" [ref=e561]:
+                    - generic [ref=e562]: "NO"
+                  - cell "DELIVERY" [ref=e563]:
+                    - generic [ref=e564]: DELIVERY
+                  - cell "PENDING" [ref=e565]:
+                    - generic [ref=e566]: PENDING
+                  - cell "No" [ref=e567]
+                  - cell "web" [ref=e568]:
+                    - generic [ref=e569]: web
+                  - cell "No" [ref=e570]
+                  - cell "01/30/2026 09:43:43" [ref=e571]
+                - row "ORD-0003 Customer 3 customer3@example.com +66998039809 ฿517.78 STR-5102 CANCELLED - NONE YES DELIVERY FAILED No lazada No 01/30/2026 14:29:43" [ref=e572]:
+                  - cell "ORD-0003" [ref=e573] [cursor=pointer]:
+                    - button "ORD-0003" [ref=e574]
+                  - cell "Customer 3" [ref=e575]
+                  - cell "customer3@example.com" [ref=e576]
+                  - cell "+66998039809" [ref=e577]
+                  - cell "฿517.78" [ref=e578]
+                  - cell "STR-5102" [ref=e579]
+                  - cell "CANCELLED" [ref=e580]:
+                    - generic [ref=e581]: CANCELLED
+                  - cell "-" [ref=e582]:
+                    - generic [ref=e583]: "-"
+                  - cell "NONE" [ref=e584]:
+                    - generic [ref=e585]: NONE
+                  - cell "YES" [ref=e586]:
+                    - generic [ref=e587]: "YES"
+                  - cell "DELIVERY" [ref=e588]:
+                    - generic [ref=e589]: DELIVERY
+                  - cell "FAILED" [ref=e590]:
+                    - generic [ref=e591]: FAILED
+                  - cell "No" [ref=e592]
+                  - cell "lazada" [ref=e593]:
+                    - generic [ref=e594]: lazada
+                  - cell "No" [ref=e595]
+                  - cell "01/30/2026 14:29:43" [ref=e596]
+                - row "ORD-0004 Customer 4 customer4@example.com +66500118716 ฿434.06 STR-4830 READY_FOR_PICKUP - NONE YES PICKUP PAID No shopee No 01/30/2026 16:05:43" [ref=e597]:
+                  - cell "ORD-0004" [ref=e598] [cursor=pointer]:
+                    - button "ORD-0004" [ref=e599]
+                  - cell "Customer 4" [ref=e600]
+                  - cell "customer4@example.com" [ref=e601]
+                  - cell "+66500118716" [ref=e602]
+                  - cell "฿434.06" [ref=e603]
+                  - cell "STR-4830" [ref=e604]
+                  - cell "READY_FOR_PICKUP" [ref=e605]:
+                    - generic [ref=e606]: READY_FOR_PICKUP
+                  - cell "-" [ref=e607]:
+                    - generic [ref=e608]: "-"
+                  - cell "NONE" [ref=e609]:
+                    - generic [ref=e610]: NONE
+                  - cell "YES" [ref=e611]:
+                    - generic [ref=e612]: "YES"
+                  - cell "PICKUP" [ref=e613]:
+                    - generic [ref=e614]: PICKUP
+                  - cell "PAID" [ref=e615]:
+                    - generic [ref=e616]: PAID
+                  - cell "No" [ref=e617]
+                  - cell "shopee" [ref=e618]:
+                    - generic [ref=e619]: shopee
+                  - cell "No" [ref=e620]
+                  - cell "01/30/2026 16:05:43" [ref=e621]
+                - row "ORD-0005 Customer 5 customer5@example.com +66838563282 ฿1,171.84 STR-2550 SUBMITTED -1m BREACH NONE NO PICKUP PAID No web No 01/30/2026 13:26:43" [ref=e622]:
+                  - cell "ORD-0005" [ref=e623] [cursor=pointer]:
+                    - button "ORD-0005" [ref=e624]
+                  - cell "Customer 5" [ref=e625]
+                  - cell "customer5@example.com" [ref=e626]
+                  - cell "+66838563282" [ref=e627]
+                  - cell "฿1,171.84" [ref=e628]
+                  - cell "STR-2550" [ref=e629]
+                  - cell "SUBMITTED" [ref=e630]:
+                    - generic [ref=e631]: SUBMITTED
+                  - cell "-1m BREACH" [ref=e632]:
+                    - generic [ref=e633]:
+                      - img [ref=e634]
+                      - text: "-1m BREACH"
+                  - cell "NONE" [ref=e636]:
+                    - generic [ref=e637]: NONE
+                  - cell "NO" [ref=e638]:
+                    - generic [ref=e639]: "NO"
+                  - cell "PICKUP" [ref=e640]:
+                    - generic [ref=e641]: PICKUP
+                  - cell "PAID" [ref=e642]:
+                    - generic [ref=e643]: PAID
+                  - cell "No" [ref=e644]
+                  - cell "web" [ref=e645]:
+                    - generic [ref=e646]: web
+                  - cell "No" [ref=e647]
+                  - cell "01/30/2026 13:26:43" [ref=e648]
+                - row "ORD-0006 Customer 6 customer6@example.com +66446409005 ฿998.96 STR-7429 SUBMITTED 6m LEFT NONE NO DELIVERY PENDING No lazada No 01/30/2026 09:54:43" [ref=e649]:
+                  - cell "ORD-0006" [ref=e650] [cursor=pointer]:
+                    - button "ORD-0006" [ref=e651]
+                  - cell "Customer 6" [ref=e652]
+                  - cell "customer6@example.com" [ref=e653]
+                  - cell "+66446409005" [ref=e654]
+                  - cell "฿998.96" [ref=e655]
+                  - cell "STR-7429" [ref=e656]
+                  - cell "SUBMITTED" [ref=e657]:
+                    - generic [ref=e658]: SUBMITTED
+                  - cell "6m LEFT" [ref=e659]:
+                    - generic [ref=e660]:
+                      - img [ref=e661]
+                      - text: 6m LEFT
+                  - cell "NONE" [ref=e664]:
+                    - generic [ref=e665]: NONE
+                  - cell "NO" [ref=e666]:
+                    - generic [ref=e667]: "NO"
+                  - cell "DELIVERY" [ref=e668]:
+                    - generic [ref=e669]: DELIVERY
+                  - cell "PENDING" [ref=e670]:
+                    - generic [ref=e671]: PENDING
+                  - cell "No" [ref=e672]
+                  - cell "lazada" [ref=e673]:
+                    - generic [ref=e674]: lazada
+                  - cell "No" [ref=e675]
+                  - cell "01/30/2026 09:54:43" [ref=e676]
+                - row "ORD-0007 Customer 7 customer7@example.com +66720556231 ฿673.17 STR-8866 SUBMITTED 2m LEFT NONE NO PICKUP PAID No shopee No 01/30/2026 08:54:43" [ref=e677]:
+                  - cell "ORD-0007" [ref=e678] [cursor=pointer]:
+                    - button "ORD-0007" [ref=e679]
+                  - cell "Customer 7" [ref=e680]
+                  - cell "customer7@example.com" [ref=e681]
+                  - cell "+66720556231" [ref=e682]
+                  - cell "฿673.17" [ref=e683]
+                  - cell "STR-8866" [ref=e684]
+                  - cell "SUBMITTED" [ref=e685]:
+                    - generic [ref=e686]: SUBMITTED
+                  - cell "2m LEFT" [ref=e687]:
+                    - generic [ref=e688]:
+                      - img [ref=e689]
+                      - text: 2m LEFT
+                  - cell "NONE" [ref=e692]:
+                    - generic [ref=e693]: NONE
+                  - cell "NO" [ref=e694]:
+                    - generic [ref=e695]: "NO"
+                  - cell "PICKUP" [ref=e696]:
+                    - generic [ref=e697]: PICKUP
+                  - cell "PAID" [ref=e698]:
+                    - generic [ref=e699]: PAID
+                  - cell "No" [ref=e700]
+                  - cell "shopee" [ref=e701]:
+                    - generic [ref=e702]: shopee
+                  - cell "No" [ref=e703]
+                  - cell "01/30/2026 08:54:43" [ref=e704]
+                - row "ORD-0008 Customer 8 customer8@example.com +66987288024 ฿710.66 STR-7173 DELIVERED - NONE NO PICKUP PENDING No web No 01/30/2026 11:51:43" [ref=e705]:
+                  - cell "ORD-0008" [ref=e706] [cursor=pointer]:
+                    - button "ORD-0008" [ref=e707]
+                  - cell "Customer 8" [ref=e708]
+                  - cell "customer8@example.com" [ref=e709]
+                  - cell "+66987288024" [ref=e710]
+                  - cell "฿710.66" [ref=e711]
+                  - cell "STR-7173" [ref=e712]
+                  - cell "DELIVERED" [ref=e713]:
+                    - generic [ref=e714]: DELIVERED
+                  - cell "-" [ref=e715]:
+                    - generic [ref=e716]: "-"
+                  - cell "NONE" [ref=e717]:
+                    - generic [ref=e718]: NONE
+                  - cell "NO" [ref=e719]:
+                    - generic [ref=e720]: "NO"
+                  - cell "PICKUP" [ref=e721]:
+                    - generic [ref=e722]: PICKUP
+                  - cell "PENDING" [ref=e723]:
+                    - generic [ref=e724]: PENDING
+                  - cell "No" [ref=e725]
+                  - cell "web" [ref=e726]:
+                    - generic [ref=e727]: web
+                  - cell "No" [ref=e728]
+                  - cell "01/30/2026 11:51:43" [ref=e729]
+                - row "ORD-0009 Customer 9 customer9@example.com +66541466815 ฿722.42 STR-2393 CANCELLED - NONE NO PICKUP FAILED No lazada No 01/30/2026 09:52:43" [ref=e730]:
+                  - cell "ORD-0009" [ref=e731] [cursor=pointer]:
+                    - button "ORD-0009" [ref=e732]
+                  - cell "Customer 9" [ref=e733]
+                  - cell "customer9@example.com" [ref=e734]
+                  - cell "+66541466815" [ref=e735]
+                  - cell "฿722.42" [ref=e736]
+                  - cell "STR-2393" [ref=e737]
+                  - cell "CANCELLED" [ref=e738]:
+                    - generic [ref=e739]: CANCELLED
+                  - cell "-" [ref=e740]:
+                    - generic [ref=e741]: "-"
+                  - cell "NONE" [ref=e742]:
+                    - generic [ref=e743]: NONE
+                  - cell "NO" [ref=e744]:
+                    - generic [ref=e745]: "NO"
+                  - cell "PICKUP" [ref=e746]:
+                    - generic [ref=e747]: PICKUP
+                  - cell "FAILED" [ref=e748]:
+                    - generic [ref=e749]: FAILED
+                  - cell "No" [ref=e750]
+                  - cell "lazada" [ref=e751]:
+                    - generic [ref=e752]: lazada
+                  - cell "No" [ref=e753]
+                  - cell "01/30/2026 09:52:43" [ref=e754]
+                - row "ORD-0010 Customer 10 customer10@example.com +66332462809 ฿562.57 STR-7098 DELIVERED - NONE NO DELIVERY PAID No shopee No 01/30/2026 18:11:43" [ref=e755]:
+                  - cell "ORD-0010" [ref=e756] [cursor=pointer]:
+                    - button "ORD-0010" [ref=e757]
+                  - cell "Customer 10" [ref=e758]
+                  - cell "customer10@example.com" [ref=e759]
+                  - cell "+66332462809" [ref=e760]
+                  - cell "฿562.57" [ref=e761]
+                  - cell "STR-7098" [ref=e762]
+                  - cell "DELIVERED" [ref=e763]:
+                    - generic [ref=e764]: DELIVERED
+                  - cell "-" [ref=e765]:
+                    - generic [ref=e766]: "-"
+                  - cell "NONE" [ref=e767]:
+                    - generic [ref=e768]: NONE
+                  - cell "NO" [ref=e769]:
+                    - generic [ref=e770]: "NO"
+                  - cell "DELIVERY" [ref=e771]:
+                    - generic [ref=e772]: DELIVERY
+                  - cell "PAID" [ref=e773]:
+                    - generic [ref=e774]: PAID
+                  - cell "No" [ref=e775]
+                  - cell "shopee" [ref=e776]:
+                    - generic [ref=e777]: shopee
+                  - cell "No" [ref=e778]
+                  - cell "01/30/2026 18:11:43" [ref=e779]
+                - row "ORD-0011 Customer 11 customer11@example.com +66819671158 ฿589.06 STR-9872 CANCELLED - NONE NO PICKUP PENDING No web No 01/30/2026 08:48:43" [ref=e780]:
+                  - cell "ORD-0011" [ref=e781] [cursor=pointer]:
+                    - button "ORD-0011" [ref=e782]
+                  - cell "Customer 11" [ref=e783]
+                  - cell "customer11@example.com" [ref=e784]
+                  - cell "+66819671158" [ref=e785]
+                  - cell "฿589.06" [ref=e786]
+                  - cell "STR-9872" [ref=e787]
+                  - cell "CANCELLED" [ref=e788]:
+                    - generic [ref=e789]: CANCELLED
+                  - cell "-" [ref=e790]:
+                    - generic [ref=e791]: "-"
+                  - cell "NONE" [ref=e792]:
+                    - generic [ref=e793]: NONE
+                  - cell "NO" [ref=e794]:
+                    - generic [ref=e795]: "NO"
+                  - cell "PICKUP" [ref=e796]:
+                    - generic [ref=e797]: PICKUP
+                  - cell "PENDING" [ref=e798]:
+                    - generic [ref=e799]: PENDING
+                  - cell "No" [ref=e800]
+                  - cell "web" [ref=e801]:
+                    - generic [ref=e802]: web
+                  - cell "No" [ref=e803]
+                  - cell "01/30/2026 08:48:43" [ref=e804]
+                - row "ORD-0012 Customer 12 customer12@example.com +66778562541 ฿875.07 STR-2695 DELIVERED - NONE NO DELIVERY PENDING No lazada No 01/30/2026 16:29:43" [ref=e805]:
+                  - cell "ORD-0012" [ref=e806] [cursor=pointer]:
+                    - button "ORD-0012" [ref=e807]
+                  - cell "Customer 12" [ref=e808]
+                  - cell "customer12@example.com" [ref=e809]
+                  - cell "+66778562541" [ref=e810]
+                  - cell "฿875.07" [ref=e811]
+                  - cell "STR-2695" [ref=e812]
+                  - cell "DELIVERED" [ref=e813]:
+                    - generic [ref=e814]: DELIVERED
+                  - cell "-" [ref=e815]:
+                    - generic [ref=e816]: "-"
+                  - cell "NONE" [ref=e817]:
+                    - generic [ref=e818]: NONE
+                  - cell "NO" [ref=e819]:
+                    - generic [ref=e820]: "NO"
+                  - cell "DELIVERY" [ref=e821]:
+                    - generic [ref=e822]: DELIVERY
+                  - cell "PENDING" [ref=e823]:
+                    - generic [ref=e824]: PENDING
+                  - cell "No" [ref=e825]
+                  - cell "lazada" [ref=e826]:
+                    - generic [ref=e827]: lazada
+                  - cell "No" [ref=e828]
+                  - cell "01/30/2026 16:29:43" [ref=e829]
+                - row "ORD-0013 Customer 13 customer13@example.com +66277886180 ฿618.56 STR-4352 DELIVERED - NONE NO DELIVERY PAID No shopee No 01/30/2026 17:53:43" [ref=e830]:
+                  - cell "ORD-0013" [ref=e831] [cursor=pointer]:
+                    - button "ORD-0013" [ref=e832]
+                  - cell "Customer 13" [ref=e833]
+                  - cell "customer13@example.com" [ref=e834]
+                  - cell "+66277886180" [ref=e835]
+                  - cell "฿618.56" [ref=e836]
+                  - cell "STR-4352" [ref=e837]
+                  - cell "DELIVERED" [ref=e838]:
+                    - generic [ref=e839]: DELIVERED
+                  - cell "-" [ref=e840]:
+                    - generic [ref=e841]: "-"
+                  - cell "NONE" [ref=e842]:
+                    - generic [ref=e843]: NONE
+                  - cell "NO" [ref=e844]:
+                    - generic [ref=e845]: "NO"
+                  - cell "DELIVERY" [ref=e846]:
+                    - generic [ref=e847]: DELIVERY
+                  - cell "PAID" [ref=e848]:
+                    - generic [ref=e849]: PAID
+                  - cell "No" [ref=e850]
+                  - cell "shopee" [ref=e851]:
+                    - generic [ref=e852]: shopee
+                  - cell "No" [ref=e853]
+                  - cell "01/30/2026 17:53:43" [ref=e854]
+                - row "ORD-0014 Customer 14 customer14@example.com +66687022837 ฿636.14 STR-3694 SUBMITTED 0m BREACH NONE NO PICKUP FAILED No web No 01/30/2026 16:38:43" [ref=e855]:
+                  - cell "ORD-0014" [ref=e856] [cursor=pointer]:
+                    - button "ORD-0014" [ref=e857]
+                  - cell "Customer 14" [ref=e858]
+                  - cell "customer14@example.com" [ref=e859]
+                  - cell "+66687022837" [ref=e860]
+                  - cell "฿636.14" [ref=e861]
+                  - cell "STR-3694" [ref=e862]
+                  - cell "SUBMITTED" [ref=e863]:
+                    - generic [ref=e864]: SUBMITTED
+                  - cell "0m BREACH" [ref=e865]:
+                    - generic [ref=e866]:
+                      - img [ref=e867]
+                      - text: 0m BREACH
+                  - cell "NONE" [ref=e869]:
+                    - generic [ref=e870]: NONE
+                  - cell "NO" [ref=e871]:
+                    - generic [ref=e872]: "NO"
+                  - cell "PICKUP" [ref=e873]:
+                    - generic [ref=e874]: PICKUP
+                  - cell "FAILED" [ref=e875]:
+                    - generic [ref=e876]: FAILED
+                  - cell "No" [ref=e877]
+                  - cell "web" [ref=e878]:
+                    - generic [ref=e879]: web
+                  - cell "No" [ref=e880]
+                  - cell "01/30/2026 16:38:43" [ref=e881]
+                - row "ORD-0015 Customer 15 customer15@example.com +66891525338 ฿1,210.49 STR-9731 SUBMITTED 0m BREACH NONE NO DELIVERY PAID No lazada No 01/30/2026 12:49:43" [ref=e882]:
+                  - cell "ORD-0015" [ref=e883] [cursor=pointer]:
+                    - button "ORD-0015" [ref=e884]
+                  - cell "Customer 15" [ref=e885]
+                  - cell "customer15@example.com" [ref=e886]
+                  - cell "+66891525338" [ref=e887]
+                  - cell "฿1,210.49" [ref=e888]
+                  - cell "STR-9731" [ref=e889]
+                  - cell "SUBMITTED" [ref=e890]:
+                    - generic [ref=e891]: SUBMITTED
+                  - cell "0m BREACH" [ref=e892]:
+                    - generic [ref=e893]:
+                      - img [ref=e894]
+                      - text: 0m BREACH
+                  - cell "NONE" [ref=e896]:
+                    - generic [ref=e897]: NONE
+                  - cell "NO" [ref=e898]:
+                    - generic [ref=e899]: "NO"
+                  - cell "DELIVERY" [ref=e900]:
+                    - generic [ref=e901]: DELIVERY
+                  - cell "PAID" [ref=e902]:
+                    - generic [ref=e903]: PAID
+                  - cell "No" [ref=e904]
+                  - cell "lazada" [ref=e905]:
+                    - generic [ref=e906]: lazada
+                  - cell "No" [ref=e907]
+                  - cell "01/30/2026 12:49:43" [ref=e908]
+                - row "ORD-0016 Customer 16 customer16@example.com +66218164797 ฿292.5 STR-2415 PROCESSING 5m LEFT NONE NO DELIVERY PAID No shopee No 01/30/2026 11:23:43" [ref=e909]:
+                  - cell "ORD-0016" [ref=e910] [cursor=pointer]:
+                    - button "ORD-0016" [ref=e911]
+                  - cell "Customer 16" [ref=e912]
+                  - cell "customer16@example.com" [ref=e913]
+                  - cell "+66218164797" [ref=e914]
+                  - cell "฿292.5" [ref=e915]
+                  - cell "STR-2415" [ref=e916]
+                  - cell "PROCESSING" [ref=e917]:
+                    - generic [ref=e918]: PROCESSING
+                  - cell "5m LEFT" [ref=e919]:
+                    - generic [ref=e920]:
+                      - img [ref=e921]
+                      - text: 5m LEFT
+                  - cell "NONE" [ref=e924]:
+                    - generic [ref=e925]: NONE
+                  - cell "NO" [ref=e926]:
+                    - generic [ref=e927]: "NO"
+                  - cell "DELIVERY" [ref=e928]:
+                    - generic [ref=e929]: DELIVERY
+                  - cell "PAID" [ref=e930]:
+                    - generic [ref=e931]: PAID
+                  - cell "No" [ref=e932]
+                  - cell "shopee" [ref=e933]:
+                    - generic [ref=e934]: shopee
+                  - cell "No" [ref=e935]
+                  - cell "01/30/2026 11:23:43" [ref=e936]
+                - row "ORD-0017 Customer 17 customer17@example.com +66764820671 ฿1,189.62 STR-8404 CANCELLED - NONE YES DELIVERY FAILED No web No 01/30/2026 12:27:43" [ref=e937]:
+                  - cell "ORD-0017" [ref=e938] [cursor=pointer]:
+                    - button "ORD-0017" [ref=e939]
+                  - cell "Customer 17" [ref=e940]
+                  - cell "customer17@example.com" [ref=e941]
+                  - cell "+66764820671" [ref=e942]
+                  - cell "฿1,189.62" [ref=e943]
+                  - cell "STR-8404" [ref=e944]
+                  - cell "CANCELLED" [ref=e945]:
+                    - generic [ref=e946]: CANCELLED
+                  - cell "-" [ref=e947]:
+                    - generic [ref=e948]: "-"
+                  - cell "NONE" [ref=e949]:
+                    - generic [ref=e950]: NONE
+                  - cell "YES" [ref=e951]:
+                    - generic [ref=e952]: "YES"
+                  - cell "DELIVERY" [ref=e953]:
+                    - generic [ref=e954]: DELIVERY
+                  - cell "FAILED" [ref=e955]:
+                    - generic [ref=e956]: FAILED
+                  - cell "No" [ref=e957]
+                  - cell "web" [ref=e958]:
+                    - generic [ref=e959]: web
+                  - cell "No" [ref=e960]
+                  - cell "01/30/2026 12:27:43" [ref=e961]
+                - row "ORD-0018 Customer 18 customer18@example.com +66796690882 ฿1,005.76 STR-4793 PROCESSING 4m LEFT NONE YES DELIVERY PAID No lazada No 01/30/2026 10:33:43" [ref=e962]:
+                  - cell "ORD-0018" [ref=e963] [cursor=pointer]:
+                    - button "ORD-0018" [ref=e964]
+                  - cell "Customer 18" [ref=e965]
+                  - cell "customer18@example.com" [ref=e966]
+                  - cell "+66796690882" [ref=e967]
+                  - cell "฿1,005.76" [ref=e968]
+                  - cell "STR-4793" [ref=e969]
+                  - cell "PROCESSING" [ref=e970]:
+                    - generic [ref=e971]: PROCESSING
+                  - cell "4m LEFT" [ref=e972]:
+                    - generic [ref=e973]:
+                      - img [ref=e974]
+                      - text: 4m LEFT
+                  - cell "NONE" [ref=e977]:
+                    - generic [ref=e978]: NONE
+                  - cell "YES" [ref=e979]:
+                    - generic [ref=e980]: "YES"
+                  - cell "DELIVERY" [ref=e981]:
+                    - generic [ref=e982]: DELIVERY
+                  - cell "PAID" [ref=e983]:
+                    - generic [ref=e984]: PAID
+                  - cell "No" [ref=e985]
+                  - cell "lazada" [ref=e986]:
+                    - generic [ref=e987]: lazada
+                  - cell "No" [ref=e988]
+                  - cell "01/30/2026 10:33:43" [ref=e989]
+                - row "ORD-0019 Customer 19 customer19@example.com +66718661882 ฿431.5 STR-9636 DELIVERED - NONE NO PICKUP PAID No shopee No 01/30/2026 10:25:43" [ref=e990]:
+                  - cell "ORD-0019" [ref=e991] [cursor=pointer]:
+                    - button "ORD-0019" [ref=e992]
+                  - cell "Customer 19" [ref=e993]
+                  - cell "customer19@example.com" [ref=e994]
+                  - cell "+66718661882" [ref=e995]
+                  - cell "฿431.5" [ref=e996]
+                  - cell "STR-9636" [ref=e997]
+                  - cell "DELIVERED" [ref=e998]:
+                    - generic [ref=e999]: DELIVERED
+                  - cell "-" [ref=e1000]:
+                    - generic [ref=e1001]: "-"
+                  - cell "NONE" [ref=e1002]:
+                    - generic [ref=e1003]: NONE
+                  - cell "NO" [ref=e1004]:
+                    - generic [ref=e1005]: "NO"
+                  - cell "PICKUP" [ref=e1006]:
+                    - generic [ref=e1007]: PICKUP
+                  - cell "PAID" [ref=e1008]:
+                    - generic [ref=e1009]: PAID
+                  - cell "No" [ref=e1010]
+                  - cell "shopee" [ref=e1011]:
+                    - generic [ref=e1012]: shopee
+                  - cell "No" [ref=e1013]
+                  - cell "01/30/2026 10:25:43" [ref=e1014]
+                - row "ORD-0020 Customer 20 customer20@example.com +66285191870 ฿366.3 STR-7326 CANCELLED - NONE NO DELIVERY PENDING No web No 01/30/2026 08:32:43" [ref=e1015]:
+                  - cell "ORD-0020" [ref=e1016] [cursor=pointer]:
+                    - button "ORD-0020" [ref=e1017]
+                  - cell "Customer 20" [ref=e1018]
+                  - cell "customer20@example.com" [ref=e1019]
+                  - cell "+66285191870" [ref=e1020]
+                  - cell "฿366.3" [ref=e1021]
+                  - cell "STR-7326" [ref=e1022]
+                  - cell "CANCELLED" [ref=e1023]:
+                    - generic [ref=e1024]: CANCELLED
+                  - cell "-" [ref=e1025]:
+                    - generic [ref=e1026]: "-"
+                  - cell "NONE" [ref=e1027]:
+                    - generic [ref=e1028]: NONE
+                  - cell "NO" [ref=e1029]:
+                    - generic [ref=e1030]: "NO"
+                  - cell "DELIVERY" [ref=e1031]:
+                    - generic [ref=e1032]: DELIVERY
+                  - cell "PENDING" [ref=e1033]:
+                    - generic [ref=e1034]: PENDING
+                  - cell "No" [ref=e1035]
+                  - cell "web" [ref=e1036]:
+                    - generic [ref=e1037]: web
+                  - cell "No" [ref=e1038]
+                  - cell "01/30/2026 08:32:43" [ref=e1039]
+            - generic [ref=e1040]:
+              - paragraph [ref=e1042]: "Last updated: 18:25:49"
+              - generic [ref=e1043]:
+                - generic [ref=e1044]:
+                  - generic [ref=e1046]: Showing 1 to 25 of 155 orders
+                  - generic [ref=e1047]:
+                    - generic [ref=e1048]: "Show:"
+                    - combobox [ref=e1049] [cursor=pointer]:
+                      - generic: "25"
+                      - img [ref=e1050]
+                - generic [ref=e1052]:
+                  - generic [ref=e1053]:
+                    - button "First page" [disabled]:
+                      - img
+                    - button "Previous page" [disabled]:
+                      - img
+                    - generic [ref=e1054]:
+                      - button "1" [ref=e1056] [cursor=pointer]
+                      - button "2" [ref=e1058] [cursor=pointer]
+                      - button "3" [ref=e1060] [cursor=pointer]
+                      - button "4" [ref=e1062] [cursor=pointer]
+                      - button "5" [ref=e1064] [cursor=pointer]
+                      - button "6" [ref=e1066] [cursor=pointer]
+                      - button "7" [ref=e1068] [cursor=pointer]
+                    - button "Next page" [ref=e1069] [cursor=pointer]:
+                      - img
+                    - button "Last page" [ref=e1070] [cursor=pointer]:
+                      - img
+                  - generic [ref=e1072]: Page 1 of 7
+      - contentinfo [ref=e1073]:
+        - generic [ref=e1075]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e223] [cursor=pointer]:
+    - img [ref=e224]
+  - alert [ref=e227]
+  - generic [ref=e228]: ฿0

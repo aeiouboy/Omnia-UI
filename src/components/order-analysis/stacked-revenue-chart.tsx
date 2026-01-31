@@ -17,6 +17,7 @@ import {
     CHANNEL_COLORS_REVENUE,
     type RevenueDailySummary,
 } from "@/types/order-analysis"
+import { formatCurrencyInt, formatCurrencyShort } from "@/lib/currency-utils"
 
 interface StackedRevenueChartProps {
     data: RevenueDailySummary[]
@@ -44,12 +45,12 @@ function RevenueChartTooltip({ active, payload, label }: any) {
                         />
                         <span className="text-muted-foreground">{entry.name}</span>
                     </div>
-                    <span className="font-medium tabular-nums">฿{entry.value?.toLocaleString() || "0"}</span>
+                    <span className="font-medium tabular-nums">{formatCurrencyInt(entry.value)}</span>
                 </div>
             ))}
             <div className="border-t mt-2 pt-2 flex items-center justify-between text-sm font-medium">
                 <span>Total</span>
-                <span className="tabular-nums">฿{total.toLocaleString()}</span>
+                <span className="tabular-nums">{formatCurrencyInt(total)}</span>
             </div>
         </div>
     )
@@ -127,7 +128,7 @@ export function StackedRevenueChart({ data, totalRevenue = 0, isLoading }: Stack
                                 tick={{ fontSize: 12 }}
                                 tickLine={false}
                                 axisLine={{ stroke: "#e5e7eb" }}
-                                tickFormatter={(value) => `฿${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
+                                tickFormatter={(value) => formatCurrencyShort(value, 0)}
                             />
                             <Tooltip content={<RevenueChartTooltip />} />
                             {/* Stack order: TOL at bottom, MKP on top with rounded corners */}

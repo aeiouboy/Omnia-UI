@@ -14,7 +14,7 @@ import {
   OrderStatusBadge,
   OnHoldBadge,
   ReturnStatusBadge,
-  SLABadge,
+  // SLABadge, // Disabled SLA elements
   DeliveryTypeBadge,
   SettlementTypeBadge,
   RequestTaxBadge,
@@ -53,6 +53,7 @@ export interface ApiCustomer {
 
 export interface ApiShippingAddress {
   street: string
+  subdistrict?: string
   city: string
   state: string
   postal_code: string
@@ -273,7 +274,16 @@ export interface Order {
   pricingBreakdown?: PricingBreakdown
   auditTrail?: ManhattanAuditEvent[]
   currency?: string
-  // Optionally add derived fields for UI only if needed
+  // Billing Information Fields
+  billingName?: string
+  billingAddress?: {
+    street?: string
+    subdistrict?: string
+    city?: string
+    state?: string
+    postal_code?: string
+    country?: string
+  }
 }
 
 // Pagination parameters interface
@@ -418,8 +428,9 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
         // ]
         // demoOrder.paymentType = paymentTypes[index % paymentTypes.length]
 
-        // Check if this is a MAO order (starts with 'W') - used to skip demo data modifications
-        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W')
+        // Check if this is a MAO order (starts with 'W' or 'CDS') - used to skip demo data modifications
+        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W') ||
+                           apiOrder.id?.startsWith('CDS') || apiOrder.order_no?.startsWith('CDS')
 
         // Financial fields - EXCLUDE MAO orders (they have their own payment data)
         if (!isMaoOrder) {
@@ -1171,7 +1182,7 @@ export function OrderManagementHub() {
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
     // SLA data is already in seconds, pass through as-is for SLA badge component to handle
-    let slaInfo = order.sla_info
+    // let slaInfo = order.sla_info // Disabled SLA elements
     const urgencyLevel = getOrderUrgencyLevel(order)
 
     return {
@@ -1180,7 +1191,7 @@ export function OrderManagementHub() {
       total_amount: order.total_amount,
       sellingLocationId: order.metadata?.store_name ?? "",
       status: order.status,
-      slaStatus: slaInfo ?? "",
+      // slaStatus: slaInfo ?? "", // Disabled SLA elements
       returnStatus: order.return_status ?? "",
       onHold: order.on_hold ?? false,
       paymentStatus: order.payment_info?.status ?? "",
@@ -1768,9 +1779,9 @@ export function OrderManagementHub() {
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 Order Status
               </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
+              {/* <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 SLA Status
-              </TableHead>
+              </TableHead> */}
               <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
                 Return Status
               </TableHead>
@@ -1843,14 +1854,14 @@ export function OrderManagementHub() {
                     <TableCell>
                       <OrderStatusBadge status={order.status} />
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <SLABadge
                         targetMinutes={order.slaStatus?.target_minutes ?? 0}
                         elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
                         status={order.status}
                         slaStatus={order.slaStatus?.status}
                       />
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <ReturnStatusBadge status={order.returnStatus} />
                     </TableCell>

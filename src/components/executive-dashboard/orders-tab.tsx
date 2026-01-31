@@ -133,10 +133,10 @@ const HourlyOrderSummary = memo(function HourlyOrderSummary({
                 interval={1}
               />
               <YAxis yAxisId="left" />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                tickFormatter={(value) => `฿${value.toLocaleString('th-TH')}`}
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickFormatter={(value) => formatCurrencyInt(value, false)}
               />
               <Tooltip 
                 formatter={(value, name) => [
@@ -326,7 +326,7 @@ function RecentOrdersTable({
                       <OrderStatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      ฿{(order.total_amount || 0).toLocaleString('th-TH')}
+                      {formatCurrencyInt(order.total_amount)}
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">
                       {formatGMT7DateTime(order.order_date)}
