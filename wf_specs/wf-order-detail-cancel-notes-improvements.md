@@ -226,39 +226,36 @@ Order Details                  [⋮ Actions]  [X]
 
 **Notes Tab Content:**
 ```
-┌────────────────────────────────────────────────────────────────────────────────┐
-│ Order Notes                                                                    │
-├────────────────────────────────────────────┬───────────────────┬───────────────┤
-│ NOTE                                       │ CREATED BY        │ CREATED ON    │
-├────────────────────────────────────────────┼───────────────────┼───────────────┤
-│ Customer requested gift wrapping           │ john.doe@         │2026-01-30T    │[X]
-│ for all items                              │ central.co.th     │15:10:00       │
-├────────────────────────────────────────────┼───────────────────┼───────────────┤
-│ Delivery address verified with             │ jane.smith@       │2026-01-30T    │[X]
-│ customer via phone                         │ central.co.th     │10:15:00       │
-├────────────────────────────────────────────┴───────────────────┴───────────────┤
-│ [+ Add New Note]                                                               │
-│                                                                                │
-│ ┌──────────────────────────────────────────────────────────────────────────┐ │
-│ │ Add new note...                                                           │ │
-│ │                                                                            │ │
-│ └──────────────────────────────────────────────────────────────────────────┘ │
-│ 0/500 characters                                                              │
-│                                                             [Cancel] [Add Note]│
-└────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│ Order Notes                                                                          │
+├──────────────┬────────────────────────────────────┬──────────────┬──────────────┬───┤
+│ NOTE TYPE    │ NOTE                               │ CREATED BY   │ CREATED ON   │ + │
+├──────────────┼────────────────────────────────────┼──────────────┼──────────────┼───┤
+│ [Dropdown ▼] │ ┌────────────────────────────────┐ │              │              │   │
+│              │ │ Add note text...               │ │              │              │   │
+│              │ │                                 │ │              │              │   │
+│              │ └────────────────────────────────┘ │              │              │ X │
+├──────────────┼────────────────────────────────────┼──────────────┼──────────────┼───┤
+│ Order Remark │ Customer requested gift wrapping   │ john.doe@    │2026-01-30T   │ X │
+│              │ for all items                      │ central.co.th│15:10:00      │   │
+├──────────────┼────────────────────────────────────┼──────────────┼──────────────┼───┤
+│ Customer Req │ Delivery address verified with     │ jane.smith@  │2026-01-30T   │ X │
+│              │ customer via phone                 │ central.co.th│10:15:00      │   │
+└──────────────┴────────────────────────────────────┴──────────────┴──────────────┴───┘
 ```
 
 **Features:**
-- **Table Layout**: Clean 3-column display
-- **Note Column**: Main note content (left-aligned, wraps text)
-- **Created By Column**: User email who created the note
-- **Created On Column**: ISO 8601 timestamp (YYYY-MM-DDTHH:mm:ss)
-- **Delete Button**: X button on right to delete each note
+- **Inline Add Form at TOP**: First row is the add form (always visible)
+- **Note Type Dropdown**: Required selection before adding
+- **Note Textarea**: Inline multi-line text input
+- **Created By/On Empty**: These columns remain empty during add (filled after save)
+- **Add Button**: "+" icon on right (triggers save)
+- **Cancel Button**: "X" icon (clears form)
+- **Saved Notes Below**: Appear chronologically with all metadata populated
+- **Delete Button**: X button on right of each saved note
+- **No Edit**: Notes are append-only (cannot modify after save)
 - **Timeline view**: Notes sorted by timestamp (newest first)
-- **Inline Add**: Add new note form at bottom of table
 - **Badge indicator**: Tab shows count of notes
-- **History**: All notes preserved with creation metadata
-- **No Note Type**: Single note type (Order Note) for simplicity
 
 ---
 
@@ -537,16 +534,82 @@ Order Details                  [⋮ Actions]  [X]
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[150px]">NOTE TYPE</TableHead>
             <TableHead>NOTE</TableHead>
             <TableHead className="w-[200px]">CREATED BY</TableHead>
             <TableHead className="w-[180px]">CREATED ON</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[50px]">+</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* Existing Notes */}
+          {/* Add New Note Row - ALWAYS AT TOP */}
+          <TableRow className="bg-muted/30">
+            <TableCell className="align-top pt-3">
+              <Select value={newNoteType} onValueChange={setNewNoteType}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {NOTE_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell className="align-top pt-3">
+              <Textarea
+                placeholder="Add note text..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="min-h-[60px] resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {newNote.length}/500 characters
+              </p>
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {/* Empty - will populate after save */}
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {/* Empty - will populate after save */}
+            </TableCell>
+            <TableCell className="align-top pt-3">
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleAddNote}
+                  disabled={!newNote.trim()}
+                  className="h-8 w-8"
+                  title="Add note"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setNewNote("")
+                    setNewNoteType("order_remark")
+                  }}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  title="Clear form"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+
+          {/* Existing Notes - BELOW ADD FORM */}
           {notes.map((note) => (
             <TableRow key={note.id}>
+              <TableCell className="text-sm font-medium">
+                {note.noteType}
+              </TableCell>
               <TableCell>
                 <p className="text-sm whitespace-pre-wrap">{note.content}</p>
               </TableCell>
@@ -563,7 +626,8 @@ Order Details                  [⋮ Actions]  [X]
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDeleteNote(note.id)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  title="Delete note"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -571,63 +635,16 @@ Order Details                  [⋮ Actions]  [X]
             </TableRow>
           ))}
 
-          {/* Add New Note Row */}
-          {isAddingNote && (
-            <TableRow className="bg-muted/50">
-              <TableCell colSpan={4} className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="newNoteContent" className="text-xs">Note</Label>
-                    <Textarea
-                      id="newNoteContent"
-                      placeholder="Add new note..."
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                      className="mt-1 min-h-[80px]"
-                      maxLength={500}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {newNote.length}/500 characters
-                    </p>
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsAddingNote(false)
-                        setNewNote("")
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleAddNote}
-                      disabled={!newNote.trim()}
-                    >
-                      Add Note
-                    </Button>
-                  </div>
-                </div>
+          {/* Empty State */}
+          {notes.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                No notes yet. Add your first note above.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-
-      {/* Add Note Button */}
-      {!isAddingNote && (
-        <Button
-          variant="outline"
-          className="w-full mt-4"
-          onClick={() => setIsAddingNote(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Note
-        </Button>
-      )}
     </CardContent>
   </Card>
 </TabsContent>
@@ -642,9 +659,11 @@ Order Details                  [⋮ Actions]  [X]
 // Add to component state
 const [showNotesDialog, setShowNotesDialog] = useState(false)
 const [orderNotes, setOrderNotes] = useState("")
+const [noteType, setNoteType] = useState("order_remark") // Default note type
 const [isEditingNotes, setIsEditingNotes] = useState(false)
 const [notes, setNotes] = useState<Note[]>([])
 const [newNote, setNewNote] = useState("")
+const [newNoteType, setNewNoteType] = useState("order_remark") // For V3 inline add
 const [isAddingNote, setIsAddingNote] = useState(false) // For V3 inline add
 const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
 
@@ -682,11 +701,16 @@ useEffect(() => {
 interface Note {
   id: string
   orderId: string
+  noteType: string // e.g., "Order Remark", "Customer Request"
   content: string
   createdBy: string // User email, e.g., "john.doe@central.co.th"
   createdAt: string // ISO 8601 timestamp: "2026-01-30T15:10:00"
-  updatedAt?: string
-  updatedBy?: string
+  // No updatedAt/updatedBy - notes are append-only (cannot be edited)
+}
+
+interface NoteType {
+  value: string
+  label: string
 }
 
 interface Order {
@@ -694,6 +718,14 @@ interface Order {
   notes?: string // Version 1 & 2 - single note (legacy)
   notesList?: Note[] // Version 3+ - multiple notes with metadata
 }
+
+// Available note types
+const NOTE_TYPES: NoteType[] = [
+  { value: "order_remark", label: "Order Remark" },
+  { value: "customer_request", label: "Customer Request" },
+  { value: "internal_note", label: "Internal Note" },
+  { value: "delivery_instruction", label: "Delivery Instruction" },
+]
 ```
 
 ### **API Integration**
@@ -701,8 +733,12 @@ interface Order {
 // Save note to database with metadata
 const handleSaveNote = async () => {
   try {
+    // Get note type label from value
+    const noteTypeLabel = NOTE_TYPES.find(t => t.value === noteType)?.label || noteType
+
     const noteData = {
       orderId: order.id,
+      noteType: noteTypeLabel, // e.g., "Order Remark"
       content: orderNotes,
       createdBy: currentUser?.email || 'system@central.co.th',
       createdAt: new Date().toISOString().slice(0, 19), // "2026-01-30T15:10:00"
@@ -718,12 +754,13 @@ const handleSaveNote = async () => {
 
     const savedNote = await response.json()
 
-    // Update local state
+    // Update local state (add to top of list - newest first)
     setNotes([savedNote, ...notes])
 
     toast.success('Note saved successfully')
     setShowNotesDialog(false)
     setOrderNotes("")
+    setNoteType("order_remark") // Reset to default
   } catch (error) {
     toast.error('Failed to save note')
     console.error(error)
@@ -771,18 +808,23 @@ const formatTimestamp = (isoString: string): string => {
 
 ### **Notes Feature**
 - [ ] User can add notes to orders
-- [ ] **Created By and Created On** only display AFTER note is saved
+- [ ] **Note Type dropdown** is required and always visible in add form
+- [ ] **Add form is always at TOP** of table (first row)
+- [ ] **Created By and Created On columns remain empty** during add
+- [ ] **Created By and Created On only populate AFTER** note is saved
 - [ ] **Created By** shows user email who created the note
 - [ ] **Created On** shows ISO 8601 timestamp: "YYYY-MM-DDTHH:mm:ss" (e.g., "2026-01-30T15:10:00")
-- [ ] Notes are saved to database with metadata
+- [ ] Notes are saved to database with metadata (noteType, content, createdBy, createdAt)
 - [ ] Notes persist across page refreshes
-- [ ] Character limit enforced (500-1000 chars)
+- [ ] Character limit enforced (500 chars)
 - [ ] Character counter displayed
 - [ ] Notes are associated with correct order
 - [ ] Empty state has clear call-to-action
+- [ ] **Add button is "+" icon** (not text button)
+- [ ] **Clear button is "X" icon** (resets form)
 - [ ] **Delete functionality** works with confirmation
-- [ ] Delete button shows on right side of each note (X icon)
-- [ ] No Note Type field (single note type only)
+- [ ] Delete button shows on right side of each saved note (X icon)
+- [ ] **Notes are append-only** (no edit after save)
 
 ### **Version-Specific**
 **V1:**
@@ -811,26 +853,27 @@ const formatTimestamp = (isoString: string): string => {
 - **Performance**: Notes should load async to not block main order data
 
 ### **Note Metadata Pattern**
-This wireframe implements a simplified note structure with metadata tracking:
-- **No Note Type**: Single note type (Order Note) for simplicity
+This wireframe implements an append-only note structure with inline add form:
+- **Note Type**: Required dropdown (Order Remark, Customer Request, etc.)
+- **Inline Add Form**: Always visible at TOP of table
 - **Created By**: Auto-populated user email (e.g., "john.doe@central.co.th")
 - **Created On**: ISO 8601 timestamp (e.g., "2026-01-30T15:10:00")
-- **Table Layout**: Version 3 uses clean 3-column table structure
+- **Table Layout**: Version 3 uses 5-column table (NOTE TYPE | NOTE | CREATED BY | CREATED ON | +)
 - **Delete Action**: X button on right side of each note row
+- **Append-Only**: Notes cannot be edited after creation, only deleted
 - **Audit Trail**: All notes preserve creation metadata
-- **Display After Save**: Metadata only shows on saved notes, not during creation
+- **Display After Save**: Created By/On columns remain empty during add, populate after save
 
 ### **Database Schema Recommendation**
 ```sql
 CREATE TABLE order_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id VARCHAR(50) NOT NULL REFERENCES orders(id),
+  note_type VARCHAR(50) NOT NULL, -- e.g., "Order Remark", "Customer Request"
   content TEXT NOT NULL CHECK (char_length(content) <= 1000),
   created_by VARCHAR(255) NOT NULL, -- User email
   created_at VARCHAR(19) NOT NULL, -- ISO 8601 format: "YYYY-MM-DDTHH:mm:ss"
-  updated_by VARCHAR(255),
-  updated_at VARCHAR(19),
-  deleted_at TIMESTAMP WITH TIME ZONE, -- Soft delete
+  deleted_at TIMESTAMP WITH TIME ZONE, -- Soft delete (append-only, no updates)
   INDEX idx_order_notes_order_id (order_id),
   INDEX idx_order_notes_created_at (created_at DESC)
 );
