@@ -22,9 +22,9 @@
 ### **Layout Overview**
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Order Details                          [📝³] [⚙️]      [X]│
-│ Order #W1156251121946800                 ↑                  │
-│                                     Note badge              │
+│ Order Details                                   [📝³]   [X]│
+│ Order #W1156251121946800                          ↑         │
+│                                              Note badge     │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌─────────┬─────────┬──────────┬──────────────┐            │
 │ │ Status  │ Channel │ Total    │              │            │
@@ -38,42 +38,23 @@
 │                     [⚠️ Cancel Order]                       │ <- Sticky Bottom
 └─────────────────────────────────────────────────────────────┘
 
-                                    ┌──────────────────────────┐
-                                    │ 📝 Order Notes       [X]│
-                                    ├──────────────────────────┤
-                                    │ Notes (3)                │
-                                    │                          │
-                                    │ ┌──────────────────────┐ │
-                                    │ │ Order Remark         │ │
-                                    │ │ Customer requested   │ │
-                                    │ │ gift wrapping        │ │
-                                    │ │                      │ │
-                                    │ │ john.doe@central.th  │ │
-                                    │ │ 2026-01-30T15:10  [X]│ │
-                                    │ └──────────────────────┘ │
-                                    │                          │
-                                    │ ┌──────────────────────┐ │
-                                    │ │ Customer Request     │ │
-                                    │ │ Address verified     │ │
-                                    │ │                      │ │
-                                    │ │ jane.doe@central.th  │ │
-                                    │ │ 2026-01-30T10:15  [X]│ │
-                                    │ └──────────────────────┘ │
-                                    │                          │
-                                    │ ─────────────────────    │
-                                    │ Add New Note             │
-                                    │                          │
-                                    │ Type: [Order Remark ▼]   │
-                                    │                          │
-                                    │ ┌──────────────────────┐ │
-                                    │ │ Type your note...    │ │
-                                    │ │                      │ │
-                                    │ │                      │ │
-                                    │ └──────────────────────┘ │
-                                    │ 0/500 chars              │
-                                    │                          │
-                                    │      [Cancel]  [Save]    │
-                                    └──────────────────────────┘
+                    ┌──────────────────────────────────────────────────┐
+                    │ 📝 Order Notes                               [X] │
+                    ├────┬──────────────────────┬───────────┬───────────┬─┤
+                    │ No.│ NOTE                 │ CREATED BY│CREATED ON │+│
+                    ├────┼──────────────────────┼───────────┼───────────┼─┤
+                    │    │ ┌──────────────────┐ │           │           │ │
+                    │    │ │ Thai text        │ │           │           │ │
+                    │    │ │ content...       │ │           │           │X│
+                    │    │ └──────────────────┘ │           │           │ │
+                    ├────┼──────────────────────┼───────────┼───────────┼─┤
+                    │ 1  │ Customer requested   │buabsupattra│01/13/2026│X│
+                    │    │ gift wrapping        │@central.th│ 13:13 +07│ │
+                    ├────┼──────────────────────┼───────────┼───────────┼─┤
+                    │ 2  │ Address verified     │jane.smith@│01/13/2026│X│
+                    │    │ with customer        │central.th │ 10:15 +07│ │
+                    └────┴──────────────────────┴───────────┴───────────┴─┘
+                                                        [CANCEL] [SAVE]
                                             ↑
                                     Slides from right
 ```
@@ -82,17 +63,17 @@
 
 #### **1. Notes Icon Button in Header**
 ```
-Order Details              [📝³] [⚙️] [X]
-                             ↑
-                        Note count badge
+Order Details                      [📝³] [X]
+                                     ↑
+                                Note count badge
 ```
 
 **Icon Properties:**
-- **Position**: Header, between title and settings icon
+- **Position**: Header, before close button (no settings icon)
 - **Icon**: `StickyNote` or `MessageSquare`
 - **Badge**: Shows note count (e.g., "3")
   - Visible when count > 0
-  - Small red/blue badge on top-right of icon
+  - Small badge on top-right of icon
   - Updates in real-time
 - **Click**: Opens slide-out panel from right
 - **Size**: Icon button, 40px × 40px
@@ -101,39 +82,56 @@ Order Details              [📝³] [⚙️] [X]
   - With notes: Badge appears
   - Active: Panel open, icon highlighted
 
-#### **2. Slide-Out Notes Panel (Right Side)**
+#### **2. Slide-Out Notes Panel (Right Side) - Table Layout**
 
 **Panel Properties:**
-- **Width**: 360px (mobile: 90% screen)
+- **Width**: 500-600px (mobile: 95% screen)
 - **Height**: Full viewport height
 - **Position**: Fixed right, slides in from right edge
 - **Animation**: Smooth slide transition (300ms)
 - **Backdrop**: Semi-transparent overlay (optional)
-- **Close**: X button, click outside, or ESC key
+- **Close**: X button in header
 
-**Panel Sections:**
+**Table Structure:**
 
-1. **Header**
-   - Title: "📝 Order Notes"
-   - Close button (X)
-   - Note count subtitle: "Notes (3)"
+```
+┌────┬──────────────────────┬───────────────┬───────────────┬──┐
+│ No.│ NOTE                 │ CREATED BY    │ CREATED ON    │+ │
+├────┼──────────────────────┼───────────────┼───────────────┼──┤
+│    │ [Textarea]           │               │               │X │ <- Add Form
+├────┼──────────────────────┼───────────────┼───────────────┼──┤
+│ 1  │ Note content...      │ user@email.th │ 01/13/2026... │X │ <- Saved Note
+└────┴──────────────────────┴───────────────┴───────────────┴──┘
+                                                [CANCEL] [SAVE]
+```
 
-2. **Notes List** (Scrollable)
-   - Chronological display (newest first)
-   - Each note shows:
-     - Note Type label (small badge)
-     - Note content
-     - Created By (user email)
-     - Created On (ISO 8601 timestamp)
-     - Delete button (X icon)
+**Column Details:**
 
-3. **Add Note Section** (Bottom)
-   - Separator line
-   - "Add New Note" heading
-   - Note Type dropdown
-   - Textarea (multi-line)
-   - Character counter
-   - Cancel + Save buttons
+1. **No.** (50px)
+   - Empty in add form row
+   - Shows sequential number in saved notes (1, 2, 3, ...)
+   - Auto-increments for each new note
+
+2. **NOTE** (flexible, largest column)
+   - Textarea in add form row (multi-line, 60px height)
+   - Plain text in saved notes (wraps if long)
+   - Supports Thai/Unicode characters
+
+3. **CREATED BY** (180px)
+   - Empty in add form row
+   - Shows user email in saved notes
+
+4. **CREATED ON** (140px)
+   - Empty in add form row
+   - Shows timestamp in saved notes (format: "01/13/2026 13:13 +07")
+
+5. **+** column (40px)
+   - X button in add form (clear/cancel)
+   - X button in saved notes (delete)
+
+**Footer:**
+- **CANCEL button**: Light gray, resets form
+- **SAVE button**: Blue/primary, saves note (disabled if empty)
 
 #### **3. Bottom Action Bar (Cancel Order)**
 ```
@@ -400,7 +398,6 @@ Same as Version 1 panel, but:
 const [showNotesPanel, setShowNotesPanel] = useState(false)
 const [notes, setNotes] = useState<Note[]>([])
 const [newNote, setNewNote] = useState("")
-const [newNoteType, setNewNoteType] = useState("order_remark")
 const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
 
 // Fetch notes and user on mount
@@ -418,23 +415,34 @@ const noteCount = notes.length
 interface Note {
   id: string
   orderId: string
-  noteType: string // "Order Remark", "Customer Request", etc.
   content: string
-  createdBy: string // Auto-populated from currentUser.email
-  createdAt: string // Auto-populated: new Date().toISOString().slice(0, 19)
+  createdBy: string // Auto-populated from currentUser.email (e.g., "buabsupattra@central.co.th")
+  createdAt: string // Auto-populated: "01/13/2026 13:13 +07" format
 }
 
-interface NoteType {
-  value: string
-  label: string
-}
+// Helper function to format timestamp like "01/13/2026 13:13 +07"
+const formatGMT7Timestamp = (date: Date): string => {
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }
 
-const NOTE_TYPES: NoteType[] = [
-  { value: "order_remark", label: "Order Remark" },
-  { value: "customer_request", label: "Customer Request" },
-  { value: "internal_note", label: "Internal Note" },
-  { value: "delivery_instruction", label: "Delivery Instruction" },
-]
+  const formatter = new Intl.DateTimeFormat('en-US', options)
+  const parts = formatter.formatToParts(date)
+
+  const month = parts.find(p => p.type === 'month')?.value
+  const day = parts.find(p => p.type === 'day')?.value
+  const year = parts.find(p => p.type === 'year')?.value
+  const hour = parts.find(p => p.type === 'hour')?.value
+  const minute = parts.find(p => p.type === 'minute')?.value
+
+  return `${month}/${day}/${year} ${hour}:${minute} +07`
+}
 ```
 
 #### **Save Note Function**
@@ -443,14 +451,11 @@ const handleSaveNote = async () => {
   if (!newNote.trim()) return
 
   try {
-    const noteTypeLabel = NOTE_TYPES.find(t => t.value === newNoteType)?.label || newNoteType
-
     const noteData = {
       orderId: order.id,
-      noteType: noteTypeLabel,
       content: newNote.trim(),
       createdBy: currentUser?.email || 'system@central.co.th', // Auto-populated
-      createdAt: new Date().toISOString().slice(0, 19), // Auto-populated
+      createdAt: formatGMT7Timestamp(new Date()), // Auto-populated: "01/13/2026 13:13 +07"
     }
 
     const response = await fetch(`/api/orders/${order.id}/notes`, {
@@ -463,12 +468,11 @@ const handleSaveNote = async () => {
 
     const savedNote = await response.json()
 
-    // Update local state (newest first)
+    // Update local state (add to beginning - newest first)
     setNotes([savedNote, ...notes])
 
     // Reset form
     setNewNote("")
-    setNewNoteType("order_remark")
 
     toast.success('Note saved successfully')
   } catch (error) {
@@ -485,7 +489,7 @@ const handleSaveNote = async () => {
 **File:** `src/components/order-detail-view.tsx`
 
 ```tsx
-// Header - Notes Icon with Badge
+// Header - Notes Icon with Badge (NO settings icon)
 <div className="flex items-center gap-2">
   <Button
     variant="ghost"
@@ -504,112 +508,122 @@ const handleSaveNote = async () => {
     )}
   </Button>
 
-  <Button variant="ghost" size="icon">
-    <Settings className="h-5 w-5" />
-  </Button>
-
   <Button variant="ghost" size="icon" onClick={onClose}>
     <X className="h-5 w-5" />
   </Button>
 </div>
 
-// Slide-Out Panel (Sheet component from shadcn/ui)
+// Slide-Out Panel with Table Layout
 <Sheet open={showNotesPanel} onOpenChange={setShowNotesPanel}>
-  <SheetContent side="right" className="w-[400px] sm:w-[540px] sm:max-w-[90vw]">
-    <SheetHeader>
+  <SheetContent side="right" className="w-[600px] sm:max-w-[95vw] flex flex-col p-0">
+    <SheetHeader className="px-6 py-4 border-b">
       <SheetTitle className="flex items-center gap-2">
         <StickyNote className="h-5 w-5" />
         Order Notes
       </SheetTitle>
-      <SheetDescription>
-        Notes ({noteCount})
-      </SheetDescription>
     </SheetHeader>
 
-    <div className="mt-6 space-y-4">
-      {/* Notes List */}
-      <div className="space-y-3 max-h-[50vh] overflow-y-auto">
-        {notes.map((note) => (
-          <Card key={note.id} className="p-3 relative">
-            <div className="pr-8">
-              <Badge variant="outline" className="mb-2 text-xs">
-                {note.noteType}
-              </Badge>
-              <p className="text-sm mb-2 whitespace-pre-wrap">{note.content}</p>
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                <div>{note.createdBy}</div>
-                <div>{note.createdAt}</div>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 h-6 w-6 text-destructive hover:text-destructive"
-              onClick={() => handleDeleteNote(note.id)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </Card>
-        ))}
-      </div>
+    {/* Notes Table */}
+    <div className="flex-1 overflow-auto px-6 py-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[50px]">No.</TableHead>
+            <TableHead>NOTE</TableHead>
+            <TableHead className="w-[180px]">CREATED BY</TableHead>
+            <TableHead className="w-[140px]">CREATED ON</TableHead>
+            <TableHead className="w-[40px]">+</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {/* Add Form Row - ALWAYS AT TOP */}
+          <TableRow className="bg-muted/30">
+            <TableCell className="text-center text-muted-foreground align-top">
+              {/* Empty - auto-numbered after save */}
+            </TableCell>
+            <TableCell className="align-top pt-3">
+              <Textarea
+                placeholder="Type your note here..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="min-h-[60px] resize-none text-sm"
+                maxLength={500}
+              />
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm align-top">
+              {/* Empty - auto-populated on save */}
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm align-top">
+              {/* Empty - auto-populated on save */}
+            </TableCell>
+            <TableCell className="align-top pt-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setNewNote("")}
+                className="h-8 w-8"
+                title="Clear form"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
 
-      <Separator />
+          {/* Existing Notes */}
+          {notes.map((note, index) => (
+            <TableRow key={note.id}>
+              <TableCell className="text-center text-sm font-medium align-top">
+                {index + 1}
+              </TableCell>
+              <TableCell className="align-top">
+                <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground align-top">
+                {note.createdBy}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground align-top">
+                {note.createdAt}
+              </TableCell>
+              <TableCell className="align-top">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteNote(note.id)}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  title="Delete note"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
 
-      {/* Add Note Form */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold">Add New Note</h3>
+          {/* Empty State */}
+          {notes.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                No notes yet. Add your first note above.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
 
-        {/* Note Type */}
-        <div className="space-y-1">
-          <Label htmlFor="noteType" className="text-xs">Type</Label>
-          <Select value={newNoteType} onValueChange={setNewNoteType}>
-            <SelectTrigger id="noteType" className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NOTE_TYPES.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Note Content */}
-        <Textarea
-          placeholder="Type your note here..."
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          className="min-h-[120px]"
-          maxLength={500}
-        />
-        <div className="text-xs text-muted-foreground">
-          {newNote.length}/500 characters
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => {
-              setNewNote("")
-              setNewNoteType("order_remark")
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSaveNote}
-            disabled={!newNote.trim()}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save
-          </Button>
-        </div>
-      </div>
+    {/* Footer with CANCEL and SAVE buttons */}
+    <div className="border-t px-6 py-4 flex justify-end gap-3">
+      <Button
+        variant="outline"
+        onClick={() => setNewNote("")}
+      >
+        CANCEL
+      </Button>
+      <Button
+        onClick={handleSaveNote}
+        disabled={!newNote.trim()}
+      >
+        SAVE
+      </Button>
     </div>
   </SheetContent>
 </Sheet>
@@ -725,24 +739,28 @@ const handleSaveNote = async () => {
 - [ ] Badge updates in real-time when notes added/deleted
 - [ ] Click opens notes panel/modal smoothly
 
-**Notes Panel/Modal:**
-- [ ] Shows all existing notes in chronological order (newest first)
-- [ ] Each note displays: Note Type, Content, Created By, Created On
-- [ ] Delete button (X) on each note with confirmation
-- [ ] Scrollable notes list if many notes exist
+**Notes Panel (Table Layout):**
+- [ ] **Table structure** with 5 columns: No. | NOTE | CREATED BY | CREATED ON | +
+- [ ] **Add form row at TOP** of table (always visible)
+- [ ] Shows all existing notes below add form (newest first)
+- [ ] Each note row displays: Sequential number, Content, Created By, Created On, Delete button
+- [ ] Delete button (X) on each saved note with confirmation
+- [ ] Scrollable table body if many notes exist
 
-**Add Note Form:**
-- [ ] Note Type dropdown with 4+ options
-- [ ] Multi-line textarea for note content
-- [ ] Character counter (0/500)
-- [ ] Cancel button clears form
-- [ ] Save button disabled when textarea is empty
+**Add Note Form (First Row):**
+- [ ] **No Note Type dropdown** (single order note type only)
+- [ ] Multi-line textarea in NOTE column
+- [ ] No. column is empty (auto-numbered after save: 1, 2, 3, ...)
+- [ ] CREATED BY and CREATED ON columns are empty (auto-populated on save)
+- [ ] X button in + column clears form
+- [ ] **CANCEL button in footer** resets form
+- [ ] **SAVE button in footer** saves note (disabled when textarea is empty)
 
 **Auto-Metadata on Save:**
 - [ ] **Created By** auto-populates from logged-in user's email
-- [ ] **Created On** auto-populates with current timestamp (ISO 8601)
+- [ ] **Created On** auto-populates with current timestamp (format: "01/13/2026 13:13 +07")
 - [ ] User does NOT manually enter Created By or Created On
-- [ ] Metadata displays only AFTER note is saved
+- [ ] Metadata displays only AFTER note is saved (empty during add form)
 
 **Note Count Badge:**
 - [ ] Badge shows current count of notes
