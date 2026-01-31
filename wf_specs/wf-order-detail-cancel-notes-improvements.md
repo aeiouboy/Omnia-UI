@@ -72,8 +72,6 @@
 ┌────────────────────────────────────────────────────────┐
 │ Order Notes                                        [X] │
 ├────────────────────────────────────────────────────────┤
-│ Note Type: [0007 - Order Remark ▼]                    │
-│                                                        │
 │ ┌────────────────────────────────────────────────────┐ │
 │ │ Add your notes here...                             │ │
 │ │                                                     │ │
@@ -83,33 +81,23 @@
 │ └────────────────────────────────────────────────────┘ │
 │ 125/500 characters                                     │
 │                                                        │
-│ Created By: john.doe@central.co.th                    │
-│ Created On: 02/01/2026 12:30 +07                      │
-│                                                        │
 │                            [Cancel]  [Save Note]       │
 └────────────────────────────────────────────────────────┘
 ```
 
 **Modal Features:**
 - **Title**: "Order Notes" or "Add Note for Order #XXX"
-- **Note Type Dropdown**:
-  - Required field
-  - Options: "0007 - Order Remark", "0008 - Customer Request", etc.
-  - Default: "0007 - Order Remark"
 - **Textarea**:
   - Min height: 150px
   - Max length: 500-1000 characters
   - Placeholder: "Add your notes here..."
   - Auto-resize optional
 - **Character Counter**: "245/500 characters"
-- **Metadata Display**:
-  - Created By: Auto-populated from current user's email
-  - Created On: Auto-populated with current GMT+7 timestamp
-  - Read-only, shown before actions
 - **Actions**:
   - Cancel button (closes modal without saving)
   - Save Note button (primary, saves and closes)
 - **Auto-save**: Optional - save draft as user types
+- **Note**: Created By and Created On metadata will display only on saved notes in the notes list
 
 ---
 
@@ -238,43 +226,39 @@ Order Details                  [⋮ Actions]  [X]
 
 **Notes Tab Content:**
 ```
-┌───────────────────────────────────────────────────────────────────────────────┐
-│ Order Notes                                                                   │
-├────────────┬──────────────────────────────────────────┬──────────────┬────────┤
-│ NOTE TYPE  │ NOTE                                     │ CREATED BY   │CREATED │
-│            │                                          │              │  ON    │
-├────────────┼──────────────────────────────────────────┼──────────────┼────────┤
-│ 0007 -    ▼│ Customer requested gift wrapping         │ john.doe@    │02/01   │[X]
-│ Order      │ for all items                            │ central.co.th│14:30   │
-│ Remark     │                                          │              │  +07   │
-├────────────┼──────────────────────────────────────────┼──────────────┼────────┤
-│ 0008 -    ▼│ Delivery address verified with          │ jane.smith@  │02/01   │[X]
-│ Customer   │ customer via phone                       │ central.co.th│10:15   │
-│ Request    │                                          │              │  +07   │
-├────────────┼──────────────────────────────────────────┼──────────────┼────────┤
-│ [+ Add New Note]                                                              │
-│                                                                               │
-│ Note Type: [0007 - Order Remark ▼]                                           │
-│ ┌───────────────────────────────────────────────────────────────────────────┐│
-│ │ Add new note...                                                            ││
-│ │                                                                             ││
-│ └───────────────────────────────────────────────────────────────────────────┘│
+┌────────────────────────────────────────────────────────────────────────────────┐
+│ Order Notes                                                                    │
+├────────────────────────────────────────────┬───────────────────┬───────────────┤
+│ NOTE                                       │ CREATED BY        │ CREATED ON    │
+├────────────────────────────────────────────┼───────────────────┼───────────────┤
+│ Customer requested gift wrapping           │ john.doe@         │2026-01-30T    │[X]
+│ for all items                              │ central.co.th     │15:10:00       │
+├────────────────────────────────────────────┼───────────────────┼───────────────┤
+│ Delivery address verified with             │ jane.smith@       │2026-01-30T    │[X]
+│ customer via phone                         │ central.co.th     │10:15:00       │
+├────────────────────────────────────────────┴───────────────────┴───────────────┤
+│ [+ Add New Note]                                                               │
+│                                                                                │
+│ ┌──────────────────────────────────────────────────────────────────────────┐ │
+│ │ Add new note...                                                           │ │
+│ │                                                                            │ │
+│ └──────────────────────────────────────────────────────────────────────────┘ │
 │ 0/500 characters                                                              │
-│                                                            [Cancel] [Add Note]│
-└───────────────────────────────────────────────────────────────────────────────┘
+│                                                             [Cancel] [Add Note]│
+└────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Features:**
-- **Table Layout**: Structured display matching MAO pattern
-- **Note Type Column**: Shows note type with dropdown for editing
-- **Note Column**: Main note content
+- **Table Layout**: Clean 3-column display
+- **Note Column**: Main note content (left-aligned, wraps text)
 - **Created By Column**: User email who created the note
-- **Created On Column**: Timestamp with GMT+7 timezone
+- **Created On Column**: ISO 8601 timestamp (YYYY-MM-DDTHH:mm:ss)
 - **Delete Button**: X button on right to delete each note
 - **Timeline view**: Notes sorted by timestamp (newest first)
 - **Inline Add**: Add new note form at bottom of table
 - **Badge indicator**: Tab shows count of notes
-- **History**: All notes preserved with audit trail
+- **History**: All notes preserved with creation metadata
+- **No Note Type**: Single note type (Order Note) for simplicity
 
 ---
 
@@ -363,23 +347,6 @@ Order Details                  [⋮ Actions]  [X]
     </DialogHeader>
 
     <div className="space-y-4">
-      {/* Note Type Dropdown */}
-      <div className="space-y-2">
-        <Label htmlFor="noteType">Note Type</Label>
-        <Select value={noteType} onValueChange={setNoteType}>
-          <SelectTrigger id="noteType">
-            <SelectValue placeholder="Select note type" />
-          </SelectTrigger>
-          <SelectContent>
-            {NOTE_TYPES.map((type) => (
-              <SelectItem key={type.code} value={type.displayText}>
-                {type.displayText}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Note Content */}
       <div className="space-y-2">
         <Label htmlFor="noteContent">Note</Label>
@@ -395,25 +362,13 @@ Order Details                  [⋮ Actions]  [X]
           {orderNotes.length}/500 characters
         </p>
       </div>
-
-      {/* Metadata Display */}
-      <div className="space-y-1 text-sm text-muted-foreground border-t pt-3">
-        <div className="flex justify-between">
-          <span>Created By:</span>
-          <span className="font-medium">{currentUser?.email || 'user@central.co.th'}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Created On:</span>
-          <span className="font-medium">{formatGMT7DateTime(new Date())}</span>
-        </div>
-      </div>
     </div>
 
     <DialogFooter>
       <Button variant="outline" onClick={() => setShowNotesDialog(false)}>
         Cancel
       </Button>
-      <Button onClick={handleSaveNote} disabled={!orderNotes.trim() || !noteType}>
+      <Button onClick={handleSaveNote} disabled={!orderNotes.trim()}>
         Save Note
       </Button>
     </DialogFooter>
@@ -582,10 +537,9 @@ Order Details                  [⋮ Actions]  [X]
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[180px]">NOTE TYPE</TableHead>
             <TableHead>NOTE</TableHead>
             <TableHead className="w-[200px]">CREATED BY</TableHead>
-            <TableHead className="w-[120px]">CREATED ON</TableHead>
+            <TableHead className="w-[180px]">CREATED ON</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -594,24 +548,6 @@ Order Details                  [⋮ Actions]  [X]
           {notes.map((note) => (
             <TableRow key={note.id}>
               <TableCell>
-                <Select
-                  value={note.noteType}
-                  onValueChange={(value) => handleUpdateNoteType(note.id, value)}
-                  disabled={!canEditNote(note)}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {NOTE_TYPES.map((type) => (
-                      <SelectItem key={type.code} value={type.displayText}>
-                        {type.displayText}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
                 <p className="text-sm whitespace-pre-wrap">{note.content}</p>
               </TableCell>
               <TableCell>
@@ -619,7 +555,7 @@ Order Details                  [⋮ Actions]  [X]
               </TableCell>
               <TableCell>
                 <p className="text-sm text-muted-foreground">
-                  {formatGMT7DateTime(note.createdAt)}
+                  {note.createdAt}
                 </p>
               </TableCell>
               <TableCell>
@@ -638,26 +574,8 @@ Order Details                  [⋮ Actions]  [X]
           {/* Add New Note Row */}
           {isAddingNote && (
             <TableRow className="bg-muted/50">
-              <TableCell colSpan={5} className="p-4">
+              <TableCell colSpan={4} className="p-4">
                 <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="w-[180px]">
-                      <Label htmlFor="newNoteType" className="text-xs">Note Type</Label>
-                      <Select value={newNoteType} onValueChange={setNewNoteType}>
-                        <SelectTrigger id="newNoteType" className="h-9">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {NOTE_TYPES.map((type) => (
-                            <SelectItem key={type.code} value={type.displayText}>
-                              {type.displayText}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
                   <div>
                     <Label htmlFor="newNoteContent" className="text-xs">Note</Label>
                     <Textarea
@@ -673,31 +591,24 @@ Order Details                  [⋮ Actions]  [X]
                     </p>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <div className="text-xs text-muted-foreground">
-                      <div>Created By: {currentUser?.email}</div>
-                      <div>Created On: {formatGMT7DateTime(new Date())}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsAddingNote(false)
-                          setNewNote("")
-                          setNewNoteType("")
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleAddNote}
-                        disabled={!newNote.trim() || !newNoteType}
-                      >
-                        Add Note
-                      </Button>
-                    </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsAddingNote(false)
+                        setNewNote("")
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleAddNote}
+                      disabled={!newNote.trim()}
+                    >
+                      Add Note
+                    </Button>
                   </div>
                 </div>
               </TableCell>
@@ -731,11 +642,9 @@ Order Details                  [⋮ Actions]  [X]
 // Add to component state
 const [showNotesDialog, setShowNotesDialog] = useState(false)
 const [orderNotes, setOrderNotes] = useState("")
-const [noteType, setNoteType] = useState("0007 - Order Remark") // Default note type
 const [isEditingNotes, setIsEditingNotes] = useState(false)
 const [notes, setNotes] = useState<Note[]>([])
 const [newNote, setNewNote] = useState("")
-const [newNoteType, setNewNoteType] = useState("0007 - Order Remark")
 const [isAddingNote, setIsAddingNote] = useState(false) // For V3 inline add
 const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
 
@@ -773,20 +682,11 @@ useEffect(() => {
 interface Note {
   id: string
   orderId: string
-  noteType: string // e.g., "0007 - Order Remark"
-  noteTypeCode: string // e.g., "0007"
   content: string
   createdBy: string // User email, e.g., "john.doe@central.co.th"
-  createdAt: string // ISO 8601 timestamp
-  createdAtGMT7: string // Display format: "01/13/2026 13:13 +07"
+  createdAt: string // ISO 8601 timestamp: "2026-01-30T15:10:00"
   updatedAt?: string
   updatedBy?: string
-}
-
-interface NoteType {
-  code: string // e.g., "0007"
-  label: string // e.g., "Order Remark"
-  displayText: string // e.g., "0007 - Order Remark"
 }
 
 interface Order {
@@ -794,14 +694,6 @@ interface Order {
   notes?: string // Version 1 & 2 - single note (legacy)
   notesList?: Note[] // Version 3+ - multiple notes with metadata
 }
-
-// Available note types (from MAO system)
-const NOTE_TYPES: NoteType[] = [
-  { code: "0007", label: "Order Remark", displayText: "0007 - Order Remark" },
-  { code: "0008", label: "Customer Request", displayText: "0008 - Customer Request" },
-  { code: "0009", label: "Internal Note", displayText: "0009 - Internal Note" },
-  { code: "0010", label: "Delivery Instruction", displayText: "0010 - Delivery Instruction" },
-]
 ```
 
 ### **API Integration**
@@ -811,12 +703,9 @@ const handleSaveNote = async () => {
   try {
     const noteData = {
       orderId: order.id,
-      noteType: noteType, // e.g., "0007 - Order Remark"
-      noteTypeCode: noteType.split(' - ')[0], // Extract "0007"
       content: orderNotes,
       createdBy: currentUser?.email || 'system@central.co.th',
-      createdAt: new Date().toISOString(),
-      createdAtGMT7: formatGMT7DateTime(new Date()), // e.g., "02/01/2026 12:30 +07"
+      createdAt: new Date().toISOString().slice(0, 19), // "2026-01-30T15:10:00"
     }
 
     const response = await fetch(`/api/orders/${order.id}/notes`, {
@@ -835,7 +724,6 @@ const handleSaveNote = async () => {
     toast.success('Note saved successfully')
     setShowNotesDialog(false)
     setOrderNotes("")
-    setNoteType("0007 - Order Remark") // Reset to default
   } catch (error) {
     toast.error('Failed to save note')
     console.error(error)
@@ -863,59 +751,10 @@ const handleDeleteNote = async (noteId: string) => {
   }
 }
 
-// Update note type
-const handleUpdateNoteType = async (noteId: string, newNoteType: string) => {
-  try {
-    const response = await fetch(`/api/orders/${order.id}/notes/${noteId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        noteType: newNoteType,
-        noteTypeCode: newNoteType.split(' - ')[0],
-        updatedBy: currentUser?.email,
-        updatedAt: new Date().toISOString(),
-      }),
-    })
-
-    if (!response.ok) throw new Error('Failed to update note type')
-
-    // Update local state
-    setNotes(notes.map(n =>
-      n.id === noteId
-        ? { ...n, noteType: newNoteType, updatedBy: currentUser?.email, updatedAt: new Date().toISOString() }
-        : n
-    ))
-
-    toast.success('Note type updated')
-  } catch (error) {
-    toast.error('Failed to update note type')
-    console.error(error)
-  }
-}
-
-// Utility: Format GMT+7 timestamp
-const formatGMT7DateTime = (date: Date): string => {
-  // Convert to GMT+7 (Bangkok timezone)
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'Asia/Bangkok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }
-
-  const formatter = new Intl.DateTimeFormat('en-US', options)
-  const parts = formatter.formatToParts(date)
-
-  const month = parts.find(p => p.type === 'month')?.value
-  const day = parts.find(p => p.type === 'day')?.value
-  const year = parts.find(p => p.type === 'year')?.value
-  const hour = parts.find(p => p.type === 'hour')?.value
-  const minute = parts.find(p => p.type === 'minute')?.value
-
-  return `${month}/${day}/${year} ${hour}:${minute} +07`
+// Utility: Format ISO 8601 timestamp for display
+const formatTimestamp = (isoString: string): string => {
+  // Display as-is: "2026-01-30T15:10:00"
+  return isoString
 }
 ```
 
@@ -932,12 +771,10 @@ const formatGMT7DateTime = (date: Date): string => {
 
 ### **Notes Feature**
 - [ ] User can add notes to orders
-- [ ] **Note Type dropdown** is required before saving
-- [ ] Note Type options match MAO system (0007, 0008, etc.)
-- [ ] **Created By** auto-populates with current user email
-- [ ] **Created On** auto-populates with GMT+7 timestamp
-- [ ] Timestamp format matches MAO: "MM/DD/YYYY HH:mm +07"
-- [ ] Notes are saved to database with all metadata
+- [ ] **Created By and Created On** only display AFTER note is saved
+- [ ] **Created By** shows user email who created the note
+- [ ] **Created On** shows ISO 8601 timestamp: "YYYY-MM-DDTHH:mm:ss" (e.g., "2026-01-30T15:10:00")
+- [ ] Notes are saved to database with metadata
 - [ ] Notes persist across page refreshes
 - [ ] Character limit enforced (500-1000 chars)
 - [ ] Character counter displayed
@@ -945,7 +782,7 @@ const formatGMT7DateTime = (date: Date): string => {
 - [ ] Empty state has clear call-to-action
 - [ ] **Delete functionality** works with confirmation
 - [ ] Delete button shows on right side of each note (X icon)
-- [ ] Note Type can be edited after creation (V3 only)
+- [ ] No Note Type field (single note type only)
 
 ### **Version-Specific**
 **V1:**
@@ -973,28 +810,26 @@ const formatGMT7DateTime = (date: Date): string => {
 - **Mobile**: Test all versions on mobile devices for touch targets
 - **Performance**: Notes should load async to not block main order data
 
-### **MAO Integration Pattern**
-This wireframe follows the Manhattan Active Omni (MAO) note structure:
-- **Note Type**: Required dropdown matching MAO codes (0007, 0008, etc.)
+### **Note Metadata Pattern**
+This wireframe implements a simplified note structure with metadata tracking:
+- **No Note Type**: Single note type (Order Note) for simplicity
 - **Created By**: Auto-populated user email (e.g., "john.doe@central.co.th")
-- **Created On**: GMT+7 timezone timestamp (e.g., "01/13/2026 13:13 +07")
-- **Table Layout**: Version 3 uses table structure matching MAO UI
+- **Created On**: ISO 8601 timestamp (e.g., "2026-01-30T15:10:00")
+- **Table Layout**: Version 3 uses clean 3-column table structure
 - **Delete Action**: X button on right side of each note row
-- **Audit Trail**: All notes preserve creation metadata for compliance
+- **Audit Trail**: All notes preserve creation metadata
+- **Display After Save**: Metadata only shows on saved notes, not during creation
 
 ### **Database Schema Recommendation**
 ```sql
 CREATE TABLE order_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id VARCHAR(50) NOT NULL REFERENCES orders(id),
-  note_type VARCHAR(50) NOT NULL, -- e.g., "0007 - Order Remark"
-  note_type_code VARCHAR(10) NOT NULL, -- e.g., "0007"
   content TEXT NOT NULL CHECK (char_length(content) <= 1000),
   created_by VARCHAR(255) NOT NULL, -- User email
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  created_at_gmt7 VARCHAR(50) NOT NULL, -- Display format
+  created_at VARCHAR(19) NOT NULL, -- ISO 8601 format: "YYYY-MM-DDTHH:mm:ss"
   updated_by VARCHAR(255),
-  updated_at TIMESTAMP WITH TIME ZONE,
+  updated_at VARCHAR(19),
   deleted_at TIMESTAMP WITH TIME ZONE, -- Soft delete
   INDEX idx_order_notes_order_id (order_id),
   INDEX idx_order_notes_created_at (created_at DESC)
@@ -1031,21 +866,19 @@ CREATE TABLE order_notes (
                                     ├──────────────────────────┤
                                     │ Recent Notes (2)         │
                                     │ ┌──────────────────────┐ │
-                                    │ │ 0007 - Order Remark  │ │
                                     │ │ Customer requested   │ │
-                                    │ │ john.doe@central...  │ │
-                                    │ │ 02/01 14:30 +07  [X] │ │
+                                    │ │ gift wrapping...     │ │
+                                    │ │                      │ │
+                                    │ │ john.doe@central.th  │ │
+                                    │ │ 2026-01-30T15:10  [X]│ │
                                     │ └──────────────────────┘ │
                                     │                          │
                                     │ Add New Note             │
-                                    │ Type: [0007 ▼]           │
                                     │ ┌──────────────────────┐ │
-                                    │ │ Note text...         │ │
+                                    │ │ Add note text...     │ │
+                                    │ │                      │ │
                                     │ └──────────────────────┘ │
                                     │ 0/500 chars              │
-                                    │                          │
-                                    │ Created By: john.doe@... │
-                                    │ Created On: 02/01 15:00  │
                                     │                          │
                                     │   [Cancel]  [Save]       │
                                     └──────────────────────────┘
@@ -1242,13 +1075,10 @@ const [newNoteContent, setNewNoteContent] = useState("")
           {notesList.map((note) => (
             <Card key={note.id} className="p-3 relative">
               <div className="pr-6">
-                <div className="text-xs font-medium text-muted-foreground mb-1">
-                  {note.noteType}
-                </div>
                 <p className="text-sm mb-2">{note.content}</p>
                 <div className="text-xs text-muted-foreground space-y-0.5">
                   <div>{note.createdBy}</div>
-                  <div>{note.createdAtGMT7}</div>
+                  <div>{note.createdAt}</div>
                 </div>
               </div>
               <Button
@@ -1268,23 +1098,6 @@ const [newNoteContent, setNewNoteContent] = useState("")
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Add New Note</h3>
 
-        {/* Note Type */}
-        <div className="space-y-1">
-          <Label htmlFor="noteType" className="text-xs">Note Type</Label>
-          <Select value={newNoteType} onValueChange={setNewNoteType}>
-            <SelectTrigger id="noteType" className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NOTE_TYPES.map((type) => (
-                <SelectItem key={type.code} value={type.displayText}>
-                  {type.displayText}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Note Content */}
         <Textarea
           placeholder="Type your note here..."
@@ -1297,12 +1110,6 @@ const [newNoteContent, setNewNoteContent] = useState("")
           {newNoteContent.length}/500 characters
         </div>
 
-        {/* Metadata Display */}
-        <div className="text-xs text-muted-foreground border-t pt-2 space-y-1">
-          <div>Created By: {currentUser?.email || 'Loading...'}</div>
-          <div>Created On: {formatGMT7DateTime(new Date())}</div>
-        </div>
-
         {/* Actions */}
         <div className="flex gap-2 pt-2">
           <Button
@@ -1310,7 +1117,6 @@ const [newNoteContent, setNewNoteContent] = useState("")
             className="flex-1"
             onClick={() => {
               setNewNoteContent("")
-              setNewNoteType("0007 - Order Remark")
               setShowNotesPanel(false)
             }}
           >
@@ -1319,7 +1125,7 @@ const [newNoteContent, setNewNoteContent] = useState("")
           <Button
             className="flex-1"
             onClick={handleSaveNote}
-            disabled={!newNoteContent.trim() || !newNoteType}
+            disabled={!newNoteContent.trim()}
           >
             <Save className="h-4 w-4 mr-2" />
             Save Note
