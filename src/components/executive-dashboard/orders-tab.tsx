@@ -170,18 +170,20 @@ function DailyOrderVolume({
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={(value) => {
                   const date = new Date(value)
-                  return `${date.getMonth() + 1}/${date.getDate()}`
+                  const pad = (n: number) => n.toString().padStart(2, '0')
+                  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
                 }}
               />
               <YAxis />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(value) => {
                   const date = new Date(value)
-                  return `Date: ${date.toLocaleDateString()}`
+                  const pad = (n: number) => n.toString().padStart(2, '0')
+                  return `Date: ${pad(date.getMonth() + 1)}/${pad(date.getDate())}/${date.getFullYear()}`
                 }}
                 formatter={(value, name) => [value, name === 'orders' ? 'Orders' : 'Revenue']}
               />

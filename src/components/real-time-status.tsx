@@ -95,7 +95,15 @@ export function RealTimeStatus({
     if (seconds < 60) return `${seconds}s ago`
     if (minutes < 60) return `${minutes}m ago`
     if (hours < 24) return `${hours}h ago`
-    return date.toLocaleDateString()
+    // Format as MM/DD/YYYY HH:mm:ss
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const year = date.getFullYear()
+    const hrs = pad(date.getHours())
+    const mins = pad(date.getMinutes())
+    const secs = pad(date.getSeconds())
+    return `${month}/${day}/${year} ${hrs}:${mins}:${secs}`
   }
 
   return null
@@ -195,5 +203,7 @@ function formatLastUpdate(date: Date): string {
 
   if (seconds < 60) return `${seconds}s`
   if (minutes < 60) return `${minutes}m`
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  // Format as HH:mm:ss
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }

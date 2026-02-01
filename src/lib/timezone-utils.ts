@@ -43,7 +43,8 @@ export function formatBangkokTime(date?: Date | string | number): string {
 }
 
 /**
- * Format date and time for GMT+7
+ * Format date and time for GMT+7 in standardized MM/DD/YYYY HH:mm:ss format
+ * @returns Formatted date/time string (e.g., "11/21/2025 10:42:00")
  */
 export function formatBangkokDateTime(date?: Date | string | number): string {
   try {
@@ -51,18 +52,34 @@ export function formatBangkokDateTime(date?: Date | string | number): string {
     if (isNaN(inputDate.getTime())) {
       throw new Error("Invalid date")
     }
-    return inputDate.toLocaleString("en-US", {
-      timeZone: "Asia/Bangkok",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit", 
-      second: "2-digit",
-      hour12: false,
-    })
+
+    // Get GMT+7 time components
+    const utcTime = inputDate.getTime() + inputDate.getTimezoneOffset() * 60000
+    const gmt7Date = new Date(utcTime + 7 * 60 * 60 * 1000)
+
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const month = pad(gmt7Date.getMonth() + 1)
+    const day = pad(gmt7Date.getDate())
+    const year = gmt7Date.getFullYear()
+    const hours = pad(gmt7Date.getHours())
+    const minutes = pad(gmt7Date.getMinutes())
+    const seconds = pad(gmt7Date.getSeconds())
+
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
   } catch (error) {
     console.warn("Error formatting Bangkok datetime:", error)
-    return new Date().toLocaleString("en-US")
+    const now = new Date()
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000
+    const gmt7Date = new Date(utcTime + 7 * 60 * 60 * 1000)
+
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const month = pad(gmt7Date.getMonth() + 1)
+    const day = pad(gmt7Date.getDate())
+    const year = gmt7Date.getFullYear()
+    const hours = pad(gmt7Date.getHours())
+    const minutes = pad(gmt7Date.getMinutes())
+    const seconds = pad(gmt7Date.getSeconds())
+
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
   }
 }

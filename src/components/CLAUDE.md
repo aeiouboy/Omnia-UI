@@ -77,5 +77,6 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #6273 | 9:05 PM | 🔄 | Updated Allocate-by-Order Table DateTime Formatting | ~505 |
 | #5861 | 11:48 AM | 🔵 | Order Detail Fulfillment Tab Architecture Analysis | ~887 |
 </claude-mem-context>

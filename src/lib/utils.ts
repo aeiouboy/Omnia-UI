@@ -75,6 +75,134 @@ export function formatGMT7DateTime(date?: Date | string | number): string {
   return `${formatGMT7DateString(date)} ${formatGMT7TimeString(date)}`
 }
 
+/**
+ * Standardized date/time format: MM/DD/YYYY HH:mm:ss
+ * This is the official format for all user-facing date/time displays in the application.
+ * Uses GMT+7 (Asia/Bangkok) timezone.
+ *
+ * @param date - Date value to format (Date object, ISO string, timestamp, null, or undefined)
+ * @returns Formatted date/time string in MM/DD/YYYY HH:mm:ss format (e.g., "11/21/2025 10:42:00")
+ *
+ * @example
+ * formatStandardDateTime(new Date()) // "02/01/2026 14:30:45"
+ * formatStandardDateTime("2025-11-21T10:42:00Z") // "11/21/2025 17:42:00"
+ * formatStandardDateTime(null) // Current date/time
+ */
+export function formatStandardDateTime(date?: Date | string | number | null): string {
+  try {
+    let inputDate: Date
+    if (date === undefined || date === null) {
+      inputDate = new Date()
+    } else if (date instanceof Date) {
+      inputDate = date
+    } else {
+      inputDate = new Date(date)
+      if (isNaN(inputDate.getTime())) {
+        inputDate = new Date()
+      }
+    }
+
+    // Format as MM/DD/YYYY HH:mm:ss in GMT+7
+    const gmt7Time = getGMT7Time(inputDate)
+    const month = normalizeTimeUnit(gmt7Time.getMonth() + 1)
+    const day = normalizeTimeUnit(gmt7Time.getDate())
+    const year = gmt7Time.getFullYear()
+    const hours = normalizeTimeUnit(gmt7Time.getHours())
+    const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
+    const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
+
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
+  } catch (error) {
+    // Fallback to current date/time
+    const now = new Date()
+    const gmt7Time = getGMT7Time(now)
+    const month = normalizeTimeUnit(gmt7Time.getMonth() + 1)
+    const day = normalizeTimeUnit(gmt7Time.getDate())
+    const year = gmt7Time.getFullYear()
+    const hours = normalizeTimeUnit(gmt7Time.getHours())
+    const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
+    const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
+
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
+  }
+}
+
+/**
+ * Standardized date-only format: MM/DD/YYYY
+ * Uses GMT+7 (Asia/Bangkok) timezone.
+ *
+ * @param date - Date value to format
+ * @returns Formatted date string in MM/DD/YYYY format (e.g., "11/21/2025")
+ */
+export function formatStandardDate(date?: Date | string | number | null): string {
+  try {
+    let inputDate: Date
+    if (date === undefined || date === null) {
+      inputDate = new Date()
+    } else if (date instanceof Date) {
+      inputDate = date
+    } else {
+      inputDate = new Date(date)
+      if (isNaN(inputDate.getTime())) {
+        inputDate = new Date()
+      }
+    }
+
+    const gmt7Time = getGMT7Time(inputDate)
+    const month = normalizeTimeUnit(gmt7Time.getMonth() + 1)
+    const day = normalizeTimeUnit(gmt7Time.getDate())
+    const year = gmt7Time.getFullYear()
+
+    return `${month}/${day}/${year}`
+  } catch (error) {
+    const now = new Date()
+    const gmt7Time = getGMT7Time(now)
+    const month = normalizeTimeUnit(gmt7Time.getMonth() + 1)
+    const day = normalizeTimeUnit(gmt7Time.getDate())
+    const year = gmt7Time.getFullYear()
+
+    return `${month}/${day}/${year}`
+  }
+}
+
+/**
+ * Standardized time-only format: HH:mm:ss
+ * Uses GMT+7 (Asia/Bangkok) timezone.
+ *
+ * @param date - Date value to format
+ * @returns Formatted time string in HH:mm:ss format (e.g., "10:42:00")
+ */
+export function formatStandardTime(date?: Date | string | number | null): string {
+  try {
+    let inputDate: Date
+    if (date === undefined || date === null) {
+      inputDate = new Date()
+    } else if (date instanceof Date) {
+      inputDate = date
+    } else {
+      inputDate = new Date(date)
+      if (isNaN(inputDate.getTime())) {
+        inputDate = new Date()
+      }
+    }
+
+    const gmt7Time = getGMT7Time(inputDate)
+    const hours = normalizeTimeUnit(gmt7Time.getHours())
+    const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
+    const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
+
+    return `${hours}:${minutes}:${seconds}`
+  } catch (error) {
+    const now = new Date()
+    const gmt7Time = getGMT7Time(now)
+    const hours = normalizeTimeUnit(gmt7Time.getHours())
+    const minutes = normalizeTimeUnit(gmt7Time.getMinutes())
+    const seconds = normalizeTimeUnit(gmt7Time.getSeconds())
+
+    return `${hours}:${minutes}:${seconds}`
+  }
+}
+
 export function safeParseDate(dateValue: any): Date {
   if (!dateValue) {
     return new Date()

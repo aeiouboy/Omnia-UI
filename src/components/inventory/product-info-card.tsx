@@ -79,18 +79,22 @@ function getSupplyTypeBadgeClass(supplyType: string | undefined) {
 }
 
 /**
- * Format last restocked date
+ * Format last restocked date in MM/DD/YYYY HH:mm:ss format
  */
 function formatLastRestocked(timestamp: string | undefined): string {
   if (!timestamp) return "N/A"
-  return formatGMT7Time(timestamp, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return "N/A"
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 export function ProductInfoCard({

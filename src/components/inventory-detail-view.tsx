@@ -291,14 +291,18 @@ export function InventoryDetailView({
                   <span>Last Restocked</span>
                 </div>
                 <p className="text-base">
-                  {new Date(item.lastRestocked).toLocaleString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {(() => {
+                    const date = new Date(item.lastRestocked)
+                    if (isNaN(date.getTime())) return "-"
+                    const pad = (n: number) => n.toString().padStart(2, '0')
+                    const month = pad(date.getMonth() + 1)
+                    const day = pad(date.getDate())
+                    const year = date.getFullYear()
+                    const hours = pad(date.getHours())
+                    const minutes = pad(date.getMinutes())
+                    const seconds = pad(date.getSeconds())
+                    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
+                  })()}
                 </p>
               </div>
             </div>

@@ -237,15 +237,17 @@ export function generateTimelineStages(orderData?: any): FulfillmentTimelineStag
 
 /**
  * Format date for timeline stage display
- * Format: "Jan 28 09:00"
+ * Format: "MM/DD/YYYY HH:mm:ss" (standardized)
  */
 function formatStageDateTime(date: Date): string {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const month = months[date.getMonth()]
-  const day = date.getDate()
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${month} ${day} ${hours}:${minutes}`
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**

@@ -450,7 +450,20 @@ export function DashboardOverview() {
                             </span>
                           </td>
                           <td className="py-2 px-2">{order.total}</td>
-                          <td className="py-2 px-2">{new Date(order.created_at).toLocaleDateString()}</td>
+                          <td className="py-2 px-2">
+                            {(() => {
+                              const date = new Date(order.created_at)
+                              if (isNaN(date.getTime())) return "-"
+                              const pad = (n: number) => n.toString().padStart(2, '0')
+                              const month = pad(date.getMonth() + 1)
+                              const day = pad(date.getDate())
+                              const year = date.getFullYear()
+                              const hours = pad(date.getHours())
+                              const minutes = pad(date.getMinutes())
+                              const seconds = pad(date.getSeconds())
+                              return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
+                            })()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

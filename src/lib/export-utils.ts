@@ -43,18 +43,22 @@ function escapeCSVValue(value: any): string {
 }
 
 /**
- * Format date for export (ISO format with readable time)
+ * Format date for export in standardized MM/DD/YYYY HH:mm:ss format
+ * Uses local timezone for export compatibility with Excel
  */
 function formatDateForExport(timestamp: string): string {
   const date = new Date(timestamp)
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
+  if (isNaN(date.getTime())) return "-"
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**
@@ -67,19 +71,25 @@ function formatTransactionType(type: StockTransaction["type"]): string {
 }
 
 /**
- * Format date in GMT+7 timezone for export
+ * Format date in GMT+7 timezone for export in standardized MM/DD/YYYY HH:mm:ss format
  */
 function formatDateGMT7ForExport(timestamp: string): string {
   const date = new Date(timestamp)
-  return date.toLocaleString("en-US", {
-    timeZone: "Asia/Bangkok",
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
+  if (isNaN(date.getTime())) return "-"
+
+  // Convert to GMT+7
+  const utcTime = date.getTime() + date.getTimezoneOffset() * 60000
+  const gmt7Date = new Date(utcTime + 7 * 60 * 60 * 1000)
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(gmt7Date.getMonth() + 1)
+  const day = pad(gmt7Date.getDate())
+  const year = gmt7Date.getFullYear()
+  const hours = pad(gmt7Date.getHours())
+  const minutes = pad(gmt7Date.getMinutes())
+  const seconds = pad(gmt7Date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**

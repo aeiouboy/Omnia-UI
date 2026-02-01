@@ -47,8 +47,8 @@ export function SettledItemsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.lineId} className="hover:bg-gray-50">
+            {items.map((item, index) => (
+              <TableRow key={`${item.lineId}-${index}`} className="hover:bg-gray-50">
                 <TableCell>
                   <span className="font-medium text-gray-900">{item.productName}</span>
                 </TableCell>
@@ -81,8 +81,8 @@ export function SettledItemsTable({
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {items.map((item) => (
-          <div key={item.lineId} className="bg-white border border-gray-200 rounded-md p-3 space-y-2">
+        {items.map((item, index) => (
+          <div key={`${item.lineId}-${index}`} className="bg-white border border-gray-200 rounded-md p-3 space-y-2">
             <div className="flex justify-between items-start">
               <span className="font-medium text-gray-900 flex-1 pr-2">
                 {item.productName}

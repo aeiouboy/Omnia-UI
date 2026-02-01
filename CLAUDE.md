@@ -101,12 +101,47 @@ interface ApiOrder {
   customer: ApiCustomer
   sla_info: {
     target_minutes: number    // Values in seconds (not minutes)
-    elapsed_minutes: number   // Values in seconds (not minutes)  
+    elapsed_minutes: number   // Values in seconds (not minutes)
     status: "BREACH" | "NEAR_BREACH" | "COMPLIANT"
   }
   // ... other fields
 }
 \`\`\`
+
+### Order Type System
+
+**UNIFIED ORDER TYPE** - Single taxonomy for order classification (chore-ae72224b):
+
+The system uses a single Order Type field (FMSOrderType) with 7 values:
+
+| Order Type | Description | Badge Color | Icon | Usage |
+|------------|-------------|-------------|------|-------|
+| Return Order | Return/refund orders | Red/Pink | Undo2 | ~10% of orders |
+| MKP-HD-STD | Marketplace Home Delivery Standard | Purple | ShoppingBag | Third-party marketplace |
+| RT-HD-EXP | Retail Home Delivery Express | Orange | Zap | Urgent home delivery |
+| RT-CC-STD | Retail Click & Collect Standard | Green | Store | Store pickup |
+| RT-MIX-STD | Retail Mixed Delivery Standard | Teal | Settings | Hybrid delivery |
+| RT-HD-STD | Retail Home Delivery Standard | Blue | Truck | Standard home delivery |
+| RT-CC-EXP | Retail Click & Collect Express | Amber | Store | Urgent store pickup |
+
+**Code Format**: `{Platform}-{Method}-{Speed}` or special type
+- Platform: RT (Retail), MKP (Marketplace)
+- Method: HD (Home Delivery), CC (Click & Collect), MIX (Mixed)
+- Speed: STD (Standard), EXP (Express)
+
+**DEPRECATED**: DeliveryTypeCode has been merged into FMSOrderType (chore-ae72224b)
+- `DeliveryTypeCodeBadge` component kept for backward compatibility
+- `deliveryTypeCode` field aliased to `orderType`
+
+**Mock Data Distribution** (Demo Orders):
+- Return orders: ~10% of total orders (index % 10 === 0)
+- Other types: Rotates through remaining 6 types via modulo rotation
+
+**Related Files**:
+- Type definition: `src/components/order-management-hub.tsx` (line 173)
+- Badge component: `src/components/order-badges.tsx` (OrderTypeBadge)
+- Filter dropdown: `src/components/order-management-hub.tsx` (lines 2260-2275)
+- Demo data generator: `src/components/order-management-hub.tsx` (lines 446-451)
 
 ### Critical SLA Logic Standards
 
@@ -132,6 +167,28 @@ const isNearBreach = remainingSeconds <= criticalThreshold && remainingSeconds >
 - All display times use `formatGMT7TimeString()` from `lib/utils.ts`
 - Hour-based analytics filter for "today" using GMT+7
 - Consistent timezone handling across all components
+
+### Date/Time Format Standard (chore-7d3a2f05)
+
+**Official Format**: `MM/DD/YYYY HH:mm:ss` (e.g., `11/21/2025 10:42:00`)
+
+**Core Formatting Functions** (from `src/lib/utils.ts`):
+- `formatStandardDateTime(date)` - Returns MM/DD/YYYY HH:mm:ss (full format)
+- `formatStandardDate(date)` - Returns MM/DD/YYYY (date only)
+- `formatStandardTime(date)` - Returns HH:mm:ss (time only)
+- `formatGMT7DateTime(date)` - Legacy alias, same format
+
+**Usage Guidelines**:
+- All user-facing date/time displays must use MM/DD/YYYY HH:mm:ss format
+- All times displayed in GMT+7 (Asia/Bangkok) timezone
+- API/database operations use ISO 8601 format internally
+- CSV exports use the same MM/DD/YYYY HH:mm:ss format
+
+**Files Updated**:
+- `src/lib/utils.ts` - Core utility functions
+- `src/lib/timezone-utils.ts` - Bangkok timezone utilities
+- `src/lib/export-utils.ts` - CSV export formatting
+- Component-specific formatters standardized across all files
 
 ### Mobile-First Design
 
@@ -407,3 +464,32 @@ When completing a task, ALWAYS update status in ALL locations:
 - Added deployment scripts for automated deployment
 - Created environment variable configuration scripts
 - Documented deployment process in docs/vercel-deployment.md
+
+### Order Management Hub UX/UI Improvements (2026-02-01)
+- **Smart Filter Bar**: 7 most-used filters always visible in responsive grid (grid-cols-2 md:grid-cols-3 lg:grid-cols-4)
+  - Primary filters: Order ID, Order Status, Store No, Channel, Payment Status, Payment Method, Order Date Range
+  - Clear All and Apply Filters action buttons added
+  - Advanced filters (SKU, Item Name, Customer details) moved to collapsible "More Filters" section
+  - All inputs use min-w-[160px] for consistent readability
+- **Status Badges with Icons**: Added semantic icons to OrderStatusBadge, PaymentStatusBadge, OnHoldBadge
+  - CheckCircle for completed/paid, Clock for pending, AlertTriangle for on-hold, Truck for shipped, Package for processing
+  - Improves accessibility for colorblind users (WCAG 2.1 AA compliance)
+- **Table Optimizations**:
+  - Sticky headers (sticky top-0 bg-gray-50) remain visible during scrolling
+  - Defined minimum widths for all columns with proper text truncation and tooltips
+  - Improved typography: text-sm (14px) for headers and cells, proper padding (py-3 px-4)
+  - Order number styled as clickable blue link (text-blue-600)
+- **Mobile Card View**: Responsive card layout for screens < 768px with 44px touch targets
+  - Cards replace table on mobile with stacked vertical layout
+  - Shows Order #, Status, Customer info, Store No, Total, Payment Status, Channel, Date
+  - Proper spacing (gap-3, p-4) for comfortable mobile reading
+- **Enhanced Empty State**: Package icon (h-16 w-16), helpful messaging, Clear Filters and Refresh actions
+  - Suggestion text: "Try adjusting your filters or search terms..."
+- **Skeleton Loading**: Professional loading skeletons for perceived performance improvement
+  - 5 skeleton rows for desktop table, 5 skeleton cards for mobile
+  - Matches exact layout structure with badge-shaped skeletons for status fields
+- **Accessibility**: Full WCAG 2.1 AA compliance
+  - ARIA labels on all icon-only buttons and inputs
+  - role="status" and aria-live="polite" for loading states
+  - Minimum 44x44px touch targets on mobile
+  - Proper form labels with htmlFor attributes

@@ -518,14 +518,16 @@ export class DashboardService {
       for (let i = 0; i < days; i++) {
         const date = new Date(startDate)
         date.setDate(startDate.getDate() + i)
-        const dateKey = date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })
+        const pad = (n: number) => n.toString().padStart(2, '0')
+        const dateKey = `${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
         dailyMap.set(dateKey, { orders: 0, revenue: 0, slaCompliant: 0, total: 0 })
       }
 
       // จัดกลุ่มข้อมูลตามวัน
       orders.forEach((order) => {
         const orderDate = new Date(order.created_at)
-        const dateKey = orderDate.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })
+        const pad = (n: number) => n.toString().padStart(2, '0')
+        const dateKey = `${pad(orderDate.getMonth() + 1)}/${pad(orderDate.getDate())}`
 
         if (dailyMap.has(dateKey)) {
           const dailyData = dailyMap.get(dateKey)!

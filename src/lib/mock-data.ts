@@ -92,11 +92,10 @@ function generateDeliveryMethods(
   // Generate future pickup date (1-7 days from now)
   const pickupDate = new Date()
   pickupDate.setDate(pickupDate.getDate() + Math.floor(Math.random() * 7) + 1)
-  const pickupDateStr = pickupDate.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const pickupDateStr = (() => {
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(pickupDate.getMonth() + 1)}/${pad(pickupDate.getDate())}/${pickupDate.getFullYear()}`
+  })()
 
   // Select random store and time slot
   const storeName = clickCollectStores[Math.floor(Math.random() * clickCollectStores.length)]
@@ -2246,12 +2245,12 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
     'Destination Hub'
   ]
 
-  // Helper to format date as DD/MM/YYYY
-  const formatDateDDMMYYYY = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, '0')
+  // Helper to format date as MM/DD/YYYY (standardized format)
+  const formatDateMMDDYYYY = (date: Date): string => {
     const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
     const year = date.getFullYear()
-    return `${day}/${month}/${year}`
+    return `${month}/${day}/${year}`
   }
 
   // Helper to generate random Thai phone number
@@ -2365,7 +2364,7 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics', // Default carrier for C&C
         events: [], // No events for Pickup
         status: 'PICKED_UP', // Always PICKED_UP for Pickup scenario
-        eta: formatDateDDMMYYYY(pickupEtaDate), // Generate ETA for Pickup
+        eta: formatDateMMDDYYYY(pickupEtaDate), // Generate ETA for Pickup
         shippedOn: '', // No shipped date for Pickup
         relNo,
         shippedFrom: storeName, // Actually "Picked from" for Pickup
@@ -2445,8 +2444,8 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics',
         events: mergeEvents,
         status: 'DELIVERED', // Shows as FULFILLED in UI
-        eta: formatDateDDMMYYYY(mergeEtaDate),
-        shippedOn: formatDateDDMMYYYY(shippedOnDate),
+        eta: formatDateMMDDYYYY(mergeEtaDate),
+        shippedOn: formatDateMMDDYYYY(shippedOnDate),
         relNo: mergeRelNo,
         shippedFrom: originStore,
         subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
@@ -2475,7 +2474,7 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics',
         events: [], // No tracking events for Pickup
         status: 'PICKED_UP', // Shows as PICKED UP in UI
-        eta: formatDateDDMMYYYY(pickupEtaDate),
+        eta: formatDateMMDDYYYY(pickupEtaDate),
         shippedOn: '', // No shipped date for Pickup
         relNo: pickupRelNo,
         shippedFrom: destinationStore, // "Picked from" destination store
@@ -2597,8 +2596,8 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
       carrier: carrier.name,
       events,
       status: shipmentStatus,
-      eta: formatDateDDMMYYYY(etaDate),
-      shippedOn: formatDateDDMMYYYY(shippedOnDate),
+      eta: formatDateMMDDYYYY(etaDate),
+      shippedOn: formatDateMMDDYYYY(shippedOnDate),
       relNo,
       shippedFrom: originStore,
       subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
@@ -11569,11 +11568,10 @@ const scenarioTaxes = scenarioOrderItems.reduce((sum, item) => sum + item.priceB
 // Generate future pickup date (tomorrow)
 const pickupDate = new Date();
 pickupDate.setDate(pickupDate.getDate() + 1);
-const pickupDateStr = pickupDate.toLocaleDateString('en-GB', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric'
-});
+const pickupDateStr = (() => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(pickupDate.getMonth() + 1)}/${pad(pickupDate.getDate())}/${pickupDate.getFullYear()}`;
+})();
 
 const scenarioOrder = {
   id: "ORD-SCENARIO-001",

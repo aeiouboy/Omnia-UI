@@ -125,22 +125,26 @@ export function FileDetailModal({
     }
   }
 
-  // Format date for display
+  // Format date for display in MM/DD/YYYY format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+    if (isNaN(date.getTime())) return "-"
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const year = date.getFullYear()
+    return `${month}/${day}/${year}`
   }
 
+  // Format time for display in HH:mm:ss format
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    if (isNaN(date.getTime())) return "-"
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const hours = pad(date.getHours())
+    const minutes = pad(date.getMinutes())
+    const seconds = pad(date.getSeconds())
+    return `${hours}:${minutes}:${seconds}`
   }
 
   return (
