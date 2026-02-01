@@ -58,9 +58,7 @@ import {
   ArrowUp,
   ArrowDown,
   RefreshCw,
-  RotateCcw,
   ArrowLeftRight,
-  Lock,
   MapPin,
   Download,
   FileSpreadsheet,
@@ -103,41 +101,35 @@ const transactionTypeConfig: Record<
     quantitySign: "+" | "-" | "+/-"
   }
 > = {
-  stock_in: {
+  "Initial sync": {
     icon: <ArrowUp className="h-4 w-4 text-green-600" />,
     badgeClass: "bg-green-100 text-green-800",
-    label: "Stock In",
+    label: "Initial sync",
     quantitySign: "+",
   },
-  stock_out: {
+  "Order Ship": {
     icon: <ArrowDown className="h-4 w-4 text-red-600" />,
     badgeClass: "bg-red-100 text-red-800",
-    label: "Stock Out",
+    label: "Order Ship",
     quantitySign: "-",
   },
-  adjustment: {
+  "Adjust In": {
     icon: <RefreshCw className="h-4 w-4 text-blue-600" />,
     badgeClass: "bg-blue-100 text-blue-800",
-    label: "Adjustment",
-    quantitySign: "+/-",
+    label: "Adjust In",
+    quantitySign: "+",
   },
-  transfer: {
+  "Adjust out": {
+    icon: <RefreshCw className="h-4 w-4 text-blue-600" />,
+    badgeClass: "bg-blue-100 text-blue-800",
+    label: "Adjust out",
+    quantitySign: "-",
+  },
+  "Replacement": {
     icon: <ArrowLeftRight className="h-4 w-4 text-purple-600" />,
     badgeClass: "bg-purple-100 text-purple-800",
-    label: "Transfer",
-    quantitySign: "-",
-  },
-  allocation: {
-    icon: <Lock className="h-4 w-4 text-orange-600" />,
-    badgeClass: "bg-orange-100 text-orange-800",
-    label: "Allocation",
-    quantitySign: "-",
-  },
-  return: {
-    icon: <RotateCcw className="h-4 w-4 text-purple-600" />,
-    badgeClass: "bg-purple-100 text-purple-800",
-    label: "Return",
-    quantitySign: "+",
+    label: "Replacement",
+    quantitySign: "+/-",
   },
 }
 
@@ -148,9 +140,9 @@ function getQuantityDisplay(
   const config = transactionTypeConfig[transaction.type]
   const quantity = formatStockQuantity(transaction.quantity, itemType, false)
 
-  // For adjustment, check if the balance increased or decreased
+  // For Replacement, check if the balance increased or decreased
   let sign = config.quantitySign
-  if (transaction.type === "adjustment") {
+  if (transaction.type === "Replacement") {
     // We can't know the direction without comparing with previous balance
     // Use the balance change sign if available, otherwise use +
     sign = "+"
@@ -296,7 +288,7 @@ export function TransactionHistorySection({
 
     // Link to order for ORD- pattern
     const orderMatch = ref.match(/^ORD-(\d+)$/)
-    if (orderMatch && (transaction.type === "stock_out" || transaction.type === "return" || transaction.type === "allocation")) {
+    if (orderMatch && (transaction.type === "Order Ship" || transaction.type === "Replacement")) {
       return (
         <Link
           href={`/orders/${orderMatch[1]}`}
@@ -432,12 +424,11 @@ export function TransactionHistorySection({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="stock_in">Stock In</SelectItem>
-                <SelectItem value="stock_out">Stock Out</SelectItem>
-                <SelectItem value="adjustment">Adjustment</SelectItem>
-                <SelectItem value="transfer">Transfer</SelectItem>
-                <SelectItem value="allocation">Allocation</SelectItem>
-                <SelectItem value="return">Return</SelectItem>
+                <SelectItem value="Initial sync">Initial sync</SelectItem>
+                <SelectItem value="Order Ship">Order Ship</SelectItem>
+                <SelectItem value="Adjust In">Adjust In</SelectItem>
+                <SelectItem value="Adjust out">Adjust out</SelectItem>
+                <SelectItem value="Replacement">Replacement</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -539,12 +530,11 @@ export function TransactionHistorySection({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="stock_in">Stock In</SelectItem>
-                <SelectItem value="stock_out">Stock Out</SelectItem>
-                <SelectItem value="adjustment">Adjustment</SelectItem>
-                <SelectItem value="transfer">Transfer</SelectItem>
-                <SelectItem value="allocation">Allocation</SelectItem>
-                <SelectItem value="return">Return</SelectItem>
+                <SelectItem value="Initial sync">Initial sync</SelectItem>
+                <SelectItem value="Order Ship">Order Ship</SelectItem>
+                <SelectItem value="Adjust In">Adjust In</SelectItem>
+                <SelectItem value="Adjust out">Adjust out</SelectItem>
+                <SelectItem value="Replacement">Replacement</SelectItem>
               </SelectContent>
             </Select>
 

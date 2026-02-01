@@ -2714,9 +2714,6 @@ export function generateMockTransactions(productId: string, count?: number): Sto
     return channels[2]
   }
 
-  // Allocation types for allocation transactions
-  const allocationTypes: ("order" | "hold" | "reserve")[] = ["order", "hold", "reserve"]
-
   for (let i = 0; i < transactionCount; i++) {
     const timestamp = timestamps[i]
     const user = users[Math.floor(Math.random() * users.length)]
@@ -2731,92 +2728,78 @@ export function generateMockTransactions(productId: string, count?: number): Sto
     let type: TransactionType
     let quantity: number
     let balanceChange: number
-    let transferFrom: string | undefined
-    let transferTo: string | undefined
-    let allocationType: "order" | "hold" | "reserve" | undefined
 
     if (i === 0) {
-      // First transaction is always stock_in (initial restocking)
-      type = "stock_in"
+      // First transaction is always Initial sync
+      type = "Initial sync"
       quantity = initialRestockQuantity
       balanceChange = quantity
       runningBalance = quantity // Set initial balance
     } else {
       // Determine transaction type based on current balance
-      // If balance is low, more likely to get stock_in
-      // If balance is high, more likely to get stock_out
+      // If balance is low, more likely to get Adjust In
+      // If balance is high, more likely to get Order Ship
       const balanceRatio = runningBalance / initialRestockQuantity
       let typeWeights: number[]
 
       if (balanceRatio < 0.3) {
-        // Low stock: 50% stock_in, 5% stock_out, 15% adjustment, 10% return, 10% transfer, 10% allocation
-        typeWeights = [0.50, 0.05, 0.15, 0.10, 0.10, 0.10]
+        // Low stock: 40% Adjust In, 10% Order Ship, 20% Adjust out, 15% Replacement, 15% Initial sync
+        typeWeights = [0.40, 0.10, 0.20, 0.15, 0.15]
       } else if (balanceRatio > 0.8) {
-        // High stock: 5% stock_in, 55% stock_out, 10% adjustment, 10% return, 10% transfer, 10% allocation
-        typeWeights = [0.05, 0.55, 0.10, 0.10, 0.10, 0.10]
+        // High stock: 10% Adjust In, 50% Order Ship, 15% Adjust out, 15% Replacement, 10% Initial sync
+        typeWeights = [0.10, 0.50, 0.15, 0.15, 0.10]
       } else {
-        // Normal: 15% stock_in, 35% stock_out, 15% adjustment, 10% return, 15% transfer, 10% allocation
-        typeWeights = [0.15, 0.35, 0.15, 0.10, 0.15, 0.10]
+        // Normal: 20% Adjust In, 40% Order Ship, 15% Adjust out, 15% Replacement, 10% Initial sync
+        typeWeights = [0.20, 0.40, 0.15, 0.15, 0.10]
       }
 
       const rand = Math.random()
       let cumulative = 0
       if (rand < (cumulative += typeWeights[0])) {
-        type = "stock_in"
+        type = "Adjust In"
       } else if (rand < (cumulative += typeWeights[1])) {
-        type = "stock_out"
+        type = "Order Ship"
       } else if (rand < (cumulative += typeWeights[2])) {
-        type = "adjustment"
+        type = "Adjust out"
       } else if (rand < (cumulative += typeWeights[3])) {
-        type = "return"
-      } else if (rand < (cumulative += typeWeights[4])) {
-        type = "transfer"
+        type = "Replacement"
       } else {
-        type = "allocation"
+        type = "Initial sync"
       }
 
       // Determine quantity based on type
       switch (type) {
-        case "stock_in":
+        case "Initial sync":
           quantity = Math.floor(Math.random() * 100) + 50 // 50-150 units
           balanceChange = quantity
           break
-        case "stock_out":
+        case "Adjust In":
+          quantity = Math.floor(Math.random() * 50) + 20 // 20-70 units
+          balanceChange = quantity
+          break
+        case "Order Ship":
           // Ensure we don't go negative
           const maxOut = Math.min(runningBalance - 10, 60) // Keep at least 10 in stock
           quantity = Math.max(10, Math.floor(Math.random() * Math.max(maxOut, 10)) + 10) // 10 to maxOut units
           balanceChange = -quantity
           break
-        case "adjustment":
-          // Can be positive or negative, but don't let balance go below 5
-          const maxNegativeAdj = Math.min(runningBalance - 5, 10)
-          quantity = Math.floor(Math.random() * 20) - Math.min(10, maxNegativeAdj)
-          balanceChange = quantity
-          quantity = Math.abs(quantity) // Store absolute value
+        case "Adjust out":
+          // Negative adjustment, don't let balance go below 5
+          const maxNegativeAdj = Math.min(runningBalance - 5, 20)
+          quantity = Math.max(1, Math.floor(Math.random() * Math.max(maxNegativeAdj, 1)))
+          balanceChange = -quantity
           break
-        case "return":
-          quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units
-          balanceChange = quantity
-          break
-        case "transfer":
-          // Transfer out from this location
-          const maxTransfer = Math.min(runningBalance - 10, 40) // Keep at least 10 in stock
-          quantity = Math.max(5, Math.floor(Math.random() * Math.max(maxTransfer, 5)) + 5) // 5 to maxTransfer units
-          balanceChange = -quantity // Transfer reduces local balance
-          // Set transfer source and destination
-          transferFrom = location?.warehouseCode || WAREHOUSE_CODES[0]
-          transferTo = WAREHOUSE_CODES[Math.floor(Math.random() * WAREHOUSE_CODES.length)]
-          // Ensure different warehouses
-          if (transferTo === transferFrom) {
-            transferTo = WAREHOUSE_CODES[(WAREHOUSE_CODES.indexOf(transferFrom) + 1) % WAREHOUSE_CODES.length]
+        case "Replacement":
+          // Replacement can be positive (incoming replacement) or negative (outgoing for replacement)
+          const isPositive = Math.random() > 0.5
+          if (isPositive) {
+            quantity = Math.floor(Math.random() * 15) + 5 // 5-20 units incoming
+            balanceChange = quantity
+          } else {
+            const maxReplacement = Math.min(runningBalance - 10, 15)
+            quantity = Math.max(3, Math.floor(Math.random() * Math.max(maxReplacement, 3)))
+            balanceChange = -quantity
           }
-          break
-        case "allocation":
-          // Allocate stock for order/hold/reserve
-          const maxAlloc = Math.min(runningBalance - 10, 30) // Keep at least 10 in stock
-          quantity = Math.max(3, Math.floor(Math.random() * Math.max(maxAlloc, 3)) + 3) // 3 to maxAlloc units
-          balanceChange = -quantity // Allocation reduces available balance
-          allocationType = allocationTypes[Math.floor(Math.random() * allocationTypes.length)]
           break
         default:
           quantity = 0
@@ -2827,23 +2810,18 @@ export function generateMockTransactions(productId: string, count?: number): Sto
       runningBalance = Math.max(0, runningBalance + balanceChange)
     }
 
-    const channel = (type === "stock_out" || type === "return") ? randomChannel() : undefined
+    const channel = type === "Order Ship" ? randomChannel() : undefined
 
     // Generate reference IDs based on transaction type
     let referenceId: string | undefined
-    if (type === "stock_out" || type === "return") {
+    if (type === "Order Ship") {
       referenceId = `ORD-${Math.floor(Math.random() * 10000)}`
-    } else if (type === "transfer") {
-      referenceId = `TRF-${Math.floor(Math.random() * 10000)}`
-    } else if (type === "allocation") {
-      referenceId = allocationType === "order"
-        ? `ORD-${Math.floor(Math.random() * 10000)}`
-        : `ALLOC-${Math.floor(Math.random() * 10000)}`
-    } else if (type === "stock_in") {
-      // 50% chance of having a PO reference
-      if (Math.random() > 0.5) {
-        referenceId = `PO-${Math.floor(Math.random() * 10000)}`
-      }
+    } else if (type === "Replacement") {
+      referenceId = `REP-${Math.floor(Math.random() * 10000)}`
+    } else if (type === "Adjust In" || type === "Adjust out") {
+      referenceId = `ADJ-${Math.floor(Math.random() * 10000)}`
+    } else if (type === "Initial sync") {
+      referenceId = `SYNC-${Math.floor(Math.random() * 10000)}`
     }
 
     transactions.push({
@@ -2861,9 +2839,6 @@ export function generateMockTransactions(productId: string, count?: number): Sto
       locationCode: location?.locationCode,
       channel,
       itemType: item.itemType,
-      transferFrom,
-      transferTo,
-      allocationType,
     })
   }
 
@@ -2906,41 +2881,35 @@ export function getWarehouseCodesForStore(storeName: string): string[] {
  */
 function generateTransactionNotes(type: TransactionType): string {
   const notes: Record<TransactionType, string[]> = {
-    stock_in: [
-      "Received from supplier",
-      "Weekly restocking",
-      "Emergency restock",
-      "Scheduled delivery",
+    "Initial sync": [
+      "Initial inventory sync from source system",
+      "System synchronization complete",
+      "Opening balance imported",
+      "Inventory data migrated",
     ],
-    stock_out: [
+    "Adjust In": [
+      "Inventory count adjustment - surplus found",
+      "Physical count correction - increase",
+      "Received missing items from supplier",
+      "Stock discrepancy resolved - add",
+    ],
+    "Adjust out": [
+      "Inventory count adjustment - shortage",
+      "Physical count correction - decrease",
+      "Damaged items removed",
+      "Stock discrepancy resolved - remove",
+    ],
+    "Replacement": [
+      "Product replacement for order",
+      "Damaged item replacement",
+      "Customer exchange processed",
+      "Quality issue replacement",
+    ],
+    "Order Ship": [
       "Order fulfillment",
-      "Customer purchase",
-      "Store transfer",
-      "Promotional sale",
-    ],
-    adjustment: [
-      "Inventory count adjustment",
-      "System correction",
-      "Physical count discrepancy",
-      "Audit adjustment",
-    ],
-    return: [
-      "Order cancellation",
-      "Customer return",
-      "Product expired",
-      "Wrong item received",
-    ],
-    transfer: [
-      "Inter-warehouse transfer",
-      "Store replenishment",
-      "Distribution center transfer",
-      "Regional rebalancing",
-    ],
-    allocation: [
-      "Order reservation",
-      "Customer hold request",
-      "Promotional campaign reserve",
-      "Pre-order allocation",
+      "Customer order shipped",
+      "Marketplace order dispatched",
+      "Express delivery shipped",
     ],
   }
 

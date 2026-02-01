@@ -84,22 +84,31 @@ export function PaymentsTab({ order }: PaymentsTabProps) {
 
                 if (existing) {
                     // Add to existing method's amounts based on transaction type
-                    if (payment.transactionType === 'AUTHORIZATION') {
+                    // If transactionType is not specified, infer from status:
+                    // PAID = SETTLEMENT (completed), otherwise AUTHORIZATION (pending)
+                    const effectiveType = payment.transactionType ||
+                        (payment.status === 'PAID' ? 'SETTLEMENT' : 'AUTHORIZATION');
+
+                    if (effectiveType === 'AUTHORIZATION') {
                         existing.amountToBeCharged += payment.amount || 0;
-                    } else if (payment.transactionType === 'SETTLEMENT') {
+                    } else if (effectiveType === 'SETTLEMENT') {
                         existing.amountCharged += payment.amount || 0;
                     }
                     existing.totalAmount += payment.amount || 0;
                 } else {
                     // Create new aggregated method
+                    // If transactionType is not specified, infer from status
+                    const effectiveType = payment.transactionType ||
+                        (payment.status === 'PAID' ? 'SETTLEMENT' : 'AUTHORIZATION');
+
                     methodMap.set(key, {
                         method: payment.method || 'Unknown',
                         cardNumber: payment.cardNumber,
                         expiryDate: payment.expiryDate,
                         memberId: payment.memberId,
                         status: payment.status || 'PENDING',
-                        amountToBeCharged: payment.transactionType === 'AUTHORIZATION' ? (payment.amount || 0) : 0,
-                        amountCharged: payment.transactionType === 'SETTLEMENT' ? (payment.amount || 0) : 0,
+                        amountToBeCharged: effectiveType === 'AUTHORIZATION' ? (payment.amount || 0) : 0,
+                        amountCharged: effectiveType === 'SETTLEMENT' ? (payment.amount || 0) : 0,
                         totalAmount: payment.amount || 0
                     });
                 }

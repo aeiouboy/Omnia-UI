@@ -15,6 +15,7 @@ import {
   Clock,
   Tag,
   Info,
+  ExternalLink,
 } from "lucide-react"
 import {
   Tooltip,
@@ -28,6 +29,7 @@ import type { InventoryItem } from "@/types/inventory"
 interface ProductInfoCardProps {
   product: InventoryItem
   onClose: () => void
+  onViewDetails?: () => void
   refId?: string
 }
 
@@ -94,6 +96,7 @@ function formatLastRestocked(timestamp: string | undefined): string {
 export function ProductInfoCard({
   product,
   onClose,
+  onViewDetails,
   refId,
 }: ProductInfoCardProps) {
   const displayBarcode = product.barcode || product.productId
@@ -157,32 +160,27 @@ export function ProductInfoCard({
               {/* Category */}
               <p className="text-muted-foreground mb-4">{product.category}</p>
 
-              {/* Separator */}
-              <div className="border-t mb-4" />
-
-              {/* Four-column grid: Barcode, Ref ID, Item Type, Supply Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                {/* Barcode - Column 1 */}
+              {/* Row 1: 5-column grid - SKU, Ref ID, Item Type, Supply Type, Stock Config */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 mb-6">
+                {/* SKU */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
-                    <span>Barcode</span>
+                    <span>SKU</span>
                   </div>
                   <span className="font-mono text-sm">{displayBarcode}</span>
                 </div>
 
-                {/* Ref ID - Column 2 (positioned near Barcode) */}
-                {refId && (
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Tag className="h-4 w-4" />
-                      <span>Ref ID</span>
-                    </div>
-                    <span className="font-mono text-sm text-foreground break-all">{refId}</span>
+                {/* Ref ID */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Tag className="h-4 w-4" />
+                    <span>Ref ID</span>
                   </div>
-                )}
+                  <span className="font-mono text-sm">{refId || "-"}</span>
+                </div>
 
-                {/* Item Type - Column 3 */}
+                {/* Item Type */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     {product.itemType === "weight" || product.itemType === "pack_weight" ? (
@@ -200,7 +198,7 @@ export function ProductInfoCard({
                   </Badge>
                 </div>
 
-                {/* Supply Type - Column 4 */}
+                {/* Supply Type */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
@@ -227,35 +225,35 @@ export function ProductInfoCard({
                     </Tooltip>
                   </div>
                 </div>
+
+                {/* Stock Config */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Circle className="h-4 w-4" />
+                    <span>Stock Config</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {product.stockConfigStatus === "valid" ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-600 font-medium">Configured</span>
+                      </>
+                    ) : product.stockConfigStatus === "invalid" ? (
+                      <>
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-red-600 font-medium">Invalid</span>
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="h-4 w-4 text-gray-400" />
+                        <span className="text-gray-500">Not Configured</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Stock Config Status */}
-              <div className="mb-4">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
-                  <Circle className="h-4 w-4" />
-                  <span>Stock Config</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {product.stockConfigStatus === "valid" ? (
-                    <>
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600 font-medium">Configured</span>
-                    </>
-                  ) : product.stockConfigStatus === "invalid" ? (
-                    <>
-                      <XCircle className="h-4 w-4 text-red-600" />
-                      <span className="text-red-600 font-medium">Invalid</span>
-                    </>
-                  ) : (
-                    <>
-                      <Circle className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-500">Not Configured</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Last Restocked */}
+              {/* Row 2: Last Restocked - Standalone */}
               <div className="mb-4">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
@@ -265,6 +263,21 @@ export function ProductInfoCard({
                   {formatLastRestocked(product.lastRestocked)}
                 </span>
               </div>
+
+              {/* View Details Button */}
+              {onViewDetails && (
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onViewDetails}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Details
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

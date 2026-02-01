@@ -18,7 +18,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
 import {
   ArrowLeft,
   Package,
@@ -33,6 +32,9 @@ import {
   Info,
   Minus,
   Check,
+  Circle,
+  Tag,
+  Clock,
 } from "lucide-react"
 import {
   Tooltip,
@@ -143,20 +145,33 @@ export function InventoryDetailView({
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Product Image */}
+            {/* Product Image - Smaller with dark background fallback */}
             <div className="flex-shrink-0">
-              <div className="relative w-full md:w-[400px] h-[400px] rounded-lg overflow-hidden border bg-muted">
-                <Image
-                  src={item.imageUrl || "/images/placeholder-product.svg"}
-                  alt={item.productName}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = "/images/placeholder-product.svg"
-                  }}
-                />
+              <div className="relative w-full md:w-[250px] h-[250px] rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center">
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = "none"
+                      const parent = target.parentElement
+                      if (parent) {
+                        const fallback = document.createElement("span")
+                        fallback.className = "text-white text-center px-4 font-medium text-lg"
+                        fallback.textContent = item.brand || item.productName
+                        parent.appendChild(fallback)
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="text-white text-center px-4 font-medium text-lg">
+                    {item.brand || item.productName}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -171,18 +186,27 @@ export function InventoryDetailView({
                 </div>
               </div>
 
-              <Separator />
-
-              {/* Product Details Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Product Details Row - 5 columns: SKU, Ref ID, Item Type, Supply Type, Stock Config */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4">
+                {/* SKU */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
-                    <span>Barcode</span>
+                    <span>SKU</span>
                   </div>
-                  <p className="font-mono text-lg">{item.barcode || item.productId}</p>
+                  <p className="font-mono text-base">{item.barcode || item.productId}</p>
                 </div>
 
+                {/* Ref ID */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Tag className="h-4 w-4" />
+                    <span>Ref ID</span>
+                  </div>
+                  <p className="font-mono text-sm">{item.id || "-"}</p>
+                </div>
+
+                {/* Item Type */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {item.itemType === "weight" || item.itemType === "pack_weight" ? (
@@ -196,8 +220,8 @@ export function InventoryDetailView({
                     <Badge
                       variant="outline"
                       className={`${item.itemType === "weight" || item.itemType === "pack_weight"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-blue-100 text-blue-800 border-blue-200"
+                        : "bg-gray-100 text-gray-800 border-gray-200"
                         } text-sm`}
                     >
                       {item.itemType === "weight" && "Weight Item (kg)"}
@@ -208,6 +232,7 @@ export function InventoryDetailView({
                   </div>
                 </div>
 
+                {/* Supply Type */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
@@ -240,29 +265,31 @@ export function InventoryDetailView({
                   </TooltipProvider>
                 </div>
 
+                {/* Stock Config */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Shield className="h-4 w-4" />
+                    <Circle className="h-4 w-4" />
                     <span>Stock Config</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {item.stockConfigStatus === "valid" ? (
                       <>
-                        <Check className="h-5 w-5 text-green-600" />
-                        <span className="text-sm text-green-700">Configured</span>
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-700 font-medium">Configured</span>
                       </>
                     ) : (
-                      <span className="text-sm text-gray-400">—</span>
+                      <span className="text-gray-400">—</span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <Separator />
-
               {/* Last Restocked */}
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Last Restocked</p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>Last Restocked</span>
+                </div>
                 <p className="text-base">
                   {new Date(item.lastRestocked).toLocaleString("en-US", {
                     month: "long",
@@ -270,6 +297,7 @@ export function InventoryDetailView({
                     year: "numeric",
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: true,
                   })}
                 </p>
               </div>

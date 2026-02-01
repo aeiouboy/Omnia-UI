@@ -389,14 +389,11 @@ export default function InventoryPage() {
       : <ArrowDown className="h-4 w-4 ml-1" />
   }
 
-  // Product Info Card handlers
+  // Product row click - navigate directly to detail page
   const handleRowClick = (item: InventoryItem) => {
-    // Toggle selection: if clicking same product, close; otherwise open
-    if (selectedProduct?.id === item.id) {
-      setSelectedProduct(null)
-    } else {
-      setSelectedProduct(item)
-    }
+    const url = `/inventory-new/${item.id}`
+    const params = activeStoreFilter ? `?store=${encodeURIComponent(activeStoreFilter)}` : ''
+    router.push(`${url}${params}`)
   }
 
   const handleCloseCard = () => {

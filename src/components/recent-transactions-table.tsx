@@ -21,48 +21,50 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Download, Search } from "lucide-react"
 import Link from "next/link"
-import type { StockTransaction } from "@/types/inventory"
+import type { StockTransaction, TransactionType } from "@/types/inventory"
 import type { ViewTypeChannel } from "@/types/view-type-config"
 import { formatStockQuantity } from "@/lib/warehouse-utils"
 import { exportTransactionsToCSV } from "@/lib/export-utils"
 
-// Simplified transaction type for display purposes
-type SimplifiedTransactionType = "STOCK_IN" | "STOCK_OUT" | "ADJUSTMENT"
-
-// Mapping from original 4 types to simplified 3 types
-const TRANSACTION_TYPE_MAPPING: Record<StockTransaction["type"], SimplifiedTransactionType> = {
-  stock_in: "STOCK_IN",
-  stock_out: "STOCK_OUT",
-  adjustment: "ADJUSTMENT",
-  return: "STOCK_IN", // Returns increase stock like stock_in
-  transfer: "ADJUSTMENT", // Transfers treated as adjustments
-  allocation: "STOCK_OUT", // Allocations decrease available stock
-}
-
-// Simplified type configuration matching Stock Card
-const simplifiedTypeConfig: Record<SimplifiedTransactionType, {
+// Full transaction type configuration for all 5 types
+const transactionTypeConfig: Record<TransactionType, {
   badgeClass: string
   label: string
   quantityClass: string
+  quantitySign: "+" | "-"
 }> = {
-  STOCK_IN: {
+  "Initial sync": {
     badgeClass: "bg-green-100 text-green-700 border-green-200",
-    label: "Stock In",
+    label: "Initial sync",
     quantityClass: "text-green-600",
+    quantitySign: "+",
   },
-  STOCK_OUT: {
+  "Order Ship": {
     badgeClass: "bg-red-100 text-red-700 border-red-200",
-    label: "Stock Out",
+    label: "Order Ship",
     quantityClass: "text-red-600",
+    quantitySign: "-",
   },
-  ADJUSTMENT: {
-    badgeClass: "bg-cyan-100 text-cyan-700 border-cyan-200",
-    label: "Adjustment",
-    quantityClass: "text-cyan-600",
+  "Adjust In": {
+    badgeClass: "bg-blue-100 text-blue-700 border-blue-200",
+    label: "Adjust In",
+    quantityClass: "text-green-600",
+    quantitySign: "+",
+  },
+  "Adjust out": {
+    badgeClass: "bg-blue-100 text-blue-700 border-blue-200",
+    label: "Adjust out",
+    quantityClass: "text-red-600",
+    quantitySign: "-",
+  },
+  "Replacement": {
+    badgeClass: "bg-purple-100 text-purple-700 border-purple-200",
+    label: "Replacement",
+    quantityClass: "text-purple-600",
+    quantitySign: "+",
   },
 }
 
@@ -92,23 +94,9 @@ export function RecentTransactionsTable({
   transactions,
   loading = false,
 }: RecentTransactionsTableProps) {
-  const [typeFilter, setTypeFilter] = useState<"all" | "stock_in" | "stock_out" | "adjustment" | "return">("all")
+  const [typeFilter, setTypeFilter] = useState<"all" | "Initial sync" | "Adjust In" | "Adjust out" | "Replacement" | "Order Ship">("all")
   const [dateFilter, setDateFilter] = useState<string>("")
   const [noteSearch, setNoteSearch] = useState<string>("")
-  const [showMerchantSku, setShowMerchantSku] = useState(false)
-
-  // Load showMerchantSku from localStorage on mount
-  useEffect(() => {
-    const savedValue = localStorage.getItem("recentTransactions-showMerchantSku")
-    if (savedValue !== null) {
-      setShowMerchantSku(savedValue === "true")
-    }
-  }, [])
-
-  // Persist showMerchantSku changes to localStorage
-  useEffect(() => {
-    localStorage.setItem("recentTransactions-showMerchantSku", String(showMerchantSku))
-  }, [showMerchantSku])
 
   // Filter transactions based on all filters
   const filteredTransactions = useMemo(() => {
@@ -186,7 +174,7 @@ export function RecentTransactionsTable({
   const handleExport = () => {
     if (transactions.length > 0) {
       const productName = transactions[0].productName || "inventory"
-      exportTransactionsToCSV(filteredTransactions, productName, { includeMerchantSku: showMerchantSku })
+      exportTransactionsToCSV(filteredTransactions, productName, { includeMerchantSku: false })
     }
   }
 
@@ -215,15 +203,16 @@ export function RecentTransactionsTable({
 
             {/* Transaction Type Filter */}
             <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as typeof typeFilter)}>
-              <SelectTrigger className="w-[140px] h-9">
+              <SelectTrigger className="w-[160px] h-9">
                 <SelectValue placeholder="All Transaction Types" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Transaction Types</SelectItem>
-                <SelectItem value="stock_in">Stock In</SelectItem>
-                <SelectItem value="stock_out">Stock Out</SelectItem>
-                <SelectItem value="adjustment">Adjustment</SelectItem>
-                <SelectItem value="return">Return</SelectItem>
+                <SelectItem value="Initial sync">Initial sync</SelectItem>
+                <SelectItem value="Adjust In">Adjust In</SelectItem>
+                <SelectItem value="Adjust out">Adjust out</SelectItem>
+                <SelectItem value="Replacement">Replacement</SelectItem>
+                <SelectItem value="Order Ship">Order Ship</SelectItem>
               </SelectContent>
             </Select>
 
@@ -254,18 +243,6 @@ export function RecentTransactionsTable({
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Merchant SKU Toggle */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="show-merchant-sku-recent" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                Show Merchant SKU
-              </label>
-              <Switch
-                id="show-merchant-sku-recent"
-                checked={showMerchantSku}
-                onCheckedChange={setShowMerchantSku}
-              />
-            </div>
-
             {/* Export CSV Button */}
             <Button
               variant="outline"
@@ -288,15 +265,11 @@ export function RecentTransactionsTable({
                   <TableHead className="text-right">Qty</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
                   <TableHead>Notes</TableHead>
-                  {showMerchantSku && (
-                    <TableHead className="whitespace-nowrap">Merchant SKU</TableHead>
-                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTransactions.map((transaction) => {
-                  const simplifiedType = TRANSACTION_TYPE_MAPPING[transaction.type]
-                  const config = simplifiedTypeConfig[simplifiedType]
+                  const config = transactionTypeConfig[transaction.type]
 
                   return (
                     <TableRow key={transaction.id}>
@@ -312,7 +285,7 @@ export function RecentTransactionsTable({
                         </Badge>
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${config.quantityClass}`}>
-                        {simplifiedType === "STOCK_OUT" ? "-" : "+"}
+                        {config.quantitySign}
                         {transaction.itemType
                           ? formatStockQuantity(transaction.quantity, transaction.itemType, false)
                           : transaction.quantity}
@@ -334,7 +307,7 @@ export function RecentTransactionsTable({
                                 const match = transaction.referenceId.match(/ORD-(\d+)/)
                                 const numericId = match ? match[1] : null
 
-                                if ((transaction.type === "stock_out" || transaction.type === "return") && numericId) {
+                                if (transaction.type === "Order Ship" && numericId) {
                                   return (
                                     <Link
                                       href={`/orders/${numericId}`}
@@ -362,7 +335,7 @@ export function RecentTransactionsTable({
                               const match = transaction.referenceId.match(/ORD-(\d+)/)
                               const numericId = match ? match[1] : null
 
-                              if ((transaction.type === "stock_out" || transaction.type === "return") && numericId) {
+                              if (transaction.type === "Order Ship" && numericId) {
                                 return (
                                   <Link
                                     href={`/orders/${numericId}`}
@@ -382,11 +355,6 @@ export function RecentTransactionsTable({
                           </TooltipContent>
                         </Tooltip>
                       </TableCell>
-                      {showMerchantSku && (
-                        <TableCell className="font-mono text-sm text-muted-foreground">
-                          {transaction.merchantSku || "-"}
-                        </TableCell>
-                      )}
                     </TableRow>
                   )
                 })}

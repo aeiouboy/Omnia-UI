@@ -59,24 +59,11 @@ function formatDateForExport(timestamp: string): string {
 
 /**
  * Format transaction type for display
+ * Transaction types are already display-friendly, so we just return them as-is
  */
 function formatTransactionType(type: StockTransaction["type"]): string {
-  switch (type) {
-    case "stock_in":
-      return "Stock In"
-    case "stock_out":
-      return "Stock Out"
-    case "adjustment":
-      return "Adjustment"
-    case "return":
-      return "Return"
-    case "transfer":
-      return "Transfer"
-    case "allocation":
-      return "Allocation"
-    default:
-      return type
-  }
+  // New transaction types are already display-friendly
+  return type
 }
 
 /**
@@ -164,7 +151,7 @@ export const transactionExportColumns: ExportColumn[] = [
     key: "quantity",
     header: "Qty",
     formatter: (value, row) => {
-      const sign = row.type === "stock_out" || row.type === "allocation" ? "-" : "+"
+      const sign = row.type === "Order Ship" || row.type === "Adjust out" ? "-" : "+"
       const formatted = row.itemType
         ? formatStockQuantity(value, row.itemType, false)
         : String(value)
@@ -259,7 +246,7 @@ export const transactionHistoryExportColumns: ExportColumn[] = [
     formatter: (value, row) => {
       // Determine sign based on transaction type
       let sign = "+"
-      if (row.type === "stock_out" || row.type === "transfer" || row.type === "allocation") {
+      if (row.type === "Order Ship" || row.type === "Adjust out") {
         sign = "-"
       }
       const formatted = row.itemType
@@ -286,33 +273,6 @@ export const transactionHistoryExportColumns: ExportColumn[] = [
     key: "locationCode",
     header: "Location",
     formatter: (value) => value || "-",
-  },
-  {
-    key: "transferFrom",
-    header: "Transfer From",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "transferTo",
-    header: "Transfer To",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "allocationType",
-    header: "Allocation Type",
-    formatter: (value) => {
-      if (!value) return "-"
-      switch (value) {
-        case "order":
-          return "Order"
-        case "hold":
-          return "Hold"
-        case "reserve":
-          return "Reserve"
-        default:
-          return value
-      }
-    },
   },
   {
     key: "channel",

@@ -259,6 +259,8 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   // Manhattan OMS field options
   const uomOptions = ['PACK', 'SCAN', 'SBOX', 'EA', 'KG', 'PCS', 'BOX', 'BTL']
   const fulfillmentStatusOptions: ('Picked' | 'Pending' | 'Shipped' | 'Packed')[] = ['Picked', 'Pending', 'Shipped', 'Packed']
+  // Item-level fulfillment statuses for Version 4 Fulfillment Tab (weighted towards FULFILLED)
+  const itemFulfillmentStatusOptions = ['FULFILLED', 'FULFILLED', 'FULFILLED', 'FULFILLED', 'CANCELLED', 'RETURNED']
   // Updated shipping methods for Click & Collect and Home Delivery scenarios
   const clickCollectShippingOptions = ['Standard Pickup', '1H Delivery']
   const homeDeliveryShippingOptions = ['Standard Delivery', '3H Delivery', 'Next Day', 'Express']
@@ -287,6 +289,8 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
     const supplyTypeId: 'On Hand Available' | 'Pre-Order' = Math.random() < 0.8 ? 'On Hand Available' : 'Pre-Order'
     const substitution = Math.random() < 0.1  // 10% chance
     const fulfillmentStatus = fulfillmentStatusOptions[Math.floor(Math.random() * fulfillmentStatusOptions.length)]
+    // Item-level fulfillment status for Version 4 Fulfillment Tab
+    const itemFulfillmentStatus = itemFulfillmentStatusOptions[Math.floor(Math.random() * itemFulfillmentStatusOptions.length)]
 
     // Determine shipping method based on delivery methods and item index
     let shippingMethod: string
@@ -379,6 +383,7 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
       supplyTypeId,
       substitution,
       fulfillmentStatus,
+      itemFulfillmentStatus,
       shippingMethod,
       bundle,
       bundleRef,
@@ -9729,6 +9734,295 @@ const maoOrderCDS251229874674 = {
 };
 
 // -----------------------------------------------------------------------------
+// MAO ORDER: CDS260130158593
+// -----------------------------------------------------------------------------
+// Real MAO order extracted from Manhattan Active Omni system
+// Customer: TASSANAVALAI KLINTIENFUNG from Nonthaburi
+// Items: 1 line item (Air Pure Compact air purifier)
+// Products: Air Pure Compact PT2210T0 White
+// Delivery: Home Delivery - Standard from Central World
+// Payment: Multi-payment - Credit Card (2,490) + The1 Points (500)
+// Total: 2,990.00 THB
+// Tax Invoice: Required - บริษัท อินเทลลิเจ้นท์ โกลบอล จำกัด
+// -----------------------------------------------------------------------------
+
+const maoOrderCDS260130158593Items = [
+  {
+    id: 'LINE-CDS26013-001',
+    product_id: 'CDS-AIRPURE-PT2210T0-001',
+    product_sku: 'CDS19598406',
+    product_name: 'Air Pure Compact PT2210T0 White',
+    thaiName: 'เครื่องฟอกอากาศ Air Pure Compact PT2210T0 สีขาว',
+    barcode: 'CDS19598406',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 2990,
+    total_price: 2990,
+    uom: 'PCS',
+    location: 'Central World',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '',
+    bookingSlotTo: '',
+    eta: {
+      from: '01 Feb 2026 00:00:00',
+      to: '01 Feb 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 2990,
+      discount: 0,
+      charges: 0,
+      amountExcludedTaxes: 2794.39,
+      taxes: 195.61,
+      amountIncludedTaxes: 2990,
+      total: 2990
+    },
+    promotions: [],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Air Pure Compact PT2210T0 White',
+      category: 'Home Appliances',
+      brand: 'Air Pure'
+    }
+  }
+];
+
+// MAO Order CDS260130158593 - Complete Order Object
+const maoOrderCDS260130158593 = {
+  id: 'CDS260130158593',
+  order_no: 'CDS260130158593',
+  organization: 'CDS',
+  order_date: '2026-01-30T15:10:00+07:00',
+  business_unit: 'Central Department Store',
+  order_type: 'RT-HD-STD',
+  sellingChannel: 'Web',
+  channel: 'web',
+  status: 'DELIVERED',
+  customer: {
+    id: 'CUST-CDS26013-001',
+    name: 'TASSANAVALAI KLINTIENFUNG',
+    email: 'Engzaa@gmail.com',
+    phone: '0624192696',
+    customerType: 'General',
+    custRef: '2400131193',
+    T1Number: '2002224934',
+    taxId: '0135564014412',
+    customerTypeId: 'General'
+  },
+  shipping_address: {
+    street: '134/466',
+    subdistrict: 'ท่าทราย',
+    city: 'เมืองนนทบุรี',
+    state: 'นนทบุรี',
+    postal_code: '11000',
+    country: 'TH'
+  },
+  items: maoOrderCDS260130158593Items,
+  pricingBreakdown: {
+    subtotal: 2990,
+    orderDiscount: 0,
+    lineItemDiscount: 0,
+    taxAmount: 195.61,
+    taxBreakdown: maoOrderCDS260130158593Items.map(item => ({
+      lineId: item.id,
+      taxAmount: item.priceBreakdown.taxes
+    })),
+    shippingFee: 0,
+    additionalFees: 0,
+    grandTotal: 2990,
+    paidAmount: 2990,
+    currency: 'THB'
+  },
+  total_amount: 2990,
+  payment_info: {
+    method: 'CREDIT_CARD',
+    status: 'PAID',
+    transaction_id: '17697739922881358120',
+    subtotal: 2990,
+    discounts: 0,
+    charges: 0,
+    amountIncludedTaxes: 2990,
+    amountExcludedTaxes: 2794.39,
+    taxes: 195.61,
+    cardNumber: '528560XXXXXX1117',
+    expiryDate: '**/****'
+  },
+  paymentDetails: [
+    {
+      id: 'PAY-CDS260130158593-001',
+      method: 'CREDIT_CARD',
+      status: 'PAID',
+      transactionId: '17697739922881358120',
+      amount: 2490,
+      currency: 'THB',
+      date: '2026-01-30T15:10:00+07:00',
+      gateway: 'KBank',
+      cardNumber: '528560XXXXXX1117',
+      expiryDate: '**/****',
+      invoiceNo: '17697739922881358120',
+      transactionType: 'SETTLEMENT',
+      settledItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          quantity: 1,
+          amount: 2490
+        }
+      ]
+    },
+    {
+      id: 'PAY-CDS260130158593-002',
+      method: 'T1',
+      status: 'PAID',
+      transactionId: 'T1-2002224934-2026013015',
+      amount: 500,
+      currency: 'THB',
+      date: '2026-01-30T15:10:00+07:00',
+      gateway: 'The1',
+      memberId: '2002224934',
+      invoiceNo: '17697739922881358120',
+      transactionType: 'SETTLEMENT',
+      settledItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          quantity: 1,
+          amount: 500
+        }
+      ]
+    }
+  ],
+  deliveryMethods: [
+    {
+      type: 'HOME_DELIVERY' as DeliveryMethodType,
+      itemCount: 1,
+      homeDelivery: {
+        recipient: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+        phone: '0624192696',
+        address: '134/466',
+        district: 'ท่าทราย',
+        city: 'เมืองนนทบุรี',
+        postalCode: '11000',
+        specialInstructions: ''
+      }
+    }
+  ],
+  deliveryTypeCode: 'HOME_DELIVERY',
+  sla_info: {
+    target_minutes: 4320,
+    elapsed_minutes: 1440,
+    status: 'COMPLIANT'
+  },
+  metadata: {
+    created_at: '2026-01-30T15:10:00+07:00',
+    updated_at: '2026-01-31T10:00:00+07:00',
+    priority: 'NORMAL',
+    store_name: 'Central World',
+    store_no: '',
+    order_created: '2026-01-30T15:10:00+07:00',
+    viewTypes: ['DS-WEB-STD']
+  },
+  on_hold: false,
+  fullTaxInvoice: true,
+  allowSubstitution: false,
+  allow_substitution: false,
+  t1Member: '2002224934',
+  taxId: '0135564014412',
+  companyName: 'บริษัท อินเทลลิเจ้นท์ โกลบอล จำกัด',
+  branchNo: '00000',
+  billingName: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+  billingAddress: {
+    street: '134/466',
+    subdistrict: 'ท่าทราย',
+    city: 'เมืองนนทบุรี',
+    state: 'นนทบุรี',
+    postal_code: '11000',
+    country: 'TH'
+  },
+  trackingNumber: 'KNJ0202601016215',
+  shippedFrom: 'Central World',
+  shippedOn: '2026-01-31T10:00:00+07:00',
+  eta: '02/01/2026',
+  relNo: 'CDS2601301585931',
+  subdistrict: 'ท่าทราย',
+  fulfillmentTimeline: [
+    {
+      id: 'FUL-HD-CDS260130158593-001',
+      status: 'Order Received',
+      timestamp: '2026-01-30T15:10:00',
+      details: 'Order received from customer'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-002',
+      status: 'Payment Confirmed',
+      timestamp: '2026-01-30T15:10:00',
+      details: 'Payment confirmed via Credit Card and The1 Points'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-003',
+      status: 'Processing',
+      timestamp: '2026-01-30T16:00:00',
+      details: 'Order is being processed'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-004',
+      status: 'Shipped',
+      timestamp: '2026-01-31T10:00:00',
+      details: 'Order shipped via Kerry Express'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-005',
+      status: 'Delivered',
+      timestamp: '2026-02-01T11:00:00',
+      details: 'Order delivered to customer'
+    }
+  ],
+  tracking: [
+    {
+      trackingNumber: 'KNJ0202601016215',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '02/01/2026',
+      shippedOn: '01/31/2026',
+      relNo: 'CDS2601301585931',
+      shippedFrom: 'Central World',
+      subdistrict: 'ท่าทราย',
+      shipToAddress: {
+        email: 'Engzaa@gmail.com',
+        name: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+        address: '134/466',
+        fullAddress: 'ท่าทราย, เมืองนนทบุรี, นนทบุรี 11000, TH',
+        allocationType: 'Delivery',
+        phone: '0624192696'
+      },
+      trackingUrl: 'https://th.kex-express.com/th/track/?track=KNJ0202601016215',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          shippedQty: 1,
+          orderedQty: 1,
+          uom: 'PCS'
+        }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2026-01-31T10:00:00', location: 'Central World' },
+        { status: 'In Transit', timestamp: '2026-01-31T18:00:00', location: 'Bangkok Hub' },
+        { status: 'Out for Delivery', timestamp: '2026-02-01T08:00:00', location: 'Nonthaburi' },
+        { status: 'Delivered', timestamp: '2026-02-01T11:00:00', location: 'ท่าทราย, เมืองนนทบุรี' }
+      ]
+    }
+  ]
+};
+
 // MAO ORDER: CDS260121226285
 // -----------------------------------------------------------------------------
 // Real MAO order extracted from Manhattan Active Omni system
@@ -11376,7 +11670,8 @@ const scenarioOrder = {
 // Add to mock orders
 mockApiOrders.unshift(scenarioOrder);
 
-// Add MAO orders last so they appear at the top (row 1, 2, 3, and 4)
+// Add MAO orders last so they appear at the top (row 1, 2, 3, 4, and 5)
+mockApiOrders.unshift(maoOrderCDS260130158593);    // Row 5 - Multi-payment delivered order (Credit Card + T1 Points)
 mockApiOrders.unshift(maoOrderCDS251229874674);    // Row 4 - Mixed fulfillment order
 mockApiOrders.unshift(maoOrderCDS260121226285);    // Row 3
 mockApiOrders.unshift(maoOrderW1156260115052036);  // Row 2

@@ -384,16 +384,17 @@ export interface StockAlertsResponse {
  * Transaction types for stock movements
  *
  * @remarks
- * Standard inventory transaction types following industry conventions:
+ * Standard inventory transaction types with display-friendly labels:
  *
- * - "stock_in": Inbound stock (receiving, restocking). Also known as "Goods Receipt"
- * - "stock_out": Outbound stock (sales, shipments). Also known as "Goods Issue"
- * - "adjustment": Inventory corrections (recount, damage, expiry, theft)
- * - "return": Customer or supplier returns (reverse transaction)
- * - "transfer": Stock movement between warehouses/locations
- * - "allocation": Stock reserved/allocated for specific orders or purposes
+ * - "Initial sync": Initial inventory synchronization from source system
+ * - "Adjust In": Positive inventory adjustment (increase stock)
+ * - "Adjust out": Negative inventory adjustment (decrease stock)
+ * - "Replacement": Stock replacement or substitution transaction
+ * - "Order Ship": Inventory deduction when order ships
+ *
+ * Note: Case sensitivity is intentional - "Adjust In" (capital I) vs "Adjust out" (lowercase o)
  */
-export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return" | "transfer" | "allocation"
+export type TransactionType = "Initial sync" | "Adjust In" | "Adjust out" | "Replacement" | "Order Ship"
 
 /**
  * Stock transaction record
@@ -402,19 +403,17 @@ export type TransactionType = "stock_in" | "stock_out" | "adjustment" | "return"
  * Represents a single stock movement with full audit trail.
  *
  * Transaction Impact:
- * - stock_in: Increases availableStock by quantity
- * - stock_out: Decreases availableStock by quantity
- * - adjustment: Can increase or decrease (quantity can be negative)
- * - return: Increases availableStock (reverses previous stock_out)
- * - transfer: Decreases at source, increases at destination
- * - allocation: Reserves stock for specific purpose (decreases available)
+ * - "Initial sync": Initial stock balance from system synchronization (positive)
+ * - "Adjust In": Increases availableStock by quantity (positive adjustment)
+ * - "Adjust out": Decreases availableStock by quantity (negative adjustment)
+ * - "Replacement": Stock replacement/substitution (can be positive or negative)
+ * - "Order Ship": Decreases availableStock when order ships
  *
  * Reference IDs:
- * - For stock_out with referenceId: Links to order (e.g., "ORD-12345")
- * - For return with referenceId: Links to original order
- * - For stock_in with referenceId: Links to PO or supplier invoice
- * - For transfer with referenceId: Links to transfer document (e.g., "TRF-12345")
- * - For allocation with referenceId: Links to order or allocation request
+ * - For "Order Ship" with referenceId: Links to order (e.g., "ORD-12345")
+ * - For "Initial sync" with referenceId: Links to sync batch ID
+ * - For "Adjust In"/"Adjust out" with referenceId: Links to adjustment document
+ * - For "Replacement" with referenceId: Links to replacement order/request
  */
 export interface StockTransaction {
   id: string
