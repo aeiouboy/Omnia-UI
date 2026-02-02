@@ -30,6 +30,7 @@ import {
 import { fetchInventoryData } from "@/lib/inventory-service"
 import type { InventoryItem } from "@/types/inventory"
 import { InventoryEmptyState } from "@/components/inventory/inventory-empty-state"
+import { PaginationControls } from "@/components/pagination-controls"
 
 // View Types from requirements
 const VIEW_TYPES = [
@@ -53,6 +54,10 @@ export default function InventorySupplyPage() {
     const [productName, setProductName] = useState("")
     const [supplyType, setSupplyType] = useState<string>("all")
     const [viewType, setViewType] = useState<string>("all")
+
+    // Pagination States
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(25)
 
     // Data States
     const [data, setData] = useState<InventoryItem[]>([])
@@ -139,6 +144,11 @@ export default function InventorySupplyPage() {
         }
     }, [storeId, storeName, productId, productName])
 
+    // Reset to page 1 when any filter changes
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [storeId, storeName, productId, productName, supplyType, viewType])
+
     // Filter Logic
     const filteredData = useMemo(() => {
         // Determine search mode - distinguish between store-based and item-based searches
@@ -217,6 +227,16 @@ export default function InventorySupplyPage() {
         return filtered
     }, [data, storeId, storeName, productId, productName, supplyType, viewType, sortField, sortOrder])
 
+    // Pagination logic
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize
+        return filteredData.slice(startIndex, startIndex + pageSize)
+    }, [filteredData, currentPage, pageSize])
+
+    const totalPages = useMemo(() => {
+        return Math.ceil(filteredData.length / pageSize)
+    }, [filteredData.length, pageSize])
+
     const handleClear = () => {
         setStoreId("")
         setStoreName("")
@@ -224,6 +244,17 @@ export default function InventorySupplyPage() {
         setProductName("")
         setSupplyType("all")
         setViewType("all")
+        setCurrentPage(1)
+    }
+
+    // Pagination handlers
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page)
+    }
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size)
+        setCurrentPage(1)
     }
 
     const handleRefresh = () => {
@@ -294,7 +325,7 @@ export default function InventorySupplyPage() {
                 {/* Header - Match stores page layout */}
                 <div className="flex items-center justify-between">
                     <div className="flex-1">
-                        <h1 className="text-2xl font-semibold tracking-tight">Inventory Availability</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight">Inventory</h1>
                         <p className="text-muted-foreground mt-1">
                             View and manage inventory supply levels across all stores and items
                         </p>
@@ -312,96 +343,118 @@ export default function InventorySupplyPage() {
                     </div>
                 </div>
 
-                {/* Compact Filter Bar - Horizontal layout matching stores page */}
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between overflow-x-auto">
-                    <div className="flex flex-nowrap gap-3 items-center">
-                        {/* Store Search Group */}
-                        <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
-                            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Store</span>
-                            <Input
-                                placeholder="Search Store ID..."
-                                value={storeId}
-                                onChange={(e) => setStoreId(e.target.value)}
-                                className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
-                            />
-                            <Input
-                                placeholder="Search Store Name..."
-                                value={storeName}
-                                onChange={(e) => setStoreName(e.target.value)}
-                                className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
-                            />
+                {/* Filter Bar - Grid layout with labels above inputs */}
+                <div className="space-y-4">
+                    {/* Row 1: Text Search Inputs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Store ID</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search Store ID..."
+                                    value={storeId}
+                                    onChange={(e) => setStoreId(e.target.value)}
+                                    className="min-w-[160px] h-9 pl-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                                />
+                            </div>
                         </div>
-
-                        {/* Vertical Divider */}
-                        <div className="hidden sm:block h-8 w-px bg-border" />
-
-                        {/* Product Search Group */}
-                        <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-muted/5">
-                            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Product</span>
-                            <Input
-                                placeholder="Search Product ID..."
-                                value={productId}
-                                onChange={(e) => setProductId(e.target.value)}
-                                className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
-                            />
-                            <Input
-                                placeholder="Search Product Name..."
-                                value={productName}
-                                onChange={(e) => setProductName(e.target.value)}
-                                className="min-w-[160px] h-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
-                            />
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Store Name</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search Store Name..."
+                                    value={storeName}
+                                    onChange={(e) => setStoreName(e.target.value)}
+                                    className="min-w-[160px] h-9 pl-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                                />
+                            </div>
                         </div>
-
-                        {/* Supply Type */}
-                        <Select value={supplyType} onValueChange={setSupplyType}>
-                            <SelectTrigger className="w-[160px] h-9 flex-shrink-0">
-                                <SelectValue placeholder="All Supply Types" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Supply Types</SelectItem>
-                                <SelectItem value="On Hand Available">On Hand</SelectItem>
-                                <SelectItem value="Pre-Order">Pre-Order</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        {/* View Type */}
-                        <Select value={viewType} onValueChange={setViewType}>
-                            <SelectTrigger className="w-[280px] h-9 flex-shrink-0">
-                                <SelectValue placeholder="All View Types" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All View Types</SelectItem>
-                                {VIEW_TYPES.map(vt => (
-                                    <SelectItem key={vt.value} value={vt.value}>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{vt.label}</span>
-                                            <span className="text-xs text-muted-foreground">{vt.description}</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Product ID</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search Product ID..."
+                                    value={productId}
+                                    onChange={(e) => setProductId(e.target.value)}
+                                    className="min-w-[160px] h-9 pl-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Product Name</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search Product Name..."
+                                    value={productName}
+                                    onChange={(e) => setProductName(e.target.value)}
+                                    className="min-w-[160px] h-9 pl-9 text-sm placeholder:transition-opacity placeholder:duration-200 focus:placeholder:opacity-0"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {/* Inline loading indicator for filter changes */}
-                        {filterLoading && (
-                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                <span>Loading...</span>
-                            </div>
-                        )}
+                    {/* Row 2: Dropdowns and Actions */}
+                    <div className="flex flex-wrap items-end gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Supply Type</label>
+                            <Select value={supplyType} onValueChange={setSupplyType}>
+                                <SelectTrigger className="w-[180px] h-9">
+                                    <SelectValue placeholder="All Supply Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Supply Types</SelectItem>
+                                    <SelectItem value="On Hand Available">On Hand</SelectItem>
+                                    <SelectItem value="Pre-Order">Pre-Order</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                        {/* Clear All Button */}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleClear}
-                            disabled={!storeId && !storeName && !productId && !productName && supplyType === "all" && viewType === "all"}
-                            className="h-9 hover:bg-gray-100"
-                        >
-                            Clear All
-                        </Button>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">View Type</label>
+                            <Select value={viewType} onValueChange={setViewType}>
+                                <SelectTrigger className="w-[280px] h-9">
+                                    <SelectValue placeholder="All View Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All View Types</SelectItem>
+                                    {VIEW_TYPES.map(vt => (
+                                        <SelectItem key={vt.value} value={vt.value}>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{vt.label}</span>
+                                                <span className="text-xs text-muted-foreground">{vt.description}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex-1" />
+
+                        <div className="flex items-center gap-2">
+                            {/* Inline loading indicator for filter changes */}
+                            {filterLoading && (
+                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span>Loading...</span>
+                                </div>
+                            )}
+
+                            {/* Clear All Button */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleClear}
+                                disabled={!storeId && !storeName && !productId && !productName && supplyType === "all" && viewType === "all"}
+                                className="h-9 hover:bg-gray-100"
+                            >
+                                Clear All
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -450,12 +503,12 @@ export default function InventorySupplyPage() {
                                                 Product Name
                                             </TableHead>
                                             <TableHead
-                                                className="whitespace-nowrap text-right cursor-pointer hover:bg-muted/50"
-                                                onClick={() => handleSort("currentStock")}
+                                                className="whitespace-nowrap text-center cursor-pointer hover:bg-muted/50"
+                                                onClick={() => handleSort("supplyType")}
                                             >
-                                                <div className="flex items-center justify-end">
-                                                    Total Qty
-                                                    <SortIcon field="currentStock" />
+                                                <div className="flex items-center justify-center">
+                                                    Supply Type
+                                                    <SortIcon field="supplyType" />
                                                 </div>
                                             </TableHead>
                                             <TableHead
@@ -468,12 +521,12 @@ export default function InventorySupplyPage() {
                                                 </div>
                                             </TableHead>
                                             <TableHead
-                                                className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
-                                                onClick={() => handleSort("supplyType")}
+                                                className="whitespace-nowrap text-right cursor-pointer hover:bg-muted/50"
+                                                onClick={() => handleSort("currentStock")}
                                             >
-                                                <div className="flex items-center">
-                                                    Supply Type
-                                                    <SortIcon field="supplyType" />
+                                                <div className="flex items-center justify-end">
+                                                    Total Qty
+                                                    <SortIcon field="currentStock" />
                                                 </div>
                                             </TableHead>
                                         </TableRow>
@@ -496,7 +549,7 @@ export default function InventorySupplyPage() {
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            filteredData.map((item, index) => (
+                                            paginatedData.map((item, index) => (
                                                 <TableRow key={item.id} className={`hover:bg-muted/50 transition-colors ${index % 2 === 1 ? 'bg-muted/30' : ''}`}>
                                                     <TableCell className="font-medium text-sm">
                                                         {item.storeId || "—"}
@@ -510,25 +563,25 @@ export default function InventorySupplyPage() {
                                                     <TableCell className="text-sm">
                                                         {item.productName || "—"}
                                                     </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-sm font-semibold">
-                                                            {item.currentStock.toLocaleString()}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-sm font-semibold ${item.availableStock > 0
-                                                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                                            }`}>
-                                                            {item.availableStock.toLocaleString()}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell>
+                                                    <TableCell className="text-center">
                                                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.supplyType === "Pre-Order"
                                                             ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
                                                             : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                                                             }`}>
                                                             {item.supplyType === "On Hand Available" ? "On Hand" : (item.supplyType || "On Hand")}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <span className={`text-sm font-semibold ${item.availableStock > 0
+                                                            ? "text-green-600"
+                                                            : "text-red-600"
+                                                            }`}>
+                                                            {item.availableStock.toLocaleString()}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <span className="text-sm text-muted-foreground">
+                                                            {item.currentStock.toLocaleString()}
                                                         </span>
                                                     </TableCell>
                                                 </TableRow>
@@ -537,17 +590,17 @@ export default function InventorySupplyPage() {
                                     </TableBody>
                                 </Table>
                             </div>
-                            {/* Footer - Improved styling */}
-                            <div className="flex items-center justify-between border-t bg-muted/30 px-4 py-3">
-                                <p className="text-xs text-muted-foreground">
-                                    {filteredData.length} {filteredData.length === 1 ? 'record' : 'records'} displayed
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {supplyType !== "all" || viewType !== "all"
-                                        ? `Filtered from ${data.length} total records`
-                                        : `${data.length} total records`
-                                    }
-                                </p>
+                            {/* Pagination Footer */}
+                            <div className="border-t px-4 py-4">
+                                <PaginationControls
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    pageSize={pageSize}
+                                    totalItems={filteredData.length}
+                                    onPageChange={handlePageChange}
+                                    onPageSizeChange={handlePageSizeChange}
+                                    isLoading={filterLoading}
+                                />
                             </div>
                         </CardContent>
                     </Card>

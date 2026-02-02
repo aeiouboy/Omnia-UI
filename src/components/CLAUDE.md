@@ -79,4 +79,11 @@
 |----|------|---|-------|------|
 | #6273 | 9:05 PM | 🔄 | Updated Allocate-by-Order Table DateTime Formatting | ~505 |
 | #5861 | 11:48 AM | 🔵 | Order Detail Fulfillment Tab Architecture Analysis | ~887 |
+
+### Feb 2, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6650 | 3:44 PM | 🔵 | Order Management Date Range Filter Implementation | ~532 |
+| #6646 | 3:43 PM | 🔵 | Order Date Range Filtering Implementation | ~448 |
 </claude-mem-context>

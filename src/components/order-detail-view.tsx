@@ -36,8 +36,17 @@ import {
   Store,
   StickyNote,
   Plus,
+  MoreVertical,
+  Printer,
+  FileDown,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+// Dialog import removed - Notes moved to tab
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
@@ -56,6 +65,7 @@ import { PaymentsTab } from "./order-detail/payments-tab"
 import { CancelOrderDialog } from "./order-detail/cancel-order-dialog"
 import { isOrderCancellable, getCancelDisabledReason } from "@/lib/order-status-utils"
 import { getCancelReasonById } from "@/lib/cancel-reasons"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface OrderDetailViewProps {
   order?: Order | null;
@@ -256,15 +266,61 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [isCancelling, setIsCancelling] = useState(false)
 
   // Notes feature state
-  const [showNotesPanel, setShowNotesPanel] = useState(false)
   const [notes, setNotes] = useState<Note[]>([])
   const [newNote, setNewNote] = useState("")
   const [showAddNoteForm, setShowAddNoteForm] = useState(false)
   const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
 
+  // Order data fetching state (for route-based access via orderId)
+  const [fetchedOrder, setFetchedOrder] = useState<Order | null>(null)
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  // Use prop order if provided, otherwise use fetched order data
+  const displayOrder = order || fetchedOrder
+
+  // Fetch order data when orderId is provided but order prop is not
+  useEffect(() => {
+    // Only fetch if orderId is provided and order prop is not
+    if (orderId && !order) {
+      const fetchOrderData = async () => {
+        setIsLoadingOrder(true)
+        setFetchError(null)
+
+        try {
+          const response = await fetch(`/api/orders/details/${orderId}`)
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch order: ${response.status} ${response.statusText}`)
+          }
+
+          const data = await response.json()
+
+          if (data.success && data.data) {
+            setFetchedOrder(data.data)
+          } else {
+            throw new Error("Order not found")
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Failed to load order details"
+          setFetchError(errorMessage)
+          toast({
+            title: "Error loading order",
+            description: errorMessage,
+            variant: "destructive",
+          })
+        } finally {
+          setIsLoadingOrder(false)
+        }
+      }
+
+      fetchOrderData()
+    }
+  }, [orderId, order, toast])
+
   // Determine if order can be cancelled based on its status
-  const canCancelOrder = order?.status
-    ? isOrderCancellable(order.status)
+  const canCancelOrder = displayOrder?.status
+    ? isOrderCancellable(displayOrder.status)
     : false
 
   // Compute note count for badge (total of all notes)
@@ -272,11 +328,11 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
   // Fetch notes and user on mount
   useEffect(() => {
-    if (order?.id) {
+    if (displayOrder?.id) {
       fetchNotes()
       fetchCurrentUser()
     }
-  }, [order?.id])
+  }, [displayOrder?.id])
 
   const fetchNotes = async () => {
     // TODO: Replace with actual API call
@@ -284,14 +340,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     const mockNotes: Note[] = [
       {
         id: '1',
-        orderId: order?.id || '',
+        orderId: displayOrder?.id || '',
         content: 'Customer requested gift wrapping',
         createdBy: 'buabsupattra@central.co.th',
         createdAt: '2026-01-13T13:13:00',
       },
       {
         id: '2',
-        orderId: order?.id || '',
+        orderId: displayOrder?.id || '',
         content: 'Address verified with customer',
         createdBy: 'jane.smith@central.co.th',
         createdAt: '2026-01-13T10:15:00',
@@ -311,14 +367,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
     try {
       const noteData = {
-        orderId: order?.id || '',
+        orderId: displayOrder?.id || '',
         content: newNote.trim(),
         createdBy: currentUser?.email || 'system@central.co.th', // Auto-populated
         createdAt: formatNoteTimestamp(new Date()), // Auto-populated: "2026-01-21T11:50:00"
       }
 
       // TODO: Replace with actual API call
-      // const response = await fetch(`/api/orders/${order?.id}/notes`, {
+      // const response = await fetch(`/api/orders/${displayOrder?.id}/notes`, {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(noteData),
@@ -355,7 +411,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const handleDeleteNote = async (noteId: string) => {
     try {
       // TODO: Replace with actual API call
-      // const response = await fetch(`/api/orders/${order?.id}/notes/${noteId}`, {
+      // const response = await fetch(`/api/orders/${displayOrder?.id}/notes/${noteId}`, {
       //   method: 'DELETE',
       // })
       // if (!response.ok) throw new Error('Failed to delete note')
@@ -388,7 +444,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       setExpandedItems({})
     } else {
       const allExpanded: Record<string, boolean> = {}
-      order?.items?.forEach((item: ApiOrderItem) => {
+      displayOrder?.items?.forEach((item: ApiOrderItem) => {
         allExpanded[item.product_sku] = true
       })
       setExpandedItems(allExpanded)
@@ -397,20 +453,20 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   }
 
   const copyOrderIdToClipboard = async () => {
-    if (order?.id) {
+    if (displayOrder?.order_no) {
       try {
-        await navigator.clipboard.writeText(order.id)
+        await navigator.clipboard.writeText(displayOrder.order_no)
         setCopiedOrderId(true)
         toast({
           title: "Copied to clipboard",
-          description: `Order ID ${order.id} copied successfully`,
+          description: `Order number ${displayOrder.order_no} copied successfully`,
           variant: "default",
         })
         setTimeout(() => setCopiedOrderId(false), 2000)
       } catch (err) {
         toast({
           title: "Copy failed",
-          description: "Failed to copy order ID to clipboard",
+          description: "Failed to copy order number to clipboard",
           variant: "destructive",
         })
       }
@@ -427,7 +483,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       const reason = getCancelReasonById(reasonId)
       toast({
         title: "Order Cancelled",
-        description: `Order ${order?.order_no} has been cancelled. Reason: ${reason?.shortDescription || reasonId}`,
+        description: `Order ${displayOrder?.order_no} has been cancelled. Reason: ${reason?.shortDescription || reasonId}`,
         variant: "default",
       })
       setShowCancelDialog(false)
@@ -443,8 +499,18 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     }
   }
 
-  const filteredItems = order?.items
-    ? order.items.filter((item: ApiOrderItem) => {
+  const handleRefresh = () => {
+    // TODO: Implement actual data refresh logic
+    toast({
+      title: "Refreshing...",
+      description: "Order data is being refreshed.",
+      variant: "default",
+    })
+    // In production, this would trigger a re-fetch of order data
+  }
+
+  const filteredItems = displayOrder?.items
+    ? displayOrder.items.filter((item: ApiOrderItem) => {
       const searchTerm = itemSearchTerm.toLowerCase();
       const productName = (item.product_name || '').toLowerCase();
       const productSku = (item.product_sku || '').toLowerCase();
@@ -457,69 +523,221 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
     })
     : [];
 
+  // Retry fetch function for error state
+  const handleRetryFetch = () => {
+    if (orderId && !order) {
+      setFetchError(null)
+      setIsLoadingOrder(true)
+      fetch(`/api/orders/details/${orderId}`)
+        .then(response => {
+          if (!response.ok) throw new Error(`Failed to fetch order: ${response.status}`)
+          return response.json()
+        })
+        .then(data => {
+          if (data.success && data.data) {
+            setFetchedOrder(data.data)
+          } else {
+            throw new Error("Order not found")
+          }
+        })
+        .catch(error => {
+          const errorMessage = error instanceof Error ? error.message : "Failed to load order details"
+          setFetchError(errorMessage)
+          toast({
+            title: "Error loading order",
+            description: errorMessage,
+            variant: "destructive",
+          })
+        })
+        .finally(() => setIsLoadingOrder(false))
+    }
+  }
+
+  // Loading state - show skeleton
+  if (isLoadingOrder) {
+    return (
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-md" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-28" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Info Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-3 sm:p-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div className="space-y-5">
+          <Skeleton className="h-10 w-full rounded-md" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state - show error with retry
+  if (fetchError && !displayOrder) {
+    return (
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push('/orders')}
+            className="h-10 w-10"
+            title="Back to Orders"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-enterprise-dark">
+            Order Details
+          </h1>
+        </div>
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-700 flex items-center justify-between">
+            <span>
+              <strong>Error:</strong> {fetchError}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetryFetch}
+              className="ml-4"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Orders</span>
-              <span className="sm:hidden">Back</span>
-            </Button> */}
-            <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-enterprise-dark truncate">Order Details</h1>
-              <p className="text-xs sm:text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+            {/* Back Button - Icon only */}
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
-              onClick={() => setShowNotesPanel(true)}
-              title="Order notes"
+              onClick={() => router.push('/orders')}
+              className="h-10 w-10 min-h-[44px]"
+              title="Back to Orders"
             >
-              <StickyNote className="h-5 w-5" />
-              {noteCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            {/* Title Area */}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-enterprise-dark truncate">
+                Order Details
+              </h1>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-muted-foreground font-mono">
+                  {displayOrder?.order_no || 'N/A'}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={copyOrderIdToClipboard}
+                  className="h-6 w-6"
+                  title="Copy order number to clipboard"
                 >
-                  {noteCount}
-                </Badge>
-              )}
+                  {copiedOrderId ? (
+                    <Check className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          {/* Action Button Group */}
+          <div className="flex items-center gap-2">
+            {/* Refresh Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              className="min-h-[44px] sm:min-h-0"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Refresh</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
+            {/* Cancel Order Button */}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowCancelDialog(true)}
+              disabled={!canCancelOrder || isCancelling}
+              className={`min-h-[44px] sm:min-h-0 ${!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}`}
+              title={!canCancelOrder ? getCancelDisabledReason(displayOrder?.status || '') : "Cancel this order"}
+            >
+              <Ban className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Cancel Order</span>
             </Button>
+            {/* Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="min-h-[44px] sm:min-h-0">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => toast({ title: "Print", description: "Print functionality coming soon." })}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast({ title: "Export", description: "Export functionality coming soon." })}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Export
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast({ title: "Duplicate", description: "Duplicate functionality coming soon." })}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicate
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-
-        {/* Action Buttons - Mobile First Design */}
-        {/* <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3 flex-1">
-            <Button variant="outline" size="sm" className="justify-center">
-              <Download className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Export</span>
-              <span className="sm:hidden text-xs">Export</span>
-            </Button>
-            <Button variant="outline" size="sm" className="justify-center">
-              <Edit className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Edit Order</span>
-              <span className="sm:hidden text-xs">Edit</span>
-            </Button>
-            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 justify-center col-span-2 sm:col-span-1">
-              <RefreshCw className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Process Order</span>
-              <span className="sm:hidden text-xs">Process</span>
-            </Button>
-          </div>
-          <Button variant="outline" size="sm" onClick={onClose} className="hidden sm:flex">
-            <X className="h-4 w-4" />
-          </Button>
-        </div> */}
       </div>
 
       {/* SLA Alert - DISABLED */}
@@ -541,7 +759,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           <CardContent className="p-3 sm:p-4">
             <div className="space-y-2">
               <p className="text-xs sm:text-sm text-enterprise-text-light">Status</p>
-              <div><OrderStatusBadge status={order?.status || 'N/A'} /></div>
+              <div><OrderStatusBadge status={displayOrder?.status || 'N/A'} /></div>
             </div>
           </CardContent>
         </Card>
@@ -559,7 +777,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           <CardContent className="p-3 sm:p-4">
             <div className="space-y-2">
               <p className="text-xs sm:text-sm text-enterprise-text-light">Channel</p>
-              <div><ChannelBadge channel={order?.channel || 'N/A'} /></div>
+              <div><ChannelBadge channel={displayOrder?.channel || 'N/A'} /></div>
             </div>
           </CardContent>
         </Card>
@@ -569,7 +787,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-enterprise-text-light">Total Amount</p>
-                <p className="text-base sm:text-lg font-semibold mt-1 truncate">{formatCurrency(order?.total_amount)}</p>
+                <p className="text-base sm:text-lg font-semibold mt-1 truncate">{formatCurrency(displayOrder?.total_amount)}</p>
               </div>
               <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
             </div>
@@ -579,19 +797,20 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5">
-        <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 h-auto p-1">
+        <TabsList className="bg-white border border-enterprise-border grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 h-auto p-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Overview</TabsTrigger>
-          <TabsTrigger value="items" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Items ({order?.items?.length || 0})</TabsTrigger>
+          <TabsTrigger value="items" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Items ({displayOrder?.items?.length || 0})</TabsTrigger>
           <TabsTrigger value="payments" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Payments</TabsTrigger>
           <TabsTrigger value="fulfillment" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Fulfillment</TabsTrigger>
-          {/* <TabsTrigger value="delivery" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Delivery</TabsTrigger> */}
           <TabsTrigger value="tracking" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Tracking</TabsTrigger>
-          {/* <TabsTrigger value="timeline" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Timeline</TabsTrigger> */}
+          <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap flex items-center gap-1">
+            <StickyNote className="h-3 w-3 hidden sm:inline" />
+            Notes {noteCount > 0 && `(${noteCount})`}
+          </TabsTrigger>
           <TabsTrigger value="audit" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap flex items-center gap-1">
             <History className="h-3 w-3 hidden sm:inline" />
             Audit Trail
           </TabsTrigger>
-          {/* <TabsTrigger value="notes" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">Notes</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -608,7 +827,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-enterprise-text-light">Name</p>
-                    <p className="font-medium">{order?.customer?.name || '-'}</p>
+                    <p className="font-medium">{displayOrder?.customer?.name || '-'}</p>
                   </div>
                   {/* <div>
                     <p className="text-sm text-enterprise-text-light">Customer ID</p>
@@ -616,23 +835,23 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Customer Type</p>
-                    <p className="text-sm">{order?.customer?.customerType || '-'}</p>
+                    <p className="text-sm">{displayOrder?.customer?.customerType || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Cust Ref</p>
-                    <p className="font-mono text-sm">{order?.customer?.custRef || '-'}</p>
+                    <p className="font-mono text-sm">{displayOrder?.customer?.custRef || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Email</p>
-                    <p className="text-sm">{order?.customer?.email || '-'}</p>
+                    <p className="text-sm">{displayOrder?.customer?.email || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Phone Number</p>
-                    <p className="text-sm">{order?.customer?.phone || '-'}</p>
+                    <p className="text-sm">{displayOrder?.customer?.phone || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">The1 Member</p>
-                    <p className="font-mono text-sm">{order?.customer?.T1Number || '-'}</p>
+                    <p className="font-mono text-sm">{displayOrder?.customer?.T1Number || '-'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -651,9 +870,9 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order ID</p>
                     <div className="flex items-center gap-2">
-                      <p className="font-mono text-sm">{order?.id || '-'}</p>
+                      <p className="font-mono text-sm">{displayOrder?.id || '-'}</p>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={copyOrderIdToClipboard}
                         className="h-6 px-2"
@@ -677,47 +896,47 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Store No.</p>
-                    <p className="font-medium">{order?.metadata?.store_no || '-'}</p>
+                    <p className="font-medium">{displayOrder?.metadata?.store_no || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order Created</p>
-                    <p className="text-sm">{formatOrderCreatedDate(order?.metadata?.order_created)}</p>
+                    <p className="text-sm">{formatOrderCreatedDate(displayOrder?.metadata?.order_created)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order Date</p>
-                    <p className="text-sm">{order?.order_date ? formatOrderCreatedDate(order.order_date) : '-'}</p>
+                    <p className="text-sm">{displayOrder?.order_date ? formatOrderCreatedDate(displayOrder.order_date) : '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Business Unit</p>
-                    <p className="font-medium">{order?.business_unit || '-'}</p>
+                    <p className="font-medium">{displayOrder?.business_unit || '-'}</p>
                   </div>
                   {/* <div>
                     <p className="text-sm text-enterprise-text-light">Order Type</p>
-                    <Badge variant="outline">{order?.order_type || '-'}</Badge>
+                    <Badge variant="ghost">{order?.order_type || '-'}</Badge>
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Full Tax Invoice</p>
-                    <p className="text-sm">{order?.fullTaxInvoice ? 'Yes' : 'No'}</p>
+                    <p className="text-sm">{displayOrder?.fullTaxInvoice ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Selling Channel</p>
-                    <p className="text-sm">{order?.sellingChannel || order?.channel || '-'}</p>
+                    <p className="text-sm">{displayOrder?.sellingChannel || displayOrder?.channel || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Allow Substitution</p>
-                    <p className="text-sm">{order?.allow_substitution ? 'Yes' : 'No'}</p>
+                    <p className="text-sm">{displayOrder?.allow_substitution ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Tax ID</p>
-                    <p className="font-mono text-sm">{order?.taxId || '-'}</p>
+                    <p className="font-mono text-sm">{displayOrder?.taxId || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Company Name</p>
-                    <p className="text-sm">{order?.companyName || '-'}</p>
+                    <p className="text-sm">{displayOrder?.companyName || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Branch No.</p>
-                    <p className="font-mono text-sm">{order?.branchNo || '-'}</p>
+                    <p className="font-mono text-sm">{displayOrder?.branchNo || '-'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -742,12 +961,12 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     </span>
                   </div>
                 </div> */}
-                {order?.deliveryMethods && order.deliveryMethods.length > 0 ? (
+                {displayOrder?.deliveryMethods && displayOrder.deliveryMethods.length > 0 ? (
                   <>
                     {/* Find home delivery and click collect methods */}
                     {(() => {
-                      const homeDelivery = order.deliveryMethods.find(d => d.type === 'HOME_DELIVERY');
-                      const clickCollect = order.deliveryMethods.find(d => d.type === 'CLICK_COLLECT');
+                      const homeDelivery = displayOrder.deliveryMethods.find(d => d.type === 'HOME_DELIVERY');
+                      const clickCollect = displayOrder.deliveryMethods.find(d => d.type === 'CLICK_COLLECT');
                       const isMixed = homeDelivery && clickCollect;
 
                       return (
@@ -757,7 +976,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                             <div className={isMixed ? 'border-b border-gray-200 pb-4 mb-4' : ''}>
                               <HomeDeliverySection
                                 delivery={homeDelivery}
-                                deliveryLabel={getCustomDeliveryLabel(order?.deliveryTypeCode)}
+                                deliveryLabel={getCustomDeliveryLabel(displayOrder?.deliveryTypeCode)}
                               />
                             </div>
                           )}
@@ -775,7 +994,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                           {clickCollect && (
                             <ClickCollectSection
                               delivery={clickCollect}
-                              deliveryLabel={getCustomDeliveryLabel(order?.deliveryTypeCode)}
+                              deliveryLabel={getCustomDeliveryLabel(displayOrder?.deliveryTypeCode)}
                             />
                           )}
                         </>
@@ -799,47 +1018,47 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   Payment Information
                   <Badge
                     variant="outline"
-                    className={order?.payment_info?.status === 'PAID'
+                    className={displayOrder?.payment_info?.status === 'PAID'
                       ? 'bg-green-100 text-green-800 border-green-300'
                       : 'bg-gray-100 text-gray-800 border-gray-300'}
                   >
-                    {order?.payment_info?.status === 'PAID' ? 'PAID' : 'PENDING'}
+                    {displayOrder?.payment_info?.status === 'PAID' ? 'PAID' : 'PENDING'}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Subtotal</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.subtotal)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.payment_info?.subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Discounts</span>
-                  <span className="text-sm font-mono text-red-600">-{formatCurrency(order?.payment_info?.discounts)}</span>
+                  <span className="text-sm font-mono text-red-600">-{formatCurrency(displayOrder?.payment_info?.discounts)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Charges</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.charges)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.payment_info?.charges)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Shipping Fee</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.orderDeliveryFee)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.orderDeliveryFee)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Amount Included Taxes</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.amountIncludedTaxes)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.payment_info?.amountIncludedTaxes)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Amount Excluded Taxes</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.amountExcludedTaxes)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.payment_info?.amountExcludedTaxes)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-enterprise-text-light">Taxes</span>
-                  <span className="text-sm font-mono">{formatCurrency(order?.payment_info?.taxes)}</span>
+                  <span className="text-sm font-mono">{formatCurrency(displayOrder?.payment_info?.taxes)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center font-semibold">
                   <span>Total</span>
-                  <span className="text-lg font-mono">{formatCurrency(order?.total_amount)}</span>
+                  <span className="text-lg font-mono">{formatCurrency(displayOrder?.total_amount)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -853,7 +1072,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <CardTitle className="text-lg sm:text-xl">Order Items</CardTitle>
-                    <CardDescription className="text-sm">{order?.items?.length || 0} items in this order</CardDescription>
+                    <CardDescription className="text-sm">{displayOrder?.items?.length || 0} items in this order</CardDescription>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-72">
@@ -867,7 +1086,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                       />
                     </div>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={toggleAllItems}
                       className="whitespace-nowrap"
@@ -1275,7 +1494,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </p>
                   {itemSearchTerm && (
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       className="mt-4"
                       onClick={() => setItemSearchTerm('')}
@@ -1290,12 +1509,12 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
-          {order && <PaymentsTab order={order} />}
+          {displayOrder && <PaymentsTab order={displayOrder} />}
         </TabsContent>
 
         <TabsContent value="fulfillment" className="space-y-4">
           {/* Fulfillment Timeline */}
-          <FulfillmentTimeline orderId={order?.id || ""} orderData={order} />
+          <FulfillmentTimeline orderId={displayOrder?.id || ""} orderData={displayOrder} />
         </TabsContent>
 
         {/* <TabsContent value="delivery" className="space-y-4">
@@ -1320,7 +1539,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">Vehicle Type</p>
-                      <Badge variant="outline">{(order as any)?.delivery?.vehicleType || 'N/A'}</Badge>
+                      <Badge variant="ghost">{(order as any)?.delivery?.vehicleType || 'N/A'}</Badge>
                     </div>
                     <div>
                       <p className="text-sm text-enterprise-text-light">License Plate</p>
@@ -1354,7 +1573,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         </TabsContent> */}
 
         <TabsContent value="tracking" className="space-y-4">
-          <TrackingTab orderId={order?.id || ""} orderData={order} />
+          <TrackingTab orderId={displayOrder?.id || ""} orderData={displayOrder} />
         </TabsContent>
 
         {/* <TabsContent value="timeline" className="space-y-4">
@@ -1379,7 +1598,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                           </p>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="ghost" className="text-xs">
                             {event.status || 'N/A'}
                           </Badge>
                           <span className="text-xs text-enterprise-text-light">by {event.actor || 'System'}</span>
@@ -1398,208 +1617,146 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </Card>
         </TabsContent> */}
 
-        <TabsContent value="audit" className="space-y-4">
-          <AuditTrailTab
-            orderId={order?.id || ""}
-            orderData={order}
-          />
-        </TabsContent>
-
-        {/* <TabsContent value="notes" className="space-y-4">
+        {/* Notes Tab Content */}
+        <TabsContent value="notes" className="space-y-4">
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <MessageSquare className="h-5 w-5" />
-                Notes & Comments
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <StickyNote className="h-5 w-5" />
+                  Notes
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddNoteForm(!showAddNoteForm)}
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Note
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
-              {false ? ( // No notes info in API payload
-                <div className="space-y-4">
-                  {(order as any)?.notes?.map((note: any) => (
-                    <div key={note.id} className="border-l-4 border-blue-200 pl-4 py-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {note.type || 'General'}
-                          </Badge>
-                          <span className="text-sm font-medium">{note.author || 'N/A'}</span>
-                        </div>
-                        <span className="text-xs text-enterprise-text-light">
-                          {note.timestamp ? new Date(note.timestamp).toLocaleString() : 'N/A'}
-                        </span>
-                      </div>
-                      <p className="text-sm">{note.message || 'No message content.'}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <MessageSquare className="mx-auto h-12 w-12 text-gray-300" />
-                  <p className="mt-4 text-sm text-muted-foreground">No notes or comments for this order.</p>
-                </div>
-              )}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[150px]">Note Type</TableHead>
+                      <TableHead>Note</TableHead>
+                      <TableHead className="w-[200px]">Created By</TableHead>
+                      <TableHead className="w-[180px]">Created On</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Add Form Row - CONDITIONAL (only show when showAddNoteForm is true) */}
+                    {showAddNoteForm && (
+                      <TableRow className="bg-muted/30">
+                        <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                          Order Remark
+                        </TableCell>
+                        <TableCell className="align-top pt-3">
+                          <Textarea
+                            placeholder="Enter your note here..."
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            className="min-h-[80px] resize-none text-sm"
+                            maxLength={500}
+                            autoFocus
+                          />
+                          <div className="flex justify-end gap-2 mt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setNewNote("")
+                                setShowAddNoteForm(false)
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleSaveNote}
+                              disabled={!newNote.trim()}
+                            >
+                              Save Note
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                          {currentUser?.email || '-'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                          {formatNoteTimestamp(new Date())}
+                        </TableCell>
+                        <TableCell className="align-top pt-3">
+                        </TableCell>
+                      </TableRow>
+                    )}
+
+                    {/* Existing Notes */}
+                    {notes.map((note) => (
+                      <TableRow key={note.id}>
+                        <TableCell className="text-sm align-top">
+                          Order Remark
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground align-top">
+                          {note.createdBy}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground align-top">
+                          {note.createdAt}
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            title="Delete note"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+
+                    {/* Empty State */}
+                    {notes.length === 0 && !showAddNoteForm && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                          <StickyNote className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                          <p>No notes yet.</p>
+                          <p className="text-xs mt-1">Click &quot;Add Note&quot; to add your first note.</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
-        </TabsContent> */}
-      </Tabs>
+        </TabsContent>
 
-      {/* Sticky Bottom Cancel Button */}
-      <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-4">
-        <div className="max-w-3xl mx-auto flex justify-center">
-          <Button
-            variant="destructive"
-            size="lg"
-            onClick={() => setShowCancelDialog(true)}
-            disabled={!canCancelOrder || isCancelling}
-            className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
-            title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
-          >
-            <Ban className="h-4 w-4 mr-2" />
-            Cancel Order
-          </Button>
-        </div>
-      </div>
+        <TabsContent value="audit" className="space-y-4">
+          <AuditTrailTab
+            orderId={displayOrder?.id || ""}
+            orderData={displayOrder}
+          />
+        </TabsContent>
+      </Tabs>
 
       <CancelOrderDialog
         open={showCancelDialog}
         onOpenChange={setShowCancelDialog}
-        orderNo={order?.order_no || ''}
+        orderNo={displayOrder?.order_no || ''}
         onConfirm={handleCancelOrder}
         loading={isCancelling}
       />
-
-      {/* Notes Dialog - Center Modal */}
-      <Dialog open={showNotesPanel} onOpenChange={setShowNotesPanel}>
-        <DialogContent className="max-w-[1200px] max-h-[80vh] flex flex-col p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle className="text-xl font-semibold">Note</DialogTitle>
-          </DialogHeader>
-
-          {/* Notes Table - NO TABS */}
-          <div className="flex-1 overflow-auto px-6 py-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[150px]">Note Type</TableHead>
-                  <TableHead>NOTE</TableHead>
-                  <TableHead className="w-[200px]">CREATED BY</TableHead>
-                  <TableHead className="w-[180px]">CREATED ON</TableHead>
-                  <TableHead className="w-[50px]">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setShowAddNoteForm(!showAddNoteForm)}
-                      className="h-6 w-6"
-                      title={showAddNoteForm ? "Hide add form" : "Add note"}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Add Form Row - CONDITIONAL (only show when showAddNoteForm is true) */}
-                {showAddNoteForm && (
-                  <TableRow className="bg-muted/30">
-                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
-                      {/* Empty - will be numbered after save */}
-                    </TableCell>
-                    <TableCell className="align-top pt-3">
-                      <Textarea
-                        placeholder="Thai text content..."
-                        value={newNote}
-                        onChange={(e) => setNewNote(e.target.value)}
-                        className="min-h-[80px] resize-none text-sm"
-                        maxLength={500}
-                        autoFocus
-                      />
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
-                      {/* Empty - auto-populated on save */}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
-                      {/* Empty - auto-populated on save */}
-                    </TableCell>
-                    <TableCell className="align-top pt-3">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setNewNote("")
-                          setShowAddNoteForm(false)
-                        }}
-                        className="h-8 w-8"
-                        title="Clear and hide form"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {/* Existing Notes */}
-                {notes.map((note) => (
-                  <TableRow key={note.id}>
-                    <TableCell className="text-sm align-top">
-                      Order Remark
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground align-top">
-                      {note.createdBy}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground align-top">
-                      {note.createdAt}
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        title="Delete note"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {/* Empty State */}
-                {notes.length === 0 && !showAddNoteForm && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
-                      No notes yet. Click + button to add your first note.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Footer with CANCEL and SAVE buttons */}
-          <div className="border-t px-6 py-4 flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowNotesPanel(false)
-                setNewNote("")
-                setShowAddNoteForm(false)
-              }}
-            >
-              CANCEL
-            </Button>
-            <Button
-              onClick={handleSaveNote}
-              disabled={!newNote.trim() || !showAddNoteForm}
-            >
-              SAVE
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div >
   );
 }

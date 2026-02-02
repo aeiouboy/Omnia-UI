@@ -26,14 +26,13 @@ export function PaginationControls({
   isLoading = false,
 }: PaginationControlsProps) {
   const [pageInput, setPageInput] = useState("")
-  const [showPageInput, setShowPageInput] = useState(false)
-  
+
   // Ensure all values are defined with safe defaults
   const safeCurrentPage = Math.max(1, currentPage || 1)
   const safeTotalPages = Math.max(0, totalPages || 0)
   const safePageSize = Math.max(1, pageSize || 25)
   const safeTotalItems = Math.max(0, totalItems || 0)
-  
+
   const startItem = safeTotalItems > 0 ? (safeCurrentPage - 1) * safePageSize + 1 : 0
   const endItem = Math.min(safeCurrentPage * safePageSize, safeTotalItems)
 
@@ -44,7 +43,6 @@ export function PaginationControls({
     if (pageNum >= 1 && pageNum <= safeTotalPages) {
       onPageChange(pageNum)
       setPageInput("")
-      setShowPageInput(false)
     }
   }
 
@@ -91,22 +89,7 @@ export function PaginationControls({
     return range
   }
 
-  // Quick jump options for large datasets
-  const getQuickJumpOptions = () => {
-    const options = []
-    const step = Math.max(1, Math.floor(safeTotalPages / 10))
-    
-    for (let i = step; i < safeTotalPages; i += step) {
-      if (i !== safeCurrentPage && Math.abs(i - safeCurrentPage) > 2) {
-        options.push(i)
-      }
-    }
-    
-    return options.slice(0, 3) // Limit to 3 quick jump options
-  }
-
   const pageNumbers = getPageNumbers()
-  const quickJumpOptions = getQuickJumpOptions()
 
   return (
     <div className="space-y-4">
@@ -174,15 +157,9 @@ export function PaginationControls({
             {pageNumbers.map((page, index) => (
               <div key={index}>
                 {page === "..." ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPageInput(!showPageInput)}
-                    className="min-h-[44px] min-w-[44px] p-0 hover:bg-gray-100"
-                    title="Jump to page"
-                  >
+                  <span className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
-                  </Button>
+                  </span>
                 ) : (
                   <Button
                     variant={safeCurrentPage === page ? "default" : "outline"}
@@ -223,82 +200,36 @@ export function PaginationControls({
           </Button>
         </div>
 
-        {/* Page input and quick jumps */}
+        {/* Page input - always visible */}
         <div className="flex items-center gap-2">
-          {/* Quick jump buttons for large datasets */}
-          {safeTotalPages > 20 && quickJumpOptions.length > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-muted-foreground mr-1">Jump:</span>
-              {quickJumpOptions.map((page) => (
-                <Button
-                  key={page}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onPageChange(page)}
-                  disabled={isLoading}
-                  className="min-h-[44px] px-3 text-xs"
-                  title={`Jump to page ${page}`}
-                >
-                  {page}
-                </Button>
-              ))}
-            </div>
-          )}
-
-          {/* Direct page input */}
-          {showPageInput && (
-            <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1">
-              <Input
-                type="number"
-                min="1"
-                max={safeTotalPages}
-                value={pageInput}
-                onChange={(e) => setPageInput(e.target.value)}
-                placeholder={`1-${safeTotalPages}`}
-                className="w-20 min-h-[44px] text-sm"
-                autoFocus
-              />
-              <Button
-                type="submit"
-                variant="outline"
-                size="sm"
-                className="min-h-[44px] px-3 text-xs"
-                disabled={!pageInput || isLoading}
-              >
-                Go
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowPageInput(false)
+          <span className="text-sm text-muted-foreground">Page</span>
+          <form onSubmit={handlePageInputSubmit} className="flex items-center">
+            <Input
+              type="number"
+              min="1"
+              max={safeTotalPages}
+              value={pageInput || safeCurrentPage}
+              onChange={(e) => setPageInput(e.target.value)}
+              onFocus={(e) => {
+                e.target.select()
+                setPageInput(safeCurrentPage.toString())
+              }}
+              onBlur={() => {
+                if (!pageInput || parseInt(pageInput) === safeCurrentPage) {
                   setPageInput("")
-                }}
-                className="min-h-[44px] px-3 text-xs"
-              >
-                ×
-              </Button>
-            </form>
-          )}
-
-          {/* Toggle page input button */}
-          {!showPageInput && safeTotalPages > 10 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPageInput(true)}
-              className="min-h-[44px] px-4 text-xs"
-              title="Jump to specific page"
-            >
-              Go to...
-            </Button>
-          )}
-
-          {/* Current page indicator */}
-          <div className="text-sm text-muted-foreground bg-gray-50 px-2 py-1 rounded border">
-            Page {safeCurrentPage.toLocaleString()} of {safeTotalPages.toLocaleString()}
-          </div>
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setPageInput("")
+                  ;(e.target as HTMLInputElement).blur()
+                }
+              }}
+              className="w-20 min-h-[36px] text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              disabled={isLoading}
+            />
+          </form>
+          <span className="text-sm text-muted-foreground">of {safeTotalPages.toLocaleString()}</span>
         </div>
       </div>
     </div>
