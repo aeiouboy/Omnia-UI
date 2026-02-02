@@ -62,17 +62,21 @@ function getStatusLabel(status: AllocateByOrderStatus): string {
 }
 
 /**
- * Format date/time for display
+ * Format date/time for display in standardized MM/DD/YYYY HH:mm:ss format
  */
 function formatDateTime(timestamp: string): string {
   const date = new Date(timestamp)
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+  if (isNaN(date.getTime())) return "-"
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**

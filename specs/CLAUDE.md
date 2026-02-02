@@ -60,4 +60,11 @@
 |----|------|---|-------|------|
 | #4304 | 6:37 PM | 🟣 | Merchant SKU Toggle Switch Implementation Plan Created | ~945 |
 | #4273 | 5:39 PM | ⚖️ | Merchant SKU Implementation Specification and Column Positioning Strategy | ~918 |
+
+### Feb 1, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6261 | 9:00 PM | ⚖️ | Date/Time Format Standardization Plan - MM/DD/YYYY HH:mm:ss | ~790 |
+| #6007 | 1:36 PM | ⚖️ | Transaction Type Standardization Plan Created | ~952 |
 </claude-mem-context>

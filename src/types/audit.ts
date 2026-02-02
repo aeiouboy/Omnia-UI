@@ -328,8 +328,8 @@ export interface TrackingShipment {
   events: TrackingEvent[]
   // Manhattan OMS enhanced fields
   status: ShipmentStatus
-  eta: string // DD/MM/YYYY format
-  shippedOn: string // DD/MM/YYYY format
+  eta: string // MM/DD/YYYY format (standardized)
+  shippedOn: string // MM/DD/YYYY format (standardized)
   relNo: string // Release order number
   shippedFrom: string // Origin store name
   subdistrict: string // Thai subdistrict name

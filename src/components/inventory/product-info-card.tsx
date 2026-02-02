@@ -13,8 +13,9 @@ import {
   XCircle,
   Circle,
   Clock,
-  ExternalLink,
+  Tag,
   Info,
+  ExternalLink,
 } from "lucide-react"
 import {
   Tooltip,
@@ -28,7 +29,8 @@ import type { InventoryItem } from "@/types/inventory"
 interface ProductInfoCardProps {
   product: InventoryItem
   onClose: () => void
-  onViewDetails: () => void
+  onViewDetails?: () => void
+  refId?: string
 }
 
 /**
@@ -77,24 +79,29 @@ function getSupplyTypeBadgeClass(supplyType: string | undefined) {
 }
 
 /**
- * Format last restocked date
+ * Format last restocked date in MM/DD/YYYY HH:mm:ss format
  */
 function formatLastRestocked(timestamp: string | undefined): string {
   if (!timestamp) return "N/A"
-  return formatGMT7Time(timestamp, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  })
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return "N/A"
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 export function ProductInfoCard({
   product,
   onClose,
   onViewDetails,
+  refId,
 }: ProductInfoCardProps) {
   const displayBarcode = product.barcode || product.productId
   const displayBrand = product.brand || product.productName
@@ -157,18 +164,24 @@ export function ProductInfoCard({
               {/* Category */}
               <p className="text-muted-foreground mb-4">{product.category}</p>
 
-              {/* Separator */}
-              <div className="border-t mb-4" />
-
-              {/* Three-column grid: Barcode, Item Type, Supply Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                {/* Barcode */}
+              {/* Row 1: 5-column grid - SKU, Ref ID, Item Type, Supply Type, Stock Config */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 mb-6">
+                {/* SKU */}
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Barcode className="h-4 w-4" />
-                    <span>Barcode</span>
+                    <span>SKU</span>
                   </div>
                   <span className="font-mono text-sm">{displayBarcode}</span>
+                </div>
+
+                {/* Ref ID */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Tag className="h-4 w-4" />
+                    <span>Ref ID</span>
+                  </div>
+                  <span className="font-mono text-sm">{refId || "-"}</span>
                 </div>
 
                 {/* Item Type */}
@@ -216,36 +229,36 @@ export function ProductInfoCard({
                     </Tooltip>
                   </div>
                 </div>
+
+                {/* Stock Config */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Circle className="h-4 w-4" />
+                    <span>Stock Config</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {product.stockConfigStatus === "valid" ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-600 font-medium">Configured</span>
+                      </>
+                    ) : product.stockConfigStatus === "invalid" ? (
+                      <>
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-red-600 font-medium">Invalid</span>
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="h-4 w-4 text-gray-400" />
+                        <span className="text-gray-500">Not Configured</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Stock Config Status */}
+              {/* Row 2: Last Restocked - Standalone */}
               <div className="mb-4">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
-                  <Circle className="h-4 w-4" />
-                  <span>Stock Config</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {product.stockConfigStatus === "valid" ? (
-                    <>
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600 font-medium">Configured</span>
-                    </>
-                  ) : product.stockConfigStatus === "invalid" ? (
-                    <>
-                      <XCircle className="h-4 w-4 text-red-600" />
-                      <span className="text-red-600 font-medium">Invalid</span>
-                    </>
-                  ) : (
-                    <>
-                      <Circle className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-500">Not Configured</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Last Restocked */}
-              <div className="mb-6">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
                   <span>Last Restocked</span>
@@ -255,11 +268,20 @@ export function ProductInfoCard({
                 </span>
               </div>
 
-              {/* View Full Details Button */}
-              <Button onClick={onViewDetails} variant="outline">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Full Details
-              </Button>
+              {/* View Details Button */}
+              {onViewDetails && (
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onViewDetails}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Details
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

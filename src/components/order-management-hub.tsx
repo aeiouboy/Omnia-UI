@@ -14,7 +14,7 @@ import {
   OrderStatusBadge,
   OnHoldBadge,
   ReturnStatusBadge,
-  SLABadge,
+  // SLABadge, // Disabled SLA elements
   DeliveryTypeBadge,
   SettlementTypeBadge,
   RequestTaxBadge,
@@ -22,7 +22,8 @@ import {
   PaymentTypeBadge,
 } from "./order-badges"
 import { OrderDetailView } from "./order-detail-view"
-import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search, Clock, Package, PauseCircle, ChevronDown, ChevronUp, CalendarIcon } from "lucide-react"
+import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search, Clock, Package, PauseCircle, ChevronDown, ChevronUp, CalendarIcon, CheckCircle, GripVertical, RotateCcw } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PaginationControls } from "./pagination-controls"
@@ -34,6 +35,7 @@ import type { PaymentTransaction, OrderDiscount, Promotion, CouponCode, PricingB
 import type { ManhattanAuditEvent } from "@/types/audit"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Calendar } from "@/components/ui/calendar"
+import { Switch } from "@/components/ui/switch"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -53,6 +55,7 @@ export interface ApiCustomer {
 
 export interface ApiShippingAddress {
   street: string
+  subdistrict?: string
   city: string
   state: string
   postal_code: string
@@ -167,8 +170,8 @@ export interface DeliveryTimeSlot {
   to: string
 }
 
-// FMS Order Type values
-export type FMSOrderType = 'Large format' | 'Tops daily CFR' | 'Tops daily CFM' | 'Subscription' | 'Retail'
+// FMS Order Type values - UNIFIED with 7 correct values (chore-ae72224b)
+export type FMSOrderType = 'Return Order' | 'MKP-HD-STD' | 'RT-HD-EXP' | 'RT-CC-STD' | 'RT-MIX-STD' | 'RT-HD-STD' | 'RT-CC-EXP'
 
 // FMS Delivery Type values
 export type FMSDeliveryType = 'Standard Delivery' | 'Express Delivery' | 'Click & Collect'
@@ -176,8 +179,9 @@ export type FMSDeliveryType = 'Standard Delivery' | 'Express Delivery' | 'Click 
 // FMS Settlement Type values
 export type FMSSettlementType = 'Auto Settle' | 'Manual Settle'
 
-// Delivery Type Code values for order-level delivery type
-export type DeliveryTypeCode = 'RT-HD-EXP' | 'RT-CC-STD' | 'MKP-HD-STD' | 'RT-HD-STD' | 'RT-CC-EXP'
+// DEPRECATED: DeliveryTypeCode merged into FMSOrderType (chore-ae72224b)
+// export type DeliveryTypeCode = 'RT-HD-EXP' | 'RT-CC-STD' | 'MKP-HD-STD' | 'RT-HD-STD' | 'RT-CC-EXP' | 'RT-MIX-STD'
+export type DeliveryTypeCode = FMSOrderType  // Alias for backward compatibility
 
 interface ApiOrder {
   id: string
@@ -263,6 +267,7 @@ export interface Order {
   customerPayAmount?: number
   customerRedeemAmount?: number
   orderDeliveryFee?: number
+  // DEPRECATED: Use orderType instead (chore-ae72224b)
   deliveryTypeCode?: DeliveryTypeCode
   // MAO (Manhattan Active Omni) Extended Fields
   organization?: string
@@ -273,7 +278,16 @@ export interface Order {
   pricingBreakdown?: PricingBreakdown
   auditTrail?: ManhattanAuditEvent[]
   currency?: string
-  // Optionally add derived fields for UI only if needed
+  // Billing Information Fields
+  billingName?: string
+  billingAddress?: {
+    street?: string
+    subdistrict?: string
+    city?: string
+    state?: string
+    postal_code?: string
+    country?: string
+  }
 }
 
 // Pagination parameters interface
@@ -308,6 +322,32 @@ interface FilterParams {
   slaFilter?: "all" | "near-breach" | "breach"
   advancedFilters?: AdvancedFilterValues
 }
+
+// Column configuration for drag-and-drop reordering
+interface ColumnConfig {
+  id: string
+  label: string
+  minWidth: string
+  align?: 'left' | 'center' | 'right'
+}
+
+// Default column order configuration
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { id: 'orderNumber', label: 'Order Number', minWidth: '160px' },
+  { id: 'customerName', label: 'Customer Name', minWidth: '150px' },
+  { id: 'email', label: 'Email', minWidth: '200px' },
+  { id: 'phone', label: 'Phone Number', minWidth: '130px' },
+  { id: 'total', label: 'Order Total', minWidth: '110px', align: 'right' },
+  { id: 'storeNo', label: 'Store No', minWidth: '100px', align: 'center' },
+  { id: 'status', label: 'Order Status', minWidth: '130px' },
+  { id: 'returnStatus', label: 'Return Status', minWidth: '120px' },
+  { id: 'onHold', label: 'On Hold', minWidth: '80px' },
+  { id: 'orderType', label: 'Order Type', minWidth: '120px' },
+  { id: 'paymentStatus', label: 'Payment Status', minWidth: '130px' },
+  { id: 'channel', label: 'Channel', minWidth: '110px' },
+  { id: 'allowSubstitution', label: 'Allow Substitution', minWidth: '140px' },
+  { id: 'createdDate', label: 'Created Date', minWidth: '160px' },
+]
 
 // Precise data mapping function based on actual API structure
 const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pagination: ApiPagination } => {
@@ -418,8 +458,9 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
         // ]
         // demoOrder.paymentType = paymentTypes[index % paymentTypes.length]
 
-        // Check if this is a MAO order (starts with 'W') - used to skip demo data modifications
-        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W')
+        // Check if this is a MAO order (starts with 'W' or 'CDS') - used to skip demo data modifications
+        const isMaoOrder = apiOrder.id?.startsWith('W') || apiOrder.order_no?.startsWith('W') ||
+                           apiOrder.id?.startsWith('CDS') || apiOrder.order_no?.startsWith('CDS')
 
         // Financial fields - EXCLUDE MAO orders (they have their own payment data)
         if (!isMaoOrder) {
@@ -429,9 +470,12 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
           demoOrder.customerPayAmount = (demoOrder.total_amount || 0) - (demoOrder.customerRedeemAmount || 0)
         }
 
-        // Generate random deliveryTypeCode for filtering demo
-        const deliveryTypeCodes: DeliveryTypeCode[] = ['RT-HD-EXP', 'RT-CC-STD', 'MKP-HD-STD', 'RT-HD-STD', 'RT-CC-EXP']
-        demoOrder.deliveryTypeCode = deliveryTypeCodes[index % deliveryTypeCodes.length]
+        // Generate random orderType using the UNIFIED 7 values (chore-ae72224b)
+        const fmsOrderTypes: FMSOrderType[] = ['Return Order', 'MKP-HD-STD', 'RT-HD-EXP', 'RT-CC-STD', 'RT-MIX-STD', 'RT-HD-STD', 'RT-CC-EXP']
+        // Return orders should be ~10% of total
+        demoOrder.orderType = index % 10 === 0 ? 'Return Order' : fmsOrderTypes[(index % 6) + 1]
+        // DEPRECATED: deliveryTypeCode - set to same as orderType for backward compatibility
+        demoOrder.deliveryTypeCode = demoOrder.orderType
 
         // Mock Channel (using new standard) - EXCLUDE MAO orders (start with 'W')
         if (!isMaoOrder) {
@@ -717,6 +761,102 @@ export function OrderManagementHub() {
   const [deliverySlotDateToFilter, setDeliverySlotDateToFilter] = useState<Date | undefined>(undefined)
   const [deliveredTimeFromFilter, setDeliveredTimeFromFilter] = useState<Date | undefined>(undefined)
   const [deliveredTimeToFilter, setDeliveredTimeToFilter] = useState<Date | undefined>(undefined)
+
+  // Column reordering state
+  const [columnOrder, setColumnOrder] = useState<ColumnConfig[]>(DEFAULT_COLUMNS)
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null)
+  const [stickyHeader, setStickyHeader] = useState(true)
+
+  // Reset columns to default order
+  const handleResetColumns = () => {
+    setColumnOrder(DEFAULT_COLUMNS)
+  }
+
+  // Drag and drop handlers for column reordering
+  const handleDragStart = (e: React.DragEvent, columnId: string) => {
+    setDraggedColumn(columnId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', columnId)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, targetColumnId: string) => {
+    e.preventDefault()
+    if (!draggedColumn || draggedColumn === targetColumnId) {
+      setDraggedColumn(null)
+      return
+    }
+
+    const newOrder = [...columnOrder]
+    const draggedIndex = newOrder.findIndex(col => col.id === draggedColumn)
+    const targetIndex = newOrder.findIndex(col => col.id === targetColumnId)
+
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const [removed] = newOrder.splice(draggedIndex, 1)
+      newOrder.splice(targetIndex, 0, removed)
+      setColumnOrder(newOrder)
+    }
+    setDraggedColumn(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedColumn(null)
+  }
+
+  // Render cell content based on column id
+  const renderCellContent = (order: any, columnId: string) => {
+    switch (columnId) {
+      case 'orderNumber':
+        return (
+          <button
+            onClick={() => handleOrderRowClick(order._originalOrder || ordersData.find((o) => o.id === order.id) || order)}
+            className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
+          >
+            {order.id}
+          </button>
+        )
+      case 'customerName':
+        return (
+          <span className="block whitespace-nowrap" title={order.customerName || ""}>
+            {order.customerName || "-"}
+          </span>
+        )
+      case 'email':
+        return (
+          <span className="block whitespace-nowrap" title={order.customerEmail || ""}>
+            {order.customerEmail || "-"}
+          </span>
+        )
+      case 'phone':
+        return <span className="font-mono">{order.customerPhone || "-"}</span>
+      case 'total':
+        return <span className="font-semibold">฿{order.total_amount?.toLocaleString() || "0"}</span>
+      case 'storeNo':
+        return order.storeNo || ""
+      case 'status':
+        return <OrderStatusBadge status={order.status} />
+      case 'returnStatus':
+        return <ReturnStatusBadge status={order.returnStatus} />
+      case 'onHold':
+        return <OnHoldBadge onHold={order.onHold} />
+      case 'orderType':
+        return <OrderTypeBadge orderType={order.orderType} />
+      case 'paymentStatus':
+        return <PaymentStatusBadge status={order.paymentStatus} />
+      case 'channel':
+        return <ChannelBadge channel={order.channel} />
+      case 'allowSubstitution':
+        return order.allowSubstitution ? <CheckCircle className="h-4 w-4 text-green-600" /> : null
+      case 'createdDate':
+        return <span className="whitespace-nowrap">{order.createdDate}</span>
+      default:
+        return "-"
+    }
+  }
 
   // Legacy advanced filters state (kept for compatibility)
   const [advancedFilters] = useState({
@@ -1171,7 +1311,7 @@ export function OrderManagementHub() {
   // Mapping function to flatten nested Order payloads to legacy flat structure for table
   function mapOrderToTableRow(order: any) {
     // SLA data is already in seconds, pass through as-is for SLA badge component to handle
-    let slaInfo = order.sla_info
+    // let slaInfo = order.sla_info // Disabled SLA elements
     const urgencyLevel = getOrderUrgencyLevel(order)
 
     return {
@@ -1180,7 +1320,7 @@ export function OrderManagementHub() {
       total_amount: order.total_amount,
       sellingLocationId: order.metadata?.store_name ?? "",
       status: order.status,
-      slaStatus: slaInfo ?? "",
+      // slaStatus: slaInfo ?? "", // Disabled SLA elements
       returnStatus: order.return_status ?? "",
       onHold: order.on_hold ?? false,
       paymentStatus: order.payment_info?.status ?? "",
@@ -1403,9 +1543,9 @@ export function OrderManagementHub() {
       }
     }
 
-    // Order Type filter (mapped to deliveryTypeCode)
+    // Order Type filter - uses unified orderType field (chore-ae72224b)
     if (orderTypeFilter && orderTypeFilter !== "all-order-type") {
-      if (order.deliveryTypeCode !== orderTypeFilter) {
+      if (order.orderType !== orderTypeFilter) {
         return false
       }
     }
@@ -1735,90 +1875,70 @@ export function OrderManagementHub() {
   // Local function to render the order table
   function renderOrderTable(ordersToShow: any[]) {
     return (
-      <div
-        ref={tableContainerRef}
-        className={cn(
-          "overflow-x-auto transition-shadow duration-300",
-          showLeftShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15)]",
-          showRightShadow && "shadow-[inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]",
-          showLeftShadow && showRightShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15),inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]"
-        )}
-      >
-        <Table>
-          <TableHeader className="bg-light-gray">
-            <TableRow className="hover:bg-light-gray/80 border-b border-medium-gray">
-              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-                Order Number
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-                Customer Name
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[180px] text-sm font-semibold">
-                Email
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Phone Number
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-                Order Total
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-                Store No
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Order Status
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                SLA Status
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Return Status
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold">On Hold</TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Order Type
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Payment Status
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-                Confirmed
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold">
-                Channel
-              </TableHead>
-              {/* FMS Extended Columns (commented out) */}
-              {/* <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold">
-                Delivery Type
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold">
-                Payment Type
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[90px] text-sm font-semibold">
-                Request Tax
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-                Delivery Time Slot
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold">
-                Delivered Time
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[110px] text-sm font-semibold">
-                Settlement Type
-              </TableHead> */}
-              {/* End FMS Extended Columns */}
-              <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold">
-                Allow Substitution
-              </TableHead>
-              <TableHead className="font-heading text-deep-navy min-w-[150px] text-sm font-semibold">
-                Created Date
-              </TableHead>
+      <>
+        {/* Table Settings Controls */}
+        <div className="flex items-center justify-end gap-4 mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="sticky-header"
+              checked={stickyHeader}
+              onCheckedChange={setStickyHeader}
+            />
+            <Label htmlFor="sticky-header" className="text-sm text-muted-foreground cursor-pointer">
+              Sticky Header
+            </Label>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetColumns}
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset Columns
+          </Button>
+        </div>
+        <div
+          ref={tableContainerRef}
+          className={cn(
+            "overflow-x-auto transition-shadow duration-300",
+            showLeftShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15)]",
+            showRightShadow && "shadow-[inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]",
+            showLeftShadow && showRightShadow && "shadow-[inset_10px_0_8px_-8px_rgba(0,0,0,0.15),inset_-10px_0_8px_-8px_rgba(0,0,0,0.15)]"
+          )}
+        >
+          <Table>
+            <TableHeader className={cn("bg-gray-50 z-10", stickyHeader && "sticky top-0")}>
+            <TableRow className="hover:bg-gray-50 border-b border-medium-gray">
+              {columnOrder.map((column) => (
+                <TableHead
+                  key={column.id}
+                  draggable={!stickyHeader}
+                  onDragStart={!stickyHeader ? (e) => handleDragStart(e, column.id) : undefined}
+                  onDragOver={!stickyHeader ? handleDragOver : undefined}
+                  onDrop={!stickyHeader ? (e) => handleDrop(e, column.id) : undefined}
+                  onDragEnd={!stickyHeader ? handleDragEnd : undefined}
+                  className={cn(
+                    "font-heading text-deep-navy text-sm font-semibold py-3 px-4 select-none",
+                    !stickyHeader && "cursor-grab",
+                    column.align === 'right' && 'text-right',
+                    column.align === 'center' && 'text-center',
+                    draggedColumn === column.id && 'opacity-50 bg-blue-50'
+                  )}
+                  style={{ minWidth: column.minWidth }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {!stickyHeader && <GripVertical className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />}
+                    <span>{column.label}</span>
+                  </div>
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {ordersToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={16} className="text-center py-8">
+                <TableCell colSpan={columnOrder.length} className="text-center py-8">
                   No orders found.
                 </TableCell>
               </TableRow>
@@ -1827,71 +1947,27 @@ export function OrderManagementHub() {
                 const urgencyStyle = getUrgencyRowStyle(order.urgencyLevel || "normal")
                 return (
                   <TableRow key={order.id} className={`transition-colors duration-150 ${urgencyStyle}`}>
-                    <TableCell className="cursor-pointer text-blue-600 hover:text-blue-800">
-                      <button
-                        onClick={() => handleOrderRowClick(order._originalOrder || ordersData.find((o) => o.id === order.id) || order)}
-                        className="hover:underline text-left"
+                    {columnOrder.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        className={cn(
+                          "py-3 px-4 text-sm",
+                          column.align === 'right' && 'text-right',
+                          column.align === 'center' && 'text-center'
+                        )}
+                        style={{ minWidth: column.minWidth }}
                       >
-                        {order.id}
-                      </button>
-                    </TableCell>
-                    <TableCell>{order.customerName || "-"}</TableCell>
-                    <TableCell className="max-w-[180px] truncate" title={order.customerEmail || ""}>{order.customerEmail || "-"}</TableCell>
-                    <TableCell>{order.customerPhone || "-"}</TableCell>
-                    <TableCell>฿{order.total_amount?.toLocaleString() || "0"}</TableCell>
-                    <TableCell className="whitespace-nowrap">{order.storeNo || "-"}</TableCell>
-                    <TableCell>
-                      <OrderStatusBadge status={order.status} />
-                    </TableCell>
-                    <TableCell>
-                      <SLABadge
-                        targetMinutes={order.slaStatus?.target_minutes ?? 0}
-                        elapsedMinutes={order.slaStatus?.elapsed_minutes ?? 0}
-                        status={order.status}
-                        slaStatus={order.slaStatus?.status}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <ReturnStatusBadge status={order.returnStatus} />
-                    </TableCell>
-                    <TableCell>
-                      <OnHoldBadge onHold={order.onHold} />
-                    </TableCell>
-                    <TableCell>
-                      <OrderTypeBadge orderType={order.orderType} />
-                    </TableCell>
-                    <TableCell>
-                      <PaymentStatusBadge status={order.paymentStatus} />
-                    </TableCell>
-                    <TableCell>{order.confirmed ? "Yes" : "No"}</TableCell>
-                    <TableCell>
-                      <ChannelBadge channel={order.channel} />
-                    </TableCell>
-                    {/* FMS Extended Column Data (commented out) */}
-                    {/* <TableCell>
-                      <DeliveryTypeBadge deliveryType={order.deliveryType} />
-                    </TableCell>
-                    <TableCell>
-                      <PaymentTypeBadge paymentType={order.paymentType} />
-                    </TableCell>
-                    <TableCell>
-                      <RequestTaxBadge requestTax={order.requestTax} />
-                    </TableCell>
-                    <TableCell>{order.deliveryTimeSlot || "-"}</TableCell>
-                    <TableCell>{order.deliveredTime || "-"}</TableCell>
-                    <TableCell>
-                      <SettlementTypeBadge settlementType={order.settlementType} />
-                    </TableCell> */}
-                    {/* End FMS Extended Column Data */}
-                    <TableCell>{order.allowSubstitution ? "Yes" : "No"}</TableCell>
-                    <TableCell>{order.createdDate}</TableCell>
+                        {renderCellContent(order, column.id)}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 )
               })
             )}
           </TableBody>
         </Table>
-      </div>
+        </div>
+      </>
     )
   }
   return (
@@ -1927,6 +2003,7 @@ export function OrderManagementHub() {
                 title="Refresh Data"
                 onClick={refreshData}
                 disabled={isLoading}
+                aria-label="Refresh orders"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               </Button>
@@ -1953,38 +2030,32 @@ export function OrderManagementHub() {
           </div> */}
 
 
-          {/* Main Filters Section - Reorganized with visual groups */}
+          {/* Smart Filter Bar - 7 Primary Filters Always Visible */}
           <div className="mt-3 space-y-4">
-            {/* Row 1: Full-width Search */}
-            <div className="relative">
-              <Input
-                placeholder="Search by order #, customer name, email, phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 h-11 text-base"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              {searchTerm && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
-                >
-                  <X className="h-4 w-4 text-gray-400" />
-                  <span className="sr-only">Clear search</span>
-                </Button>
-              )}
-            </div>
+            {/* Primary Filters Grid - Responsive 2/3/4 columns */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {/* 1. Order ID Search */}
+              <div className="space-y-1.5">
+                <Label htmlFor="order-id" className="text-xs font-medium text-muted-foreground">Order ID</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    id="order-id"
+                    placeholder="Search order..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="min-w-[160px] pl-9"
+                    aria-label="Search by order ID, customer name, email, or phone"
+                  />
+                </div>
+              </div>
 
-            {/* Filter Groups - Responsive wrapping with larger gaps */}
-            <div className="flex flex-wrap gap-3 items-center xl:flex-nowrap overflow-x-auto md:overflow-visible">
-              {/* Order Filters Group */}
-              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
-                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order</span>
+              {/* 2. Order Status */}
+              <div className="space-y-1.5">
+                <Label htmlFor="order-status" className="text-xs font-medium text-muted-foreground">Order Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9 min-w-[110px] border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Status" />
+                  <SelectTrigger id="order-status" className="min-w-[160px]">
+                    <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-status">All Status</SelectItem>
@@ -1996,10 +2067,14 @@ export function OrderManagementHub() {
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="h-5 w-px bg-border/60" />
+              </div>
+
+              {/* 3. Store No */}
+              <div className="space-y-1.5">
+                <Label htmlFor="store-no" className="text-xs font-medium text-muted-foreground">Store No</Label>
                 <Select value={storeNoFilter} onValueChange={setStoreNoFilter}>
-                  <SelectTrigger className="h-9 min-w-[120px] border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Store" />
+                  <SelectTrigger id="store-no" className="min-w-[160px]">
+                    <SelectValue placeholder="All Stores" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-stores">All Stores</SelectItem>
@@ -2010,10 +2085,14 @@ export function OrderManagementHub() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="h-5 w-px bg-border/60" />
+              </div>
+
+              {/* 4. Channel */}
+              <div className="space-y-1.5">
+                <Label htmlFor="channel" className="text-xs font-medium text-muted-foreground">Channel</Label>
                 <Select value={channelFilter} onValueChange={setChannelFilter}>
-                  <SelectTrigger className="h-9 min-w-[140px] border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Channel" />
+                  <SelectTrigger id="channel" className="min-w-[160px]">
+                    <SelectValue placeholder="All Channels" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-channels">All Channels</SelectItem>
@@ -2024,12 +2103,12 @@ export function OrderManagementHub() {
                 </Select>
               </div>
 
-              {/* Payment Filters Group */}
-              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
-                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Payment</span>
+              {/* 5. Payment Status */}
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-status" className="text-xs font-medium text-muted-foreground">Payment Status</Label>
                 <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-                  <SelectTrigger className="h-9 min-w-[110px] border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Status" />
+                  <SelectTrigger id="payment-status" className="min-w-[160px]">
+                    <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-payment">All Status</SelectItem>
@@ -2038,10 +2117,14 @@ export function OrderManagementHub() {
                     <SelectItem value="FAILED">Failed</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="h-5 w-px bg-border/60" />
+              </div>
+
+              {/* 6. Payment Method */}
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-method" className="text-xs font-medium text-muted-foreground">Payment Method</Label>
                 <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                  <SelectTrigger className="h-9 min-w-[150px] border-0 bg-transparent focus:ring-0">
-                    <SelectValue placeholder="Method" />
+                  <SelectTrigger id="payment-method" className="min-w-[160px]">
+                    <SelectValue placeholder="All Methods" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-payment-method">All Methods</SelectItem>
@@ -2051,188 +2134,177 @@ export function OrderManagementHub() {
                 </Select>
               </div>
 
-              {/* Order Date Group */}
-              <div className="flex items-center gap-1 p-2 border border-border/60 rounded-md bg-muted/10 shadow-sm hover:border-border/80 transition-colors flex-shrink-0">
-                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Order Date</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "h-9 min-w-[88px] justify-start text-left font-normal px-2",
-                        !dateFromFilter && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateFromFilter ? format(dateFromFilter, "dd/MM/yyyy") : "From"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateFromFilter}
-                      onSelect={setDateFromFilter}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <span className="text-muted-foreground">-</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "h-9 min-w-[88px] justify-start text-left font-normal px-2",
-                        !dateToFilter && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateToFilter ? format(dateToFilter, "dd/MM/yyyy") : "To"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateToFilter}
-                      onSelect={setDateToFilter}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+              {/* 7. Order Date Range */}
+              <div className="space-y-1.5 md:col-span-2 lg:col-span-2">
+                <Label className="text-xs font-medium text-muted-foreground">Order Date Range</Label>
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "min-w-[160px] justify-start text-left font-normal",
+                          !dateFromFilter && "text-muted-foreground"
+                        )}
+                        aria-label="Select start date"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateFromFilter ? format(dateFromFilter, "dd/MM/yyyy") : "From"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateFromFilter}
+                        onSelect={setDateFromFilter}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "min-w-[160px] justify-start text-left font-normal",
+                          !dateToFilter && "text-muted-foreground"
+                        )}
+                        aria-label="Select end date"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateToFilter ? format(dateToFilter, "dd/MM/yyyy") : "To"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateToFilter}
+                        onSelect={setDateToFilter}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
 
-            {/* Active Filters Summary Bar */}
-            {generateActiveFilters.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center py-2 px-3 bg-muted/20 rounded-md border border-border/30">
-                <span className="text-xs font-medium text-muted-foreground">Active filters:</span>
-                {generateActiveFilters.map((filter, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="text-xs font-normal cursor-pointer hover:bg-secondary/80"
-                    onClick={() => removeFilter(filter)}
-                  >
-                    {filter}
-                    <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetAllFilters}
-                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground hover:bg-gray-100"
-                >
-                  Clear All
-                </Button>
-              </div>
-            )}
           </div>
 
-          {/* Advanced Filters Collapsible Section */}
+          {/* More Filters Section with Clear All on right */}
           <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters} className="mt-4">
-            <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between">
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 transition-colors border-primary/30"
+                >
+                  <Filter className="h-4 w-4" />
+                  {showAdvancedFilters ? "Hide More Filters" : "More Filters"}
+                  {advancedFilterCount > 0 && !showAdvancedFilters && (
+                    <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                      {advancedFilterCount}
+                    </Badge>
+                  )}
+                  {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
               <Button
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 transition-colors border-primary/30"
+                onClick={handleResetAllFilters}
+                className="hover:bg-gray-100"
+                aria-label="Clear all filters"
               >
-                <Filter className="h-4 w-4" />
-                {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
-                {advancedFilterCount > 0 && !showAdvancedFilters && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                    {advancedFilterCount}
-                  </Badge>
-                )}
-                {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                Clear All
               </Button>
-            </CollapsibleTrigger>
+            </div>
             <CollapsibleContent className="mt-3">
-              <div className="p-4 bg-muted/30 border border-border/40 rounded-lg space-y-4">
-                {/* Product Search Group */}
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Product Search</div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">SKU</span>
-                      <div className="relative flex-1">
-                        <Input
-                          placeholder="Search by SKU..."
-                          value={skuSearchTerm}
-                          onChange={(e) => setSkuSearchTerm(e.target.value)}
-                          className="h-8 pl-8 pr-2 border-0 bg-transparent focus-visible:ring-0"
-                        />
-                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Item</span>
-                      <Input
-                        placeholder="Search by item name..."
-                        value={itemNameFilter}
-                        onChange={(e) => setItemNameFilter(e.target.value)}
-                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
-                      />
-                    </div>
+              <div className="p-4 bg-muted/30 border border-border/40 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {/* SKU */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="sku-filter" className="text-xs font-medium text-muted-foreground">SKU</Label>
+                  <div className="relative">
+                    <Input
+                      id="sku-filter"
+                      placeholder="Search by SKU..."
+                      value={skuSearchTerm}
+                      onChange={(e) => setSkuSearchTerm(e.target.value)}
+                      className="min-w-[160px] pl-8"
+                    />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
 
-                {/* Customer Search Group */}
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Customer Search</div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Name</span>
-                      <Input
-                        placeholder="Customer name..."
-                        value={customerNameFilter}
-                        onChange={(e) => setCustomerNameFilter(e.target.value)}
-                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Email</span>
-                      <Input
-                        placeholder="Email address..."
-                        value={emailFilter}
-                        onChange={(e) => setEmailFilter(e.target.value)}
-                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[200px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Phone</span>
-                      <Input
-                        placeholder="Phone number..."
-                        value={phoneFilter}
-                        onChange={(e) => setPhoneFilter(e.target.value)}
-                        className="h-8 border-0 bg-transparent focus-visible:ring-0"
-                      />
-                    </div>
-                  </div>
+                {/* Item Name */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="item-name-filter" className="text-xs font-medium text-muted-foreground">Item Name</Label>
+                  <Input
+                    id="item-name-filter"
+                    placeholder="Search by item..."
+                    value={itemNameFilter}
+                    onChange={(e) => setItemNameFilter(e.target.value)}
+                    className="min-w-[160px]"
+                  />
                 </div>
 
-                {/* Order Details Group */}
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Order Details</div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 p-2 border border-border/40 rounded-md bg-background min-w-[160px]">
-                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Type</span>
-                      <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
-                        <SelectTrigger className="h-8 min-w-[120px] border-0 bg-transparent focus:ring-0">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all-order-type">All Types</SelectItem>
-                          <SelectItem value="RT-HD-EXP">RT-HD-EXP</SelectItem>
-                          <SelectItem value="RT-CC-STD">RT-CC-STD</SelectItem>
-                          <SelectItem value="MKP-HD-STD">MKP-HD-STD</SelectItem>
-                          <SelectItem value="RT-HD-STD">RT-HD-STD</SelectItem>
-                          <SelectItem value="RT-CC-EXP">RT-CC-EXP</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                {/* Customer Name */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="customer-name-filter" className="text-xs font-medium text-muted-foreground">Customer Name</Label>
+                  <Input
+                    id="customer-name-filter"
+                    placeholder="Customer name..."
+                    value={customerNameFilter}
+                    onChange={(e) => setCustomerNameFilter(e.target.value)}
+                    className="min-w-[160px]"
+                  />
                 </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="email-filter" className="text-xs font-medium text-muted-foreground">Email</Label>
+                  <Input
+                    id="email-filter"
+                    placeholder="Email address..."
+                    value={emailFilter}
+                    onChange={(e) => setEmailFilter(e.target.value)}
+                    className="min-w-[160px]"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone-filter" className="text-xs font-medium text-muted-foreground">Phone</Label>
+                  <Input
+                    id="phone-filter"
+                    placeholder="Phone number..."
+                    value={phoneFilter}
+                    onChange={(e) => setPhoneFilter(e.target.value)}
+                    className="min-w-[160px]"
+                  />
+                </div>
+
+                {/* Order Type */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="order-type-filter" className="text-xs font-medium text-muted-foreground">Order Type</Label>
+                  <Select value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
+                    <SelectTrigger id="order-type-filter" className="min-w-[160px]">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-order-type">All Types</SelectItem>
+                      <SelectItem value="Return Order">Return Order</SelectItem>
+                      <SelectItem value="MKP-HD-STD">MKP-HD-STD</SelectItem>
+                      <SelectItem value="RT-HD-EXP">RT-HD-EXP</SelectItem>
+                      <SelectItem value="RT-CC-STD">RT-CC-STD</SelectItem>
+                      <SelectItem value="RT-MIX-STD">RT-MIX-STD</SelectItem>
+                      <SelectItem value="RT-HD-STD">RT-HD-STD</SelectItem>
+                      <SelectItem value="RT-CC-EXP">RT-CC-EXP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -2240,13 +2312,78 @@ export function OrderManagementHub() {
 
         <CardContent className="p-6">
 
-          {/* Loading State */}
+          {/* Skeleton Loading State */}
           {isMounted && isLoading && (
-            <div className="flex justify-center items-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-corporate-blue" />
-              <p className="ml-2 text-steel-gray">
-                Loading orders...
-              </p>
+            <div role="status" aria-live="polite" aria-label="Loading orders">
+              {/* Desktop Skeleton - Table Rows */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-gray-50 z-10">
+                    <TableRow className="hover:bg-gray-50 border-b border-medium-gray">
+                      <TableHead className="font-heading text-deep-navy min-w-[160px] text-sm font-semibold py-3 px-4">Order Number</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[200px] text-sm font-semibold py-3 px-4">Customer Name</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[200px] text-sm font-semibold py-3 px-4">Email</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold py-3 px-4">Phone Number</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[110px] text-sm font-semibold py-3 px-4 text-right">Order Total</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[100px] text-sm font-semibold py-3 px-4 text-center">Store No</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold py-3 px-4">Order Status</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold py-3 px-4">Return Status</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[80px] text-sm font-semibold py-3 px-4">On Hold</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[120px] text-sm font-semibold py-3 px-4">Order Type</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[130px] text-sm font-semibold py-3 px-4">Payment Status</TableHead>
+                      {/* Confirmed column disabled */}
+                      <TableHead className="font-heading text-deep-navy min-w-[110px] text-sm font-semibold py-3 px-4">Channel</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[140px] text-sm font-semibold py-3 px-4">Allow Substitution</TableHead>
+                      <TableHead className="font-heading text-deep-navy min-w-[160px] text-sm font-semibold py-3 px-4">Created Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="min-w-[160px] py-3 px-4"><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell className="min-w-[200px] py-3 px-4"><Skeleton className="h-5 w-36" /></TableCell>
+                        <TableCell className="min-w-[200px] py-3 px-4"><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell className="min-w-[130px] py-3 px-4"><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell className="min-w-[110px] py-3 px-4"><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell className="min-w-[100px] py-3 px-4"><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell className="min-w-[130px] py-3 px-4"><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                        <TableCell className="min-w-[120px] py-3 px-4"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        <TableCell className="min-w-[80px] py-3 px-4"><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+                        <TableCell className="min-w-[120px] py-3 px-4"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        <TableCell className="min-w-[130px] py-3 px-4"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        {/* Confirmed column disabled */}
+                        <TableCell className="min-w-[110px] py-3 px-4"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        <TableCell className="min-w-[140px] py-3 px-4"><Skeleton className="h-5 w-12" /></TableCell>
+                        <TableCell className="min-w-[160px] py-3 px-4"><Skeleton className="h-5 w-32" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Skeleton - Cards */}
+              <div className="md:hidden space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <Card key={i} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                      </div>
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-4 w-32" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </div>
+                      <div className="flex justify-between pt-2 border-t">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-9 w-16" />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
 
@@ -2259,14 +2396,88 @@ export function OrderManagementHub() {
             </Alert>
           )}
 
+          {/* Enhanced Empty State */}
+          {isMounted && !isLoading && !error && mappedOrders.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <Package className="h-16 w-16 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                Try adjusting your filters or search terms to find the orders you're looking for.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={handleResetAllFilters} className="hover:bg-gray-100" aria-label="Clear all filters">
+                  Clear Filters
+                </Button>
+                <Button onClick={refreshData} aria-label="Refresh orders">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Render table and pagination */}
-          {isMounted && !isLoading && !error && mappedOrders && pagination && (
+          {isMounted && !isLoading && !error && mappedOrders && mappedOrders.length > 0 && pagination && (
             <div>
-              {renderOrderTable(mappedOrders)}
+              {/* Mobile Card View - Show on screens < 768px */}
+              <div className="md:hidden space-y-3">
+                {mappedOrders.map((order) => (
+                  <Card key={order.id} className="p-4">
+                    <div className="space-y-3">
+                      {/* Order Number & Status */}
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleOrderRowClick(order._originalOrder || ordersData.find((o) => o.id === order.id) || order)}
+                          className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-left min-h-[44px] min-w-[44px] flex items-center"
+                        >
+                          {order.id}
+                        </button>
+                        <OrderStatusBadge status={order.status} />
+                      </div>
+
+                      {/* Customer Info */}
+                      <div className="space-y-1 text-sm">
+                        <div className="font-medium">{order.customerName || "-"}</div>
+                        <div className="font-mono text-muted-foreground">{order.customerPhone || "-"}</div>
+                      </div>
+
+                      {/* Store & Total */}
+                      <div className="flex items-center justify-between text-sm">
+                        <div>Store: {order.storeNo || ""}</div>
+                        <div className="font-semibold">฿{order.total_amount?.toLocaleString() || "0"}</div>
+                      </div>
+
+                      {/* Payment Status & Channel */}
+                      <div className="flex gap-2">
+                        <PaymentStatusBadge status={order.paymentStatus} />
+                        <ChannelBadge channel={order.channel} />
+                      </div>
+
+                      {/* Date & View Button */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="text-xs text-muted-foreground">{order.createdDate}</div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleOrderRowClick(order._originalOrder || ordersData.find((o) => o.id === order.id) || order)}
+                          className="min-h-[44px] min-w-[44px]"
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop Table View - Show on screens >= 768px */}
+              <div className="hidden md:block">
+                {renderOrderTable(mappedOrders)}
+              </div>
+
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between">
                   {lastUpdated && (
-                    <p className="text-sm text-steel-gray">Last updated: {lastUpdated}</p>
+                    <p className="text-sm text-steel-gray" aria-live="polite">Last updated: {lastUpdated}</p>
                   )}
                 </div>
                 <PaginationControls

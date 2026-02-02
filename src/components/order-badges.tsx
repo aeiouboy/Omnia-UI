@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Clock, Check, X, Truck, Zap, Store, Settings } from "lucide-react";
+import { AlertTriangle, Clock, Check, X, Truck, Zap, Store, Settings, CheckCircle, Package, Undo2, ShoppingBag } from "lucide-react";
 import React from "react";
 
 // Theme color classes based on tailwind.config.ts
@@ -48,23 +48,25 @@ const channelTheme = {
 
 export function ChannelBadge({ channel }: { channel: string }) {
   const normalizedChannel = channel?.toUpperCase();
-  const theme = channelTheme[normalizedChannel as keyof typeof channelTheme];
-  
-  if (theme) {
-    return (
-      <Badge
-        className={`font-mono text-sm font-semibold ${theme.bg} ${theme.text} ${theme.border} border-2 shadow-sm`}
-      >
-        {channel}
-      </Badge>
-    );
-  }
-  
-  // Default styling for unknown channels
+
+  // Text-only color mapping (no background)
+  const channelTextColor: Record<string, string> = {
+    GRAB: "text-green-600",
+    LAZADA: "text-blue-600",
+    SHOPEE: "text-orange-600",
+    TIKTOK: "text-gray-800",
+    SHOPIFY: "text-purple-600",
+    INSTORE: "text-yellow-600",
+    FOODPANDA: "text-pink-600",
+    LINEMAN: "text-emerald-600",
+  };
+
+  const textColor = channelTextColor[normalizedChannel] || "text-gray-600";
+
   return (
     <Badge
       variant="outline"
-      className="font-mono text-sm bg-gray-100 text-gray-800 border-gray-300"
+      className={`font-mono text-sm font-semibold ${textColor} bg-transparent border-transparent`}
     >
       {channel}
     </Badge>
@@ -90,47 +92,60 @@ export function PriorityBadge({ priority }: { priority: string }) {
 export function PaymentStatusBadge({ status }: { status: string }) {
   switch (status?.toUpperCase()) {
     case "PAID":
-      return <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm">PAID</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-green-600 font-mono text-sm flex items-center"><CheckCircle className="h-3 w-3 mr-1" />PAID</Badge>;
     case "PENDING":
-      return <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-sm">PENDING</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-orange-600 font-mono text-sm flex items-center"><Clock className="h-3 w-3 mr-1" />PENDING</Badge>;
     case "FAILED":
-      return <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-sm">FAILED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-red-600 font-mono text-sm flex items-center"><X className="h-3 w-3 mr-1" />FAILED</Badge>;
     default:
-      return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">{status}</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-gray-600 font-mono text-sm">{status}</Badge>;
   }
 }
 
 export function OrderStatusBadge({ status }: { status: string }) {
   switch (status?.toUpperCase()) {
     case "FULFILLED":
-      return <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-sm">FULFILLED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-green-600 font-mono text-sm">FULFILLED</Badge>;
     case "SHIPPED":
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-sm">SHIPPED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-blue-600 font-mono text-sm">SHIPPED</Badge>;
     case "DELIVERED":
-      return <Badge className="bg-green-50 text-green-700 border-green-100 font-mono text-sm">DELIVERED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-green-600 font-mono text-sm">DELIVERED</Badge>;
     case "PROCESSING":
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-mono text-sm">PROCESSING</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-yellow-600 font-mono text-sm">PROCESSING</Badge>;
     case "CREATED":
-      return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">CREATED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-gray-600 font-mono text-sm">CREATED</Badge>;
     case "CANCELLED":
-      return <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-sm">CANCELLED</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-red-600 font-mono text-sm">CANCELLED</Badge>;
     default:
-      return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">{status}</Badge>;
+      return <Badge variant="outline" className="bg-transparent border-transparent text-gray-600 font-mono text-sm">{status}</Badge>;
   }
 }
 
 export function OnHoldBadge({ onHold }: { onHold: boolean }) {
   if (onHold) {
-    return <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-mono text-sm">YES</Badge>;
+    return <Badge variant="outline" className="bg-transparent border-transparent text-orange-600 font-mono text-sm flex items-center"><CheckCircle className="h-4 w-4" /></Badge>;
   }
-  return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">NO</Badge>;
+  return null;
 }
 
 export function ReturnStatusBadge({ status }: { status: string }) {
-  if (status?.toUpperCase() === "NONE" || !status) {
-    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">NONE</Badge>;
+  // Valid return status values - show blank if no return
+  if (!status || status?.toUpperCase() === "NONE") {
+    return null;
   }
-  return <Badge className="bg-purple-100 text-purple-800 border-purple-200 font-mono text-sm">{status}</Badge>;
+  // Color coding based on return status
+  const statusUpper = status?.toUpperCase();
+  if (statusUpper.includes("CANCEL")) {
+    return <Badge variant="outline" className="bg-transparent border-transparent text-red-600 font-mono text-sm whitespace-nowrap">{status}</Badge>;
+  }
+  if (statusUpper === "RETURNED" || statusUpper === "PARTIALLY RETURNED") {
+    return <Badge variant="outline" className="bg-transparent border-transparent text-green-600 font-mono text-sm whitespace-nowrap">{status}</Badge>;
+  }
+  if (statusUpper.includes("RECEIVED")) {
+    return <Badge variant="outline" className="bg-transparent border-transparent text-blue-600 font-mono text-sm whitespace-nowrap">{status}</Badge>;
+  }
+  // Pending states (Pending Return, Pending Approval, Carrier Scanned, etc.)
+  return <Badge variant="outline" className="bg-transparent border-transparent text-orange-600 font-mono text-sm whitespace-nowrap">{status}</Badge>;
 }
 
 export function SLABadge({
@@ -222,6 +237,10 @@ export function DeliveryTypeBadge({ deliveryType }: { deliveryType?: string }) {
   }
 }
 
+/**
+ * @deprecated Use OrderTypeBadge instead. DeliveryTypeCode merged into FMSOrderType (chore-ae72224b)
+ * Kept for backward compatibility with order-detail-view.tsx
+ */
 // Delivery Type Code Badge - for order-level delivery type codes (RT-HD-EXP, RT-CC-STD, etc.)
 export function DeliveryTypeCodeBadge({ deliveryTypeCode }: { deliveryTypeCode?: string }) {
   if (!deliveryTypeCode) {
@@ -255,6 +274,11 @@ export function DeliveryTypeCodeBadge({ deliveryTypeCode }: { deliveryTypeCode?:
       style: "bg-orange-100 text-orange-800 border-orange-200",
       icon: <Store className="h-3 w-3 mr-1" />,
     },
+    "RT-MIX-STD": {
+      label: "Retail Mixed Delivery Standard",
+      style: "bg-teal-100 text-teal-800 border-teal-200",
+      icon: <Settings className="h-3 w-3 mr-1" />,
+    },
   };
 
   const config = deliveryTypeConfig[deliveryTypeCode];
@@ -276,6 +300,9 @@ export function DeliveryTypeCodeBadge({ deliveryTypeCode }: { deliveryTypeCode?:
   );
 }
 
+/**
+ * @deprecated Use OrderTypeBadge labels instead. DeliveryTypeCode merged into FMSOrderType (chore-ae72224b)
+ */
 // Helper function to get the friendly label for a delivery type code
 export function getDeliveryTypeCodeLabel(deliveryTypeCode?: string): string {
   const labels: Record<string, string> = {
@@ -284,6 +311,7 @@ export function getDeliveryTypeCodeLabel(deliveryTypeCode?: string): string {
     "MKP-HD-STD": "Marketplace Home Delivery Standard",
     "RT-HD-STD": "Retail Home Delivery Standard",
     "RT-CC-EXP": "Retail Click & Collect Express",
+    "RT-MIX-STD": "Retail Mixed Delivery Standard",
   };
   return deliveryTypeCode ? (labels[deliveryTypeCode] || deliveryTypeCode) : "-";
 }
@@ -340,25 +368,16 @@ export function RequestTaxBadge({ requestTax }: { requestTax?: boolean }) {
   );
 }
 
-// Order Type Badge (FMS values)
+// Order Type Badge - UNIFIED with 7 correct values (chore-ae72224b)
+// Plain text styling (no background colors, no colored text)
 export function OrderTypeBadge({ orderType }: { orderType?: string }) {
   if (!orderType) {
-    return <Badge className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm">-</Badge>;
+    return <Badge variant="outline" className="bg-transparent border-transparent text-gray-600 font-mono text-sm">-</Badge>;
   }
 
-  // Map FMS order types to colors
-  const typeStyles: Record<string, string> = {
-    "Large format": "bg-purple-100 text-purple-800 border-purple-200",
-    "Tops daily CFR": "bg-blue-100 text-blue-800 border-blue-200",
-    "Tops daily CFM": "bg-cyan-100 text-cyan-800 border-cyan-200",
-    "Subscription": "bg-indigo-100 text-indigo-800 border-indigo-200",
-    "Retail": "bg-teal-100 text-teal-800 border-teal-200",
-  };
-
-  const style = typeStyles[orderType] || "bg-gray-100 text-gray-800 border-gray-300";
-
+  // Plain text display - no colors, just the order type value
   return (
-    <Badge className={`${style} font-mono text-sm`}>
+    <Badge variant="outline" className="bg-transparent border-transparent text-gray-700 font-mono text-sm whitespace-nowrap">
       {orderType}
     </Badge>
   );

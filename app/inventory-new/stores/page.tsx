@@ -285,7 +285,6 @@ export default function StockByStorePage() {
   // By Product view state
   const [productTransactionType, setProductTransactionType] = useState<ProductTransactionType | "all">("all")
   const [searchNotes, setSearchNotes] = useState("")
-  const [showMerchantSku, setShowMerchantSku] = useState(false)
   const [productTransactions, setProductTransactions] = useState<ProductTransaction[]>([])
   const [productViewLoading, setProductViewLoading] = useState(false)
   const [productViewPage, setProductViewPage] = useState(1)
@@ -439,18 +438,6 @@ export default function StockByStorePage() {
     }
   }, [searchNotes, viewTab])
 
-  // Load Merchant SKU toggle state from localStorage on mount
-  useEffect(() => {
-    const savedValue = localStorage.getItem("stockCard-showMerchantSku")
-    if (savedValue !== null) {
-      setShowMerchantSku(savedValue === "true")
-    }
-  }, [])
-
-  // Save Merchant SKU toggle state to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem("stockCard-showMerchantSku", String(showMerchantSku))
-  }, [showMerchantSku])
 
   // Calculate summary statistics
   const summary = useMemo(() => {
@@ -573,14 +560,6 @@ export default function StockByStorePage() {
     setShowProductCard(false)
   }, [])
 
-  // Handler for viewing product details
-  const handleViewProductDetails = useCallback(() => {
-    const productId = productIdSearch || productNameSearch
-    if (productId) {
-      router.push(`/inventory-new/${encodeURIComponent(productId)}`)
-    }
-  }, [productIdSearch, productNameSearch, router])
-
   // Clear all filters for By Store view
   const handleClearByStoreFilters = () => {
     clearViewType()
@@ -623,7 +602,7 @@ export default function StockByStorePage() {
       productTransactions,
       { productId, productName },
       { startDate: dateRange.startDate, endDate: dateRange.endDate },
-      { includeMerchantSku: showMerchantSku }
+      { includeMerchantSku: false }
     )
   }
 
@@ -1091,18 +1070,6 @@ export default function StockByStorePage() {
                   />
                 </div>
 
-                {/* Merchant SKU Toggle */}
-                <div className="flex items-center gap-2">
-                  <label htmlFor="show-merchant-sku" className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                    Show Merchant SKU
-                  </label>
-                  <Switch
-                    id="show-merchant-sku"
-                    checked={showMerchantSku}
-                    onCheckedChange={setShowMerchantSku}
-                  />
-                </div>
-
                 {/* Spacer */}
                 <div className="flex-1" />
 
@@ -1160,7 +1127,7 @@ export default function StockByStorePage() {
                 <ProductInfoCard
                   product={mockProductFromSearch}
                   onClose={handleCloseProductCard}
-                  onViewDetails={handleViewProductDetails}
+                  refId={paginatedTransactions[0]?.merchantSku}
                 />
               )}
 
@@ -1201,14 +1168,11 @@ export default function StockByStorePage() {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="whitespace-nowrap">Date & Time</TableHead>
-                                <TableHead className="whitespace-nowrap">Type</TableHead>
-                                <TableHead className="text-right whitespace-nowrap">Qty</TableHead>
-                                <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
-                                <TableHead>Notes</TableHead>
-                                {showMerchantSku && (
-                                  <TableHead className="whitespace-nowrap">Merchant SKU</TableHead>
-                                )}
+                                <TableHead className="text-left min-w-[160px]">Date & Time</TableHead>
+                                <TableHead className="text-left w-[180px]">Type</TableHead>
+                                <TableHead className="text-center w-[100px]">Qty</TableHead>
+                                <TableHead className="text-center w-[120px]">Balance</TableHead>
+                                <TableHead className="text-left min-w-[300px]">Notes</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1271,11 +1235,6 @@ export default function StockByStorePage() {
                                         </TooltipContent>
                                       </Tooltip>
                                     </TableCell>
-                                    {showMerchantSku && (
-                                      <TableCell className="font-mono text-sm text-muted-foreground">
-                                        {txn.merchantSku || "-"}
-                                      </TableCell>
-                                    )}
                                   </TableRow>
                                 )
                               })}
@@ -1346,15 +1305,6 @@ export default function StockByStorePage() {
                                     </div>
                                   </div>
 
-                                  {/* Merchant SKU Section */}
-                                  {showMerchantSku && (
-                                    <div className="mt-3">
-                                      <div className="text-xs text-muted-foreground">Merchant SKU</div>
-                                      <div className="text-sm font-mono">
-                                        {txn.merchantSku || "-"}
-                                      </div>
-                                    </div>
-                                  )}
                                 </CardContent>
                               </Card>
                             )

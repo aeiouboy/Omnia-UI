@@ -206,20 +206,21 @@ export function UploadHistoryTable({
                 </div>
               </TableCell>
 
-              {/* Upload Date */}
+              {/* Upload Date - MM/DD/YYYY HH:mm:ss format */}
               <TableCell>
                 <div className="text-sm">
-                  {new Date(file.uploadDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(file.uploadDate).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
+                  {(() => {
+                    const date = new Date(file.uploadDate)
+                    if (isNaN(date.getTime())) return "-"
+                    const pad = (n: number) => n.toString().padStart(2, '0')
+                    const month = pad(date.getMonth() + 1)
+                    const day = pad(date.getDate())
+                    const year = date.getFullYear()
+                    const hours = pad(date.getHours())
+                    const minutes = pad(date.getMinutes())
+                    const seconds = pad(date.getSeconds())
+                    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
+                  })()}
                 </div>
               </TableCell>
 
