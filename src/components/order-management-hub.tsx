@@ -757,7 +757,7 @@ export function OrderManagementHub() {
   const [emailFilter, setEmailFilter] = useState("")
   const [phoneFilter, setPhoneFilter] = useState("")
   const [itemStatusFilter, setItemStatusFilter] = useState("all-item-status")
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState("all-payment-method")
+  // const [paymentMethodFilter, setPaymentMethodFilter] = useState("all-payment-method")
   const [orderTypeFilter, setOrderTypeFilter] = useState("all-order-type")
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   // FMS Extended Filter States
@@ -1135,8 +1135,8 @@ export function OrderManagementHub() {
       setPhoneFilter("")
     } else if (filter.startsWith("Item Status:")) {
       setItemStatusFilter("all-item-status")
-    } else if (filter.startsWith("Payment Method:")) {
-      setPaymentMethodFilter("all-payment-method")
+    // } else if (filter.startsWith("Payment Method:")) {
+    //   setPaymentMethodFilter("all-payment-method")
     } else if (filter.startsWith("Order Type:")) {
       setOrderTypeFilter("all-order-type")
     }
@@ -1178,7 +1178,7 @@ export function OrderManagementHub() {
     if (emailFilter) filters.push(`Email: ${emailFilter}`)
     if (phoneFilter) filters.push(`Phone: ${phoneFilter}`)
     if (itemStatusFilter !== "all-item-status") filters.push(`Item Status: ${itemStatusFilter}`)
-    if (paymentMethodFilter !== "all-payment-method") filters.push(`Payment Method: ${paymentMethodFilter}`)
+    // if (paymentMethodFilter !== "all-payment-method") filters.push(`Payment Method: ${paymentMethodFilter}`)
     if (orderTypeFilter !== "all-order-type") filters.push(`Order Type: ${orderTypeFilter}`)
     // // FMS Extended Filters
     // if (deliveryTypeFilter !== "all-delivery-type") filters.push(`Delivery Type: ${deliveryTypeFilter}`)
@@ -1198,7 +1198,7 @@ export function OrderManagementHub() {
     // }
 
     return filters
-  }, [searchTerm, skuSearchTerm, statusFilter, channelFilter, storeNoFilter, paymentStatusFilter, dateFromFilter, dateToFilter, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, itemStatusFilter, paymentMethodFilter, orderTypeFilter, deliveryTypeFilter, requestTaxFilter, settlementTypeFilter, deliverySlotDateFromFilter, deliverySlotDateToFilter, deliveredTimeFromFilter, deliveredTimeToFilter, dateTypeFilter])
+  }, [searchTerm, skuSearchTerm, statusFilter, channelFilter, storeNoFilter, paymentStatusFilter, dateFromFilter, dateToFilter, itemNameFilter, customerNameFilter, emailFilter, phoneFilter, itemStatusFilter, orderTypeFilter, deliveryTypeFilter, requestTaxFilter, settlementTypeFilter, deliverySlotDateFromFilter, deliverySlotDateToFilter, deliveredTimeFromFilter, deliveredTimeToFilter, dateTypeFilter])
 
   // Count active advanced filters (for badge display)
   const advancedFilterCount = useMemo(() => {
@@ -1228,7 +1228,7 @@ export function OrderManagementHub() {
     setEmailFilter("")
     setPhoneFilter("")
     setItemStatusFilter("all-item-status")
-    setPaymentMethodFilter("all-payment-method")
+    // setPaymentMethodFilter("all-payment-method")
     // setOrderTypeFilter("all-order-type")
     // // Reset FMS extended filters
     // setDeliveryTypeFilter("all-delivery-type")
@@ -1527,12 +1527,12 @@ export function OrderManagementHub() {
       if (!matchesItemStatus) return false
     }
 
-    // Payment Method filter
-    if (paymentMethodFilter && paymentMethodFilter !== "all-payment-method") {
-      if (order.payment_info?.method?.toUpperCase() !== paymentMethodFilter.toUpperCase()) {
-        return false
-      }
-    }
+    // Payment Method filter (commented out)
+    // if (paymentMethodFilter && paymentMethodFilter !== "all-payment-method") {
+    //   if (order.payment_info?.method?.toUpperCase() !== paymentMethodFilter.toUpperCase()) {
+    //     return false
+    //   }
+    // }
 
     // Order Type filter - uses unified orderType field (chore-ae72224b)
     if (orderTypeFilter && orderTypeFilter !== "all-order-type") {
@@ -2163,8 +2163,8 @@ export function OrderManagementHub() {
                 </Select>
               </div>
 
-              {/* 6. Payment Method */}
-              <div className="space-y-1.5">
+              {/* 6. Payment Method (commented out) */}
+              {/* <div className="space-y-1.5">
                 <Label htmlFor="payment-method" className="text-xs font-medium text-muted-foreground">Payment Method</Label>
                 <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
                   <SelectTrigger id="payment-method" className="min-w-[160px]">
@@ -2176,7 +2176,7 @@ export function OrderManagementHub() {
                     <SelectItem value="CREDIT_CARD_ON_DELIVERY">Credit Card on Delivery</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               {/* 7. Order Date Range */}
               <div className="space-y-1.5 md:col-span-2 lg:col-span-2">

@@ -1225,14 +1225,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                       <span className="text-gray-500">Substitution</span>
                                       <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
                                     </div>
-                                    {/* <div className="flex justify-between">
+                                    <div className="flex justify-between">
                                       <span className="text-gray-500">Bundle</span>
                                       <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
-                                    </div> */}
-                                    {/* <div className="flex justify-between">
-                                      <span className="text-gray-500">Bundle Ref Id</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Bundle Ref</span>
                                       <span className="text-gray-900 font-medium">{item.bundleRef || 'N/A'}</span>
-                                    </div> */}
+                                    </div>
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Packed Ordered Qty</span>
                                       <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
@@ -1247,10 +1247,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                         {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Secret Code</span>
                                       <span className="text-gray-900 font-medium">{item.secretCode || 'N/A'}</span>
-                                    </div>
+                                    </div> */}
                                     {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Style</span>
                                       <span className="text-gray-900 font-medium">{item.style || 'N/A'}</span>
@@ -1397,6 +1397,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Shipping Method</span>
                                       <span className="text-gray-900 font-medium">{item.shippingMethod || 'Standard'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Secret Code</span>
+                                      <span className="text-gray-900 font-medium">{item.secretCode || 'N/A'}</span>
                                     </div>
                                     {/* <div className="flex justify-between items-center">
                                       <span className="text-gray-500">Fulfillment Status</span>

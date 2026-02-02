@@ -84,6 +84,14 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #6825 | 9:14 PM | 🔵 | Current Gift Item Display Implementation in Order Detail View | ~468 |
 | #6650 | 3:44 PM | 🔵 | Order Management Date Range Filter Implementation | ~532 |
 | #6646 | 3:43 PM | 🔵 | Order Date Range Filtering Implementation | ~448 |
+
+### Feb 3, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6846 | 12:48 AM | 🟣 | Secret Code Field Added to Order Item Details Display | ~326 |
+| #6836 | 12:29 AM | ✅ | Payment Method Filter Disabled on Order Management Page | ~388 |
 </claude-mem-context>
