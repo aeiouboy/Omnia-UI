@@ -4,6 +4,7 @@ import { memo } from "react"
 import { TabsContent } from "@/components/ui/tabs"
 import { ChartCard } from "@/components/chart-card"
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts"
+import { formatCurrencyShort } from "@/lib/currency-utils"
 
 interface FulfillmentData {
   branch: string
@@ -62,11 +63,11 @@ export const FulfillmentTab = memo(function FulfillmentTab({
                   <XAxis dataKey="channel" />
                   <YAxis yAxisId="left" />
                   <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value, name) => [
-                      name === 'revenue' ? `฿${(Number(value) / 1000000).toLocaleString('th-TH', {minimumFractionDigits: 1, maximumFractionDigits: 1})}M` : 
+                      name === 'revenue' ? formatCurrencyShort(Number(value), 1) :
                       name === 'sla_rate' ? `${Number(value).toFixed(1)}%` : value,
-                      name === 'orders' ? 'Orders' : 
+                      name === 'orders' ? 'Orders' :
                       name === 'sla_rate' ? 'Fulfillment Rate' : name
                     ]}
                   />

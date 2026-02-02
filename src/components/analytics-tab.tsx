@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { DashboardService, type TopProduct, type BusinessUnitRevenue, type WeeklyTrend } from "@/lib/dashboard-service"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatCurrencyInt, formatCurrencyShort } from "@/lib/currency-utils"
 
 export function AnalyticsTab() {
   const [loading, setLoading] = useState(true)
@@ -93,7 +94,7 @@ export function AnalyticsTab() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <h3 className="text-2xl font-bold mt-1">฿{(analyticsSummary.totalRevenue / 1000000).toFixed(1)}M</h3>
+              <h3 className="text-2xl font-bold mt-1">{formatCurrencyShort(analyticsSummary.totalRevenue, 1)}</h3>
             </div>
             <div className="text-sm font-medium text-green-600">+15.2%</div>
           </div>
@@ -116,7 +117,7 @@ export function AnalyticsTab() {
             <div>
               <p className="text-sm text-muted-foreground">Avg Order Value</p>
               <h3 className="text-2xl font-bold mt-1">
-                ฿{Math.round(analyticsSummary.avgOrderValue).toLocaleString()}
+                {formatCurrencyInt(Math.round(analyticsSummary.avgOrderValue))}
               </h3>
             </div>
             <div className="text-sm font-medium text-green-600">+8.7%</div>
@@ -152,7 +153,7 @@ export function AnalyticsTab() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Orders</p>
-              <h3 className="text-2xl font-bold mt-1">{analyticsSummary.totalOrders.toLocaleString()}</h3>
+              <h3 className="text-2xl font-bold mt-1">{analyticsSummary.totalOrders.toLocaleString('th-TH')}</h3>
             </div>
             <div className="text-sm font-medium text-green-600">+12.1%</div>
           </div>
@@ -185,7 +186,7 @@ export function AnalyticsTab() {
               <div key={bu.business_unit || `bu-${index}`} className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{bu.business_unit}</span>
-                  <span className="text-sm font-medium">฿{(bu.total_revenue / 1000000).toFixed(1)}M</span>
+                  <span className="text-sm font-medium">{formatCurrencyShort(bu.total_revenue, 1)}</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-4">
                   <div
@@ -250,8 +251,8 @@ export function AnalyticsTab() {
                 <tr key={product.sku || product.product || `product-${index}`} className="border-b border-gray-100">
                   <td className="py-3 px-4">{product.product}</td>
                   <td className="py-3 px-4 text-gray-600">{product.sku}</td>
-                  <td className="py-3 px-4">{product.units_sold.toLocaleString()}</td>
-                  <td className="py-3 px-4">฿{product.revenue.toLocaleString()}</td>
+                  <td className="py-3 px-4">{product.units_sold.toLocaleString('th-TH')}</td>
+                  <td className="py-3 px-4">{formatCurrencyInt(product.revenue)}</td>
                   <td className="py-3 px-4 text-green-600 font-medium">+{product.growth}%</td>
                 </tr>
               ))}

@@ -1,4 +1,6 @@
-// Unit tests for order line splitting utilities
+// Unit tests for order line utilities
+// NOTE: Order line splitting logic has been removed (chore-17105b9b)
+// These tests verify the passthrough behavior
 
 import { describe, it, expect } from '@jest/globals'
 import {
@@ -10,7 +12,7 @@ import {
 } from '../order-utils'
 import type { ApiOrderItem } from '@/components/order-management-hub'
 
-describe('splitOrderLines', () => {
+describe('splitOrderLines (passthrough)', () => {
   // Helper function to create a basic test item
   const createTestItem = (id: string, quantity: number, uom?: string): ApiOrderItem => ({
     id,
@@ -28,82 +30,21 @@ describe('splitOrderLines', () => {
     ...(uom && { uom })
   })
 
-  describe('integer quantity splitting', () => {
-    it('should not split items with quantity = 1', () => {
-      const items = [createTestItem('001', 1)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('001')
-      expect(result[0].quantity).toBe(1)
-      expect(result[0].parentLineId).toBeUndefined()
-    })
-
-    it('should split items with quantity = 2 into 2 lines', () => {
-      const items = [createTestItem('001', 2)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(2)
-      expect(result[0].id).toBe('001-0')
-      expect(result[0].quantity).toBe(1)
-      expect(result[0].parentLineId).toBe('001')
-      expect(result[0].splitIndex).toBe(0)
-      expect(result[0].total_price).toBe(100)
-
-      expect(result[1].id).toBe('001-1')
-      expect(result[1].quantity).toBe(1)
-      expect(result[1].parentLineId).toBe('001')
-      expect(result[1].splitIndex).toBe(1)
-    })
-
-    it('should split items with quantity = 3 into 3 lines', () => {
+  describe('passthrough behavior', () => {
+    it('should preserve original quantities without modification', () => {
       const items = [createTestItem('001', 3)]
       const result = splitOrderLines(items)
 
-      expect(result).toHaveLength(3)
-      result.forEach((item, index) => {
-        expect(item.quantity).toBe(1)
-        expect(item.parentLineId).toBe('001')
-        expect(item.splitIndex).toBe(index)
-        expect(item.total_price).toBe(100)
-      })
-    })
-
-    it('should split items with quantity = 5 into 5 lines', () => {
-      const items = [createTestItem('001', 5)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(5)
-      result.forEach((item) => {
-        expect(item.quantity).toBe(1)
-        expect(item.parentLineId).toBe('001')
-        expect(item.total_price).toBe(100)
-      })
-    })
-  })
-
-  describe('decimal/weight quantity handling', () => {
-    it('should not split items with decimal quantity (e.g., 1.5)', () => {
-      const items = [createTestItem('001', 1.5)]
-      const result = splitOrderLines(items)
-
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('001')
-      expect(result[0].quantity).toBe(1.5)
+      expect(result[0].quantity).toBe(3)
       expect(result[0].parentLineId).toBeUndefined()
+      expect(result[0].splitIndex).toBeUndefined()
+      expect(result[0].splitReason).toBeUndefined()
     })
 
-    it('should not split items with decimal quantity (e.g., 1.75)', () => {
-      const items = [createTestItem('001', 1.75)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].quantity).toBe(1.75)
-      expect(result[0].parentLineId).toBeUndefined()
-    })
-
-    it('should not split items with weight UOM (KG) even with integer quantity', () => {
-      const items = [createTestItem('001', 2, 'KG')]
+    it('should not split items with quantity = 2', () => {
+      const items = [createTestItem('001', 2)]
       const result = splitOrderLines(items)
 
       expect(result).toHaveLength(1)
@@ -112,52 +53,46 @@ describe('splitOrderLines', () => {
       expect(result[0].parentLineId).toBeUndefined()
     })
 
-    it('should not split items with weight UOM (G) even with integer quantity', () => {
-      const items = [createTestItem('001', 3, 'G')]
+    it('should not split items with quantity = 5', () => {
+      const items = [createTestItem('001', 5)]
       const result = splitOrderLines(items)
 
       expect(result).toHaveLength(1)
-      expect(result[0].quantity).toBe(3)
+      expect(result[0].id).toBe('001')
+      expect(result[0].quantity).toBe(5)
+      expect(result[0].parentLineId).toBeUndefined()
+    })
+
+    it('should preserve items with quantity = 1', () => {
+      const items = [createTestItem('001', 1)]
+      const result = splitOrderLines(items)
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('001')
+      expect(result[0].quantity).toBe(1)
+    })
+
+    it('should preserve decimal quantities', () => {
+      const items = [createTestItem('001', 1.5)]
+      const result = splitOrderLines(items)
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('001')
+      expect(result[0].quantity).toBe(1.5)
+    })
+
+    it('should preserve items with weight UOM', () => {
+      const items = [createTestItem('001', 2, 'KG')]
+      const result = splitOrderLines(items)
+
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('001')
+      expect(result[0].quantity).toBe(2)
+      expect(result[0].uom).toBe('KG')
     })
   })
 
   describe('edge cases', () => {
-    it('should filter out items with quantity = 0', () => {
-      const items = [createTestItem('001', 0)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(0)
-    })
-
-    it('should filter out items with negative quantity', () => {
-      const items = [createTestItem('001', -1)]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(0)
-    })
-
-    it('should handle null quantity by defaulting to 1', () => {
-      const item = createTestItem('001', 1)
-      // @ts-expect-error - Testing null quantity
-      item.quantity = null
-      const items = [item]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].quantity).toBe(1)
-    })
-
-    it('should handle undefined quantity by defaulting to 1', () => {
-      const item = createTestItem('001', 1)
-      // @ts-expect-error - Testing undefined quantity
-      item.quantity = undefined
-      const items = [item]
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].quantity).toBe(1)
-    })
-
     it('should handle empty array', () => {
       const result = splitOrderLines([])
       expect(result).toHaveLength(0)
@@ -167,19 +102,56 @@ describe('splitOrderLines', () => {
       const result = splitOrderLines(null as unknown as ApiOrderItem[])
       expect(result).toHaveLength(0)
     })
+
+    it('should handle undefined input', () => {
+      const result = splitOrderLines(undefined as unknown as ApiOrderItem[])
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  describe('multiple items', () => {
+    it('should preserve all items with their original quantities', () => {
+      const items = [
+        createTestItem('001', 1),
+        createTestItem('002', 3),
+        createTestItem('003', 1),
+        createTestItem('004', 2)
+      ]
+
+      const result = splitOrderLines(items)
+
+      expect(result).toHaveLength(4)
+      expect(result[0].quantity).toBe(1)
+      expect(result[1].quantity).toBe(3)
+      expect(result[2].quantity).toBe(1)
+      expect(result[3].quantity).toBe(2)
+    })
+
+    it('should preserve all original IDs', () => {
+      const items = [
+        createTestItem('001', 2),
+        createTestItem('002', 3)
+      ]
+
+      const result = splitOrderLines(items)
+
+      expect(result).toHaveLength(2)
+      expect(result[0].id).toBe('001')
+      expect(result[1].id).toBe('002')
+    })
   })
 
   describe('metadata preservation', () => {
-    it('should preserve all original fields in split lines', () => {
+    it('should preserve all original fields unchanged', () => {
       const originalItem: ApiOrderItem = {
         id: '001',
         product_id: 'PROD-001',
         product_name: 'Test Product',
         thaiName: 'สินค้าทดสอบ',
         product_sku: 'SKU-001',
-        quantity: 2,
+        quantity: 3,
         unit_price: 100,
-        total_price: 200,
+        total_price: 300,
         product_details: {
           description: 'Test description',
           category: 'Test',
@@ -197,92 +169,8 @@ describe('splitOrderLines', () => {
 
       const result = splitOrderLines([originalItem])
 
-      expect(result).toHaveLength(2)
-
-      // Check first split line
-      expect(result[0].product_id).toBe(originalItem.product_id)
-      expect(result[0].product_name).toBe(originalItem.product_name)
-      expect(result[0].thaiName).toBe(originalItem.thaiName)
-      expect(result[0].product_sku).toBe(originalItem.product_sku)
-      expect(result[0].uom).toBe(originalItem.uom)
-      expect(result[0].location).toBe(originalItem.location)
-      expect(result[0].barcode).toBe(originalItem.barcode)
-      expect(result[0].giftWrapped).toBe(originalItem.giftWrapped)
-      expect(result[0].giftWrappedMessage).toBe(originalItem.giftWrappedMessage)
-      expect(result[0].supplyTypeId).toBe(originalItem.supplyTypeId)
-      expect(result[0].fulfillmentStatus).toBe(originalItem.fulfillmentStatus)
-      expect(result[0].shippingMethod).toBe(originalItem.shippingMethod)
-
-      // Check second split line
-      expect(result[1].product_id).toBe(originalItem.product_id)
-      expect(result[1].product_name).toBe(originalItem.product_name)
-    })
-
-    it('should set splitReason to "quantity-normalization"', () => {
-      const items = [createTestItem('001', 2)]
-      const result = splitOrderLines(items)
-
-      expect(result[0].splitReason).toBe('quantity-normalization')
-      expect(result[1].splitReason).toBe('quantity-normalization')
-    })
-  })
-
-  describe('multiple items', () => {
-    it('should handle mixed items with different quantities', () => {
-      const items = [
-        createTestItem('001', 1),  // No split
-        createTestItem('002', 3),  // Split into 3
-        createTestItem('003', 1),  // No split
-        createTestItem('004', 2)   // Split into 2
-      ]
-
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(7) // 1 + 3 + 1 + 2
-      expect(result.filter(i => i.parentLineId === '001')).toHaveLength(0)
-      expect(result.filter(i => i.parentLineId === '002')).toHaveLength(3)
-      expect(result.filter(i => i.parentLineId === '003')).toHaveLength(0)
-      expect(result.filter(i => i.parentLineId === '004')).toHaveLength(2)
-    })
-
-    it('should handle items with mixed integer and decimal quantities', () => {
-      const items = [
-        createTestItem('001', 2, 'EA'),   // Split into 2
-        createTestItem('002', 1.5, 'KG'), // No split (decimal + weight)
-        createTestItem('003', 3, 'PCS')   // Split into 3
-      ]
-
-      const result = splitOrderLines(items)
-
-      expect(result).toHaveLength(6) // 2 + 1 + 3
-      expect(result.filter(i => i.parentLineId === '001')).toHaveLength(2)
-      expect(result.filter(i => i.parentLineId === '002')).toHaveLength(0) // Not split
-      expect(result.filter(i => i.parentLineId === '003')).toHaveLength(3)
-    })
-  })
-
-  describe('price calculation', () => {
-    it('should set total_price to unit_price on split lines', () => {
-      const items = [createTestItem('001', 3)]
-      const result = splitOrderLines(items)
-
-      result.forEach(item => {
-        expect(item.quantity).toBe(1)
-        expect(item.unit_price).toBe(100)
-        expect(item.total_price).toBe(100) // unit_price * 1
-      })
-    })
-
-    it('should preserve unit_price on split lines', () => {
-      const originalItem = createTestItem('001', 5)
-      originalItem.unit_price = 250
-
-      const result = splitOrderLines([originalItem])
-
-      result.forEach(item => {
-        expect(item.unit_price).toBe(250)
-        expect(item.total_price).toBe(250)
-      })
+      expect(result).toHaveLength(1)
+      expect(result[0]).toEqual(originalItem)
     })
   })
 })
@@ -300,18 +188,31 @@ describe('groupSplitLinesByParent', () => {
     ...(parentLineId && { parentLineId })
   })
 
-  it('should group items by parentLineId', () => {
+  it('should group items by parentLineId when present', () => {
     const items = [
       createTestItem('001-0', 1, '001'),
       createTestItem('001-1', 1, '001'),
       createTestItem('001-2', 1, '001'),
-      createTestItem('002', 1) // No parent
+      createTestItem('002', 1)
     ]
 
     const groups = groupSplitLinesByParent(items)
 
     expect(groups.size).toBe(2)
     expect(groups.get('001')).toHaveLength(3)
+    expect(groups.get('002')).toHaveLength(1)
+  })
+
+  it('should use item id when no parentLineId exists', () => {
+    const items = [
+      createTestItem('001', 3),
+      createTestItem('002', 2)
+    ]
+
+    const groups = groupSplitLinesByParent(items)
+
+    expect(groups.size).toBe(2)
+    expect(groups.get('001')).toHaveLength(1)
     expect(groups.get('002')).toHaveLength(1)
   })
 })
@@ -329,34 +230,21 @@ describe('getOriginalQuantity', () => {
     ...(parentLineId && { parentLineId })
   })
 
-  it('should return the count of split lines for a split item', () => {
-    const items = [
-      createTestItem('001-0', 1, '001'),
-      createTestItem('001-1', 1, '001'),
-      createTestItem('001-2', 1, '001')
-    ]
-
-    const result = getOriginalQuantity(items[0], items)
-    expect(result).toBe(3)
-  })
-
-  it('should return the count of children for a parent item', () => {
-    const items = [
-      createTestItem('001', 1),
-      createTestItem('001-0', 1, '001'),
-      createTestItem('001-1', 1, '001'),
-      createTestItem('001-2', 1, '001')
-    ]
-
-    const result = getOriginalQuantity(items[0], items)
-    expect(result).toBe(3)
-  })
-
-  it('should return the quantity for items without splits', () => {
+  it('should return the item quantity for non-split items', () => {
     const items = [createTestItem('001', 5)]
 
     const result = getOriginalQuantity(items[0], items)
     expect(result).toBe(5)
+  })
+
+  it('should return 1 when quantity is missing', () => {
+    const item = createTestItem('001', 1)
+    // @ts-expect-error - Testing undefined quantity
+    item.quantity = undefined
+    const items = [item]
+
+    const result = getOriginalQuantity(items[0], items)
+    expect(result).toBe(1)
   })
 })
 

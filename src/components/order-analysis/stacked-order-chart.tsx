@@ -44,12 +44,12 @@ function OrderChartTooltip({ active, payload, label }: any) {
             />
             <span className="text-muted-foreground">{entry.name}</span>
           </div>
-          <span className="font-medium tabular-nums">{entry.value?.toLocaleString() || 0}</span>
+          <span className="font-medium tabular-nums">{(entry.value || 0).toLocaleString('th-TH')}</span>
         </div>
       ))}
       <div className="border-t mt-2 pt-2 flex justify-between text-sm font-medium">
         <span>Total</span>
-        <span className="tabular-nums">{total.toLocaleString()}</span>
+        <span className="tabular-nums">{total.toLocaleString('th-TH')}</span>
       </div>
     </div>
   )

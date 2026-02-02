@@ -38,10 +38,11 @@ export function StockHistoryChart({
   const formattedData = useMemo(() => {
     return data.map((point) => ({
       ...point,
-      displayDate: new Date(point.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      displayDate: (() => {
+        const d = new Date(point.date)
+        const pad = (n: number) => n.toString().padStart(2, '0')
+        return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`
+      })(),
     }))
   }, [data])
 

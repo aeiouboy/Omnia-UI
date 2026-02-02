@@ -11,11 +11,12 @@ import type {
 } from "@/types/order-analysis"
 
 /**
- * Format date to display format (e.g., "14-Jan")
+ * Format date to display format (e.g., "01/14")
  */
 function formatDisplayDate(dateStr: string): string {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }).replace(' ', '-')
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
 }
 
 /**

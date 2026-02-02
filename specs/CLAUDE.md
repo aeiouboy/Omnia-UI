@@ -44,4 +44,27 @@
 | #2703 | " | ✅ | Created Specification Document for Order Dashboard UI Improvements | ~305 |
 | #2697 | " | ✅ | Created comprehensive spec for Executive Dashboard UI improvements | ~551 |
 | #2684 | " | 🔵 | Inventory UI Improvement Requirements Identified | ~201 |
+
+### Jan 21, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4063 | 11:09 PM | 🟣 | Stock Card By Product View Wireframe Specification Created | ~947 |
+| #4055 | 11:07 PM | 🟣 | Stock Card By Product View Wireframe Specification | ~415 |
+| #3995 | 8:16 PM | ✅ | Navigation Icon Specification Updated to Lucide React ChevronRight | ~322 |
+| #3993 | 8:14 PM | ✅ | Stock Card Wireframe Enhanced with Store Listing and Status Visual Design | ~510 |
+
+### Jan 22, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4304 | 6:37 PM | 🟣 | Merchant SKU Toggle Switch Implementation Plan Created | ~945 |
+| #4273 | 5:39 PM | ⚖️ | Merchant SKU Implementation Specification and Column Positioning Strategy | ~918 |
+
+### Feb 1, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6261 | 9:00 PM | ⚖️ | Date/Time Format Standardization Plan - MM/DD/YYYY HH:mm:ss | ~790 |
+| #6007 | 1:36 PM | ⚖️ | Transaction Type Standardization Plan Created | ~952 |
 </claude-mem-context>

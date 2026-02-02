@@ -282,7 +282,8 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
       <CardContent className="px-4 sm:px-6">
         <div className="space-y-6 max-h-[600px] overflow-y-auto">
           {shipments.map((shipment, shipmentIndex) => {
-            const allocationType = shipment.shipToAddress.allocationType
+            const shipTo = shipment.shipToAddress || (shipment as any).shipToStore
+            const allocationType = shipTo?.allocationType || 'Delivery'
             const isPickup = allocationType === 'Pickup'
             const isMerge = allocationType === 'Merge'
             const isClickCollectShipment = isPickup || isMerge
@@ -300,7 +301,7 @@ export function TrackingTab({ orderId, orderData }: TrackingTabProps) {
             const ShipmentIcon = isClickCollectShipment ? Store : Truck
 
             return (
-              <div key={shipment.trackingNumber} className="space-y-3">
+              <div key={shipment.relNo} className="space-y-3">
                 {/* Section Header for Mixed Delivery - show delivery type label */}
                 {isMixedDelivery && (
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">

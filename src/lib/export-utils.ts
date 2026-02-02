@@ -43,56 +43,53 @@ function escapeCSVValue(value: any): string {
 }
 
 /**
- * Format date for export (ISO format with readable time)
+ * Format date for export in standardized MM/DD/YYYY HH:mm:ss format
+ * Uses local timezone for export compatibility with Excel
  */
 function formatDateForExport(timestamp: string): string {
   const date = new Date(timestamp)
-  return date.toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
+  if (isNaN(date.getTime())) return "-"
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const year = date.getFullYear()
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**
  * Format transaction type for display
+ * Transaction types are already display-friendly, so we just return them as-is
  */
 function formatTransactionType(type: StockTransaction["type"]): string {
-  switch (type) {
-    case "stock_in":
-      return "Stock In"
-    case "stock_out":
-      return "Stock Out"
-    case "adjustment":
-      return "Adjustment"
-    case "return":
-      return "Return"
-    case "transfer":
-      return "Transfer"
-    case "allocation":
-      return "Allocation"
-    default:
-      return type
-  }
+  // New transaction types are already display-friendly
+  return type
 }
 
 /**
- * Format date in GMT+7 timezone for export
+ * Format date in GMT+7 timezone for export in standardized MM/DD/YYYY HH:mm:ss format
  */
 function formatDateGMT7ForExport(timestamp: string): string {
   const date = new Date(timestamp)
-  return date.toLocaleString("en-US", {
-    timeZone: "Asia/Bangkok",
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
+  if (isNaN(date.getTime())) return "-"
+
+  // Convert to GMT+7
+  const utcTime = date.getTime() + date.getTimezoneOffset() * 60000
+  const gmt7Date = new Date(utcTime + 7 * 60 * 60 * 1000)
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const month = pad(gmt7Date.getMonth() + 1)
+  const day = pad(gmt7Date.getDate())
+  const year = gmt7Date.getFullYear()
+  const hours = pad(gmt7Date.getHours())
+  const minutes = pad(gmt7Date.getMinutes())
+  const seconds = pad(gmt7Date.getSeconds())
+
+  return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
 }
 
 /**
@@ -147,7 +144,7 @@ export function exportToCSV<T extends Record<string, any>>(
 }
 
 /**
- * Default columns for transaction export
+ * Default columns for transaction export (aligned with Recent Transactions table structure)
  */
 export const transactionExportColumns: ExportColumn[] = [
   {
@@ -157,19 +154,14 @@ export const transactionExportColumns: ExportColumn[] = [
   },
   {
     key: "type",
-    header: "Transaction Type",
+    header: "Type",
     formatter: (value) => formatTransactionType(value),
   },
   {
-    key: "channel",
-    header: "Channel",
-    formatter: (value) => value || "-",
-  },
-  {
     key: "quantity",
-    header: "Quantity",
+    header: "Qty",
     formatter: (value, row) => {
-      const sign = row.type === "stock_out" ? "-" : "+"
+      const sign = row.type === "Order Ship" || row.type === "Adjust out" ? "-" : "+"
       const formatted = row.itemType
         ? formatStockQuantity(value, row.itemType, false)
         : String(value)
@@ -178,7 +170,7 @@ export const transactionExportColumns: ExportColumn[] = [
   },
   {
     key: "balanceAfter",
-    header: "Balance After",
+    header: "Balance",
     formatter: (value, row) => {
       return row.itemType
         ? formatStockQuantity(value, row.itemType, false)
@@ -186,47 +178,57 @@ export const transactionExportColumns: ExportColumn[] = [
     },
   },
   {
-    key: "warehouseCode",
-    header: "Warehouse",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "locationCode",
-    header: "Location",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "referenceId",
-    header: "Order/Reference ID",
-    formatter: (value) => value || "-",
-  },
-  {
     key: "notes",
     header: "Notes",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "user",
-    header: "Action By",
-    formatter: (value) => value || "-",
+    formatter: (value, row) => {
+      const parts: string[] = []
+      if (row.user) parts.push(`${row.user}:`)
+      if (value) parts.push(value)
+      if (row.referenceId) parts.push(`(${row.referenceId})`)
+      return parts.join(" ") || "-"
+    },
   },
 ]
+
+/**
+ * Merchant SKU column for conditional inclusion in export
+ */
+const merchantSkuColumn: ExportColumn = {
+  key: "merchantSku",
+  header: "Merchant SKU",
+  formatter: (value) => value || "-",
+}
+
+/**
+ * Export options for transactions CSV
+ */
+export interface TransactionExportOptions {
+  includeMerchantSku?: boolean
+}
 
 /**
  * Export transactions to CSV
  *
  * @param transactions - Array of stock transactions
  * @param productName - Name of the product (used in filename)
+ * @param options - Export options (e.g., includeMerchantSku)
  */
 export function exportTransactionsToCSV(
   transactions: StockTransaction[],
-  productName: string
+  productName: string,
+  options?: TransactionExportOptions
 ): void {
   const filename = `transactions-${productName.replace(/[^a-zA-Z0-9]/g, "-")}-${
     new Date().toISOString().split("T")[0]
   }`
 
-  exportToCSV(transactions, filename, transactionExportColumns)
+  // Build columns based on options
+  const columns = [...transactionExportColumns]
+  if (options?.includeMerchantSku) {
+    columns.push(merchantSkuColumn)
+  }
+
+  exportToCSV(transactions, filename, columns)
 }
 
 /**
@@ -254,7 +256,7 @@ export const transactionHistoryExportColumns: ExportColumn[] = [
     formatter: (value, row) => {
       // Determine sign based on transaction type
       let sign = "+"
-      if (row.type === "stock_out" || row.type === "transfer" || row.type === "allocation") {
+      if (row.type === "Order Ship" || row.type === "Adjust out") {
         sign = "-"
       }
       const formatted = row.itemType
@@ -281,33 +283,6 @@ export const transactionHistoryExportColumns: ExportColumn[] = [
     key: "locationCode",
     header: "Location",
     formatter: (value) => value || "-",
-  },
-  {
-    key: "transferFrom",
-    header: "Transfer From",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "transferTo",
-    header: "Transfer To",
-    formatter: (value) => value || "-",
-  },
-  {
-    key: "allocationType",
-    header: "Allocation Type",
-    formatter: (value) => {
-      if (!value) return "-"
-      switch (value) {
-        case "order":
-          return "Order"
-        case "hold":
-          return "Hold"
-        case "reserve":
-          return "Reserve"
-        default:
-          return value
-      }
-    },
   },
   {
     key: "channel",

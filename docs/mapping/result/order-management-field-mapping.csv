@@ -1,0 +1,190 @@
+No,Module,Page,Sub-Page,Session,Field,Description,DataType,Mapping_Type,Mapping_APIs_Database_Table,Mapping_Field_Name,Sample_Value,Remark
+1,Order Management,Order Management,Filtering,Basic Filters,Search,"Search by order #, customer name, email, phone",VARCHAR(255),Logic,"order, customer","order_id, customer_name, customer_email, customer_phone",W1156251121946800,Multi-field search with LIKE operator
+2,Order Management,Order Management,Filtering,Basic Filters,Order Status,Filter by order status,VARCHAR(255),Fixed value,order,order_status,"DELIVERED, PROCESSING, CANCELLED",Dropdown with predefined status values
+3,Order Management,Order Management,Filtering,Basic Filters,Store No,Filter by store number,VARCHAR(100),Direct,master_locations,location_id,STR-0001,Store selection dropdown
+4,Order Management,Order Management,Filtering,Basic Filters,Channel,Filter by selling channel,VARCHAR(255),Fixed value,order,selling_channel,"web, shopee, lazada",Channel dropdown (TOL/MKP variants)
+5,Order Management,Order Management,Filtering,Basic Filters,Payment Status,Filter by payment status,VARCHAR(255),Fixed value,order,payment_status,"PAID, PENDING, FAILED",Payment status dropdown
+6,Order Management,Order Management,Filtering,Basic Filters,Payment Method,Filter by payment method,VARCHAR(255),Direct,order,payment_method,"CREDIT_CARD, COD, BANK_TRANSFER",Payment method dropdown
+7,Order Management,Order Management,Filtering,Basic Filters,Order Date From,Filter orders from date,TIMESTAMP,Logic,order,created_at,2025-11-21,Date range picker (from)
+8,Order Management,Order Management,Filtering,Basic Filters,Order Date To,Filter orders to date,TIMESTAMP,Logic,order,created_at,2025-11-21,Date range picker (to)
+9,Order Management,Order Management,Filtering,Advanced Filters,SKU,Search by product SKU,VARCHAR(255),Direct,order_items,sku,SKU-123456,Product search - SKU field
+10,Order Management,Order Management,Filtering,Advanced Filters,Item Name,Search by product item name,VARCHAR(255),Direct,order_items,product_name,Product Name,Product search - Item name field
+11,Order Management,Order Management,Filtering,Advanced Filters,Customer Name,Search by customer name,VARCHAR(255),Direct,customer,"first_name, last_name",WEERAPAT WIRUNTANGTRAKUL,Customer search - Full name
+12,Order Management,Order Management,Filtering,Advanced Filters,Email,Search by customer email,VARCHAR(255),Direct,customer,email,wee.wirun@gmail.com,Customer search - Email address
+13,Order Management,Order Management,Filtering,Advanced Filters,Phone,Search by customer phone,VARCHAR(20),Direct,customer,phone,0804411221,Customer search - Phone number
+14,Order Management,Order Management,Filtering,Advanced Filters,Order Type,Filter by order type,VARCHAR(255),Fixed value,order,order_type,"DELIVERY, PICKUP, SHIP_TO_STORE",Order type dropdown
+15,Order Management,Order Management,Order list,Order list,ORDER ID,ORDER ID,VARCHAR(255),Direct,order.order_id,order.order_id,W1156251121946800,
+16,Order Management,Order Management,Order list,Order list,ORDER SHORT,ORDER SHORT,VARCHAR(255),Direct,order.short_order_number,order.short_order_number,W1156251121946800,
+17,Order Management,Order Management,Order list,Order list,BUSINESS UNIT,BUSINESS UNIT,VARCHAR(255),Direct,order.org_id,order.org_id,,
+18,Order Management,Order Management,Order list,Order list,STORE NO.,STORE NO.,VARCHAR(100),Direct,master_locations.location_id,master_locations.location_id,STR-0001,
+19,Order Management,Order Management,Order list,Order list,ORDER TOTAL,ORDER TOTAL,"DECIMAL(18,4)",Direct,order.order_total,order.order_total,฿933,
+20,Order Management,Order Management,Order list,Order list,ORDER STATUS,ORDER STATUS,VARCHAR(255),Direct,order.order_status,order.order_status,DELIVERED,
+21,Order Management,Order Management,Order list,Order list,ORDER TYPE,ORDER TYPE,JSONB,Direct,order.order_type,order.order_type,DELIVERY,
+22,Order Management,Order Management,Order list,Order list,SLA STATUS,SLA STATUS,Calculated,Logic,Calculated,Calculated,2m BREACH,
+23,Order Management,Order Management,Order list,Order list,ORDER CAPTURED,Order date (Captured Date),TIMESTAMP,Direct,order.captured_date,order.captured_date,,Order date (Captured Date)
+24,Order Management,Order Management,Order list,Order list,ORDER CREATED,ORDER CREATED,TIMESTAMP,Direct,order.created_at,order.created_at,2025-11-21 10:42:00,
+25,Order Management,Order Management,Order list,Order list,PAYMENT STATUS,PAYMENT STATUS,VARCHAR(255),Direct,order.payment_status,order.payment_status,PAID,
+26,Order Management,Order Management,Order list,Order list,SELLING CHANNEL,SELLING CHANNEL,VARCHAR(255),Direct,order.selling_channel,order.selling_channel,web,
+27,Order Management,Order Management,Order list,Order list,SELLING STORE NAME,SELLING STORE NAME,VARCHAR(255),Direct,order.org_id,order.org_id,,
+28,Order Management,Order Management,Order list,Order list,RETURN STATUS,RETURN STATUS,BOOLEAN,Direct,order.is_post_return,order.is_post_return,NONE,
+29,Order Management,Order Management,Order list,Order list,ON HOLD,ON HOLD,BOOLEAN,Direct,order.is_on_hold,order.is_on_hold,NO,
+30,Order Management,Order Management,Order list,Order list,ALLOW SUBSTITUTION,ALLOW SUBSTITUTION,BOOLEAN,Direct,order.allow_substitution,order.allow_substitution,Yes,
+31,Order Management,Order Detail,Header Widget ,Header Widget ,Order Status,Order Status,VARCHAR(255),Direct,order.order_status,order.order_status,,
+32,Order Management,Order Detail,Header Widget ,Header Widget ,Selling Channel,Selling Channel,VARCHAR(255),Direct,order.selling_channel,order.selling_channel,,
+33,Order Management,Order Detail,Header Widget ,Header Widget ,Order Total,Order Total,"DECIMAL(18,4)",Direct,order.order_total,order.order_total,,
+34,Order Management,Order Detail,Header Widget ,Header Widget ,Elapsed Time,Elapsed Time,Calculated,Logic,Calculated,Calculated,,
+35,Order Management,Order Detail,Customer Information,Customer Information,Name,Name,VARCHAR(255) + VARCHAR(255),Direct,order.customer_first_name + customer_last_name,order.customer_first_name + customer_last_name,WEERAPAT WIRUNTANGTRAKUL,
+36,Order Management,Order Detail,Customer Information,Customer Information,Customer ID,Customer ID,VARCHAR(255),Direct,order.customer_id,order.customer_id,,
+37,Order Management,Order Detail,Customer Information,Customer Information,Customer Type ID,Customer Type ID,VARCHAR(255),Direct,order.customer_type_id,order.customer_type_id,,
+38,Order Management,Order Detail,Customer Information,Customer Information,Cust Ref,Cust Ref,VARCHAR(255),Direct,order.cust_ref,order.cust_ref,,
+39,Order Management,Order Detail,Customer Information,Customer Information,Email,Email,VARCHAR(255),Direct,order.customer_email,order.customer_email,wee.wirun@gmail.com,
+40,Order Management,Order Detail,Customer Information,Customer Information,Phone Number,Phone Number,VARCHAR(255),Direct,order.customer_phone,order.customer_phone,0804411221,
+41,Order Management,Order Detail,Customer Information,Customer Information,The1 Member,The1 Member,VARCHAR(255),Direct,order.the1_number,order.the1_number,,
+42,Order Management,Order Detail,Order Information,Order Information,Order ID,Order ID,VARCHAR(255),Direct,order.order_id,order.order_id,,
+43,Order Management,Order Detail,Order Information,Order Information,Payment Status,Payment Status,VARCHAR(255),Direct,order.payment_status,order.payment_status,,
+44,Order Management,Order Detail,Order Information,Order Information,Short Order ID,Short Order ID,VARCHAR(255),Direct,order.short_order_number,order.short_order_number,,
+45,Order Management,Order Detail,Order Information,Order Information,Store No.,OrderLinePromisingInfo[].ShipFromLocationId,VARCHAR(100),Direct,master_locations.location_id,master_locations.location_id,,OrderLinePromisingInfo[].ShipFromLocationId
+46,Order Management,Order Detail,Order Information,Order Information,Order Created,Order Created,TIMESTAMP,Direct,order.created_at,order.created_at,,
+47,Order Management,Order Detail,Order Information,Order Information,Order Date,Order date (Captured Date),TIMESTAMP,Direct,order.created_at,order.created_at,,Order date (Captured Date)
+48,Order Management,Order Detail,Order Information,Order Information,Business Unit,Business Unit,VARCHAR(255),Direct,order.org_id,order.org_id,,
+49,Order Management,Order Detail,Order Information,Order Information,Order Type,Order Type,JSONB,Direct,order.order_type,order.order_type,,
+50,Order Management,Order Detail,Order Information,Order Information,Full Tax Invoice,Full Tax Invoice,BOOLEAN,Direct,order.full_tax_invoice,order.full_tax_invoice,,
+51,Order Management,Order Detail,Order Information,Order Information,Customer Type ID,Customer Type ID,VARCHAR(255),Direct,order.customer_type_id,order.customer_type_id,,
+52,Order Management,Order Detail,Order Information,Order Information,Selling Channel,Selling Channel,VARCHAR(255),Direct,order.selling_channel,order.selling_channel,,
+53,Order Management,Order Detail,Order Information,Order Information,Allow Substitution,Allow Substitution,BOOLEAN,Direct,order.allow_substitution,order.allow_substitution,,
+54,Order Management,Order Detail,Order Information,Order Information,Tax ID,Tax ID,VARCHAR(255),Direct,order.tax_id,order.tax_id,,
+55,Order Management,Order Detail,Order Information,Order Information,Company Name,when customer submits (place order) and successfully paid,VARCHAR(255),Direct,order.company_name,order.company_name,,when customer submits (place order) and successfully paid
+56,Order Management,Order Detail,Order Information,Order Information,Branch No.,Order create in Omnia,VARCHAR(255),Direct,order.branch_no,order.branch_no,,Order create in Omnia
+57,Order Management,Order Detail,Delivery Address ,Delivery Address ,Recipient,Recipient,JSONB (nested),Fixed value,orderLine[].ship_to_address.first_name + last_name,orderLine[].ship_to_address.first_name + last_name,,
+58,Order Management,Order Detail,Delivery Address ,Delivery Address ,Phone,Phone,JSONB (nested),Fixed value,orderLine[].ship_to_address.phone,orderLine[].ship_to_address.phone,,
+59,Order Management,Order Detail,Delivery Address ,Delivery Address ,Address,Address,JSONB (nested),Fixed value,orderLine[].ship_to_address.address,orderLine[].ship_to_address.address,,
+60,Order Management,Order Detail,Delivery Address ,Delivery Address ,Special Instructions,mvp // TBC เนื่องจาก Ecom ส่ง Payload มาเท่านี้,JSONB (nested),Fixed value,orderLine[].ship_to_address: → Extended.AddressRef,orderLine[].ship_to_address: → Extended.AddressRef,,mvp // TBC เนื่องจาก Ecom ส่ง Payload มาเท่านี้
+61,Order Management,Order Detail,Payment Information,Payment Information,Subtotal,Subtotal,"DECIMAL(18,4)",Direct,order.order_sub_total,order.order_sub_total,,
+62,Order Management,Order Detail,Payment Information,Payment Information,Discounts,Discounts,"DECIMAL(18,4)",Direct,order.total_discounts,order.total_discounts,,
+63,Order Management,Order Detail,Payment Information,Payment Information,Charges,Charges,"DECIMAL(18,4)",Direct,order.total_charges,order.total_charges,,
+64,Order Management,Order Detail,Payment Information,Payment Information,Amount Included Taxes,Amount Included Taxes,"DECIMAL(18,4)",Direct,order.order_total,order.order_total,,
+65,Order Management,Order Detail,Payment Information,Payment Information,Amount Excluded Taxes,Amount Excluded Taxes,Calculated,Fixed value,Calculated (order_total - total_taxes),Calculated (order_total - total_taxes),,
+66,Order Management,Order Detail,Payment Information,Payment Information,Taxes,Taxes,"DECIMAL(18,4)",Direct,order.total_taxes,order.total_taxes,,
+67,Order Management,Order Detail,Payment Information,Payment Information,Total,Total,"DECIMAL(18,4)",Direct,order.order_total,order.order_total,,
+68,Order Management,Order Detail,Item List,Item List,Total Item Quantity,Total Item Quantity,INT4,Fixed value,orderLineCount,orderLineCount,,
+69,Order Management,Order Detail,Item List,Item List,Item Name,Item Name,TEXT,Fixed value,orderLine[].item_description,orderLine[].item_description,,
+70,Order Management,Order Detail,Item List,Item List,SKU,SKU,VARCHAR(255),Fixed value,orderLine[].item_id,orderLine[].item_id,,
+71,Order Management,Order Detail,Item List,Item List,Qty,Qty,INT4,Fixed value,orderLine[].quantity,orderLine[].quantity,,
+72,Order Management,Order Detail,Item List,Item List,Fulfillment Status,Fulfillment Status,VARCHAR(255),Fixed value,orderLine[].fulfillment_status,orderLine[].fulfillment_status,,
+73,Order Management,Order Detail,Item List,Item List,Item Total,Item Total,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_total,orderLine[].order_line_total,,
+74,Order Management,Order Detail,Item List,Item List,Unit Price (each),Unit Price (each),"DECIMAL(18,4)",Fixed value,orderLine[].unit_price,orderLine[].unit_price,,
+75,Order Management,Order Detail,Item Details,Item Details,UOM,UOM,VARCHAR(255),Fixed value,orderLine[].uom,orderLine[].uom,,
+76,Order Management,Order Detail,Item Details,Item Details,Packed Ordered Qty,Packed Ordered Qty,"DECIMAL(18,4)",Fixed value,orderLine[].pack_ordered_qty,orderLine[].pack_ordered_qty,,
+77,Order Management,Order Detail,Item Details,Item Details,Location,Store ID,VARCHAR(255),Fixed value,orderLine[].ship_from_address_id,orderLine[].ship_from_address_id,,Store ID
+78,Order Management,Order Detail,Item Details,Item Details,Barcode,Barcode,VARCHAR(255),Fixed value,orderLine[].barcode,orderLine[].barcode,,
+79,Order Management,Order Detail,Item Details,Item Details,Gift Wrapped,Gift Wrapped,BOOLEAN,Fixed value,orderLine[].is_gift_wrapping,orderLine[].is_gift_wrapping,,
+80,Order Management,Order Detail,Item Details,Item Details,Substitution,Substitution,BOOLEAN,Fixed value,orderLine[].allow_substitution,orderLine[].allow_substitution,,
+81,Order Management,Order Detail,Item Details,Item Details,Supply Type ID,Supply Type ID,VARCHAR(255),Fixed value,allocations.subply_type,allocations.subply_type,,Supply Type ID
+82,Order Management,Order Detail,Item Details,Item Details,Style,CDS,VARCHAR(255),Fixed value,orderLine[].product_attributes.style,orderLine[].product_attributes.style,,CDS
+83,Order Management,Order Detail,Item Details,Item Details,Color,CDS,VARCHAR(255),Fixed value,orderLine[].product_attributes.color,orderLine[].product_attributes.color,,CDS
+84,Order Management,Order Detail,Item Details,Item Details,Size,CDS,VARCHAR(255),Fixed value,orderLine[].product_attributes.size,orderLine[].product_attributes.size,,CDS
+85,Order Management,Order Detail,Item Details,Item Details,Weight,CDS,"DECIMAL(18,4)",Fixed value,orderLine[].product_attributes.weight,orderLine[].product_attributes.weight,,CDS
+86,Order Management,Order Detail,Item Details,Item Details,Reason,CDS,VARCHAR(255),Fixed value,orderLine[].product_attributes.reason,orderLine[].product_attributes.reason,,CDS
+87,Order Management,Order Detail,Item Details,Item Details,Temperature,CDS,VARCHAR(255),Fixed value,orderLine[].product_attributes.temperature,orderLine[].product_attributes.temperature,,CDS
+88,Order Management,Order Detail,Item Details,Item Details,Expiry,CDS,TIMESTAMP,Fixed value,orderLine[].product_attributes.expiry_date,orderLine[].product_attributes.expiry_date,,CDS
+89,Order Management,Order Detail,Pricing & Promotions,Pricing & Promotions,Price,Price,"DECIMAL(18,4)",Fixed value,orderLine[].unit_price,orderLine[].unit_price,,
+90,Order Management,Order Detail,Pricing & Promotions,Pricing & Promotions,Qty,Qty,INT4,Fixed value,orderLine[].quantity,orderLine[].quantity,,
+91,Order Management,Order Detail,Pricing & Promotions,Pricing & Promotions,Total,Total,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_total,orderLine[].order_line_total,,
+92,Order Management,Order Detail,- Promotion Detail,- Promotion Detail,Promotion Name,Promotion Name,VARCHAR(255),Fixed value,orderLine[].order_line_charge_detail.promotion_name,orderLine[].order_line_charge_detail.promotion_name,,
+93,Order Management,Order Detail,- Promotion Detail,- Promotion Detail,Promotion ID,Promotion ID,JSONB (nested),Fixed value,orderLine[].order_line_charge_detail.promotion_id,orderLine[].order_line_charge_detail.promotion_id,,
+94,Order Management,Order Detail,- Promotion Detail,- Promotion Detail,Promotion Type,Promotion Type,JSONB (nested),Fixed value,orderLine[].order_line_charge_detail.promotion_type,orderLine[].order_line_charge_detail.promotion_type,,
+95,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Coupons Name,Coupons Name,VARCHAR(255),Fixed value,orderLine[].order_line_charge_detail.coupon_name,orderLine[].order_line_charge_detail.coupon_name,,
+96,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Coupon_Code,mvp,JSONB (nested),Fixed value,orderLine[].order_line_charge_detail.ChargeReferenceId,orderLine[].order_line_charge_detail.ChargeReferenceId,,mvp
+97,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Coupon_Name,mvp,JSONB (nested),Fixed value,orderLine[].order_line_charge_detail.ChargeDisplayName,orderLine[].order_line_charge_detail.ChargeDisplayName,,mvp
+98,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Applied,mvp,JSONB (nested),Fixed value,"orderLine[].order_line_charge_detail.CreatedBy
+orderLine[].order_line_charge_detail.CreatedTimestamp","orderLine[].order_line_charge_detail.CreatedBy
+orderLine[].order_line_charge_detail.CreatedTimestamp",,mvp
+99,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Applied_on_(Item_Quantity: ระบบ display จำนวน items)_Item(s),mvp,JSONB (nested),Direct,order,Applied_on_(Item_Quantity: ระบบ display จำนวน items)_Item(s),,mvp
+100,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Line_Coupon_Value,mvp,JSONB (nested),Fixed value,orderLine[].order_line_charge_detail.ChargeTotal,orderLine[].order_line_charge_detail.ChargeTotal,,mvp
+101,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Secret Code,Secret Code,JSONB (nested),Fixed value,orderLine[].order_line_extension1.Extended.SecretKeyCode,orderLine[].order_line_extension1.Extended.SecretKeyCode,,
+102,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Gift with Purchase,Gift with Purchase,BOOLEAN,Fixed value,orderLine[].is_gwp,orderLine[].is_gwp,,
+103,Order Management,Order Detail,- Coupon Detail,- Coupon Detail,Gift with purchase item,Gift with purchase item,VARCHAR(255),Fixed value,orderLine[].GWPParentItem,orderLine[].GWPParentItem,,
+104,Order Management,Order Detail,Fulfillment,Fulfillment,Shipping Method,Shipping Method,VARCHAR(255),Fixed value,orderLine[].shipping_method_id,orderLine[].shipping_method_id,,
+105,Order Management,Order Detail,Fulfillment,Fulfillment,Route,mvp,JSONB (nested),Fixed value,OrderLine[].OrderLineExtension1.Extended.DeliveryRoute,OrderLine[].OrderLineExtension1.Extended.DeliveryRoute,,mvp
+106,Order Management,Order Detail,Fulfillment,Fulfillment,Booking_slot_from,mvp,VARCHAR(255),Fixed value,orderLine[].slot_booking_from,orderLine[].slot_booking_from,,mvp
+107,Order Management,Order Detail,Fulfillment,Fulfillment,Booking_slot_to,mvp,VARCHAR(255),Fixed value,orderLine[].slot_booking_to,orderLine[].slot_booking_to,,mvp
+108,Order Management,Order Detail,Fulfillment,Fulfillment,Fulfillment Status,Fulfillment Status,VARCHAR(255),Fixed value,orderLine[].fulfillment_status,orderLine[].fulfillment_status,,
+109,Order Management,Order Detail,Fulfillment,Fulfillment,Bundle,Bundle,BOOLEAN,Fixed value,orderLine[].is_bundle,orderLine[].is_bundle,,
+110,Order Management,Order Detail,Fulfillment,Fulfillment,Bundle Ref,Bundle Ref,VARCHAR(255),Fixed value,orderLine[].bundle_ref_id,orderLine[].bundle_ref_id,,
+111,Order Management,Order Detail,Fulfillment,Fulfillment,ETA,ETA,TIMESTAMP,Fixed value,orderLine[].slot_booking_from + slot_booking_to,orderLine[].slot_booking_from + slot_booking_to,,
+112,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Subtotal,Subtotal,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_sub_total,orderLine[].order_line_sub_total,,
+113,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Discount,Discount,"DECIMAL(18,4)",Fixed value,orderLine[].total_discounts,orderLine[].total_discounts,,
+114,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Charges,Charges,"DECIMAL(18,4)",Fixed value,orderLine[].total_charges,orderLine[].total_charges,,
+115,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Amount Included Taxes,Amount Included Taxes,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_total,orderLine[].order_line_total,,
+116,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Amount Excluded Taxes,Amount Excluded Taxes,Calculated,Fixed value,Calculated (line_total - line_tax_total),Calculated (line_total - line_tax_total),,
+117,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Taxes,Taxes,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_tax_total,orderLine[].order_line_tax_total,,
+118,Order Management,Order Detail,- Price Breakdown,- Price Breakdown,Total,Total,"DECIMAL(18,4)",Fixed value,orderLine[].order_line_total,orderLine[].order_line_total,,
+119,Order Management,Order Detail,Payments,Payments,Payment Status,Payment Status,VARCHAR(255),Direct,order.payment_status,order.payment_status,,
+120,Order Management,Order Detail,Payments,Payments,Total Amount,Total Amount,"DECIMAL(18,4)",Direct,order.order_total,order.order_total,,
+121,Order Management,Order Detail,Payments,Payments,Payment Methods Count,Payment Methods Count,INT4,Fixed value,Count of payment_methods,Count of payment_methods,,
+122,Order Management,Order Detail,Payments,Payments,Payment Method Name,Payment Method Name,JSONB,Fixed value,payment_method[].payment_type,payment_method[].payment_type,,
+123,Order Management,Order Detail,Payments,Payments,Payment Method Status,Payment Method Status,VARCHAR(255),Fixed value,payment_method[].status,payment_method[].status,,
+124,Order Management,Order Detail,Payments,Payments,Payment Method Amount,Payment Method Amount,"DECIMAL(18,4)",Fixed value,payment_method[].amount,payment_method[].amount,,
+125,Order Management,Order Detail,Payments,Payments,Transaction Date,Transaction Date,TIMESTAMP,Fixed value,payment_method[].transaction_date,payment_method[].transaction_date,,
+126,Order Management,Order Detail,Payments,Payments,Amount to be Charged,Amount to be Charged,"DECIMAL(18,4)",Fixed value,payment_method[].amount,payment_method[].amount,,
+127,Order Management,Order Detail,Payments,Payments,Amount Charged,Amount Charged,"DECIMAL(18,4)",Fixed value,payment_method[].current_settled_amount,payment_method[].current_settled_amount,,
+128,Order Management,Order Detail,Payments,Payments,Billing Name,Billing Name,JSONB (nested),Fixed value,payment_method[].billing_address.name,payment_method[].billing_address.name,,
+129,Order Management,Order Detail,Payments,Payments,Billing Address,Billing Address,JSONB (nested),Fixed value,payment_method[].billing_address.address,payment_method[].billing_address.address,,
+130,Order Management,Order Detail,Fulfillment Status,Fulfillment Status,Fulfillment Status,Fulfillment Status,VARCHAR(100),Fixed value,fulfillment_trackings.fulfillment_event_status,fulfillment_trackings.fulfillment_event_status,,
+131,Order Management,Order Detail,Fulfillment Status,Fulfillment Status,Event Datetime,Event Datetime,TIMESTAMP,Fixed value,fulfillment_trackings.fulfillment_event_datetime,fulfillment_trackings.fulfillment_event_datetime,,
+132,Order Management,Order Detail,Tracking Status,Tracking Status,Tracking Number,Tracking Number,VARCHAR(255),Fixed value,order_trackings.tracking_number,order_trackings.tracking_number,,
+133,Order Management,Order Detail,Tracking Status,Tracking Status,Carrier Code,Carrier Code,VARCHAR(30),Fixed value,order_trackings.carrier_code,order_trackings.carrier_code,,
+134,Order Management,Order Detail,Tracking Status,Tracking Status,Tracking Status,Tracking Status,VARCHAR(255),Fixed value,order_trackings.status,order_trackings.status,,
+135,Order Management,Order Detail,Tracking Status,Tracking Status,Tracking Status Sub Type,Tracking Status Sub Type,VARCHAR(255),Fixed value,order_trackings.status_sub_type,order_trackings.status_sub_type,,
+136,Order Management,Order Detail,Items Tab,Item Header,Fulfillment Status,Status badge showing fulfillment status per item,VARCHAR(255),Direct,order_items,fulfillment_status,"FULFILLED, PENDING",Status badge with color coding
+137,Order Management,Order Detail,Items Tab,Item Header,Product Name,English product name,VARCHAR(255),Direct,order_items,product_name,Product Name,Main product display name
+138,Order Management,Order Detail,Items Tab,Item Header,Thai Name,Thai product name,VARCHAR(255),Direct,order_items,thai_name,ชื่อสินค้าภาษาไทย,Thai language product name
+139,Order Management,Order Detail,Items Tab,Item Header,Product SKU,Product Stock Keeping Unit,VARCHAR(255),Direct,order_items,sku,SKU-123456,Unique product identifier
+140,Order Management,Order Detail,Items Tab,Item Header,Quantity,Number of units ordered,INT,Direct,order_items,quantity,1,Order line quantity
+141,Order Management,Order Detail,Items Tab,Item Header,Total Price,Total price for line item,"DECIMAL(18,4)",Direct,order_items,total_price,฿933,Formatted with Thai Baht currency
+142,Order Management,Order Detail,Items Tab,Item Details - Column 1,UOM (Unit of Measure),Unit of measurement,VARCHAR(50),Direct,order_items,uom,"PC, BOX, PCS",Unit type for quantity
+143,Order Management,Order Detail,Items Tab,Item Details - Column 1,Supply Type ID,Supply type identifier,VARCHAR(255),Direct,order_items,supply_type_id,SUP-001,Links to supply type master
+144,Order Management,Order Detail,Items Tab,Item Details - Column 1,Substitution,Allow item substitution,BOOLEAN,Direct,order_items,allow_substitution,Yes/No,Boolean flag
+145,Order Management,Order Detail,Items Tab,Item Details - Column 1,Bundle,Is part of a bundle,BOOLEAN,Direct,order_items,is_bundle,Yes/No,Boolean flag
+146,Order Management,Order Detail,Items Tab,Item Details - Column 1,Gift Wrapped,Item wrapped as gift,BOOLEAN,Direct,order_items,gift_wrapped,Yes/No,Boolean flag
+147,Order Management,Order Detail,Items Tab,Item Details - Column 1,Gift Message,Message included with gift,TEXT,Direct,order_items,gift_wrapped_message,Happy Birthday!,Optional text field
+148,Order Management,Order Detail,Items Tab,Item Details - Column 2,Unit Price,Price per unit,"DECIMAL(18,4)",Direct,order_items,unit_price,฿933,Individual unit price
+149,Order Management,Order Detail,Items Tab,Item Details - Column 2,Coupon ID,Applied coupon identifier,VARCHAR(255),Direct,order_items,coupon_id,COUP-001,Nullable if no coupon
+150,Order Management,Order Detail,Items Tab,Item Details - Column 2,Coupon Name,Name of applied coupon,VARCHAR(255),Direct,order_items,coupon_name,Summer Promotion,Coupon display name
+151,Order Management,Order Detail,Items Tab,Item Details - Column 2,Discount Amount,Amount discounted from coupon,"DECIMAL(18,4)",Direct,order_items,discount_amount,฿100,Coupon discount value
+152,Order Management,Order Detail,Items Tab,Item Details - Column 2,Gift with Purchase,Item received as gift with purchase,BOOLEAN,Direct,order_items,gift_with_purchase,Yes/No,Boolean flag
+153,Order Management,Order Detail,Items Tab,Item Details - Column 3,Shipping Method,Method used for shipping,VARCHAR(255),Fixed value,order_items,shipping_method,"HOME_DELIVERY, CLICK_COLLECT",Predefined shipping methods
+154,Order Management,Order Detail,Items Tab,Item Details - Column 3,Booking Slot From,Booking slot start time,TIMESTAMP,Direct,order_items,booking_slot_from,2025-11-21T10:00:00,Nullable for non-slot deliveries
+155,Order Management,Order Detail,Items Tab,Item Details - Column 3,Booking Slot To,Booking slot end time,TIMESTAMP,Direct,order_items,booking_slot_to,2025-11-21T12:00:00,Paired with slot_from
+156,Order Management,Order Detail,Items Tab,Item Details - Column 3,ETA (Estimated Time of Arrival),Estimated delivery time range,TIMESTAMP_RANGE,Logic,order_items,"eta_from, eta_to",2025-11-21 10:00 - 12:00,Calculated or provided range
+157,Order Management,Order Detail,Payments Tab,Payment Header,Order Payment Status,Overall order payment status,VARCHAR(255),Fixed value,order,payment_status,"PAID, PENDING, FAILED",Status badge display
+158,Order Management,Order Detail,Payments Tab,Payment Methods,Payment Type,Type of payment method,VARCHAR(255),Fixed value,order,payment_type,"MAIN, T1_POINT, CREDIT_CARD",Main or supplementary payment
+159,Order Management,Order Detail,Payments Tab,Payment Methods,Payment Method Name,Name of payment method,VARCHAR(255),Direct,order,payment_method,"Credit Card, T1 Points, Bank Transfer",Display name
+160,Order Management,Order Detail,Payments Tab,Payment Methods,Payment Method Status,Status of this payment method,VARCHAR(255),Fixed value,order,method_status,"PAID, PENDING, FAILED",Per-method status badge
+161,Order Management,Order Detail,Payments Tab,Payment Methods,Payment Amount,Amount paid via this method,"DECIMAL(18,4)",Direct,order,payment_amount,฿933,Currency formatted
+162,Order Management,Order Detail,Payments Tab,Payment Methods,Card Number (Masked),Masked credit card number,VARCHAR(255),Direct,order,card_number,****1234,Masked for security
+163,Order Management,Order Detail,Payments Tab,Payment Methods,Card Expiry Date,Credit card expiration date,VARCHAR(5),Direct,order,card_expiry,12/25,MM/YY format
+164,Order Management,Order Detail,Payments Tab,Billing Info,Billing Name,Name on billing address,VARCHAR(255),Direct,order,billing_name,John Doe,Billing contact name
+165,Order Management,Order Detail,Payments Tab,Billing Info,Billing Address,Full billing address,VARCHAR(500),Direct,order,billing_address,"123 Street, City, State 12345",Complete address
+166,Order Management,Order Detail,Fulfillment Tab,Timeline Events,Event Status,Status of fulfillment event,VARCHAR(255),Fixed value,order,fulfillment_status,"CONFIRMED, PICKING, PACKED, SHIPPED",Timeline status values
+167,Order Management,Order Detail,Fulfillment Tab,Timeline Events,Event Details,Additional event information,TEXT,Direct,order,event_details,Order confirmed and ready for picking,Optional event description
+168,Order Management,Order Detail,Fulfillment Tab,Timeline Events,Event Timestamp,When the event occurred,TIMESTAMP,Formatted,order,event_timestamp,2025-11-21 10:42:00,GMT+7 formatted timestamp
+169,Order Management,Order Detail,Fulfillment Tab,Delivery Type Card,Delivery Type Label,Type of delivery method,VARCHAR(255),Direct,order,delivery_type,"Home Delivery, Click & Collect",Card title based on method
+170,Order Management,Order Detail,Fulfillment Tab,Delivery Type Card,Item Count,Number of items for this delivery,INT,Logic,order_items,COUNT(*),3 items,Aggregated count
+171,Order Management,Order Detail,Tracking Tab,Shipment Header,Tracking Number,Carrier tracking reference number,VARCHAR(255),Direct,shipments,tracking_number,TRACK123456789,External carrier tracking
+172,Order Management,Order Detail,Tracking Tab,Shipment Header,Carrier Name,Shipping carrier name,VARCHAR(255),Direct,shipments,carrier_name,"DHL, FedEx, EMS",Carrier provider
+173,Order Management,Order Detail,Tracking Tab,Shipment Details,Status,Current shipment status,VARCHAR(255),Fixed value,shipments,status,"IN_TRANSIT, DELIVERED, OUT_FOR_DELIVERY",Color coded status
+174,Order Management,Order Detail,Tracking Tab,Shipment Details,ETA,Estimated time of arrival,TIMESTAMP,Direct,shipments,eta,2025-11-22,Estimated delivery date
+175,Order Management,Order Detail,Tracking Tab,Shipment Details,Shipped On,When shipment was sent,TIMESTAMP,Formatted,shipments,shipped_at,2025-11-21 15:30:00,Actual ship date/time
+176,Order Management,Order Detail,Tracking Tab,Recipient Info,Recipient Name,Person receiving shipment,VARCHAR(255),Direct,shipments,recipient_name,John Doe,Delivery recipient
+177,Order Management,Order Detail,Tracking Tab,Recipient Info,Recipient Address,Complete shipping address,VARCHAR(500),Direct,shipments,recipient_address,"123 Street, City, State 12345",Full delivery address
+178,Order Management,Order Detail,Tracking Tab,Shipped Items,Item SKU,Product SKU in shipment,VARCHAR(255),Direct,shipments,sku,SKU-123456,Shipped product identifier
+179,Order Management,Order Detail,Tracking Tab,Shipped Items,Item Quantity,Quantity of item shipped,INT,Direct,shipments,quantity,2,Units shipped per item
+180,Order Management,Order Detail,Audit Trail Tab,Audit Filters,Entity Category,Type of entity changed,VARCHAR(255),Fixed value,audit_trail,entity_type,"All, Order, Fulfillment, Payment, System",Filter dropdown options
+181,Order Management,Order Detail,Audit Trail Tab,Audit Events,Updated By,User or system that made change,VARCHAR(255),Direct,audit_trail,updated_by,john.doe@company.com,Username or system identifier
+182,Order Management,Order Detail,Audit Trail Tab,Audit Events,Updated On,When the change occurred,TIMESTAMP,Formatted,audit_trail,updated_at,2025-11-21 10:42:00,GMT+7 timestamp
+183,Order Management,Order Detail,Audit Trail Tab,Audit Events,Entity Name,Name of changed entity,VARCHAR(255),Direct,audit_trail,entity_name,"Order, Line Item, Payment",What was changed
+184,Order Management,Order Detail,Audit Trail Tab,Audit Events,Entity ID,ID of the changed entity,VARCHAR(255),Direct,audit_trail,entity_id,"ORD-001, ITEM-001",Entity identifier
+185,Order Management,Order Detail,Audit Trail Tab,Audit Events,Changed Parameter,Field that was changed,VARCHAR(255),Direct,audit_trail,changed_field,"order_status, payment_status",Column/field name
+186,Order Management,Order Detail,Audit Trail Tab,Audit Events,Old Value,Previous value before change,TEXT,Direct,audit_trail,old_value,PENDING,Previous state
+187,Order Management,Order Detail,Audit Trail Tab,Audit Events,New Value,Current value after change,TEXT,Direct,audit_trail,new_value,PAID,Current state

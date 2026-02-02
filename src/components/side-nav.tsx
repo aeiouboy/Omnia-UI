@@ -31,7 +31,7 @@ export function SideNav() {
       icon: Package,
       submenu: [
         {
-          title: "Inventory Availability",
+          title: "Inventory",
           href: "/inventory-new/supply",
         },
         {

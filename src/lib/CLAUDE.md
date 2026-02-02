@@ -27,4 +27,20 @@
 | #2711 | 3:01 AM | 🟣 | Implemented Store Search Filtering in Service Layer | ~146 |
 | #2707 | 3:00 AM | 🔵 | Inventory page requires granular search fields | ~293 |
 | #2684 | " | 🔵 | Inventory UI Improvement Requirements Identified | ~201 |
+
+### Jan 22, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4333 | 6:49 PM | 🔵 | Export Utilities Support for Conditional Merchant SKU Column | ~669 |
+| #4331 | " | 🔵 | TransactionExportOptions Interface in Export Utilities | ~352 |
+| #4330 | " | 🔵 | Transaction Export Function with Optional Merchant SKU Column | ~510 |
+
+### Feb 1, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6269 | 9:03 PM | 🔄 | Updated formatDateForExport to MM/DD/YYYY HH:mm:ss Format | ~478 |
+| #6043 | 2:12 PM | 🔵 | Transaction Type References Found in Mock Data Generator | ~511 |
+| #5951 | 1:13 PM | ✅ | Timeline Stages Refactored to Start from Picking Stage | ~610 |
 </claude-mem-context>

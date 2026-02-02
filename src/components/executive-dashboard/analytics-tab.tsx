@@ -4,6 +4,7 @@ import { memo, useMemo } from "react"
 import { TabsContent } from "@/components/ui/tabs"
 import { ChartCard } from "@/components/chart-card"
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts"
+import { formatCurrencyInt } from "@/lib/currency-utils"
 
 interface ProductData {
   name: string
@@ -84,7 +85,7 @@ export const AnalyticsTab = memo(function AnalyticsTab({
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`฿${Number(value).toLocaleString()}`, 'Revenue']} />
+                  <Tooltip formatter={(value) => [formatCurrencyInt(Number(value)), 'Revenue']} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -124,7 +125,7 @@ function ProductCard({ product, rank }: { product: ProductData; rank: number }) 
       </div>
       <div className="text-right">
         <div className="text-2xl font-bold text-green-600 group-hover:text-green-700 transition-colors">
-          ฿{product.revenue.toLocaleString('th-TH')}
+          {formatCurrencyInt(product.revenue)}
         </div>
         <div className="text-sm font-medium text-gray-500">Revenue</div>
       </div>

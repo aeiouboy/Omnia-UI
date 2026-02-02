@@ -1,0 +1,409 @@
+### New console messages
+- [WARNING] Supabase credentials missing. Using mock client. @ https://v0-ris-oms.vercel.app/_next/sta...
+
+### Page state
+- Page URL: https://v0-ris-oms.vercel.app/stock-config
+- Page Title: Central Group OMS
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - button "Collapse sidebar" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - generic [ref=e8]:
+        - text: Central OMS
+        - heading "Navigation" [level=2] [ref=e9]
+      - navigation [ref=e10]:
+        - link "Order Analysis" [ref=e11] [cursor=pointer]:
+          - /url: /orders/analysis
+          - img [ref=e12]
+          - generic [ref=e14]: Order Analysis
+        - link "Order Management" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e16]
+          - generic [ref=e19]: Order Management
+        - generic [ref=e20]:
+          - button "Inventory Management" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - generic [ref=e27]: Inventory Management
+            - img [ref=e29]
+          - generic [ref=e31]:
+            - link "Inventory Availability" [ref=e32] [cursor=pointer]:
+              - /url: /inventory-new/supply
+              - img [ref=e33]
+              - generic [ref=e35]: Inventory Availability
+            - link "Stock Card" [ref=e36] [cursor=pointer]:
+              - /url: /inventory-new/stores
+              - img [ref=e37]
+              - generic [ref=e39]: Stock Card
+            - link "Stock Config" [ref=e40] [cursor=pointer]:
+              - /url: /stock-config
+              - img [ref=e41]
+              - generic [ref=e43]: Stock Config
+        - generic "Dashboard (disabled)" [ref=e44]:
+          - img [ref=e45]
+          - generic [ref=e50]: Dashboard
+        - generic "Inventory (disabled)" [ref=e51]:
+          - img [ref=e52]
+          - generic [ref=e56]: Inventory
+        - generic "ATC Config (disabled)" [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e62]: ATC Config
+        - generic "Escalations (disabled)" [ref=e63]:
+          - img [ref=e64]
+          - generic [ref=e66]: Escalations
+        - generic "Style Guide (disabled)" [ref=e67]:
+          - img [ref=e68]
+          - generic [ref=e74]: Style Guide
+    - generic [ref=e75]:
+      - banner [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - img [ref=e80]
+            - generic [ref=e82]:
+              - heading "Central Group OMS" [level=1] [ref=e83]
+              - paragraph [ref=e84]: Enterprise Command Center
+          - generic [ref=e85]:
+            - button "Refresh" [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - generic [ref=e92]: "Last updated: 18:15:22"
+            - combobox "Select organization" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - generic: All Organizations
+              - img [ref=e100]
+            - button "User" [ref=e103] [cursor=pointer]:
+              - img "User" [ref=e105]
+      - main [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - heading "Stock Configuration" [level=1] [ref=e110]
+              - paragraph [ref=e111]: Manage PreOrder and Override OnHand configurations
+            - generic [ref=e112]:
+              - button "Refresh" [ref=e113] [cursor=pointer]:
+                - img
+                - text: Refresh
+              - button "Upload Config" [ref=e114] [cursor=pointer]:
+                - img
+                - text: Upload Config
+          - generic [ref=e115]:
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]: Total Configurations
+                - img [ref=e119]
+              - generic [ref=e123]:
+                - generic [ref=e124]: "5"
+                - paragraph [ref=e125]: Active stock configs
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - generic [ref=e128]: Daily Configs
+                - img [ref=e129]
+              - generic [ref=e131]:
+                - generic [ref=e132]: "2"
+                - paragraph [ref=e133]: On Hand Available
+            - generic [ref=e134]:
+              - generic [ref=e135]:
+                - generic [ref=e136]: One-time Configs
+                - img [ref=e137]
+              - generic [ref=e140]:
+                - generic [ref=e141]: "3"
+                - paragraph [ref=e142]: PreOrder
+            - generic [ref=e143]:
+              - generic [ref=e144] [cursor=pointer]:
+                - generic [ref=e145]: Upload Status
+                - img [ref=e146]
+              - generic [ref=e150]:
+                - generic [ref=e151] [cursor=pointer]:
+                  - img [ref=e152]
+                  - generic [ref=e155]: Pending
+                  - generic [ref=e156]: "1"
+                - generic [ref=e157] [cursor=pointer]:
+                  - img [ref=e158]
+                  - generic [ref=e161]: Processed
+                  - generic [ref=e162]: "2"
+                - generic [ref=e163] [cursor=pointer]:
+                  - img [ref=e164]
+                  - generic [ref=e166]: Errors
+                  - generic [ref=e167]: "1"
+          - tabpanel "All Configs" [ref=e169]:
+            - generic [ref=e170]:
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - generic [ref=e174]: All Stock Configurations
+                  - generic [ref=e175]: Showing 5 of 5 configurations
+                - generic [ref=e177]:
+                  - generic [ref=e178]:
+                    - generic [ref=e179]: Location
+                    - textbox "Search Location ID..." [ref=e181]
+                  - generic [ref=e182]:
+                    - generic [ref=e183]: Item
+                    - textbox "Search Item ID..." [ref=e185]
+                  - generic [ref=e187]:
+                    - button "From" [ref=e188] [cursor=pointer]:
+                      - img
+                      - text: From
+                    - generic [ref=e189]: "-"
+                    - button "To" [ref=e190] [cursor=pointer]:
+                      - img
+                      - text: To
+                  - combobox [ref=e191] [cursor=pointer]:
+                    - generic: All Channels
+                    - img [ref=e192]
+                  - combobox [ref=e194] [cursor=pointer]:
+                    - generic: All Frequencies
+                    - img [ref=e195]
+                  - tablist [ref=e197]:
+                    - tab "All Configs" [selected] [ref=e198] [cursor=pointer]
+                    - tab "PreOrder" [ref=e199] [cursor=pointer]
+                    - tab "OnHand" [ref=e200] [cursor=pointer]
+              - table [ref=e204]:
+                - rowgroup [ref=e205]:
+                  - row "Location ID Item ID Quantity Supply Type Frequency Channel Start Date End Date" [ref=e206]:
+                    - columnheader "Location ID" [ref=e207] [cursor=pointer]:
+                      - generic [ref=e338]:
+                        - text: Location ID
+                        - img [ref=e339]
+                    - columnheader "Item ID" [ref=e208] [cursor=pointer]:
+                      - generic [ref=e342]:
+                        - text: Item ID
+                        - img [ref=e343]
+                    - columnheader "Quantity" [ref=e209] [cursor=pointer]:
+                      - generic [ref=e346]:
+                        - text: Quantity
+                        - img [ref=e347]
+                    - columnheader "Supply Type" [ref=e210] [cursor=pointer]:
+                      - generic [ref=e350]:
+                        - text: Supply Type
+                        - img [ref=e351]
+                    - columnheader "Frequency" [ref=e211]
+                    - columnheader "Channel" [ref=e212] [cursor=pointer]:
+                      - generic [ref=e354]:
+                        - text: Channel
+                        - img [ref=e355]
+                    - columnheader "Start Date" [ref=e213]
+                    - columnheader "End Date" [ref=e214]
+                - rowgroup [ref=e215]:
+                  - row "CFM3345 48705817 75 PreOrder One-time MKP - -" [ref=e358]:
+                    - cell "CFM3345" [ref=e359]
+                    - cell "48705817" [ref=e360]
+                    - cell "75" [ref=e361]
+                    - cell "PreOrder" [ref=e362]:
+                      - generic [ref=e363]: PreOrder
+                    - cell "One-time" [ref=e364]:
+                      - generic [ref=e365]: One-time
+                    - cell "MKP" [ref=e366]:
+                      - generic [ref=e367]: MKP
+                    - cell "-" [ref=e368]
+                    - cell "-" [ref=e369]
+                  - row "CFM4521 48705816 999,999 On Hand Available Daily TOL Jan 1, 2024 Dec 31, 2024" [ref=e370]:
+                    - cell "CFM4521" [ref=e371]
+                    - cell "48705816" [ref=e372]
+                    - cell "999,999" [ref=e373]
+                    - cell "On Hand Available" [ref=e374]:
+                      - generic [ref=e375]: On Hand Available
+                    - cell "Daily" [ref=e376]:
+                      - generic [ref=e377]: Daily
+                    - cell "TOL" [ref=e378]:
+                      - generic [ref=e379]: TOL
+                    - cell "Jan 1, 2024" [ref=e380]
+                    - cell "Dec 31, 2024" [ref=e381]
+                  - row "CFM8901 48705815 200 PreOrder One-time QC - -" [ref=e382]:
+                    - cell "CFM8901" [ref=e383]
+                    - cell "48705815" [ref=e384]
+                    - cell "200" [ref=e385]
+                    - cell "PreOrder" [ref=e386]:
+                      - generic [ref=e387]: PreOrder
+                    - cell "One-time" [ref=e388]:
+                      - generic [ref=e389]: One-time
+                    - cell "QC" [ref=e390]:
+                      - generic [ref=e391]: QC
+                    - cell "-" [ref=e392]
+                    - cell "-" [ref=e393]
+                  - row "CFM7234 48705814 50 On Hand Available Daily MKP Jan 20, 2024 Feb 20, 2024" [ref=e394]:
+                    - cell "CFM7234" [ref=e395]
+                    - cell "48705814" [ref=e396]
+                    - cell "50" [ref=e397]
+                    - cell "On Hand Available" [ref=e398]:
+                      - generic [ref=e399]: On Hand Available
+                    - cell "Daily" [ref=e400]:
+                      - generic [ref=e401]: Daily
+                    - cell "MKP" [ref=e402]:
+                      - generic [ref=e403]: MKP
+                    - cell "Jan 20, 2024" [ref=e404]
+                    - cell "Feb 20, 2024" [ref=e405]
+                  - row "CFM6686 48705813 100 PreOrder One-time TOL - -" [ref=e406]:
+                    - cell "CFM6686" [ref=e407]
+                    - cell "48705813" [ref=e408]
+                    - cell "100" [ref=e409]
+                    - cell "PreOrder" [ref=e410]:
+                      - generic [ref=e411]: PreOrder
+                    - cell "One-time" [ref=e412]:
+                      - generic [ref=e413]: One-time
+                    - cell "TOL" [ref=e414]:
+                      - generic [ref=e415]: TOL
+                    - cell "-" [ref=e416]
+                    - cell "-" [ref=e417]
+          - generic [ref=e291]:
+            - generic [ref=e293]:
+              - generic [ref=e294]:
+                - generic [ref=e295]:
+                  - img [ref=e296]
+                  - text: Upload History (4)
+                - generic [ref=e299]: Recent file uploads and their processing status
+              - generic [ref=e301]:
+                - generic [ref=e302]:
+                  - generic [ref=e303]: File
+                  - textbox "Search files..." [ref=e305]
+                - generic [ref=e306]:
+                  - button "From" [ref=e307] [cursor=pointer]:
+                    - img
+                    - text: From
+                  - generic [ref=e308]: "-"
+                  - button "To" [ref=e309] [cursor=pointer]:
+                    - img
+                    - text: To
+                - tablist [ref=e311]:
+                  - tab "All" [selected] [ref=e312] [cursor=pointer]:
+                    - img [ref=e313]
+                    - text: All
+                  - tab "Pending" [ref=e314] [cursor=pointer]:
+                    - img [ref=e315]
+                    - text: Pending
+                  - tab "Processed" [ref=e318] [cursor=pointer]:
+                    - img [ref=e319]
+                    - text: Processed
+                  - tab "Error" [ref=e322] [cursor=pointer]:
+                    - img [ref=e323]
+                    - text: Error
+            - tabpanel [ref=e327]:
+              - table [ref=e419]:
+                - rowgroup [ref=e420]:
+                  - row "File Name Upload Date Records Uploaded By Status Actions" [ref=e421]:
+                    - columnheader "File Name" [ref=e422]
+                    - columnheader "Upload Date" [ref=e423]
+                    - columnheader "Records" [ref=e424]
+                    - columnheader "Uploaded By" [ref=e425]
+                    - columnheader "Status" [ref=e426]
+                    - columnheader "Actions" [ref=e427]
+                - rowgroup [ref=e428]:
+                  - row "safety_stock_update.xlsx Jan 18, 2024 11:00 PM 80 0 valid / 0 invalid Current User Pending Download file" [ref=e429]:
+                    - cell "safety_stock_update.xlsx" [ref=e430]:
+                      - generic [ref=e431]:
+                        - img [ref=e432]
+                        - generic [ref=e435]: safety_stock_update.xlsx
+                    - cell "Jan 18, 2024 11:00 PM" [ref=e436]:
+                      - generic [ref=e437]:
+                        - text: Jan 18, 2024
+                        - generic [ref=e438]: 11:00 PM
+                    - cell "80 0 valid / 0 invalid" [ref=e439]:
+                      - generic [ref=e440]:
+                        - generic [ref=e441]: "80"
+                        - generic [ref=e442]:
+                          - generic [ref=e443]: 0 valid
+                          - text: /
+                          - generic [ref=e444]: 0 invalid
+                    - cell "Current User" [ref=e445]:
+                      - generic [ref=e446]:
+                        - img [ref=e447]
+                        - generic [ref=e450]: Current User
+                    - cell "Pending" [ref=e451]:
+                      - generic [ref=e452]:
+                        - img [ref=e453]
+                        - text: Pending
+                    - cell "Download file" [ref=e456]:
+                      - button "Download file" [ref=e457] [cursor=pointer]:
+                        - img
+                        - generic [ref=e458]: Download file
+                  - row "onhand_override_feb.csv Jan 17, 2024 04:15 PM 25 10 valid / 15 invalid Alex Rodriguez Error Download file" [ref=e459]:
+                    - cell "onhand_override_feb.csv" [ref=e460]:
+                      - generic [ref=e461]:
+                        - img [ref=e462]
+                        - generic [ref=e467]: onhand_override_feb.csv
+                    - cell "Jan 17, 2024 04:15 PM" [ref=e468]:
+                      - generic [ref=e469]:
+                        - text: Jan 17, 2024
+                        - generic [ref=e470]: 04:15 PM
+                    - cell "25 10 valid / 15 invalid" [ref=e471]:
+                      - generic [ref=e472]:
+                        - generic [ref=e473]: "25"
+                        - generic [ref=e474]:
+                          - generic [ref=e475]: 10 valid
+                          - text: /
+                          - generic [ref=e476]: 15 invalid
+                    - cell "Alex Rodriguez" [ref=e477]:
+                      - generic [ref=e478]:
+                        - img [ref=e479]
+                        - generic [ref=e482]: Alex Rodriguez
+                    - cell "Error" [ref=e483]:
+                      - generic [ref=e484]:
+                        - img [ref=e485]
+                        - text: Error
+                    - cell "Download file" [ref=e487]:
+                      - button "Download file" [ref=e488] [cursor=pointer]:
+                        - img
+                        - generic [ref=e489]: Download file
+                  - row "preorder_batch_001.xlsx Jan 16, 2024 09:30 PM 50 50 valid / 0 invalid Mike Chen Processed Download file" [ref=e490]:
+                    - cell "preorder_batch_001.xlsx" [ref=e491]:
+                      - generic [ref=e492]:
+                        - img [ref=e493]
+                        - generic [ref=e496]: preorder_batch_001.xlsx
+                    - cell "Jan 16, 2024 09:30 PM" [ref=e497]:
+                      - generic [ref=e498]:
+                        - text: Jan 16, 2024
+                        - generic [ref=e499]: 09:30 PM
+                    - cell "50 50 valid / 0 invalid" [ref=e500]:
+                      - generic [ref=e501]:
+                        - generic [ref=e502]: "50"
+                        - generic [ref=e503]:
+                          - generic [ref=e504]: 50 valid
+                          - text: /
+                          - generic [ref=e505]: 0 invalid
+                    - cell "Mike Chen" [ref=e506]:
+                      - generic [ref=e507]:
+                        - img [ref=e508]
+                        - generic [ref=e511]: Mike Chen
+                    - cell "Processed" [ref=e512]:
+                      - generic [ref=e513]:
+                        - img [ref=e514]
+                        - text: Processed
+                    - cell "Download file" [ref=e517]:
+                      - button "Download file" [ref=e518] [cursor=pointer]:
+                        - img
+                        - generic [ref=e519]: Download file
+                  - row "stock_config_jan_2024.csv Jan 15, 2024 05:00 PM 150 148 valid / 2 invalid Sarah Johnson Processed Download file" [ref=e520]:
+                    - cell "stock_config_jan_2024.csv" [ref=e521]:
+                      - generic [ref=e522]:
+                        - img [ref=e523]
+                        - generic [ref=e526]: stock_config_jan_2024.csv
+                    - cell "Jan 15, 2024 05:00 PM" [ref=e527]:
+                      - generic [ref=e528]:
+                        - text: Jan 15, 2024
+                        - generic [ref=e529]: 05:00 PM
+                    - cell "150 148 valid / 2 invalid" [ref=e530]:
+                      - generic [ref=e531]:
+                        - generic [ref=e532]: "150"
+                        - generic [ref=e533]:
+                          - generic [ref=e534]: 148 valid
+                          - text: /
+                          - generic [ref=e535]: 2 invalid
+                    - cell "Sarah Johnson" [ref=e536]:
+                      - generic [ref=e537]:
+                        - img [ref=e538]
+                        - generic [ref=e541]: Sarah Johnson
+                    - cell "Processed" [ref=e542]:
+                      - generic [ref=e543]:
+                        - img [ref=e544]
+                        - text: Processed
+                    - cell "Download file" [ref=e547]:
+                      - button "Download file" [ref=e548] [cursor=pointer]:
+                        - img
+                        - generic [ref=e549]: Download file
+      - contentinfo [ref=e334]:
+        - generic [ref=e336]: Enterprise OMS v1.0 © 2025 Central Group. All rights reserved.
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e337]
+```

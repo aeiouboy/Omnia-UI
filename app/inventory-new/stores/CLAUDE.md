@@ -16,4 +16,27 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #2544 | 11:20 PM | 🔵 | Responsive design improvement specification created for tablet/desktop screens | ~341 |
+
+### Jan 20, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #3769 | 6:11 PM | 🔵 | Inventory Component Architecture - Three Core Pages with Detailed Field Mappings | ~3994 |
+
+### Jan 21, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4059 | 11:08 PM | 🔵 | Stock Card Page - By Product Transaction History Feature | ~827 |
+
+### Jan 22, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4305 | 6:43 PM | 🟣 | Conditional Desktop Table Column Rendering for Merchant SKU | ~226 |
+| #4303 | 6:36 PM | 🟣 | Merchant SKU Toggle Control Added for Conditional Column Display | ~679 |
+| #4279 | 6:13 PM | 🔵 | Merchant SKU Filter Placement in By Product View Filter Row | ~671 |
+| #4272 | 5:38 PM | 🟣 | Merchant SKU Field Implementation Completed Successfully | ~885 |
+| #4270 | 5:37 PM | 🟣 | Merchant SKU Field Addition to Stock Card By Product View | ~735 |
+| #4244 | 5:31 PM | 🔵 | Stock Card Page with Dual View Modes and Mandatory Filter Validation | ~976 |
 </claude-mem-context>

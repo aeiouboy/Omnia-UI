@@ -56,7 +56,9 @@ export function ProgressIndicator({
   // Update current time every second
   useEffect(() => {
     const updateTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString())
+      const d = new Date()
+      const pad = (n: number) => n.toString().padStart(2, '0')
+      setCurrentTime(`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)
     }
     
     updateTime()
@@ -342,7 +344,11 @@ export function ProgressIndicator({
                   <div className="flex-1 min-w-0">
                     <span className="text-foreground">{message.message}</span>
                     <span className="text-muted-foreground ml-2">
-                      {new Date(message.timestamp).toLocaleTimeString()}
+                      {(() => {
+                        const d = new Date(message.timestamp)
+                        const pad = (n: number) => n.toString().padStart(2, '0')
+                        return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+                      })()}
                     </span>
                   </div>
                 </div>

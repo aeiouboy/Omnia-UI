@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +34,12 @@ import {
   History,
   Home,
   Store,
+  StickyNote,
+  Plus,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
@@ -42,7 +47,8 @@ import { Order, ApiCustomer, ApiShippingAddress, ApiPaymentInfo, ApiSLAInfo, Api
 import { formatGMT7DateTime } from "@/lib/utils"
 import { formatCurrency } from "@/lib/currency-utils"
 import { DeliveryMethod } from "@/types/delivery"
-import { ChannelBadge, PriorityBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, SLABadge, DeliveryTypeCodeBadge, getDeliveryTypeCodeLabel } from "./order-badges";
+import { ChannelBadge, PaymentStatusBadge, OrderStatusBadge, OnHoldBadge, ReturnStatusBadge, DeliveryTypeCodeBadge, getDeliveryTypeCodeLabel } from "./order-badges";
+// import { SLABadge } from "./order-badges"; // Disabled SLA elements
 import { AuditTrailTab } from "./order-detail/audit-trail-tab"
 import { FulfillmentTimeline } from "./order-detail/fulfillment-timeline"
 import { TrackingTab } from "./order-detail/tracking-tab"
@@ -55,6 +61,29 @@ interface OrderDetailViewProps {
   order?: Order | null;
   onClose?: () => void;
   orderId?: string;
+}
+
+// Note interface for order notes
+interface Note {
+  id: string
+  orderId: string
+  content: string
+  createdBy: string // Auto-populated from currentUser.email (e.g., "buabsupattra@central.co.th")
+  createdAt: string // Auto-populated: ISO format "2026-01-21T11:50:00"
+}
+
+// Helper function to format timestamp as "2026-01-21T11:50:00"
+const formatNoteTimestamp = (date: Date): string => {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
 }
 
 // Helper function to map delivery codes to custom labels
@@ -175,43 +204,45 @@ function ClickCollectSection({ delivery, deliveryLabel }: ClickCollectSectionPro
 }
 
 
-// Helper function to format order created timestamp
+// Helper function to format order created timestamp in MM/DD/YYYY HH:mm:ss format
 const formatOrderCreatedDate = (dateString?: string): string => {
   if (!dateString) return '-'
   try {
     const date = new Date(dateString)
-    const day = String(date.getDate()).padStart(2, '0')
+    if (isNaN(date.getTime())) return '-'
     const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
     const year = date.getFullYear()
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
     const seconds = String(date.getSeconds()).padStart(2, '0')
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`
   } catch {
     return '-'
   }
 }
 
 // Helper function to map customerTypeId to descriptive labels
-const getCustomerTypeLabel = (customerTypeId: string | undefined | null): string => {
-  if (!customerTypeId) return '-';
+// DEPRECATED: Use order.customer.customerType instead of order.customerTypeId
+// const getCustomerTypeLabel = (customerTypeId: string | undefined | null): string => {
+//   if (!customerTypeId) return '-';
 
-  const clusterMapping: Record<string, string> = {
-    'cluster_1': 'Standard',
-    'cluster_2': 'Premium',
-    'cluster_3': 'Prime',
-    'cluster_4': 'VIP',
-  };
+//   const clusterMapping: Record<string, string> = {
+//     'cluster_1': 'Standard',
+//     'cluster_2': 'Premium',
+//     'cluster_3': 'Prime',
+//     'cluster_4': 'VIP',
+//   };
 
-  // Check if the ID is a cluster_X format
-  const clusterId = customerTypeId.toLowerCase().split(' ')[0]; // Handle "cluster_3 - Prime" format
-  if (clusterMapping[clusterId]) {
-    return `${clusterId} - ${clusterMapping[clusterId]}`;
-  }
+//   // Check if the ID is a cluster_X format
+//   const clusterId = customerTypeId.toLowerCase().split(' ')[0]; // Handle "cluster_3 - Prime" format
+//   if (clusterMapping[clusterId]) {
+//     return `${clusterId} - ${clusterMapping[clusterId]}`;
+//   }
 
-  // For non-cluster IDs, return as-is
-  return customerTypeId;
-};
+//   // For non-cluster IDs, return as-is
+//   return customerTypeId;
+// };
 
 export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProps) {
   const router = useRouter()
@@ -224,10 +255,126 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
 
+  // Notes feature state
+  const [showNotesPanel, setShowNotesPanel] = useState(false)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [newNote, setNewNote] = useState("")
+  const [showAddNoteForm, setShowAddNoteForm] = useState(false)
+  const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null)
+
   // Determine if order can be cancelled based on its status
   const canCancelOrder = order?.status
     ? isOrderCancellable(order.status)
     : false
+
+  // Compute note count for badge (total of all notes)
+  const noteCount = notes.length
+
+  // Fetch notes and user on mount
+  useEffect(() => {
+    if (order?.id) {
+      fetchNotes()
+      fetchCurrentUser()
+    }
+  }, [order?.id])
+
+  const fetchNotes = async () => {
+    // TODO: Replace with actual API call
+    // For now, using mock data
+    const mockNotes: Note[] = [
+      {
+        id: '1',
+        orderId: order?.id || '',
+        content: 'Customer requested gift wrapping',
+        createdBy: 'buabsupattra@central.co.th',
+        createdAt: '2026-01-13T13:13:00',
+      },
+      {
+        id: '2',
+        orderId: order?.id || '',
+        content: 'Address verified with customer',
+        createdBy: 'jane.smith@central.co.th',
+        createdAt: '2026-01-13T10:15:00',
+      },
+    ]
+    setNotes(mockNotes)
+  }
+
+  const fetchCurrentUser = async () => {
+    // TODO: Replace with actual user session fetch
+    // For now, using mock user
+    setCurrentUser({ email: 'user@central.co.th' })
+  }
+
+  const handleSaveNote = async () => {
+    if (!newNote.trim()) return
+
+    try {
+      const noteData = {
+        orderId: order?.id || '',
+        content: newNote.trim(),
+        createdBy: currentUser?.email || 'system@central.co.th', // Auto-populated
+        createdAt: formatNoteTimestamp(new Date()), // Auto-populated: "2026-01-21T11:50:00"
+      }
+
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/orders/${order?.id}/notes`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(noteData),
+      // })
+      // if (!response.ok) throw new Error('Failed to save note')
+      // const savedNote = await response.json()
+
+      // For now, create note locally with generated ID
+      const savedNote: Note = {
+        id: Date.now().toString(),
+        ...noteData,
+      }
+
+      // Update local state (add to beginning - newest first)
+      setNotes([savedNote, ...notes])
+
+      // Reset form and hide it
+      setNewNote("")
+      setShowAddNoteForm(false)
+
+      toast({
+        title: 'Note saved successfully',
+        variant: 'default',
+      })
+    } catch (error) {
+      toast({
+        title: 'Failed to save note',
+        variant: 'destructive',
+      })
+      console.error(error)
+    }
+  }
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/orders/${order?.id}/notes/${noteId}`, {
+      //   method: 'DELETE',
+      // })
+      // if (!response.ok) throw new Error('Failed to delete note')
+
+      // Update local state
+      setNotes(notes.filter(note => note.id !== noteId))
+
+      toast({
+        title: 'Note deleted successfully',
+        variant: 'default',
+      })
+    } catch (error) {
+      toast({
+        title: 'Failed to delete note',
+        variant: 'destructive',
+      })
+      console.error(error)
+    }
+  }
 
   const toggleItemExpansion = (sku: string) => {
     setExpandedItems((prev) => ({
@@ -316,11 +463,11 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
+            {/* <Button variant="outline" size="sm" onClick={onClose} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back to Orders</span>
               <span className="sm:hidden">Back</span>
-            </Button>
+            </Button> */}
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-enterprise-dark truncate">Order Details</h1>
               <p className="text-xs sm:text-sm text-enterprise-text-light">Order #{order?.order_no || 'N/A'}</p>
@@ -328,15 +475,21 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setShowCancelDialog(true)}
-              disabled={!canCancelOrder || isCancelling}
-              className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
-              title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => setShowNotesPanel(true)}
+              title="Order notes"
             >
-              <Ban className="h-4 w-4 mr-2" />
-              Cancel
+              <StickyNote className="h-5 w-5" />
+              {noteCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                >
+                  {noteCount}
+                </Badge>
+              )}
             </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -369,8 +522,8 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         </div> */}
       </div>
 
-      {/* SLA Alert */}
-      {
+      {/* SLA Alert - DISABLED */}
+      {/* {
         order?.sla_info?.status === "BREACH" && (
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -380,10 +533,10 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             </AlertDescription>
           </Alert>
         )
-      }
+      } */}
 
       {/* Quick Info Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
         <Card>
           <CardContent className="p-3 sm:p-4">
             <div className="space-y-2">
@@ -393,14 +546,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardContent className="p-3 sm:p-4">
             <div className="space-y-2">
               <p className="text-xs sm:text-sm text-enterprise-text-light">Priority</p>
               <div><PriorityBadge priority={order?.metadata?.priority || 'N/A'} /></div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardContent className="p-3 sm:p-4">
@@ -416,7 +569,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-enterprise-text-light">Total Amount</p>
-                <p className="text-base sm:text-lg font-semibold mt-1 truncate">฿{order?.total_amount?.toFixed(2) || '0.00'}</p>
+                <p className="text-base sm:text-lg font-semibold mt-1 truncate">{formatCurrency(order?.total_amount)}</p>
               </div>
               <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />
             </div>
@@ -463,7 +616,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div> */}
                   <div>
                     <p className="text-sm text-enterprise-text-light">Customer Type</p>
-                    <p className="text-sm">{getCustomerTypeLabel(order?.customerTypeId)}</p>
+                    <p className="text-sm">{order?.customer?.customerType || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Cust Ref</p>
@@ -532,7 +685,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Order Date</p>
-                    <p className="text-sm">{order?.order_date ? new Date(order.order_date).toLocaleString() : '-'}</p>
+                    <p className="text-sm">{order?.order_date ? formatOrderCreatedDate(order.order_date) : '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-enterprise-text-light">Business Unit</p>
@@ -762,11 +915,11 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                               <div className="flex justify-between items-start gap-2">
                                 <div className="flex-1 min-w-0">
                                   {/* Fulfillment Status Badge */}
-                                  {item.fulfillmentStatus && (
+                                  {/* {item.fulfillmentStatus && (
                                     <Badge className={`mb-1 text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
                                       {item.fulfillmentStatus}
                                     </Badge>
-                                  )}
+                                  )} */}
                                   {/* Product Name */}
                                   <h4 className="font-medium text-sm sm:text-base text-gray-900 leading-tight" style={{
                                     display: '-webkit-box',
@@ -801,16 +954,16 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                     <p className="text-xs text-gray-500">Qty:</p>
                                     <p className="text-sm font-medium">{item.quantity}</p>
                                   </div>
-                                  {item.bundleRef && (
+                                  {/* {item.bundleRef && (
                                     <div>
                                       <p className="text-xs text-gray-500">Bundle Ref:</p>
                                       <p className="text-sm font-mono">{item.bundleRef}</p>
                                     </div>
-                                  )}
+                                  )} */}
                                 </div>
                                 <div className="text-right">
                                   <p className="text-lg sm:text-xl font-bold text-green-600">
-                                    ฿{((item.unit_price || 0) * item.quantity).toFixed(2)}
+                                    {formatCurrency(item.unit_price || 0)}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     each
@@ -853,14 +1006,14 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                       <span className="text-gray-500">Substitution</span>
                                       <span className="text-gray-900 font-medium">{item.substitution ? 'Yes' : 'No'}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Bundle</span>
                                       <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
+                                    </div> */}
+                                    {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Bundle Ref Id</span>
                                       <span className="text-gray-900 font-medium">{item.bundleRef || 'N/A'}</span>
-                                    </div>
+                                    </div> */}
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Packed Ordered Qty</span>
                                       <span className="text-gray-900 font-medium">{item.packedOrderedQty || item.quantity}</span>
@@ -875,6 +1028,34 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                         {item.giftWrapped && item.giftWrappedMessage ? item.giftWrappedMessage : '-'}
                                       </span>
                                     </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Secret Code</span>
+                                      <span className="text-gray-900 font-medium">{item.secretCode || 'N/A'}</span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Style</span>
+                                      <span className="text-gray-900 font-medium">{item.style || 'N/A'}</span>
+                                    </div> */}
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Color</span>
+                                      <span className="text-gray-900 font-medium">{item.color || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Size</span>
+                                      <span className="text-gray-900 font-medium">{item.size || 'N/A'}</span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Reason</span>
+                                      <span className="text-gray-900 font-medium">{item.reason || 'N/A'}</span>
+                                    </div> */}
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Temperature</span>
+                                      <span className="text-gray-900 font-medium">{item.temperature || 'N/A'}</span>
+                                    </div> */}
+                                    {/* <div className="flex justify-between">
+                                      <span className="text-gray-500">Expiry</span>
+                                      <span className="text-gray-900 font-medium">{item.expiry || 'N/A'}</span>
+                                    </div> */}
                                     {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Brand</span>
                                       <span className="text-gray-900 font-medium">{item.product_details?.brand || 'N/A'}</span>
@@ -896,7 +1077,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                           {/* Row 1 */}
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Price</span>
-                                            <span className="text-green-600 font-medium">฿{(item.unit_price || 0).toFixed(2)}</span>
+                                            <span className="text-green-600 font-medium">{formatCurrency(item.unit_price)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             {hasWeight ? (
@@ -921,7 +1102,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                             ) : (
                                               <>
                                                 <span className="text-gray-500">Total</span>
-                                                <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                                <span className="text-green-600 font-medium">{formatCurrency(item.total_price)}</span>
                                               </>
                                             )}
                                           </div>
@@ -929,7 +1110,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                             {hasWeight ? (
                                               <>
                                                 <span className="text-gray-500">Total</span>
-                                                <span className="text-green-600 font-medium">฿{(item.total_price || 0).toFixed(2)}</span>
+                                                <span className="text-green-600 font-medium">{formatCurrency(item.total_price)}</span>
                                               </>
                                             ) : (
                                               <span></span>
@@ -949,7 +1130,7 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                             <div key={promo.promotionId || `promo-${item.product_sku}-${idx}`} className="bg-white p-2 rounded border border-gray-200 text-xs">
                                               <div className="flex justify-between">
                                                 <span className="text-gray-500">Discount</span>
-                                                <span className="text-red-600 font-medium">฿{promo.discountAmount.toFixed(2)}</span>
+                                                <span className="text-red-600 font-medium">{formatCurrency(promo.discountAmount)}</span>
                                               </div>
                                               <div className="flex justify-between">
                                                 <span className="text-gray-500">{promo.couponId ? 'Coupon ID' : 'Promo ID'}</span>
@@ -988,34 +1169,34 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                   </div>
                                 </div>
 
-                                {/* Column 3 - Fulfillment & Shipping */}
+                                {/* Column 3 - Shipping & Delivery */}
                                 <div className="p-3 sm:p-4 border-t md:border-t-0 md:border-l border-gray-200">
                                   <div className="bg-gray-100 px-3 py-2 rounded-t-md mb-3">
-                                    <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Fulfillment & Shipping</h5>
+                                    <h5 className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Shipping & Delivery</h5>
                                   </div>
                                   <div className="space-y-3 text-sm">
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Shipping Method</span>
                                       <span className="text-gray-900 font-medium">{item.shippingMethod || 'Standard'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
+                                    {/* <div className="flex justify-between items-center">
                                       <span className="text-gray-500">Fulfillment Status</span>
                                       {item.fulfillmentStatus && (
                                         <Badge className={`text-xs ${getFulfillmentBadgeClass(item.fulfillmentStatus)}`}>
                                           {item.fulfillmentStatus}
                                         </Badge>
                                       )}
-                                    </div>
-                                    <div className="flex justify-between">
+                                    </div> */}
+                                    {/* <div className="flex justify-between">
                                       <span className="text-gray-500">Bundle</span>
                                       <span className="text-gray-900 font-medium">{item.bundle ? 'Yes' : 'No'}</span>
-                                    </div>
-                                    {item.bundleRef && (
+                                    </div> */}
+                                    {/* {item.bundleRef && (
                                       <div className="flex justify-between">
                                         <span className="text-gray-500">Bundle Ref</span>
                                         <span className="text-gray-900 font-mono text-xs">{item.bundleRef}</span>
                                       </div>
-                                    )}
+                                    )} */}
                                     <div className="flex justify-between">
                                       <span className="text-gray-500">Route</span>
                                       <span className="text-gray-900 font-medium">{item.route || 'N/A'}</span>
@@ -1046,31 +1227,31 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
                                         <div className="space-y-1 text-xs">
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Subtotal</span>
-                                            <span className="text-gray-900">฿{item.priceBreakdown.subtotal.toFixed(2)}</span>
+                                            <span className="text-gray-900">{formatCurrency(item.priceBreakdown.subtotal)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Discount</span>
-                                            <span className="text-red-600">-฿{item.priceBreakdown.discount.toFixed(2)}</span>
+                                            <span className="text-red-600">-{formatCurrency(item.priceBreakdown.discount)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Charges</span>
-                                            <span className="text-gray-900">฿{item.priceBreakdown.charges.toFixed(2)}</span>
+                                            <span className="text-gray-900">{formatCurrency(item.priceBreakdown.charges)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Amount Excl. Tax</span>
-                                            <span className="text-gray-900">฿{item.priceBreakdown.amountExcludedTaxes.toFixed(2)}</span>
+                                            <span className="text-gray-900">{formatCurrency(item.priceBreakdown.amountExcludedTaxes)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Taxes (7%)</span>
-                                            <span className="text-gray-900">฿{item.priceBreakdown.taxes.toFixed(2)}</span>
+                                            <span className="text-gray-900">{formatCurrency(item.priceBreakdown.taxes)}</span>
                                           </div>
                                           <div className="flex justify-between">
                                             <span className="text-gray-500">Amount Incl. Tax</span>
-                                            <span className="text-gray-900">฿{item.priceBreakdown.amountIncludedTaxes.toFixed(2)}</span>
+                                            <span className="text-gray-900">{formatCurrency(item.priceBreakdown.amountIncludedTaxes)}</span>
                                           </div>
                                           <div className="flex justify-between pt-1 border-t border-gray-300">
                                             <span className="text-gray-700 font-semibold">Total</span>
-                                            <span className="text-green-600 font-semibold">฿{item.priceBreakdown.total.toFixed(2)}</span>
+                                            <span className="text-green-600 font-semibold">{formatCurrency(item.priceBreakdown.total)}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -1263,6 +1444,23 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         </TabsContent> */}
       </Tabs>
 
+      {/* Sticky Bottom Cancel Button */}
+      <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-4">
+        <div className="max-w-3xl mx-auto flex justify-center">
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={() => setShowCancelDialog(true)}
+            disabled={!canCancelOrder || isCancelling}
+            className={!canCancelOrder ? "opacity-50 cursor-not-allowed" : ""}
+            title={!canCancelOrder ? getCancelDisabledReason(order?.status || '') : "Cancel this order"}
+          >
+            <Ban className="h-4 w-4 mr-2" />
+            Cancel Order
+          </Button>
+        </div>
+      </div>
+
       <CancelOrderDialog
         open={showCancelDialog}
         onOpenChange={setShowCancelDialog}
@@ -1270,6 +1468,138 @@ export function OrderDetailView({ order, onClose, orderId }: OrderDetailViewProp
         onConfirm={handleCancelOrder}
         loading={isCancelling}
       />
+
+      {/* Notes Dialog - Center Modal */}
+      <Dialog open={showNotesPanel} onOpenChange={setShowNotesPanel}>
+        <DialogContent className="max-w-[1200px] max-h-[80vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle className="text-xl font-semibold">Note</DialogTitle>
+          </DialogHeader>
+
+          {/* Notes Table - NO TABS */}
+          <div className="flex-1 overflow-auto px-6 py-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px]">Note Type</TableHead>
+                  <TableHead>NOTE</TableHead>
+                  <TableHead className="w-[200px]">CREATED BY</TableHead>
+                  <TableHead className="w-[180px]">CREATED ON</TableHead>
+                  <TableHead className="w-[50px]">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowAddNoteForm(!showAddNoteForm)}
+                      className="h-6 w-6"
+                      title={showAddNoteForm ? "Hide add form" : "Add note"}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Add Form Row - CONDITIONAL (only show when showAddNoteForm is true) */}
+                {showAddNoteForm && (
+                  <TableRow className="bg-muted/30">
+                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                      {/* Empty - will be numbered after save */}
+                    </TableCell>
+                    <TableCell className="align-top pt-3">
+                      <Textarea
+                        placeholder="Thai text content..."
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                        className="min-h-[80px] resize-none text-sm"
+                        maxLength={500}
+                        autoFocus
+                      />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                      {/* Empty - auto-populated on save */}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm align-top pt-3">
+                      {/* Empty - auto-populated on save */}
+                    </TableCell>
+                    <TableCell className="align-top pt-3">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setNewNote("")
+                          setShowAddNoteForm(false)
+                        }}
+                        className="h-8 w-8"
+                        title="Clear and hide form"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {/* Existing Notes */}
+                {notes.map((note) => (
+                  <TableRow key={note.id}>
+                    <TableCell className="text-sm align-top">
+                      Order Remark
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground align-top">
+                      {note.createdBy}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground align-top">
+                      {note.createdAt}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        title="Delete note"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {/* Empty State */}
+                {notes.length === 0 && !showAddNoteForm && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                      No notes yet. Click + button to add your first note.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Footer with CANCEL and SAVE buttons */}
+          <div className="border-t px-6 py-4 flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNotesPanel(false)
+                setNewNote("")
+                setShowAddNoteForm(false)
+              }}
+            >
+              CANCEL
+            </Button>
+            <Button
+              onClick={handleSaveNote}
+              disabled={!newNote.trim() || !showAddNoteForm}
+            >
+              SAVE
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div >
   );
 }

@@ -6,6 +6,7 @@ import { DashboardService } from "@/lib/dashboard-service"
 import { useToast } from "@/components/ui/use-toast"
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh"
 import { getGMT7Time, formatGMT7DateString, safeParseDate } from "@/lib/utils"
+import { formatCurrencyInt, formatCurrencyShort } from "@/lib/currency-utils"
 import { 
   calculateSLAStatus, 
   filterSLABreach, 
@@ -2407,7 +2408,7 @@ export function ExecutiveDashboard() {
             customer: order.customer?.name || "Customer",
             channel: order.channel,
             status: order.status || "CREATED",
-            total: `฿${(order.total_amount || 0).toLocaleString()}`,
+            total: formatCurrencyInt(order.total_amount),
             date: formatGMT7DateString(orderDate),
           }
         } catch (error) {
@@ -3214,7 +3215,7 @@ export function ExecutiveDashboard() {
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Orders</div>
                         </div>
                         <div className="text-center space-y-1">
-                          <div className="text-xl font-bold text-green-600">฿{((currentHourData.revenue || 0) / 1000000).toFixed(1)}M</div>
+                          <div className="text-xl font-bold text-green-600">{formatCurrencyShort(currentHourData.revenue || 0, 1)}</div>
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Revenue</div>
                         </div>
                       </>
@@ -3241,7 +3242,7 @@ export function ExecutiveDashboard() {
                       <YAxis yAxisId="right" orientation="right" />
                       <Tooltip
                         formatter={(value, name) => [
-                          name === 'revenue' ? `฿${(Number(value) / 1000000).toFixed(1)}M` : value,
+                          name === 'revenue' ? formatCurrencyShort(Number(value), 1) : value,
                           name === 'orders' ? 'Orders' : 'Revenue'
                         ]}
                         labelFormatter={(hour) => `Time: ${hour}`}
@@ -3344,7 +3345,7 @@ export function ExecutiveDashboard() {
                       <YAxis yAxisId="right" orientation="right" />
                       <Tooltip
                         formatter={(value, name) => [
-                          name === 'revenue' ? `฿${(Number(value) / 1000000).toFixed(1)}M` :
+                          name === 'revenue' ? formatCurrencyShort(Number(value), 1) :
                           name === 'sla_rate' ? `${Number(value).toFixed(1)}%` : value,
                           name === 'orders' ? 'Orders' :
                           name === 'revenue' ? 'Revenue' : 'SLA Rate'
@@ -3401,7 +3402,7 @@ export function ExecutiveDashboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-green-600 group-hover:text-green-700 transition-colors">฿{product.revenue.toLocaleString()}</div>
+                          <div className="text-2xl font-bold text-green-600 group-hover:text-green-700 transition-colors">{formatCurrencyInt(product.revenue)}</div>
                           <div className="text-sm font-medium text-gray-500">Revenue</div>
                         </div>
                       </div>
@@ -3436,7 +3437,7 @@ export function ExecutiveDashboard() {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`฿${(value as number)?.toLocaleString() ?? '0'}`, 'Revenue']} />
+                      <Tooltip formatter={(value) => [formatCurrencyInt(value as number), 'Revenue']} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (

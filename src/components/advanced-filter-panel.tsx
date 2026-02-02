@@ -151,10 +151,18 @@ export function AdvancedFilterPanel({
     if (filters.customerName) activeFilters.push(`Customer: ${filters.customerName}`)
     if (filters.phoneNumber) activeFilters.push(`Phone: ${filters.phoneNumber}`)
     if (filters.email) activeFilters.push(`Email: ${filters.email}`)
-    if (filters.orderDateFrom) activeFilters.push(`From: ${filters.orderDateFrom.toLocaleDateString()}`)
-    if (filters.orderDateTo) activeFilters.push(`To: ${filters.orderDateTo.toLocaleDateString()}`)
+    if (filters.orderDateFrom) {
+      const d = filters.orderDateFrom
+      const pad = (n: number) => n.toString().padStart(2, '0')
+      activeFilters.push(`From: ${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`)
+    }
+    if (filters.orderDateTo) {
+      const d = filters.orderDateTo
+      const pad = (n: number) => n.toString().padStart(2, '0')
+      activeFilters.push(`To: ${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`)
+    }
     if (filters.orderStatus !== "all-status") activeFilters.push(`Status: ${filters.orderStatus}`)
-    if (filters.exceedSLA) activeFilters.push("SLA Breached")
+    // if (filters.exceedSLA) activeFilters.push("SLA Breached") // Disabled SLA elements
     if (filters.sellingChannel !== "all-channels") activeFilters.push(`Channel: ${filters.sellingChannel}`)
     if (filters.paymentStatus !== "all-payment") activeFilters.push(`Payment: ${filters.paymentStatus}`)
     if (filters.fulfillmentLocationId) activeFilters.push(`Location: ${filters.fulfillmentLocationId}`)
@@ -309,8 +317,8 @@ export function AdvancedFilterPanel({
           </Select>
         </div>
 
-        {/* Exceed SLA */}
-        <div className="space-y-2">
+        {/* Exceed SLA - DISABLED */}
+        {/* <div className="space-y-2">
           <Label htmlFor="exceedSLA" className="text-xs text-deep-navy">
             Exceed SLA
           </Label>
@@ -327,7 +335,7 @@ export function AdvancedFilterPanel({
               Show only SLA breached orders
             </label>
           </div>
-        </div>
+        </div> */}
 
         {/* Selling channel */}
         <div className="space-y-2">

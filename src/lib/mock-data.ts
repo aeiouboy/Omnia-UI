@@ -92,11 +92,10 @@ function generateDeliveryMethods(
   // Generate future pickup date (1-7 days from now)
   const pickupDate = new Date()
   pickupDate.setDate(pickupDate.getDate() + Math.floor(Math.random() * 7) + 1)
-  const pickupDateStr = pickupDate.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const pickupDateStr = (() => {
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(pickupDate.getMonth() + 1)}/${pad(pickupDate.getDate())}/${pickupDate.getFullYear()}`
+  })()
 
   // Select random store and time slot
   const storeName = clickCollectStores[Math.floor(Math.random() * clickCollectStores.length)]
@@ -259,6 +258,8 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
   // Manhattan OMS field options
   const uomOptions = ['PACK', 'SCAN', 'SBOX', 'EA', 'KG', 'PCS', 'BOX', 'BTL']
   const fulfillmentStatusOptions: ('Picked' | 'Pending' | 'Shipped' | 'Packed')[] = ['Picked', 'Pending', 'Shipped', 'Packed']
+  // Item-level fulfillment statuses for Version 4 Fulfillment Tab (weighted towards FULFILLED)
+  const itemFulfillmentStatusOptions = ['FULFILLED', 'FULFILLED', 'FULFILLED', 'FULFILLED', 'CANCELLED', 'RETURNED']
   // Updated shipping methods for Click & Collect and Home Delivery scenarios
   const clickCollectShippingOptions = ['Standard Pickup', '1H Delivery']
   const homeDeliveryShippingOptions = ['Standard Delivery', '3H Delivery', 'Next Day', 'Express']
@@ -287,6 +288,8 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
     const supplyTypeId: 'On Hand Available' | 'Pre-Order' = Math.random() < 0.8 ? 'On Hand Available' : 'Pre-Order'
     const substitution = Math.random() < 0.1  // 10% chance
     const fulfillmentStatus = fulfillmentStatusOptions[Math.floor(Math.random() * fulfillmentStatusOptions.length)]
+    // Item-level fulfillment status for Version 4 Fulfillment Tab
+    const itemFulfillmentStatus = itemFulfillmentStatusOptions[Math.floor(Math.random() * itemFulfillmentStatusOptions.length)]
 
     // Determine shipping method based on delivery methods and item index
     let shippingMethod: string
@@ -379,6 +382,7 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
       supplyTypeId,
       substitution,
       fulfillmentStatus,
+      itemFulfillmentStatus,
       shippingMethod,
       bundle,
       bundleRef,
@@ -401,7 +405,15 @@ export const mockApiOrders: any[] = Array.from({ length: 150 }, (_, i) => {
       actualWeight,
       route,
       bookingSlotFrom,
-      bookingSlotTo
+      bookingSlotTo,
+      // Extended Product Detail Fields (Added: chore-1ade3858)
+      secretCode: Math.random() > 0.5 ? ['SC-12345', 'SC-67890', 'SC-ABCDE', 'SC-XYZ99'][Math.floor(Math.random() * 4)] : undefined,
+      style: Math.random() > 0.5 ? ['Classic', 'Modern', 'Vintage', 'Casual', 'Premium'][Math.floor(Math.random() * 5)] : undefined,
+      color: Math.random() > 0.5 ? ['Navy Blue', 'Black', 'White', 'Red', 'Green', 'Yellow'][Math.floor(Math.random() * 6)] : undefined,
+      size: Math.random() > 0.5 ? ['XS', 'S', 'M', 'L', 'XL', 'XXL'][Math.floor(Math.random() * 6)] : undefined,
+      reason: Math.random() > 0.5 ? ['Standard', 'Return', 'Exchange', 'Special Handling'][Math.floor(Math.random() * 4)] : undefined,
+      temperature: Math.random() > 0.5 ? ['FROZEN', 'CHILLED', 'AMBIENT', 'HOT'][Math.floor(Math.random() * 4)] : undefined,
+      expiry: Math.random() > 0.5 ? ['2026-12-31', '2027-06-30', '2026-09-15', '2027-03-20'][Math.floor(Math.random() * 4)] : undefined
     }
   })
 
@@ -2233,12 +2245,12 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
     'Destination Hub'
   ]
 
-  // Helper to format date as DD/MM/YYYY
-  const formatDateDDMMYYYY = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, '0')
+  // Helper to format date as MM/DD/YYYY (standardized format)
+  const formatDateMMDDYYYY = (date: Date): string => {
     const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
     const year = date.getFullYear()
-    return `${day}/${month}/${year}`
+    return `${month}/${day}/${year}`
   }
 
   // Helper to generate random Thai phone number
@@ -2352,7 +2364,7 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics', // Default carrier for C&C
         events: [], // No events for Pickup
         status: 'PICKED_UP', // Always PICKED_UP for Pickup scenario
-        eta: formatDateDDMMYYYY(pickupEtaDate), // Generate ETA for Pickup
+        eta: formatDateMMDDYYYY(pickupEtaDate), // Generate ETA for Pickup
         shippedOn: '', // No shipped date for Pickup
         relNo,
         shippedFrom: storeName, // Actually "Picked from" for Pickup
@@ -2432,8 +2444,8 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics',
         events: mergeEvents,
         status: 'DELIVERED', // Shows as FULFILLED in UI
-        eta: formatDateDDMMYYYY(mergeEtaDate),
-        shippedOn: formatDateDDMMYYYY(shippedOnDate),
+        eta: formatDateMMDDYYYY(mergeEtaDate),
+        shippedOn: formatDateMMDDYYYY(shippedOnDate),
         relNo: mergeRelNo,
         shippedFrom: originStore,
         subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
@@ -2462,7 +2474,7 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
         carrier: 'CRC Logistics',
         events: [], // No tracking events for Pickup
         status: 'PICKED_UP', // Shows as PICKED UP in UI
-        eta: formatDateDDMMYYYY(pickupEtaDate),
+        eta: formatDateMMDDYYYY(pickupEtaDate),
         shippedOn: '', // No shipped date for Pickup
         relNo: pickupRelNo,
         shippedFrom: destinationStore, // "Picked from" destination store
@@ -2584,8 +2596,8 @@ export function generateTrackingData(orderId: string, orderData?: any): any[] {
       carrier: carrier.name,
       events,
       status: shipmentStatus,
-      eta: formatDateDDMMYYYY(etaDate),
-      shippedOn: formatDateDDMMYYYY(shippedOnDate),
+      eta: formatDateMMDDYYYY(etaDate),
+      shippedOn: formatDateMMDDYYYY(shippedOnDate),
       relNo,
       shippedFrom: originStore,
       subdistrict: thaiSubdistricts[Math.floor(Math.random() * thaiSubdistricts.length)],
@@ -9310,6 +9322,1845 @@ const maoOrderW1156260115052036Items = [
   }
 ];
 
+// -----------------------------------------------------------------------------
+// MAO ORDER: CDS251229874674
+// -----------------------------------------------------------------------------
+// Real MAO order extracted from Manhattan Active Omni system
+// Customer: ภัคพล พีระภาค from กรุงเทพฯ (Home Delivery) & ROBINSON SUKHUMVIT (Store Pickup)
+// Items: 2 line items (watches from Mirakl marketplace)
+// Products: Men Watch NF9254 D, Sandawatch
+// Delivery: Mixed - Home Delivery (Standard) & Store Pickup (Click & Collect)
+// Payment: BANK_TRANSFER, PAID
+// Promotions: None
+// Coupons: None
+// Total: 1,221.00 THB
+// -----------------------------------------------------------------------------
+
+const maoOrderCDS251229874674Items = [
+  // LINE-CDS25122-001: Men Watch NF9254 D (Store Pickup)
+  {
+    id: 'LINE-CDS25122-001',
+    product_id: 'MKP-WATCH-NF9254-001',
+    product_sku: 'MKP1093056431',
+    product_name: 'Men Watch NF9254 D Stainless steel 40mm Black Blac',
+    thaiName: 'นาฬิกาข้อมือผู้ชาย NF9254 D สเตนเลส 40มม. ดำ',
+    barcode: 'MKP1093056431',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 822,
+    total_price: 822,
+    uom: 'PCS',
+    location: 'ROBINSON SUKHUMVIT',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Pickup',
+    secretCode: '860492',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '',
+    bookingSlotTo: '',
+    eta: {
+      from: '04 Jan 2026 00:00:00',
+      to: '04 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 822,
+      discount: 0,
+      charges: 0,
+      amountExcludedTaxes: 768.22,
+      taxes: 53.78,
+      amountIncludedTaxes: 822,
+      total: 822
+    },
+    promotions: [],
+    viewType: 'DS-WEB-MIX',
+    supplyTypeId: 'Mirakl Marketplace',
+    substitution: false,
+    product_details: {
+      description: 'Men Watch NF9254 D Stainless steel 40mm Black Blac',
+      category: 'Watches',
+      brand: 'NF'
+    }
+  },
+  // LINE-CDS25122-002: Sandawatch (Home Delivery)
+  {
+    id: 'LINE-CDS25122-002',
+    product_id: 'MKP-SANDAWATCH-001',
+    product_sku: 'MKP1875694',
+    product_name: "Sandawatch men/women's wristwatch (ready to ship)",
+    thaiName: 'นาฬิกาข้อมือ Sandawatch ชาย/หญิง (พร้อมส่ง)',
+    barcode: 'MKP1875694',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 399,
+    total_price: 399,
+    uom: 'PCS',
+    location: 'Mirakl location',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '',
+    bookingSlotTo: '',
+    eta: {
+      from: '02 Jan 2026 00:00:00',
+      to: '02 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 399,
+      discount: 0,
+      charges: 0,
+      amountExcludedTaxes: 372.90,
+      taxes: 26.10,
+      amountIncludedTaxes: 399,
+      total: 399
+    },
+    promotions: [],
+    viewType: 'DS-WEB-MIX',
+    supplyTypeId: 'Mirakl Marketplace',
+    substitution: false,
+    product_details: {
+      description: "Sandawatch men/women's wristwatch (ready to ship)",
+      category: 'Watches',
+      brand: 'Sandawatch'
+    }
+  }
+];
+
+// MAO Order CDS251229874674 - Complete Order Object
+const maoOrderCDS251229874674 = {
+  id: 'CDS251229874674',
+  order_no: 'CDS251229874674',
+  organization: 'DS',
+  order_date: '2025-12-29T03:33:00+07:00',
+  business_unit: 'Central Department Store',
+  order_type: 'RT-MIX-STD',
+  sellingChannel: 'Web',
+  channel: 'web',
+  status: 'DELIVERED',
+  customer: {
+    id: 'CUST-CDS25122-001',
+    name: 'ภัคพล พีระภาค',
+    email: '2512230626@dummy.com',
+    phone: '0829359993',
+    customerType: 'General',
+    custRef: '2512230626',
+    T1Number: '2011010258797097',
+    taxId: '',
+    customerTypeId: 'General'
+  },
+  shipping_address: {
+    street: '96/104 นิรันดร์เรสซิเด้นท์ 5 ตึก U ซอยอ่อนนุช 46',
+    subdistrict: 'หนองบอน',
+    city: 'ประเวศ',
+    state: 'กรุงเทพมหานคร',
+    postal_code: '10250',
+    country: 'TH'
+  },
+  items: maoOrderCDS251229874674Items,
+  pricingBreakdown: {
+    subtotal: 1221,
+    orderDiscount: 0,
+    lineItemDiscount: 0,
+    taxAmount: 79.88,
+    taxBreakdown: maoOrderCDS251229874674Items.map(item => ({
+      lineId: item.id,
+      taxAmount: item.priceBreakdown.taxes
+    })),
+    shippingFee: 0,
+    additionalFees: 0,
+    grandTotal: 1221,
+    paidAmount: 1221,
+    currency: 'THB'
+  },
+  total_amount: 1221,
+  payment_info: {
+    method: 'BANK_TRANSFER',
+    status: 'PAID',
+    transaction_id: '17669991293468532966',
+    subtotal: 1221,
+    discounts: 0,
+    charges: 0,
+    amountIncludedTaxes: 1221,
+    amountExcludedTaxes: 1141.12,
+    taxes: 79.88
+  },
+  paymentDetails: [
+    {
+      id: 'PAY-CDS251229874674-001',
+      method: 'BANK_TRANSFER',
+      status: 'PAID',
+      transactionId: '17669991293468532966',
+      amount: 822,
+      currency: 'THB',
+      date: '2025-12-29T03:35:00+07:00',
+      gateway: 'Bank Transfer',
+      invoiceNo: '17669991293468532966'
+    },
+    {
+      id: 'PAY-CDS251229874674-002',
+      method: 'BANK_TRANSFER',
+      status: 'PAID',
+      transactionId: '17670069174774771878',
+      amount: 399,
+      currency: 'THB',
+      date: '2025-12-29T03:35:00+07:00',
+      gateway: 'Bank Transfer',
+      invoiceNo: '17670069174774771878'
+    }
+  ],
+  orderDiscounts: [],
+  promotions: [],
+  couponCodes: [],
+  deliveryMethods: [
+    {
+      type: 'HOME_DELIVERY' as DeliveryMethodType,
+      itemCount: 1,
+      homeDelivery: {
+        recipient: 'ภัคพล พีระภาค',
+        phone: '0829359993',
+        address: '96/104 นิรันดร์เรสซิเด้นท์ 5 ตึก U ซอยอ่อนนุช 46',
+        district: 'หนองบอน',
+        city: 'ประเวศ',
+        postalCode: '10250',
+        specialInstructions: ''
+      }
+    },
+    {
+      type: 'CLICK_COLLECT' as DeliveryMethodType,
+      itemCount: 1,
+      clickCollect: {
+        storeName: 'ROBINSON SUKHUMVIT',
+        storeAddress: 'Store Pickup RBS SUKHUMVIT (RBS 20106) 259 SUKHUMVIT ROAD',
+        storePhone: '026515333',
+        recipientName: 'ภัคพล พีระภาค',
+        phone: '0829359993',
+        relNo: 'CDS2512298746743',
+        pickupDate: '2026-01-04',
+        timeSlot: '10:00-18:00',
+        collectionCode: '860492',
+        allocationType: 'Pickup'
+      }
+    }
+  ],
+  deliveryTypeCode: 'MIXED_DELIVERY',
+  sla_info: {
+    target_minutes: 4320,
+    elapsed_minutes: 4200,
+    status: 'COMPLIANT'
+  },
+  metadata: {
+    created_at: '2025-12-29T03:33:00+07:00',
+    updated_at: '2026-01-02T11:00:00+07:00',
+    priority: 'NORMAL',
+    store_name: 'ROBINSON SUKHUMVIT',
+    store_no: 'RBS20106',
+    order_created: '2025-12-29T03:33:00+07:00',
+    viewTypes: ['DS-WEB-MIX']
+  },
+  on_hold: false,
+  fullTaxInvoice: false,
+  customerTypeId: 'General',
+  allowSubstitution: false,
+  allow_substitution: false,
+  currency: 'THB',
+  capturedDate: '2025-12-29T03:33:00+07:00',
+  t1Member: '2011010258797097',
+  billingName: 'ภัคพล พีระภาค',
+  billingAddress: {
+    street: '96/104 นิรันดร์เรสซิเด้นท์ 5 ตึก U ซอยอ่อนนุช 46',
+    subdistrict: 'หนองบอน',
+    city: 'ประเวศ',
+    state: 'กรุงเทพมหานคร',
+    postal_code: '10250',
+    country: 'TH'
+  },
+  trackingNumber: 'KNJ0312512024648',
+  shippedFrom: 'Mirakl location',
+  shippedOn: '2025-12-30T10:00:00+07:00',
+  eta: '01/02/2026',
+  relNo: 'CDS2512298746741',
+  subdistrict: 'หนองบอน',
+  fulfillmentTimeline: [
+    {
+      id: 'FUL-CDS251229874674-001',
+      status: 'Order Received',
+      timestamp: '2025-12-29T03:33:00',
+      details: 'Order placed successfully'
+    },
+    {
+      id: 'FUL-CDS251229874674-002',
+      status: 'Payment Confirmed',
+      timestamp: '2025-12-29T03:35:00',
+      details: 'Bank transfer payment confirmed'
+    },
+    {
+      id: 'FUL-CDS251229874674-003',
+      status: 'Processing',
+      timestamp: '2025-12-29T04:00:00',
+      details: 'Order being processed'
+    },
+    {
+      id: 'FUL-CDS251229874674-004',
+      status: 'Shipped (Home Delivery)',
+      timestamp: '2025-12-30T10:00:00',
+      details: 'Sandawatch shipped via Kerry Express'
+    },
+    {
+      id: 'FUL-CDS251229874674-005',
+      status: 'Shipped to Store (Merge)',
+      timestamp: '2025-12-30T10:00:00',
+      details: 'Men Watch shipped to ROBINSON SUKHUMVIT for pickup'
+    },
+    {
+      id: 'FUL-CDS251229874674-006',
+      status: 'Available for Pickup',
+      timestamp: '2026-01-01T10:00:00',
+      details: 'Men Watch available at ROBINSON SUKHUMVIT'
+    },
+    {
+      id: 'FUL-CDS251229874674-007',
+      status: 'Picked Up',
+      timestamp: '2026-01-01T14:00:00',
+      details: 'Men Watch picked up from store'
+    },
+    {
+      id: 'FUL-CDS251229874674-008',
+      status: 'Home Delivered',
+      timestamp: '2026-01-02T11:00:00',
+      details: 'Sandawatch delivered to customer'
+    }
+  ],
+  tracking: [
+    // Shipment 1: Home Delivery (Delivered)
+    {
+      trackingNumber: 'KNJ0312512024648',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '01/02/2026',
+      shippedOn: '12/30/2025',
+      relNo: 'CDS2512298746741',
+      shippedFrom: 'Mirakl location',
+      subdistrict: 'หนองบอน',
+      shipToAddress: {
+        email: '2512230626@dummy.com',
+        name: 'ภัคพล พีระภาค',
+        address: '96/104 นิรันดร์เรสซิเด้นท์ 5 ตึก U ซอยอ่อนนุช 46',
+        fullAddress: 'หนองบอน, ประเวศ, กรุงเทพฯ 10250',
+        allocationType: 'Delivery',
+        phone: '0829359993'
+      },
+      trackingUrl: 'https://th.kerryexpress.com/th/track/?track=KNJ0312512024648',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        { productName: "Sandawatch men/women's wristwatch (ready to ship)", sku: 'MKP1875694', shippedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2025-12-30T10:00:00', location: 'Mirakl location' },
+        { status: 'In Transit', timestamp: '2025-12-31T08:00:00', location: 'Bangkok Sorting Center' },
+        { status: 'Out for Delivery', timestamp: '2026-01-02T08:00:00', location: 'ประเวศ' },
+        { status: 'Delivered', timestamp: '2026-01-02T11:00:00', location: 'หนองบอน, ประเวศ' }
+      ]
+    },
+    // Shipment 2: Store Pickup (Picked Up)
+    {
+      trackingNumber: 'KNJ0312512024403',
+      carrier: 'KEX',
+      status: 'PICKED UP',
+      eta: '01/04/2026',
+      shippedOn: '12/30/2025',
+      relNo: 'CDS2512298746743',
+      pickedFrom: 'SUKHUMVIT',
+      pickedOn: '01/01/2026',
+      subdistrict: 'KLONGTOEY NORTH',
+      shipToStore: {
+        email: '2512230626@dummy.com',
+        storeName: 'ROBINSON SUKHUMVIT',
+        storeAddress: 'Store Pickup RBS SUKHUMVIT (RBS 20106) 259 SUKHUMVIT ROAD',
+        district: 'WATTANA',
+        city: 'Bangkok',
+        postalCode: '10110',
+        allocationType: 'Pickup',
+        phone: '026515333'
+      },
+      shipmentType: 'STORE_PICKUP',
+      shippedItems: [
+        { productName: 'Men Watch NF9254 D Stainless steel 40mm Black Blac', sku: 'MKP1093056431', pickedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Available for Pickup', timestamp: '2026-01-01T10:00:00', location: 'ROBINSON SUKHUMVIT' },
+        { status: 'Picked Up', timestamp: '2026-01-01T14:00:00', location: 'ROBINSON SUKHUMVIT' }
+      ]
+    },
+    // Shipment 3: Store Merge (Delivered)
+    {
+      trackingNumber: 'KNJ0312512024403',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '01/04/2026',
+      shippedOn: '12/30/2025',
+      relNo: 'CDS2512298746742',
+      shippedFrom: 'Mirakl location',
+      subdistrict: 'KLONGTOEY NORTH',
+      shipToStore: {
+        email: '2512230626@dummy.com',
+        storeName: 'ROBINSON SUKHUMVIT',
+        storeAddress: 'Store Pickup RBS SUKHUMVIT (RBS 20106) 259 SUKHUMVIT ROAD',
+        district: 'WATTANA',
+        city: 'Bangkok',
+        postalCode: '10110',
+        allocationType: 'Merge',
+        phone: '026515333'
+      },
+      trackingUrl: 'https://th.kerryexpress.com/th/track/?track=KNJ0312512024403',
+      shipmentType: 'STORE_MERGE',
+      shippedItems: [
+        { productName: 'Men Watch NF9254 D Stainless steel 40mm Black Blac', sku: 'MKP1093056431', shippedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2025-12-30T10:00:00', location: 'Mirakl location' },
+        { status: 'In Transit', timestamp: '2025-12-31T08:00:00', location: 'Bangkok Sorting Center' },
+        { status: 'Arrived at Store', timestamp: '2026-01-01T09:00:00', location: 'ROBINSON SUKHUMVIT' },
+        { status: 'Delivered', timestamp: '2026-01-01T10:00:00', location: 'ROBINSON SUKHUMVIT' }
+      ]
+    }
+  ]
+};
+
+// -----------------------------------------------------------------------------
+// MAO ORDER: CDS260130158593
+// -----------------------------------------------------------------------------
+// Real MAO order extracted from Manhattan Active Omni system
+// Customer: TASSANAVALAI KLINTIENFUNG from Nonthaburi
+// Items: 1 line item (Air Pure Compact air purifier)
+// Products: Air Pure Compact PT2210T0 White
+// Delivery: Home Delivery - Standard from Central World
+// Payment: Multi-payment - Credit Card (2,490) + The1 Points (500)
+// Total: 2,990.00 THB
+// Tax Invoice: Required - บริษัท อินเทลลิเจ้นท์ โกลบอล จำกัด
+// -----------------------------------------------------------------------------
+
+const maoOrderCDS260130158593Items = [
+  {
+    id: 'LINE-CDS26013-001',
+    product_id: 'CDS-AIRPURE-PT2210T0-001',
+    product_sku: 'CDS19598406',
+    product_name: 'Air Pure Compact PT2210T0 White',
+    thaiName: 'เครื่องฟอกอากาศ Air Pure Compact PT2210T0 สีขาว',
+    barcode: 'CDS19598406',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 2990,
+    total_price: 2990,
+    uom: 'PCS',
+    location: 'Central World',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '',
+    bookingSlotTo: '',
+    eta: {
+      from: '01 Feb 2026 00:00:00',
+      to: '01 Feb 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 2990,
+      discount: 0,
+      charges: 0,
+      amountExcludedTaxes: 2794.39,
+      taxes: 195.61,
+      amountIncludedTaxes: 2990,
+      total: 2990
+    },
+    promotions: [],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Air Pure Compact PT2210T0 White',
+      category: 'Home Appliances',
+      brand: 'Air Pure'
+    }
+  }
+];
+
+// MAO Order CDS260130158593 - Complete Order Object
+const maoOrderCDS260130158593 = {
+  id: 'CDS260130158593',
+  order_no: 'CDS260130158593',
+  organization: 'CDS',
+  order_date: '2026-01-30T15:10:00+07:00',
+  business_unit: 'Central Department Store',
+  order_type: 'RT-HD-STD',
+  sellingChannel: 'Web',
+  channel: 'web',
+  status: 'DELIVERED',
+  customer: {
+    id: 'CUST-CDS26013-001',
+    name: 'TASSANAVALAI KLINTIENFUNG',
+    email: 'Engzaa@gmail.com',
+    phone: '0624192696',
+    customerType: 'General',
+    custRef: '2400131193',
+    T1Number: '2002224934',
+    taxId: '0135564014412',
+    customerTypeId: 'General'
+  },
+  shipping_address: {
+    street: '134/466',
+    subdistrict: 'ท่าทราย',
+    city: 'เมืองนนทบุรี',
+    state: 'นนทบุรี',
+    postal_code: '11000',
+    country: 'TH'
+  },
+  items: maoOrderCDS260130158593Items,
+  pricingBreakdown: {
+    subtotal: 2990,
+    orderDiscount: 0,
+    lineItemDiscount: 0,
+    taxAmount: 195.61,
+    taxBreakdown: maoOrderCDS260130158593Items.map(item => ({
+      lineId: item.id,
+      taxAmount: item.priceBreakdown.taxes
+    })),
+    shippingFee: 0,
+    additionalFees: 0,
+    grandTotal: 2990,
+    paidAmount: 2990,
+    currency: 'THB'
+  },
+  total_amount: 2990,
+  payment_info: {
+    method: 'CREDIT_CARD',
+    status: 'PAID',
+    transaction_id: '17697739922881358120',
+    subtotal: 2990,
+    discounts: 0,
+    charges: 0,
+    amountIncludedTaxes: 2990,
+    amountExcludedTaxes: 2794.39,
+    taxes: 195.61,
+    cardNumber: '528560XXXXXX1117',
+    expiryDate: '**/****'
+  },
+  paymentDetails: [
+    {
+      id: 'PAY-CDS260130158593-001',
+      method: 'CREDIT_CARD',
+      status: 'PAID',
+      transactionId: '17697739922881358120',
+      amount: 2490,
+      currency: 'THB',
+      date: '2026-01-30T15:10:00+07:00',
+      gateway: 'KBank',
+      cardNumber: '528560XXXXXX1117',
+      expiryDate: '**/****',
+      invoiceNo: '17697739922881358120',
+      transactionType: 'SETTLEMENT',
+      settledItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          quantity: 1,
+          amount: 2490
+        }
+      ]
+    },
+    {
+      id: 'PAY-CDS260130158593-002',
+      method: 'T1',
+      status: 'PAID',
+      transactionId: 'T1-2002224934-2026013015',
+      amount: 500,
+      currency: 'THB',
+      date: '2026-01-30T15:10:00+07:00',
+      gateway: 'The1',
+      memberId: '2002224934',
+      invoiceNo: '17697739922881358120',
+      transactionType: 'SETTLEMENT',
+      settledItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          quantity: 1,
+          amount: 500
+        }
+      ]
+    }
+  ],
+  deliveryMethods: [
+    {
+      type: 'HOME_DELIVERY' as DeliveryMethodType,
+      itemCount: 1,
+      homeDelivery: {
+        recipient: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+        phone: '0624192696',
+        address: '134/466',
+        district: 'ท่าทราย',
+        city: 'เมืองนนทบุรี',
+        postalCode: '11000',
+        specialInstructions: ''
+      }
+    }
+  ],
+  deliveryTypeCode: 'HOME_DELIVERY',
+  sla_info: {
+    target_minutes: 4320,
+    elapsed_minutes: 1440,
+    status: 'COMPLIANT'
+  },
+  metadata: {
+    created_at: '2026-01-30T15:10:00+07:00',
+    updated_at: '2026-01-31T10:00:00+07:00',
+    priority: 'NORMAL',
+    store_name: 'Central World',
+    store_no: '',
+    order_created: '2026-01-30T15:10:00+07:00',
+    viewTypes: ['DS-WEB-STD']
+  },
+  on_hold: false,
+  fullTaxInvoice: true,
+  allowSubstitution: false,
+  allow_substitution: false,
+  t1Member: '2002224934',
+  taxId: '0135564014412',
+  companyName: 'บริษัท อินเทลลิเจ้นท์ โกลบอล จำกัด',
+  branchNo: '00000',
+  billingName: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+  billingAddress: {
+    street: '134/466',
+    subdistrict: 'ท่าทราย',
+    city: 'เมืองนนทบุรี',
+    state: 'นนทบุรี',
+    postal_code: '11000',
+    country: 'TH'
+  },
+  trackingNumber: 'KNJ0202601016215',
+  shippedFrom: 'Central World',
+  shippedOn: '2026-01-31T10:00:00+07:00',
+  eta: '02/01/2026',
+  relNo: 'CDS2601301585931',
+  subdistrict: 'ท่าทราย',
+  fulfillmentTimeline: [
+    {
+      id: 'FUL-HD-CDS260130158593-001',
+      status: 'Order Received',
+      timestamp: '2026-01-30T15:10:00',
+      details: 'Order received from customer'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-002',
+      status: 'Payment Confirmed',
+      timestamp: '2026-01-30T15:10:00',
+      details: 'Payment confirmed via Credit Card and The1 Points'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-003',
+      status: 'Processing',
+      timestamp: '2026-01-30T16:00:00',
+      details: 'Order is being processed'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-004',
+      status: 'Shipped',
+      timestamp: '2026-01-31T10:00:00',
+      details: 'Order shipped via Kerry Express'
+    },
+    {
+      id: 'FUL-HD-CDS260130158593-005',
+      status: 'Delivered',
+      timestamp: '2026-02-01T11:00:00',
+      details: 'Order delivered to customer'
+    }
+  ],
+  tracking: [
+    {
+      trackingNumber: 'KNJ0202601016215',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '02/01/2026',
+      shippedOn: '01/31/2026',
+      relNo: 'CDS2601301585931',
+      shippedFrom: 'Central World',
+      subdistrict: 'ท่าทราย',
+      shipToAddress: {
+        email: 'Engzaa@gmail.com',
+        name: 'ทัศนาวลัย กลิ่นเทียนฟุ้ง',
+        address: '134/466',
+        fullAddress: 'ท่าทราย, เมืองนนทบุรี, นนทบุรี 11000, TH',
+        allocationType: 'Delivery',
+        phone: '0624192696'
+      },
+      trackingUrl: 'https://th.kex-express.com/th/track/?track=KNJ0202601016215',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        {
+          productName: 'Air Pure Compact PT2210T0 White',
+          sku: 'CDS19598406',
+          shippedQty: 1,
+          orderedQty: 1,
+          uom: 'PCS'
+        }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2026-01-31T10:00:00', location: 'Central World' },
+        { status: 'In Transit', timestamp: '2026-01-31T18:00:00', location: 'Bangkok Hub' },
+        { status: 'Out for Delivery', timestamp: '2026-02-01T08:00:00', location: 'Nonthaburi' },
+        { status: 'Delivered', timestamp: '2026-02-01T11:00:00', location: 'ท่าทราย, เมืองนนทบุรี' }
+      ]
+    }
+  ]
+};
+
+// MAO ORDER: CDS260121226285
+// -----------------------------------------------------------------------------
+// Real MAO order extracted from Manhattan Active Omni system
+// Customer: ธนวัฒน์ สิงห์แพรก (Thanawat Singpraek) from Chonburi
+// Items: 13 line items (children's Sanrio-branded clothing)
+// Products: Hello Kitty, Kuromi, Cinnamoroll branded clothing
+// Delivery: Home Delivery - Standard from Central Online Warehouse, Bangna, Lardprao
+// Payment: Credit Card, PAID
+// Promotions: 18 promotion entries (Discount type) totaling -3,225.00 THB
+// Coupons: CES2520075550 (-1,683.75)
+// Total: 4,551.25 THB
+// -----------------------------------------------------------------------------
+
+const maoOrderCDS260121226285Items = [
+  // LINE-CDS26012-001: Girl T-Shirt Short Sleeves Round Neck Kuromi Viole
+  {
+    id: 'LINE-CDS26012-001',
+    product_id: 'CDS-KUROMI-TSHIRT-001',
+    product_sku: 'CDS23576490',
+    product_name: 'Girl T-Shirt Short Sleeves Round Neck Kuromi Viole',
+    thaiName: 'เสื้อยืดเด็กหญิง แขนสั้น คอกลม คุโรมิ สีม่วง',
+    barcode: 'CDS23576490',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 395,
+    total_price: 266.93,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 395,
+      discount: 128.07,
+      charges: 0,
+      amountExcludedTaxes: 249.47,
+      taxes: 17.46,
+      amountIncludedTaxes: 266.93,
+      total: 266.93
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-001',
+        promotionType: 'Discount',
+        discountAmount: -29.32
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -98.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl T-Shirt Short Sleeves Round Neck Kuromi Viole',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-002: Girl Pants Wide Legs Kuromi Denim
+  {
+    id: 'LINE-CDS26012-002',
+    product_id: 'CDS-KUROMI-PANTS-001',
+    product_sku: 'CDS23576551',
+    product_name: 'Girl Pants Wide Legs Kuromi Denim',
+    thaiName: 'กางเกงเด็กหญิง ขากว้าง คุโรมิ ยีนส์',
+    barcode: 'CDS23576551',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 645,
+    total_price: 435.87,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 645,
+      discount: 209.13,
+      charges: 0,
+      amountExcludedTaxes: 407.36,
+      taxes: 28.51,
+      amountIncludedTaxes: 435.87,
+      total: 435.87
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-002',
+        promotionType: 'Discount',
+        discountAmount: -47.88
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -161.25,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Pants Wide Legs Kuromi Denim',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-003: Girl Pants Hello Kitty Blue
+  {
+    id: 'LINE-CDS26012-003',
+    product_id: 'CDS-HK-PANTS-001',
+    product_sku: 'CDS23582996',
+    product_name: 'Girl Pants Hello Kitty Blue',
+    thaiName: 'กางเกงเด็กหญิง เฮลโลคิตตี้ สีน้ำเงิน',
+    barcode: 'CDS23582996',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 1290,
+    total_price: 435.87,
+    uom: 'PCS',
+    location: 'Central Online Warehouse',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 1290,
+      discount: 854.13,
+      charges: 0,
+      amountExcludedTaxes: 407.36,
+      taxes: 28.51,
+      amountIncludedTaxes: 435.87,
+      total: 435.87
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-003',
+        promotionType: 'Discount',
+        discountAmount: -692.88
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -161.25,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Pants Hello Kitty Blue',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-004: Girl Leggings Hello Kitty Red
+  {
+    id: 'LINE-CDS26012-004',
+    product_id: 'CDS-HK-LEGGINGS-001',
+    product_sku: 'CDS23583115',
+    product_name: 'Girl Leggings Hello Kitty Red',
+    thaiName: 'เลกกิ้งเด็กหญิง เฮลโลคิตตี้ สีแดง',
+    barcode: 'CDS23583115',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 790,
+    total_price: 266.93,
+    uom: 'PCS',
+    location: 'Central Online Warehouse',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 790,
+      discount: 523.07,
+      charges: 0,
+      amountExcludedTaxes: 249.47,
+      taxes: 17.46,
+      amountIncludedTaxes: 266.93,
+      total: 266.93
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-004',
+        promotionType: 'Discount',
+        discountAmount: -424.32
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -98.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Leggings Hello Kitty Red',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-005: Girl Dress Cap Sleeves Hello Kitty Blue
+  {
+    id: 'LINE-CDS26012-005',
+    product_id: 'CDS-HK-DRESS-001',
+    product_sku: 'CDS24077910',
+    product_name: 'Girl Dress Cap Sleeves Hello Kitty Blue',
+    thaiName: 'ชุดกระโปรงเด็กหญิง แขนระบาย เฮลโลคิตตี้ สีน้ำเงิน',
+    barcode: 'CDS24077910',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 1390,
+    total_price: 469.65,
+    uom: 'PCS',
+    location: 'Central Online Warehouse',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 1390,
+      discount: 920.35,
+      charges: 0,
+      amountExcludedTaxes: 438.92,
+      taxes: 30.73,
+      amountIncludedTaxes: 469.65,
+      total: 469.65
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-005',
+        promotionType: 'Discount',
+        discountAmount: -746.60
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -173.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Dress Cap Sleeves Hello Kitty Blue',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-006: Girl Toddler T-Shirt Puff Sleeves Hello Kitty White
+  {
+    id: 'LINE-CDS26012-006',
+    product_id: 'CDS-HK-TODDLER-TSHIRT-001',
+    product_sku: 'CDS24097574',
+    product_name: 'Girl Toddler T-Shirt Puff Sleeves Hello Kitty Whit',
+    thaiName: 'เสื้อยืดเด็กเล็กหญิง แขนพอง เฮลโลคิตตี้ สีขาว',
+    barcode: 'CDS24097574',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 345,
+    total_price: 233.14,
+    uom: 'PCS',
+    location: 'Lardprao',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 345,
+      discount: 111.86,
+      charges: 0,
+      amountExcludedTaxes: 217.89,
+      taxes: 15.25,
+      amountIncludedTaxes: 233.14,
+      total: 233.14
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-006',
+        promotionType: 'Discount',
+        discountAmount: -25.61
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -86.25,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Toddler T-Shirt Puff Sleeves Hello Kitty White',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-007: Girl Toddler Shorts Hello Kitty Cherry Blossom Pink
+  {
+    id: 'LINE-CDS26012-007',
+    product_id: 'CDS-HK-TODDLER-SHORTS-001',
+    product_sku: 'CDS24097635',
+    product_name: 'Girl Toddler Shorts Hello Kitty Cherry Blossom Pin',
+    thaiName: 'กางเกงขาสั้นเด็กเล็กหญิง เฮลโลคิตตี้ ซากุระ สีชมพู',
+    barcode: 'CDS24097635',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 495,
+    total_price: 334.50,
+    uom: 'PCS',
+    location: 'Lardprao',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 495,
+      discount: 160.50,
+      charges: 0,
+      amountExcludedTaxes: 312.62,
+      taxes: 21.88,
+      amountIncludedTaxes: 334.50,
+      total: 334.50
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-007',
+        promotionType: 'Discount',
+        discountAmount: -36.75
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -123.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Toddler Shorts Hello Kitty Cherry Blossom Pink',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-008: Girl Toddler Dress Short Sleeves Gingham Cinnamoroll
+  {
+    id: 'LINE-CDS26012-008',
+    product_id: 'CDS-CINNA-DRESS-001',
+    product_sku: 'CDS24097840',
+    product_name: 'Girl Toddler Dress Short Sleeves Gingham Cinnamoro',
+    thaiName: 'ชุดกระโปรงเด็กเล็กหญิง แขนสั้น ลายตาราง ชินนามอน',
+    barcode: 'CDS24097840',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 645,
+    total_price: 435.87,
+    uom: 'PCS',
+    location: 'Central Online Warehouse',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 645,
+      discount: 209.13,
+      charges: 0,
+      amountExcludedTaxes: 407.36,
+      taxes: 28.51,
+      amountIncludedTaxes: 435.87,
+      total: 435.87
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-008',
+        promotionType: 'Discount',
+        discountAmount: -47.88
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -161.25,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Toddler Dress Short Sleeves Gingham Cinnamoroll',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-009: Girl Dress Short Sleeves Gingham Hello Kitty Cherry
+  {
+    id: 'LINE-CDS26012-009',
+    product_id: 'CDS-HK-GINGHAM-DRESS-001',
+    product_sku: 'CDS24098083',
+    product_name: 'Girl Dress Short Sleeves Gingham Hello Kitty Cherr',
+    thaiName: 'ชุดกระโปรงเด็กหญิง แขนสั้น ลายตาราง เฮลโลคิตตี้ ซากุระ',
+    barcode: 'CDS24098083',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 695,
+    total_price: 469.63,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 695,
+      discount: 225.37,
+      charges: 0,
+      amountExcludedTaxes: 438.91,
+      taxes: 30.72,
+      amountIncludedTaxes: 469.63,
+      total: 469.63
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-009',
+        promotionType: 'Discount',
+        discountAmount: -51.62
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -173.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Dress Short Sleeves Gingham Hello Kitty Cherry',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-010: Girl T-Shirt Short Sleeves Round Neck Hello Kitty
+  {
+    id: 'LINE-CDS26012-010',
+    product_id: 'CDS-HK-TSHIRT-001',
+    product_sku: 'CDS24098281',
+    product_name: 'Girl T-Shirt Short Sleeves Round Neck Hello Kitty',
+    thaiName: 'เสื้อยืดเด็กหญิง แขนสั้น คอกลม เฮลโลคิตตี้',
+    barcode: 'CDS24098281',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 395,
+    total_price: 266.93,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 395,
+      discount: 128.07,
+      charges: 0,
+      amountExcludedTaxes: 249.47,
+      taxes: 17.46,
+      amountIncludedTaxes: 266.93,
+      total: 266.93
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-010',
+        promotionType: 'Discount',
+        discountAmount: -29.32
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -98.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl T-Shirt Short Sleeves Round Neck Hello Kitty',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-011: Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue
+  {
+    id: 'LINE-CDS26012-011',
+    product_id: 'CDS-CINNA-TSHIRT-001',
+    product_sku: 'CDS24098465',
+    product_name: 'Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue',
+    thaiName: 'เสื้อยืดเด็กหญิง แขนพอง ชินนามอน สีฟ้าอ่อน',
+    barcode: 'CDS24098465',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 395,
+    total_price: 266.93,
+    uom: 'PCS',
+    location: 'Central Online Warehouse',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 395,
+      discount: 128.07,
+      charges: 0,
+      amountExcludedTaxes: 249.47,
+      taxes: 17.46,
+      amountIncludedTaxes: 266.93,
+      total: 266.93
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-011',
+        promotionType: 'Discount',
+        discountAmount: -29.32
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -98.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-012: Girl Toddler Pyjamas Set Dress Long Sleeves With Ruffle (First)
+  {
+    id: 'LINE-CDS26012-012',
+    product_id: 'CDS-PJ-SET-001',
+    product_sku: 'CDS24820752',
+    product_name: 'Girl Toddler Pyjamas Set Dress Long Sleeves With R',
+    thaiName: 'ชุดนอนเด็กเล็กหญิง ชุดกระโปรง แขนยาว ระบาย',
+    barcode: 'CDS24820752',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 990,
+    total_price: 334.50,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 990,
+      discount: 655.50,
+      charges: 0,
+      amountExcludedTaxes: 312.62,
+      taxes: 21.88,
+      amountIncludedTaxes: 334.50,
+      total: 334.50
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-012',
+        promotionType: 'Discount',
+        discountAmount: -531.75
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -123.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Toddler Pyjamas Set Dress Long Sleeves With Ruffle',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  },
+  // LINE-CDS26012-013: Girl Toddler Pyjamas Set Dress Long Sleeves With Ruffle (Second)
+  {
+    id: 'LINE-CDS26012-013',
+    product_id: 'CDS-PJ-SET-002',
+    product_sku: 'CDS24820776',
+    product_name: 'Girl Toddler Pyjamas Set Dress Long Sleeves With R',
+    thaiName: 'ชุดนอนเด็กเล็กหญิง ชุดกระโปรง แขนยาว ระบาย',
+    barcode: 'CDS24820776',
+    quantity: 1,
+    orderedQty: 1,
+    fulfilledQty: 1,
+    unit_price: 990,
+    total_price: 334.50,
+    uom: 'PCS',
+    location: 'Bangna',
+    fulfillmentStatus: 'DELIVERED',
+    shippingMethod: 'Standard Delivery',
+    bundle: false,
+    packedOrderedQty: 1,
+    route: '',
+    bookingSlotFrom: '2026-01-21T00:00:00+07:00',
+    bookingSlotTo: '2026-01-23T23:59:00+07:00',
+    eta: {
+      from: '21 Jan 2026 00:00:00',
+      to: '23 Jan 2026 23:59:00'
+    },
+    giftWithPurchase: false,
+    priceBreakdown: {
+      subtotal: 990,
+      discount: 655.50,
+      charges: 0,
+      amountExcludedTaxes: 312.62,
+      taxes: 21.88,
+      amountIncludedTaxes: 334.50,
+      total: 334.50
+    },
+    promotions: [
+      {
+        promotionId: 'PROMO-CDS-DISCOUNT-013',
+        promotionType: 'Discount',
+        discountAmount: -531.75
+      },
+      {
+        promotionId: 'CPN-CES2520075550',
+        promotionType: 'Coupon',
+        discountAmount: -123.75,
+        secretCode: 'CES2520075550',
+        couponType: 'Discount',
+        couponId: 'CES2520075550',
+        couponName: 'Discount|CES2520075550'
+      }
+    ],
+    viewType: 'DS-WEB-STD',
+    supplyTypeId: 'On Hand Available',
+    substitution: false,
+    product_details: {
+      description: 'Girl Toddler Pyjamas Set Dress Long Sleeves With Ruffle',
+      category: 'Children Clothing',
+      brand: 'Sanrio'
+    }
+  }
+];
+
+// MAO Order CDS260121226285 - Complete Order Object
+const maoOrderCDS260121226285 = {
+  id: 'CDS260121226285',
+  order_no: 'CDS260121226285',
+  organization: 'DS',
+  order_date: '2026-01-21T11:49:00+07:00',
+  business_unit: 'Central Department Store',
+  order_type: 'RT-HD-STD',
+  sellingChannel: 'Web',
+  channel: 'web',
+  status: 'DELIVERED',
+  customer: {
+    id: 'CUST-CDS26012-001',
+    name: 'ธนวัฒน์ สิงห์แพรก',
+    email: 'thanawat4596@gmail.com',
+    phone: '0922643514',
+    customerType: 'General',
+    custRef: '2400777864',
+    T1Number: '8031630388',
+    taxId: '',
+    customerTypeId: 'General'
+  },
+  shipping_address: {
+    street: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี (รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ)',
+    subdistrict: 'หนองปรือ',
+    city: 'บางละมุง',
+    state: 'ชลบุรี',
+    postal_code: '20150',
+    country: 'TH'
+  },
+  items: maoOrderCDS260121226285Items,
+  pricingBreakdown: {
+    subtotal: 9460,
+    orderDiscount: 0,
+    lineItemDiscount: 4908.75,
+    taxAmount: 297.70,
+    taxBreakdown: maoOrderCDS260121226285Items.map(item => ({
+      lineId: item.id,
+      taxAmount: item.priceBreakdown.taxes
+    })),
+    shippingFee: 0,
+    additionalFees: 0,
+    grandTotal: 4551.25,
+    paidAmount: 4551.25,
+    currency: 'THB'
+  },
+  total_amount: 4551.25,
+  payment_info: {
+    method: 'CREDIT_CARD',
+    status: 'PAID',
+    transaction_id: '17689833173984144989',
+    subtotal: 9460,
+    discounts: 4908.75,
+    charges: 0,
+    amountIncludedTaxes: 4551.25,
+    amountExcludedTaxes: 4253.55,
+    taxes: 297.70,
+    cardNumber: '525669XXXXXX0005',
+    expiryDate: '**/****'
+  },
+  paymentDetails: [
+    {
+      id: 'PAY-CDS260121226285-001',
+      method: 'CREDIT_CARD',
+      status: 'PAID',
+      transactionId: '17689833173984144989',
+      amount: 1875.25,
+      currency: 'THB',
+      date: '2026-01-21T11:49:00+07:00',
+      gateway: 'KBank',
+      cardNumber: '525669XXXXXX0005',
+      expiryDate: '**/****',
+      invoiceNo: '17689833173984144989'
+    },
+    {
+      id: 'PAY-CDS260121226285-002',
+      method: 'CREDIT_CARD',
+      status: 'PAID',
+      transactionId: '17689839997298882773',
+      amount: 567.64,
+      currency: 'THB',
+      date: '2026-01-21T11:49:00+07:00',
+      gateway: 'KBank',
+      cardNumber: '525669XXXXXX0005',
+      expiryDate: '**/****',
+      invoiceNo: '17689839997298882773'
+    },
+    {
+      id: 'PAY-CDS260121226285-003',
+      method: 'CREDIT_CARD',
+      status: 'PAID',
+      transactionId: '17689858488467027983',
+      amount: 2108.36,
+      currency: 'THB',
+      date: '2026-01-21T11:49:00+07:00',
+      gateway: 'KBank',
+      cardNumber: '525669XXXXXX0005',
+      expiryDate: '**/****',
+      invoiceNo: '17689858488467027983'
+    }
+  ],
+  orderDiscounts: [
+    {
+      amount: 3225,
+      type: 'PROMOTIONS',
+      description: 'Discount Promotions (13 items)'
+    },
+    {
+      amount: 1683.75,
+      type: 'COUPONS',
+      description: 'Coupon Discount (CES2520075550)'
+    }
+  ],
+  promotions: [
+    { promotionId: 'PROMO-CDS-DISCOUNT-001', promotionName: 'Discount - Kuromi T-Shirt', promotionType: 'Discount', discountAmount: -29.32 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-002', promotionName: 'Discount - Kuromi Pants', promotionType: 'Discount', discountAmount: -47.88 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-003', promotionName: 'Discount - Hello Kitty Pants', promotionType: 'Discount', discountAmount: -692.88 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-004', promotionName: 'Discount - Hello Kitty Leggings', promotionType: 'Discount', discountAmount: -424.32 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-005', promotionName: 'Discount - Hello Kitty Dress', promotionType: 'Discount', discountAmount: -746.60 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-006', promotionName: 'Discount - Toddler T-Shirt', promotionType: 'Discount', discountAmount: -25.61 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-007', promotionName: 'Discount - Toddler Shorts', promotionType: 'Discount', discountAmount: -36.75 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-008', promotionName: 'Discount - Cinnamoroll Dress', promotionType: 'Discount', discountAmount: -47.88 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-009', promotionName: 'Discount - Gingham Dress', promotionType: 'Discount', discountAmount: -51.62 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-010', promotionName: 'Discount - Hello Kitty T-Shirt', promotionType: 'Discount', discountAmount: -29.32 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-011', promotionName: 'Discount - Cinnamoroll T-Shirt', promotionType: 'Discount', discountAmount: -29.32 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-012', promotionName: 'Discount - Pyjamas Set 1', promotionType: 'Discount', discountAmount: -531.75 },
+    { promotionId: 'PROMO-CDS-DISCOUNT-013', promotionName: 'Discount - Pyjamas Set 2', promotionType: 'Discount', discountAmount: -531.75 }
+  ],
+  couponCodes: [
+    {
+      code: 'CES2520075550',
+      description: 'Discount|CES2520075550',
+      discountAmount: -1683.75,
+      appliedAt: '2026-01-21T11:49:00+07:00',
+      appliedBy: 'pubsubuser@TWD',
+      appliedItemsCount: 13
+    }
+  ],
+  deliveryMethods: [
+    {
+      type: 'HOME_DELIVERY' as DeliveryMethodType,
+      itemCount: 13,
+      homeDelivery: {
+        recipient: 'ธนวัฒน์ สิงห์แพรก',
+        phone: '0922643514',
+        address: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี',
+        district: 'หนองปรือ',
+        city: 'บางละมุง',
+        postalCode: '20150',
+        specialInstructions: 'รบกวนกดปุ่มเปิดประตูขวามือเข้ามาวางข้างในให้หน่อยนะคะ'
+      }
+    }
+  ],
+  deliveryTypeCode: 'HOME_DELIVERY_STD',
+  sla_info: {
+    target_minutes: 2880,
+    elapsed_minutes: 2800,
+    status: 'COMPLIANT'
+  },
+  metadata: {
+    created_at: '2026-01-21T11:49:00+07:00',
+    updated_at: '2026-01-22T12:00:00+07:00',
+    priority: 'NORMAL',
+    store_name: '',
+    store_no: '',
+    order_created: '2026-01-21T11:49:00+07:00',
+    viewTypes: ['DS-WEB-STD']
+  },
+  on_hold: false,
+  fullTaxInvoice: false,
+  customerTypeId: 'General',
+  allowSubstitution: false,
+  allow_substitution: false,
+  currency: 'THB',
+  capturedDate: '2026-01-21T11:49:00+07:00',
+  t1Member: '8031630388',
+  billingName: 'ธนวัฒน์ สิงห์แพรก',
+  billingAddress: {
+    street: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี',
+    subdistrict: 'หนองปรือ',
+    city: 'บางละมุง',
+    state: 'ชลบุรี',
+    postal_code: '20150',
+    country: 'TH'
+  },
+  trackingNumber: 'DHL0842601006994',
+  shippedFrom: 'Central Online Warehouse',
+  shippedOn: '2026-01-21T00:00:00+07:00',
+  eta: '01/23/2026',
+  relNo: 'CDS2601212262851',
+  subdistrict: 'หนองปรือ',
+  fulfillmentTimeline: [
+    {
+      id: 'FUL-HD-CDS260121226285-001',
+      status: 'Picking',
+      timestamp: '2026-01-21T11:50:00',
+      details: 'Items being picked from warehouse'
+    },
+    {
+      id: 'FUL-HD-CDS260121226285-002',
+      status: 'Picked',
+      timestamp: '2026-01-21T12:30:00',
+      details: 'All items picked'
+    },
+    {
+      id: 'FUL-HD-CDS260121226285-003',
+      status: 'Packed',
+      timestamp: '2026-01-21T13:00:00',
+      details: 'Order packed and ready'
+    },
+    {
+      id: 'FUL-HD-CDS260121226285-004',
+      status: 'Ready To Ship',
+      timestamp: '2026-01-21T13:30:00',
+      details: 'Order ready for carrier pickup'
+    },
+    {
+      id: 'FUL-HD-CDS260121226285-005',
+      status: 'Shipped',
+      timestamp: '2026-01-21T14:00:00',
+      details: 'Order handed to carrier'
+    },
+    {
+      id: 'FUL-HD-CDS260121226285-006',
+      status: 'Delivered',
+      timestamp: '2026-01-23T10:00:00',
+      details: 'Order delivered to customer'
+    }
+  ],
+  tracking: [
+    {
+      trackingNumber: 'DHL0842601006994',
+      carrier: 'DHL',
+      status: 'DELIVERED',
+      eta: '01/23/2026',
+      shippedOn: '01/21/2026',
+      relNo: 'CDS2601212262851',
+      shippedFrom: 'Central Online Warehouse',
+      subdistrict: 'หนองปรือ',
+      shipToAddress: {
+        email: 'thanawat4596@gmail.com',
+        name: 'ธนวัฒน์ สิงห์แพรก',
+        address: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี',
+        fullAddress: 'หนองปรือ, บางละมุง, ชลบุรี 20150',
+        allocationType: 'Delivery',
+        phone: '0922643514'
+      },
+      trackingUrl: 'https://www.dhl.com/th-en/home/tracking.html?tracking-id=DHL0842601006994',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        { productName: 'Girl Pants Hello Kitty Blue', sku: 'CDS23582996', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Leggings Hello Kitty Red', sku: 'CDS23583115', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Dress Cap Sleeves Hello Kitty Blue', sku: 'CDS24077910', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Toddler Dress Short Sleeves Gingham Cinnamoro', sku: 'CDS24097840', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl T-Shirt Puff Sleeves Cinnamoroll Light Blue', sku: 'CDS24098465', shippedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2026-01-21T14:00:00', location: 'Central Online Warehouse' },
+        { status: 'In Transit', timestamp: '2026-01-22T08:00:00', location: 'Bangkok Hub' },
+        { status: 'Out for Delivery', timestamp: '2026-01-23T08:00:00', location: 'Chonburi' },
+        { status: 'Delivered', timestamp: '2026-01-23T10:00:00', location: 'หนองปรือ, บางละมุง' }
+      ]
+    },
+    {
+      trackingNumber: 'KNJ0202601010946',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '01/23/2026',
+      shippedOn: '01/21/2026',
+      relNo: 'CDS2601212262853',
+      shippedFrom: 'Bangna',
+      subdistrict: 'หนองปรือ',
+      shipToAddress: {
+        email: 'thanawat4596@gmail.com',
+        name: 'ธนวัฒน์ สิงห์แพรก',
+        address: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี',
+        fullAddress: 'หนองปรือ, บางละมุง, ชลบุรี 20150',
+        allocationType: 'Delivery',
+        phone: '0922643514'
+      },
+      trackingUrl: 'https://th.kex-express.com/th/track/?track=KNJ0202601010946',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        { productName: 'Girl T-Shirt Short Sleeves Round Neck Kuromi Viole', sku: 'CDS23576490', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Pants Wide Legs Kuromi Denim', sku: 'CDS23576551', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Dress Short Sleeves Gingham Hello Kitty Cherr', sku: 'CDS24098083', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl T-Shirt Short Sleeves Round Neck Hello Kitty', sku: 'CDS24098281', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Toddler Pyjamas Set Dress Long Sleeves With R', sku: 'CDS24820752', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Toddler Pyjamas Set Dress Long Sleeves With R', sku: 'CDS24820776', shippedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2026-01-21T14:30:00', location: 'Bangna Warehouse' },
+        { status: 'In Transit', timestamp: '2026-01-22T09:00:00', location: 'Bangkok Sorting Center' },
+        { status: 'Out for Delivery', timestamp: '2026-01-23T08:30:00', location: 'Chonburi' },
+        { status: 'Delivered', timestamp: '2026-01-23T10:30:00', location: 'หนองปรือ, บางละมุง' }
+      ]
+    },
+    {
+      trackingNumber: 'KNJ0202601010865',
+      carrier: 'KEX',
+      status: 'DELIVERED',
+      eta: '01/23/2026',
+      shippedOn: '01/21/2026',
+      relNo: 'CDS2601212262852',
+      shippedFrom: 'Lardprao',
+      subdistrict: 'หนองปรือ',
+      shipToAddress: {
+        email: 'thanawat4596@gmail.com',
+        name: 'ธนวัฒน์ สิงห์แพรก',
+        address: '88/10 ม.1 ซ.ชัยพรวิถี 14 ถ.ชัยพรวิถี',
+        fullAddress: 'หนองปรือ, บางละมุง, ชลบุรี 20150',
+        allocationType: 'Delivery',
+        phone: '0922643514'
+      },
+      trackingUrl: 'https://th.kex-express.com/th/track/?track=KNJ0202601010865',
+      shipmentType: 'HOME_DELIVERY',
+      shippedItems: [
+        { productName: 'Girl Toddler T-Shirt Puff Sleeves Hello Kitty Whit', sku: 'CDS24097574', shippedQty: 1, orderedQty: 1, uom: 'PCS' },
+        { productName: 'Girl Toddler Shorts Hello Kitty Cherry Blossom Pin', sku: 'CDS24097635', shippedQty: 1, orderedQty: 1, uom: 'PCS' }
+      ],
+      events: [
+        { status: 'Shipped', timestamp: '2026-01-21T15:00:00', location: 'Lardprao Warehouse' },
+        { status: 'In Transit', timestamp: '2026-01-22T09:30:00', location: 'Bangkok Sorting Center' },
+        { status: 'Out for Delivery', timestamp: '2026-01-23T09:00:00', location: 'Chonburi' },
+        { status: 'Delivered', timestamp: '2026-01-23T11:00:00', location: 'หนองปรือ, บางละมุง' }
+      ]
+    }
+  ]
+};
+
 // MAO Order W1156260115052036 - Complete Order Object
 const maoOrderW1156260115052036 = {
   id: 'W1156260115052036',
@@ -9717,11 +11568,10 @@ const scenarioTaxes = scenarioOrderItems.reduce((sum, item) => sum + item.priceB
 // Generate future pickup date (tomorrow)
 const pickupDate = new Date();
 pickupDate.setDate(pickupDate.getDate() + 1);
-const pickupDateStr = pickupDate.toLocaleDateString('en-GB', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric'
-});
+const pickupDateStr = (() => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(pickupDate.getMonth() + 1)}/${pad(pickupDate.getDate())}/${pickupDate.getFullYear()}`;
+})();
 
 const scenarioOrder = {
   id: "ORD-SCENARIO-001",
@@ -9818,7 +11668,10 @@ const scenarioOrder = {
 // Add to mock orders
 mockApiOrders.unshift(scenarioOrder);
 
-// Add MAO orders last so they appear at the top (row 1 and 2)
+// Add MAO orders last so they appear at the top (row 1, 2, 3, 4, and 5)
+mockApiOrders.unshift(maoOrderCDS260130158593);    // Row 5 - Multi-payment delivered order (Credit Card + T1 Points)
+mockApiOrders.unshift(maoOrderCDS251229874674);    // Row 4 - Mixed fulfillment order
+mockApiOrders.unshift(maoOrderCDS260121226285);    // Row 3
 mockApiOrders.unshift(maoOrderW1156260115052036);  // Row 2
 mockApiOrders.unshift(maoOrderW1156251121946800);  // Row 1 (top)
 

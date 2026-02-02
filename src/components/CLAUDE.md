@@ -48,4 +48,35 @@
 | #2905 | 12:39 PM | 🔵 | Order-Level Coupon Display Already Implemented in Order Detail View | ~461 |
 | #2799 | 11:50 AM | 🔵 | Current Promotions & Coupons Section Implementation Analysis | ~505 |
 | #2697 | 3:00 AM | ✅ | Created comprehensive spec for Executive Dashboard UI improvements | ~551 |
+
+### Jan 20, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #3769 | 6:11 PM | 🔵 | Inventory Component Architecture - Three Core Pages with Detailed Field Mappings | ~3994 |
+| #3721 | 5:31 PM | 🔵 | Complete Order Detail Tab Structure - 6 Tabs with 100+ Fields Cataloged | ~2982 |
+| #3720 | " | 🔵 | Order Detail View Component - Comprehensive Multi-Tab Interface Implementation | ~2169 |
+| #3708 | 5:10 PM | 🔵 | Order Management Hub Component - Core TypeScript Interface Definitions | ~1029 |
+
+### Jan 21, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4062 | 11:09 PM | 🔵 | Inventory Detail View Component - Comprehensive Product Stock Management Interface | ~773 |
+| #4061 | " | 🔵 | Recent Transactions Table Component - Export and Filtering Pattern | ~865 |
+
+### Jan 22, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #4326 | 6:48 PM | 🔵 | Merchant SKU Toggle Switch Pattern in Recent Transactions Table Component | ~608 |
+| #4306 | 6:44 PM | 🔵 | Inventory Detail View Component Structure | ~594 |
+| #4208 | 3:59 PM | 🔵 | Order Detail View Component - Comprehensive Modal Implementation | ~1327 |
+
+### Feb 1, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6273 | 9:05 PM | 🔄 | Updated Allocate-by-Order Table DateTime Formatting | ~505 |
+| #5861 | 11:48 AM | 🔵 | Order Detail Fulfillment Tab Architecture Analysis | ~887 |
 </claude-mem-context>

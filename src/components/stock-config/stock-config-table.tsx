@@ -99,13 +99,18 @@ export function StockConfigTable({
     }
   }
 
+  // Format date in standardized MM/DD/YYYY format
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-"
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return "-"
+
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const month = pad(date.getMonth() + 1)
+    const day = pad(date.getDate())
+    const year = date.getFullYear()
+
+    return `${month}/${day}/${year}`
   }
 
   // Loading skeleton

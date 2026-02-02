@@ -133,10 +133,10 @@ const HourlyOrderSummary = memo(function HourlyOrderSummary({
                 interval={1}
               />
               <YAxis yAxisId="left" />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                tickFormatter={(value) => `฿${value.toLocaleString('th-TH')}`}
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickFormatter={(value) => formatCurrencyInt(value, false)}
               />
               <Tooltip 
                 formatter={(value, name) => [
@@ -170,18 +170,20 @@ function DailyOrderVolume({
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={(value) => {
                   const date = new Date(value)
-                  return `${date.getMonth() + 1}/${date.getDate()}`
+                  const pad = (n: number) => n.toString().padStart(2, '0')
+                  return `${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
                 }}
               />
               <YAxis />
-              <Tooltip 
+              <Tooltip
                 labelFormatter={(value) => {
                   const date = new Date(value)
-                  return `Date: ${date.toLocaleDateString()}`
+                  const pad = (n: number) => n.toString().padStart(2, '0')
+                  return `Date: ${pad(date.getMonth() + 1)}/${pad(date.getDate())}/${date.getFullYear()}`
                 }}
                 formatter={(value, name) => [value, name === 'orders' ? 'Orders' : 'Revenue']}
               />
@@ -326,7 +328,7 @@ function RecentOrdersTable({
                       <OrderStatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      ฿{(order.total_amount || 0).toLocaleString('th-TH')}
+                      {formatCurrencyInt(order.total_amount)}
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">
                       {formatGMT7DateTime(order.order_date)}
