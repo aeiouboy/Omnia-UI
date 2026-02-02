@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { formatGMT7TimeString, getGMT7Time, formatGMT7DateTime } from "@/lib/utils"
 import { formatBangkokTime, formatBangkokDateTime } from "@/lib/timezone-utils"
 import { useOrganization } from "@/contexts/organization-context"
@@ -21,7 +22,6 @@ import {
   OrderTypeBadge,
   PaymentTypeBadge,
 } from "./order-badges"
-import { OrderDetailView } from "./order-detail-view"
 import { RefreshCw, X, Filter, Loader2, AlertCircle, Download, Search, Clock, Package, PauseCircle, ChevronDown, ChevronUp, CalendarIcon, CheckCircle, GripVertical, RotateCcw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -35,6 +35,7 @@ import type { PaymentTransaction, OrderDiscount, Promotion, CouponCode, PricingB
 import type { ManhattanAuditEvent } from "@/types/audit"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Calendar } from "@/components/ui/calendar"
+import { EnhancedCalendar } from "@/components/ui/enhanced-calendar"
 import { Switch } from "@/components/ui/switch"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
@@ -329,24 +330,25 @@ interface ColumnConfig {
   label: string
   minWidth: string
   align?: 'left' | 'center' | 'right'
+  visible: boolean
 }
 
 // Default column order configuration
 const DEFAULT_COLUMNS: ColumnConfig[] = [
-  { id: 'orderNumber', label: 'Order Number', minWidth: '160px' },
-  { id: 'customerName', label: 'Customer Name', minWidth: '150px' },
-  { id: 'email', label: 'Email', minWidth: '200px' },
-  { id: 'phone', label: 'Phone Number', minWidth: '130px' },
-  { id: 'total', label: 'Order Total', minWidth: '110px', align: 'right' },
-  { id: 'storeNo', label: 'Store No', minWidth: '100px', align: 'center' },
-  { id: 'status', label: 'Order Status', minWidth: '130px' },
-  { id: 'returnStatus', label: 'Return Status', minWidth: '120px' },
-  { id: 'onHold', label: 'On Hold', minWidth: '80px' },
-  { id: 'orderType', label: 'Order Type', minWidth: '120px' },
-  { id: 'paymentStatus', label: 'Payment Status', minWidth: '130px' },
-  { id: 'channel', label: 'Channel', minWidth: '110px' },
-  { id: 'allowSubstitution', label: 'Allow Substitution', minWidth: '140px' },
-  { id: 'createdDate', label: 'Created Date', minWidth: '160px' },
+  { id: 'orderNumber', label: 'Order Number', minWidth: '160px', visible: true },
+  { id: 'customerName', label: 'Customer Name', minWidth: '150px', visible: true },
+  { id: 'email', label: 'Email', minWidth: '200px', visible: true },
+  { id: 'phone', label: 'Phone Number', minWidth: '130px', visible: true },
+  { id: 'total', label: 'Order Total', minWidth: '110px', align: 'right', visible: true },
+  { id: 'storeNo', label: 'Store No', minWidth: '100px', align: 'center', visible: true },
+  { id: 'status', label: 'Order Status', minWidth: '130px', visible: true },
+  { id: 'returnStatus', label: 'Return Status', minWidth: '120px', visible: true },
+  { id: 'onHold', label: 'On Hold', minWidth: '80px', visible: true },
+  { id: 'orderType', label: 'Order Type', minWidth: '120px', visible: true },
+  { id: 'paymentStatus', label: 'Payment Status', minWidth: '130px', visible: true },
+  { id: 'channel', label: 'Channel', minWidth: '110px', visible: true },
+  { id: 'allowSubstitution', label: 'Allow Substitution', minWidth: '140px', visible: true },
+  { id: 'createdDate', label: 'Created Date', minWidth: '160px', visible: true },
 ]
 
 // Precise data mapping function based on actual API structure
@@ -471,11 +473,14 @@ const mapApiResponseToOrders = (apiResponse: ApiResponse): { orders: Order[]; pa
         }
 
         // Generate random orderType using the UNIFIED 7 values (chore-ae72224b)
-        const fmsOrderTypes: FMSOrderType[] = ['Return Order', 'MKP-HD-STD', 'RT-HD-EXP', 'RT-CC-STD', 'RT-MIX-STD', 'RT-HD-STD', 'RT-CC-EXP']
-        // Return orders should be ~10% of total
-        demoOrder.orderType = index % 10 === 0 ? 'Return Order' : fmsOrderTypes[(index % 6) + 1]
-        // DEPRECATED: deliveryTypeCode - set to same as orderType for backward compatibility
-        demoOrder.deliveryTypeCode = demoOrder.orderType
+        // EXCLUDE MAO orders (they have their own orderType from Manhattan OMS)
+        if (!isMaoOrder) {
+          const fmsOrderTypes: FMSOrderType[] = ['Return Order', 'MKP-HD-STD', 'RT-HD-EXP', 'RT-CC-STD', 'RT-MIX-STD', 'RT-HD-STD', 'RT-CC-EXP']
+          // Return orders should be ~10% of total
+          demoOrder.orderType = index % 10 === 0 ? 'Return Order' : fmsOrderTypes[(index % 6) + 1]
+          // DEPRECATED: deliveryTypeCode - set to same as orderType for backward compatibility
+          demoOrder.deliveryTypeCode = demoOrder.orderType
+        }
 
         // Mock Channel (using new standard) - EXCLUDE MAO orders (start with 'W')
         if (!isMaoOrder) {
@@ -675,6 +680,9 @@ export function OrderManagementHub() {
   // Get organization context for filtering
   const { selectedOrganization } = useOrganization()
 
+  // Router for navigation
+  const router = useRouter()
+
   // Get real-time order counts across all pages (filtered by organization)
   const { counts: realTimeCounts, isLoading: countsLoading, error: countsError } = useOrderCounts(10000, selectedOrganization) // Update every 10 seconds
   const [lastUpdated, setLastUpdated] = useState<string>("")
@@ -766,13 +774,27 @@ export function OrderManagementHub() {
   const [columnOrder, setColumnOrder] = useState<ColumnConfig[]>(DEFAULT_COLUMNS)
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null)
   const [stickyHeader, setStickyHeader] = useState(true)
+  const [isReorderMode, setIsReorderMode] = useState(false)
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false)
 
   // Reset columns to default order
   const handleResetColumns = () => {
     setColumnOrder(DEFAULT_COLUMNS)
   }
 
-  // Drag and drop handlers for column reordering
+  // Toggle column visibility
+  const handleToggleColumnVisibility = (columnId: string) => {
+    setColumnOrder(prev => prev.map(col =>
+      col.id === columnId ? { ...col, visible: !col.visible } : col
+    ))
+  }
+
+  // Show all columns
+  const handleShowAllColumns = () => {
+    setColumnOrder(prev => prev.map(col => ({ ...col, visible: true })))
+  }
+
+  // Drag and drop handlers for column reordering in popover list
   const handleDragStart = (e: React.DragEvent, columnId: string) => {
     setDraggedColumn(columnId)
     e.dataTransfer.effectAllowed = 'move'
@@ -806,6 +828,9 @@ export function OrderManagementHub() {
   const handleDragEnd = () => {
     setDraggedColumn(null)
   }
+
+  // Get visible columns only
+  const visibleColumns = columnOrder.filter(col => col.visible)
 
   // Render cell content based on column id
   const renderCellContent = (order: any, columnId: string) => {
@@ -898,15 +923,9 @@ export function OrderManagementHub() {
 
 
 
-  // Order Detail Click Handler
+  // Order Detail Click Handler - Navigate to dedicated order detail page
   const handleOrderRowClick = (order: Order) => {
-    const fullOrderData = ordersData.find((o) => o.id === order.id) // Ensure we pass the full original order object
-    if (fullOrderData) {
-      setSelectedOrderForDetail(fullOrderData)
-      setIsDetailViewOpen(true)
-      // Disable body scroll when modal opens
-      document.body.style.overflow = "hidden"
-    }
+    router.push(`/orders/${order.id}`)
   }
 
   // Bulk selection handlers
@@ -981,20 +1000,8 @@ export function OrderManagementHub() {
     setIsAllSelected(false)
   }
 
-  // Close Order Detail View
-  const handleCloseDetailView = () => {
-    setIsDetailViewOpen(false)
-    setSelectedOrderForDetail(null)
-    // Re-enable body scroll when modal closes
-    document.body.style.overflow = "unset"
-  }
-
   // Data states
   const [ordersData, setOrdersData] = useState<Order[]>([])
-
-  // Order Detail View states
-  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<Order | null>(null)
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -1094,22 +1101,6 @@ export function OrderManagementHub() {
   useEffect(() => {
     fetchOrders()
   }, [fetchOrders])
-
-  // Handle escape key to close order detail modal
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isDetailViewOpen) {
-        handleCloseDetailView()
-      }
-    }
-
-    if (isDetailViewOpen) {
-      document.addEventListener("keydown", handleEscapeKey)
-      return () => {
-        document.removeEventListener("keydown", handleEscapeKey)
-      }
-    }
-  }, [isDetailViewOpen])
 
   // Refresh handler
   const refreshData = () => {
@@ -1885,18 +1876,81 @@ export function OrderManagementHub() {
               onCheckedChange={setStickyHeader}
             />
             <Label htmlFor="sticky-header" className="text-sm text-muted-foreground cursor-pointer">
-              Sticky Header
+              Sticky
             </Label>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleResetColumns}
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset Columns
-          </Button>
+          <Popover open={columnSettingsOpen} onOpenChange={setColumnSettingsOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5"
+              >
+                <GripVertical className="h-4 w-4" />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-0" align="end">
+              <div className="p-3 border-b">
+                <h4 className="font-semibold text-sm">Columns</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Drag to reorder, toggle to show/hide
+                </p>
+              </div>
+              <div className="max-h-[300px] overflow-y-auto p-2">
+                {columnOrder.map((column) => (
+                  <div
+                    key={column.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, column.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, column.id)}
+                    onDragEnd={handleDragEnd}
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-md cursor-grab hover:bg-gray-100 transition-colors",
+                      draggedColumn === column.id && "opacity-50 bg-blue-50"
+                    )}
+                  >
+                    <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <Switch
+                      id={`col-${column.id}`}
+                      checked={column.visible}
+                      onCheckedChange={() => handleToggleColumnVisibility(column.id)}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                    <Label
+                      htmlFor={`col-${column.id}`}
+                      className={cn(
+                        "text-sm cursor-pointer flex-1",
+                        !column.visible && "text-muted-foreground"
+                      )}
+                    >
+                      {column.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              <div className="p-2 border-t flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShowAllColumns}
+                  className="flex-1 text-xs"
+                >
+                  Show All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetColumns}
+                  className="flex-1 text-xs"
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Reset
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <div
           ref={tableContainerRef}
@@ -1910,27 +1964,17 @@ export function OrderManagementHub() {
           <Table>
             <TableHeader className={cn("bg-gray-50 z-10", stickyHeader && "sticky top-0")}>
             <TableRow className="hover:bg-gray-50 border-b border-medium-gray">
-              {columnOrder.map((column) => (
+              {visibleColumns.map((column) => (
                 <TableHead
                   key={column.id}
-                  draggable={!stickyHeader}
-                  onDragStart={!stickyHeader ? (e) => handleDragStart(e, column.id) : undefined}
-                  onDragOver={!stickyHeader ? handleDragOver : undefined}
-                  onDrop={!stickyHeader ? (e) => handleDrop(e, column.id) : undefined}
-                  onDragEnd={!stickyHeader ? handleDragEnd : undefined}
                   className={cn(
                     "font-heading text-deep-navy text-sm font-semibold py-3 px-4 select-none",
-                    !stickyHeader && "cursor-grab",
                     column.align === 'right' && 'text-right',
-                    column.align === 'center' && 'text-center',
-                    draggedColumn === column.id && 'opacity-50 bg-blue-50'
+                    column.align === 'center' && 'text-center'
                   )}
                   style={{ minWidth: column.minWidth }}
                 >
-                  <div className="flex items-center gap-1.5">
-                    {!stickyHeader && <GripVertical className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />}
-                    <span>{column.label}</span>
-                  </div>
+                  <span>{column.label}</span>
                 </TableHead>
               ))}
             </TableRow>
@@ -1938,16 +1982,16 @@ export function OrderManagementHub() {
           <TableBody>
             {ordersToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columnOrder.length} className="text-center py-8">
+                <TableCell colSpan={visibleColumns.length} className="text-center py-8">
                   No orders found.
                 </TableCell>
               </TableRow>
             ) : (
               ordersToShow.map((order) => {
-                const urgencyStyle = getUrgencyRowStyle(order.urgencyLevel || "normal")
+                // const urgencyStyle = getUrgencyRowStyle(order.urgencyLevel || "normal") // Disabled SLA row coloring
                 return (
-                  <TableRow key={order.id} className={`transition-colors duration-150 ${urgencyStyle}`}>
-                    {columnOrder.map((column) => (
+                  <TableRow key={order.id} className="transition-colors duration-150 hover:bg-gray-50">
+                    {visibleColumns.map((column) => (
                       <TableCell
                         key={column.id}
                         className={cn(
@@ -2153,10 +2197,11 @@ export function OrderManagementHub() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
+                      <EnhancedCalendar
                         mode="single"
                         selected={dateFromFilter}
                         onSelect={setDateFromFilter}
+                        onToday={() => setDateFromFilter(new Date())}
                         initialFocus
                       />
                     </PopoverContent>
@@ -2176,10 +2221,11 @@ export function OrderManagementHub() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
+                      <EnhancedCalendar
                         mode="single"
                         selected={dateToFilter}
                         onSelect={setDateToFilter}
+                        onToday={() => setDateToFilter(new Date())}
                         initialFocus
                       />
                     </PopoverContent>
@@ -2493,21 +2539,6 @@ export function OrderManagementHub() {
           )}
         </CardContent>
       </Card>
-
-      {/* Order Detail View Modal/Overlay */}
-      {isDetailViewOpen && selectedOrderForDetail && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={handleCloseDetailView}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <OrderDetailView order={selectedOrderForDetail} onClose={handleCloseDetailView} />
-          </div>
-        </div>
-      )}
 
       {/* Export Dialog */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>

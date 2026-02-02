@@ -1,0 +1,923 @@
+- generic [ref=e5]:
+  - generic [ref=e9]:
+    - generic [ref=e11]:
+      - heading "CONTACT CENTER" [level=2] [ref=e12]
+      - button "DS" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]:
+          - heading "DS" [level=5] [ref=e15]
+          - generic [ref=e16]: arrow_down
+    - button "Standard UI" [ref=e18] [cursor=pointer]:
+      - generic [ref=e19]:
+        - heading "Standard UI" [level=5] [ref=e20]
+        - generic [ref=e21]: arrow_down
+    - generic [ref=e23]:
+      - button [ref=e25] [cursor=pointer]:
+        - generic [ref=e27]: help_icon_circle
+      - button "Naruechon Woraphatphawan" [ref=e28] [cursor=pointer]:
+        - generic [ref=e30]:
+          - generic [ref=e31]: user_profile_circle
+          - heading "Naruechon Woraphatphawan" [level=5] [ref=e32]
+  - generic [ref=e34]:
+    - generic [ref=e38]:
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: home
+        - heading "Home" [level=5] [ref=e41]
+      - generic [ref=e42] [cursor=pointer]:
+        - generic [ref=e43]: items
+        - heading "Item Search" [level=5] [ref=e44]
+      - generic [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: orders
+        - heading "Orders" [level=5] [ref=e47]
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e58]:
+          - generic [ref=e61]:
+            - heading "TIAGO SILVA" [level=2] [ref=e63] [cursor=pointer]
+            - generic [ref=e65] [cursor=pointer]: arrow_down
+          - generic [ref=e69]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: phone_circle
+              - paragraph [ref=e73] [cursor=pointer]: "0996576505"
+            - generic [ref=e75]:
+              - generic [ref=e76]: email_circle
+              - paragraph [ref=e77] [cursor=pointer]: 2601202853@dummy.com
+            - generic [ref=e79]:
+              - generic [ref=e80]: user_profile_circle
+              - paragraph [ref=e81]: Not Registered
+          - generic [ref=e83]:
+            - paragraph
+        - generic [ref=e85] [cursor=pointer]: close
+      - generic [ref=e88]:
+        - generic [ref=e91]:
+          - generic [ref=e93]:
+            - heading "ORDER STATUS" [level=2] [ref=e94]
+            - heading "FULFILLED" [level=4] [ref=e96]
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - heading "Order No.:" [level=4] [ref=e100]
+                - heading "CDS260120221340" [level=5] [ref=e101]
+              - generic [ref=e102]:
+                - heading "Created:" [level=4] [ref=e103]
+                - heading "01/20/2026 18:40 +07" [level=5] [ref=e104]
+              - generic [ref=e105]:
+                - heading "Order type:" [level=4] [ref=e106]
+                - heading "RT-CC-STD" [level=5] [ref=e107]
+            - generic [ref=e108]:
+              - heading "Store No.:" [level=4] [ref=e110]
+              - generic [ref=e111]:
+                - heading "Related Cases:" [level=4] [ref=e112]
+                - heading "undefined" [level=5]:
+                  - link:
+                    - /url: /customerengagementfacade/app/casedetail/undefined?isArchiveCase=false&selectedOrg=DS
+            - generic [ref=e113]:
+              - generic [ref=e117]: Full Tax Invoicefalse
+              - generic [ref=e121]: Customer Type Id :General
+              - generic [ref=e125]: The1 member
+              - generic [ref=e129]: Selling channel :Web
+              - generic [ref=e133]: Allow substitution :false
+              - generic [ref=e137]: Cust Ref :2601202853
+              - generic [ref=e141]: "Tax Id :"
+              - generic [ref=e145]: "Company Name :"
+              - generic [ref=e149]: "Branch No. :"
+              - generic [ref=e153]: Captured Date :01/20/2026 18:40 +07
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - heading "PAYMENT INFO" [level=2] [ref=e158]
+              - heading "PAID" [level=4] [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - heading "BANK TRANSFER:" [level=4] [ref=e167]
+                  - heading [level=5] [ref=e168]
+                - generic [ref=e169]:
+                  - heading "Amount to be charged:" [level=4] [ref=e170]
+                  - heading "THB 5,200.00" [level=5] [ref=e171]
+                - generic [ref=e172]:
+                  - heading "Amount charged:" [level=4] [ref=e173]
+                  - heading "THB 5,200.00" [level=5] [ref=e174]
+                - generic [ref=e176]:
+                  - generic [ref=e180]:
+                    - generic [ref=e181]: "Billing Address :"
+                    - generic [ref=e182]: "-,-,"
+                  - generic [ref=e187]: "-,-,-,TH,-"
+                  - generic [ref=e191]: Billing Name :Tiago Silva
+              - button [ref=e197] [cursor=pointer]:
+                - generic [ref=e199]: menu
+        - generic [ref=e200]:
+          - generic [ref=e203]:
+            - generic [ref=e205]:
+              - generic [ref=e206]:
+                - heading "0" [level=4] [ref=e207]
+                - heading "ORDER PROMOTIONS" [level=4] [ref=e208]
+                - generic [ref=e209]:
+                  - heading "&" [level=4] [ref=e210]
+                  - heading "0" [level=4] [ref=e211]
+                  - heading "ORDER APPEASEMENTS" [level=4] [ref=e212]
+                - heading "&" [level=4] [ref=e213]
+                - heading "0" [level=4] [ref=e214]
+                - heading "ORDER COUPONS APPLIED" [level=4] [ref=e215]
+              - generic [ref=e218]: filter-solid
+            - generic [ref=e219]:
+              - generic [ref=e220]:
+                - heading "ITEMS" [level=4] [ref=e221]
+                - generic [ref=e223] [cursor=pointer]:
+                  - text: notes
+                  - generic [ref=e224]: "0"
+              - generic [ref=e230]:
+                - generic [ref=e234]:
+                  - generic [ref=e236]:
+                    - generic [ref=e237]:
+                      - generic [ref=e238]:
+                        - heading "GET FREE - MYSLF EAU DE PARFUM 1.2 mL" [level=4] [ref=e240]
+                        - generic [ref=e242]:
+                          - heading "SKU:" [level=6] [ref=e243]
+                          - paragraph [ref=e244]: CDS10174760
+                        - generic [ref=e246]:
+                          - heading "ETA:" [level=6] [ref=e247]
+                          - paragraph [ref=e248]: 01/26/2026
+                        - generic [ref=e250] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e251]: "0"
+                      - generic [ref=e252]:
+                        - generic [ref=e254]:
+                          - generic [ref=e256]:
+                            - heading "Style:" [level=6] [ref=e257]
+                            - paragraph
+                          - generic [ref=e259]:
+                            - heading "Color:" [level=6] [ref=e260]
+                            - paragraph
+                          - generic [ref=e262]:
+                            - heading "Size:" [level=6] [ref=e263]
+                            - paragraph
+                        - generic [ref=e265]:
+                          - generic [ref=e266] [cursor=pointer]: 0Promotions
+                          - text: "&"
+                          - generic [ref=e267] [cursor=pointer]: 0Coupons
+                          - text: "&"
+                          - generic [ref=e268] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e270]:
+                          - heading "PRICE:" [level=6] [ref=e271]
+                          - paragraph [ref=e272]: THB 0.00
+                    - generic [ref=e274]:
+                      - generic [ref=e278]:
+                        - generic [ref=e279]: "Shipping Method :"
+                        - generic [ref=e280]: Standard Pickup
+                      - generic [ref=e285]: "Route :"
+                      - generic [ref=e290]: "Booking slot from :"
+                      - generic [ref=e295]: "Booking slot to :"
+                      - generic [ref=e300]: "SupplyTypeId :"
+                      - generic [ref=e304]: Bundle :false
+                      - generic [ref=e308]: "Bundle Ref Id :"
+                      - generic [ref=e312]: Packed Ordered Qty :0
+                      - generic [ref=e316]: "NumberOfPack :"
+                      - generic [ref=e321]: "PackitemDescription :"
+                      - generic [ref=e325]: UOM :PCS
+                      - generic [ref=e329]: "Actual weight :"
+                      - generic [ref=e334]: "Promotion Id :"
+                      - generic [ref=e339]: "Promotion Type :"
+                      - generic [ref=e343]:
+                        - generic [ref=e344]: "Secret code :"
+                        - generic [ref=e345]: "564775"
+                      - generic [ref=e349]:
+                        - generic [ref=e350]: "Gift with purchase :"
+                        - generic [ref=e351]: "false"
+                      - generic [ref=e356]: "Gift with purchase item :"
+                      - generic [ref=e361]: "Gift wrapped :"
+                  - generic [ref=e362]:
+                    - generic [ref=e363]:
+                      - heading "FULFILLED" [level=4] [ref=e368]
+                      - generic [ref=e370]:
+                        - generic [ref=e373]:
+                          - generic [ref=e377]: "1"
+                          - heading "Ordered" [level=5] [ref=e378]
+                        - generic [ref=e381]:
+                          - generic [ref=e385]: "1"
+                          - heading "Allocated" [level=5] [ref=e386]
+                        - generic [ref=e389]:
+                          - generic [ref=e393]: "1"
+                          - heading "Released" [level=5] [ref=e394]
+                        - generic [ref=e397]:
+                          - generic [ref=e401]: "1"
+                          - heading "Picked Up" [level=5] [ref=e402]
+                      - generic [ref=e407]:
+                        - generic [ref=e408]:
+                          - heading "Subtotal" [level=5] [ref=e409]
+                          - heading "Discount" [level=5] [ref=e410]
+                          - heading "Charges" [level=5] [ref=e411]
+                          - heading "Taxes" [level=5] [ref=e412]
+                          - heading [level=5] [ref=e413]
+                          - heading "Total" [level=4] [ref=e414]
+                        - generic [ref=e415]:
+                          - heading [level=5] [ref=e416]
+                          - heading "-" [level=5] [ref=e417]
+                          - heading "+" [level=5] [ref=e418]
+                          - heading "+" [level=5] [ref=e419]
+                          - heading [level=5] [ref=e420]
+                          - heading "=" [level=4] [ref=e421]
+                        - generic [ref=e422]:
+                          - heading "THB 0.00" [level=5] [ref=e423]
+                          - heading "THB 0.00" [level=5] [ref=e424]
+                          - heading "THB 0.00" [level=5] [ref=e425]
+                          - heading "THB 0.00" [level=5] [ref=e426]
+                          - heading [level=5] [ref=e427]
+                          - heading "THB 0.00" [level=4] [ref=e428]
+                    - button "More Info" [ref=e440] [cursor=pointer]: More Info
+                - generic [ref=e444]:
+                  - generic [ref=e446]:
+                    - generic [ref=e447]:
+                      - generic [ref=e448]:
+                        - heading "GET FREE - YSL Pureshot Stability Reboot B 30 mL." [level=4] [ref=e450]
+                        - generic [ref=e452]:
+                          - heading "SKU:" [level=6] [ref=e453]
+                          - paragraph [ref=e454]: CDS16319509
+                        - generic [ref=e456]:
+                          - heading "ETA:" [level=6] [ref=e457]
+                          - paragraph [ref=e458]: 01/26/2026
+                        - generic [ref=e460] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e461]: "0"
+                      - generic [ref=e462]:
+                        - generic [ref=e464]:
+                          - generic [ref=e466]:
+                            - heading "Style:" [level=6] [ref=e467]
+                            - paragraph
+                          - generic [ref=e469]:
+                            - heading "Color:" [level=6] [ref=e470]
+                            - paragraph
+                          - generic [ref=e472]:
+                            - heading "Size:" [level=6] [ref=e473]
+                            - paragraph
+                        - generic [ref=e475]:
+                          - generic [ref=e476] [cursor=pointer]: 0Promotions
+                          - text: "&"
+                          - generic [ref=e477] [cursor=pointer]: 0Coupons
+                          - text: "&"
+                          - generic [ref=e478] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e480]:
+                          - heading "PRICE:" [level=6] [ref=e481]
+                          - paragraph [ref=e482]: THB 0.00
+                    - generic [ref=e484]:
+                      - generic [ref=e488]:
+                        - generic [ref=e489]: "Shipping Method :"
+                        - generic [ref=e490]: Standard Pickup
+                      - generic [ref=e495]: "Route :"
+                      - generic [ref=e500]: "Booking slot from :"
+                      - generic [ref=e505]: "Booking slot to :"
+                      - generic [ref=e510]: "SupplyTypeId :"
+                      - generic [ref=e514]: Bundle :false
+                      - generic [ref=e518]: "Bundle Ref Id :"
+                      - generic [ref=e522]: Packed Ordered Qty :0
+                      - generic [ref=e526]: "NumberOfPack :"
+                      - generic [ref=e531]: "PackitemDescription :"
+                      - generic [ref=e535]: UOM :PCS
+                      - generic [ref=e539]: "Actual weight :"
+                      - generic [ref=e544]: "Promotion Id :"
+                      - generic [ref=e549]: "Promotion Type :"
+                      - generic [ref=e553]:
+                        - generic [ref=e554]: "Secret code :"
+                        - generic [ref=e555]: "564775"
+                      - generic [ref=e559]:
+                        - generic [ref=e560]: "Gift with purchase :"
+                        - generic [ref=e561]: "false"
+                      - generic [ref=e566]: "Gift with purchase item :"
+                      - generic [ref=e571]: "Gift wrapped :"
+                  - generic [ref=e572]:
+                    - generic [ref=e573]:
+                      - heading "FULFILLED" [level=4] [ref=e578]
+                      - generic [ref=e580]:
+                        - generic [ref=e583]:
+                          - generic [ref=e587]: "1"
+                          - heading "Ordered" [level=5] [ref=e588]
+                        - generic [ref=e591]:
+                          - generic [ref=e595]: "1"
+                          - heading "Allocated" [level=5] [ref=e596]
+                        - generic [ref=e599]:
+                          - generic [ref=e603]: "1"
+                          - heading "Released" [level=5] [ref=e604]
+                        - generic [ref=e607]:
+                          - generic [ref=e611]: "1"
+                          - heading "Picked Up" [level=5] [ref=e612]
+                      - generic [ref=e617]:
+                        - generic [ref=e618]:
+                          - heading "Subtotal" [level=5] [ref=e619]
+                          - heading "Discount" [level=5] [ref=e620]
+                          - heading "Charges" [level=5] [ref=e621]
+                          - heading "Taxes" [level=5] [ref=e622]
+                          - heading [level=5] [ref=e623]
+                          - heading "Total" [level=4] [ref=e624]
+                        - generic [ref=e625]:
+                          - heading [level=5] [ref=e626]
+                          - heading "-" [level=5] [ref=e627]
+                          - heading "+" [level=5] [ref=e628]
+                          - heading "+" [level=5] [ref=e629]
+                          - heading [level=5] [ref=e630]
+                          - heading "=" [level=4] [ref=e631]
+                        - generic [ref=e632]:
+                          - heading "THB 0.00" [level=5] [ref=e633]
+                          - heading "THB 0.00" [level=5] [ref=e634]
+                          - heading "THB 0.00" [level=5] [ref=e635]
+                          - heading "THB 0.00" [level=5] [ref=e636]
+                          - heading [level=5] [ref=e637]
+                          - heading "THB 0.00" [level=4] [ref=e638]
+                    - button "More Info" [ref=e650] [cursor=pointer]: More Info
+                - generic [ref=e654]:
+                  - generic [ref=e656]:
+                    - generic [ref=e657]:
+                      - generic [ref=e658]:
+                        - heading "GET FREE - Libre EDP 1.2 mL" [level=4] [ref=e660]
+                        - generic [ref=e662]:
+                          - heading "SKU:" [level=6] [ref=e663]
+                          - paragraph [ref=e664]: CDS23619029
+                        - generic [ref=e666]:
+                          - heading "ETA:" [level=6] [ref=e667]
+                          - paragraph [ref=e668]: 01/26/2026
+                        - generic [ref=e670] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e671]: "0"
+                      - generic [ref=e672]:
+                        - generic [ref=e674]:
+                          - generic [ref=e676]:
+                            - heading "Style:" [level=6] [ref=e677]
+                            - paragraph
+                          - generic [ref=e679]:
+                            - heading "Color:" [level=6] [ref=e680]
+                            - paragraph
+                          - generic [ref=e682]:
+                            - heading "Size:" [level=6] [ref=e683]
+                            - paragraph
+                        - generic [ref=e685]:
+                          - generic [ref=e686] [cursor=pointer]: 0Promotions
+                          - text: "&"
+                          - generic [ref=e687] [cursor=pointer]: 0Coupons
+                          - text: "&"
+                          - generic [ref=e688] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e690]:
+                          - heading "PRICE:" [level=6] [ref=e691]
+                          - paragraph [ref=e692]: THB 0.00
+                    - generic [ref=e694]:
+                      - generic [ref=e698]:
+                        - generic [ref=e699]: "Shipping Method :"
+                        - generic [ref=e700]: Standard Pickup
+                      - generic [ref=e705]: "Route :"
+                      - generic [ref=e710]: "Booking slot from :"
+                      - generic [ref=e715]: "Booking slot to :"
+                      - generic [ref=e720]: "SupplyTypeId :"
+                      - generic [ref=e724]: Bundle :false
+                      - generic [ref=e728]: "Bundle Ref Id :"
+                      - generic [ref=e732]: Packed Ordered Qty :0
+                      - generic [ref=e736]: "NumberOfPack :"
+                      - generic [ref=e741]: "PackitemDescription :"
+                      - generic [ref=e745]: UOM :PCS
+                      - generic [ref=e749]: "Actual weight :"
+                      - generic [ref=e754]: "Promotion Id :"
+                      - generic [ref=e759]: "Promotion Type :"
+                      - generic [ref=e763]:
+                        - generic [ref=e764]: "Secret code :"
+                        - generic [ref=e765]: "564775"
+                      - generic [ref=e769]:
+                        - generic [ref=e770]: "Gift with purchase :"
+                        - generic [ref=e771]: "false"
+                      - generic [ref=e776]: "Gift with purchase item :"
+                      - generic [ref=e781]: "Gift wrapped :"
+                  - generic [ref=e782]:
+                    - generic [ref=e783]:
+                      - heading "FULFILLED" [level=4] [ref=e788]
+                      - generic [ref=e790]:
+                        - generic [ref=e793]:
+                          - generic [ref=e797]: "1"
+                          - heading "Ordered" [level=5] [ref=e798]
+                        - generic [ref=e801]:
+                          - generic [ref=e805]: "1"
+                          - heading "Allocated" [level=5] [ref=e806]
+                        - generic [ref=e809]:
+                          - generic [ref=e813]: "1"
+                          - heading "Released" [level=5] [ref=e814]
+                        - generic [ref=e817]:
+                          - generic [ref=e821]: "1"
+                          - heading "Picked Up" [level=5] [ref=e822]
+                      - generic [ref=e827]:
+                        - generic [ref=e828]:
+                          - heading "Subtotal" [level=5] [ref=e829]
+                          - heading "Discount" [level=5] [ref=e830]
+                          - heading "Charges" [level=5] [ref=e831]
+                          - heading "Taxes" [level=5] [ref=e832]
+                          - heading [level=5] [ref=e833]
+                          - heading "Total" [level=4] [ref=e834]
+                        - generic [ref=e835]:
+                          - heading [level=5] [ref=e836]
+                          - heading "-" [level=5] [ref=e837]
+                          - heading "+" [level=5] [ref=e838]
+                          - heading "+" [level=5] [ref=e839]
+                          - heading [level=5] [ref=e840]
+                          - heading "=" [level=4] [ref=e841]
+                        - generic [ref=e842]:
+                          - heading "THB 0.00" [level=5] [ref=e843]
+                          - heading "THB 0.00" [level=5] [ref=e844]
+                          - heading "THB 0.00" [level=5] [ref=e845]
+                          - heading "THB 0.00" [level=5] [ref=e846]
+                          - heading [level=5] [ref=e847]
+                          - heading "THB 0.00" [level=4] [ref=e848]
+                    - button "More Info" [ref=e860] [cursor=pointer]: More Info
+                - generic [ref=e864]:
+                  - generic [ref=e866]:
+                    - generic [ref=e867]:
+                      - generic [ref=e868]:
+                        - heading "Women Fragrance Gift Set Libre 50 mL Holiday 25" [level=4] [ref=e870]
+                        - generic [ref=e872]:
+                          - heading "SKU:" [level=6] [ref=e873]
+                          - paragraph [ref=e874]: CDS24737203
+                        - generic [ref=e876]:
+                          - heading "ETA:" [level=6] [ref=e877]
+                          - paragraph [ref=e878]: 01/26/2026
+                        - generic [ref=e880] [cursor=pointer]:
+                          - text: notes
+                          - generic [ref=e881]: "0"
+                      - generic [ref=e882]:
+                        - generic [ref=e884]:
+                          - generic [ref=e886]:
+                            - heading "Style:" [level=6] [ref=e887]
+                            - paragraph
+                          - generic [ref=e889]:
+                            - heading "Color:" [level=6] [ref=e890]
+                            - paragraph
+                          - generic [ref=e892]:
+                            - heading "Size:" [level=6] [ref=e893]
+                            - paragraph
+                        - generic [ref=e895]:
+                          - generic [ref=e896] [cursor=pointer]: 0Promotions
+                          - text: "&"
+                          - generic [ref=e897] [cursor=pointer]: 0Coupons
+                          - text: "&"
+                          - generic [ref=e898] [cursor=pointer]: 0Appeasements
+                        - generic [ref=e900]:
+                          - heading "PRICE:" [level=6] [ref=e901]
+                          - paragraph [ref=e902]: THB 5,200.00
+                    - generic [ref=e904]:
+                      - generic [ref=e908]:
+                        - generic [ref=e909]: "Shipping Method :"
+                        - generic [ref=e910]: Standard Pickup
+                      - generic [ref=e915]: "Route :"
+                      - generic [ref=e920]: "Booking slot from :"
+                      - generic [ref=e925]: "Booking slot to :"
+                      - generic [ref=e930]: "SupplyTypeId :"
+                      - generic [ref=e934]: Bundle :false
+                      - generic [ref=e938]: "Bundle Ref Id :"
+                      - generic [ref=e942]: Packed Ordered Qty :0
+                      - generic [ref=e946]: "NumberOfPack :"
+                      - generic [ref=e951]: "PackitemDescription :"
+                      - generic [ref=e955]: UOM :PCS
+                      - generic [ref=e959]: "Actual weight :"
+                      - generic [ref=e964]: "Promotion Id :"
+                      - generic [ref=e969]: "Promotion Type :"
+                      - generic [ref=e973]:
+                        - generic [ref=e974]: "Secret code :"
+                        - generic [ref=e975]: "564775"
+                      - generic [ref=e979]:
+                        - generic [ref=e980]: "Gift with purchase :"
+                        - generic [ref=e981]: "false"
+                      - generic [ref=e986]: "Gift with purchase item :"
+                      - generic [ref=e991]: "Gift wrapped :"
+                  - generic [ref=e992]:
+                    - generic [ref=e993]:
+                      - heading "FULFILLED" [level=4] [ref=e998]
+                      - generic [ref=e1000]:
+                        - generic [ref=e1003]:
+                          - generic [ref=e1007]: "1"
+                          - heading "Ordered" [level=5] [ref=e1008]
+                        - generic [ref=e1011]:
+                          - generic [ref=e1015]: "1"
+                          - heading "Allocated" [level=5] [ref=e1016]
+                        - generic [ref=e1019]:
+                          - generic [ref=e1023]: "1"
+                          - heading "Released" [level=5] [ref=e1024]
+                        - generic [ref=e1027]:
+                          - generic [ref=e1031]: "1"
+                          - heading "Picked Up" [level=5] [ref=e1032]
+                      - generic [ref=e1037]:
+                        - generic [ref=e1038]:
+                          - heading "Subtotal" [level=5] [ref=e1039]
+                          - heading "Discount" [level=5] [ref=e1040]
+                          - heading "Charges" [level=5] [ref=e1041]
+                          - heading "Taxes" [level=5] [ref=e1042]
+                          - heading [level=5] [ref=e1043]
+                          - heading "Total" [level=4] [ref=e1044]
+                          - heading "Informational Taxes" [level=5] [ref=e1045]
+                        - generic [ref=e1046]:
+                          - heading [level=5] [ref=e1047]
+                          - heading "-" [level=5] [ref=e1048]
+                          - heading "+" [level=5] [ref=e1049]
+                          - heading "+" [level=5] [ref=e1050]
+                          - heading [level=5] [ref=e1051]
+                          - heading "=" [level=4] [ref=e1052]
+                          - heading [level=5] [ref=e1053]
+                        - generic [ref=e1054]:
+                          - heading "THB 5,200.00" [level=5] [ref=e1055]
+                          - heading "THB 0.00" [level=5] [ref=e1056]
+                          - heading "THB 0.00" [level=5] [ref=e1057]
+                          - heading "THB 0.00" [level=5] [ref=e1058]
+                          - heading [level=5] [ref=e1059]
+                          - heading "THB 5,200.00" [level=4] [ref=e1060]
+                          - heading "THB 340.19" [level=5] [ref=e1061]
+                    - button "More Info" [ref=e1073] [cursor=pointer]: More Info
+              - generic [ref=e1076]:
+                - generic [ref=e1079]: "*Includes various service charges for the order."
+                - generic [ref=e1081]:
+                  - generic [ref=e1082]:
+                    - heading "Item Subtotal" [level=5] [ref=e1083]
+                    - heading "Total Discounts" [level=5] [ref=e1084]
+                    - heading "Estimated S&H" [level=5] [ref=e1085]
+                    - heading "Other Charges:*" [level=5] [ref=e1086]
+                    - heading "Estimated Taxes" [level=5] [ref=e1087]
+                    - heading [level=5] [ref=e1088]
+                    - heading "Order Total" [level=4] [ref=e1089]
+                    - heading "Informational Taxes" [level=5] [ref=e1090]
+                  - generic [ref=e1091]:
+                    - heading [level=5] [ref=e1092]
+                    - heading "-" [level=5] [ref=e1093]
+                    - heading "+" [level=5] [ref=e1094]
+                    - heading "+" [level=5] [ref=e1095]
+                    - heading "+" [level=5] [ref=e1096]
+                    - heading [level=5] [ref=e1097]
+                    - heading "=" [level=4] [ref=e1098]
+                    - heading [level=5] [ref=e1099]
+                  - generic [ref=e1100]:
+                    - heading "THB 5,200.00" [level=5] [ref=e1101]
+                    - heading "THB 0.00" [level=5] [ref=e1102]
+                    - heading "THB 0.00" [level=5] [ref=e1103]
+                    - heading "THB 0.00" [level=5] [ref=e1104]
+                    - heading "THB 0.00" [level=5] [ref=e1105]
+                    - heading [level=5] [ref=e1106]
+                    - heading "THB 5,200.00" [level=4] [ref=e1107]
+                    - heading "THB 340.19" [level=5] [ref=e1108]
+          - generic [ref=e1113]:
+            - heading "STATUS SUMMARY" [level=4] [ref=e1116]
+            - generic [ref=e1120]:
+              - generic [ref=e1122]:
+                - button "COMPLETED SHIPMENTS (2)" [expanded] [ref=e1123] [cursor=pointer]:
+                  - heading "COMPLETED SHIPMENTS (2)" [level=5] [ref=e1125]
+                - region "COMPLETED SHIPMENTS (2)" [ref=e1127]:
+                  - generic [ref=e1133]:
+                    - generic [ref=e1137]:
+                      - generic [ref=e1139]:
+                        - generic [ref=e1140]:
+                          - generic [ref=e1141]:
+                            - heading "Status:" [level=4] [ref=e1142]
+                            - heading "PICKED UP" [level=5] [ref=e1143]
+                          - generic [ref=e1144]:
+                            - heading "Tracking number:" [level=4] [ref=e1145]
+                            - heading "CNJ2601065054" [level=5] [ref=e1146]
+                          - generic [ref=e1148]:
+                            - heading "ETA:" [level=4] [ref=e1149]
+                            - heading "01/26/2026" [level=4] [ref=e1150]
+                          - generic [ref=e1151]:
+                            - heading "Rel No.:" [level=4] [ref=e1152]
+                            - heading "CDS2601202213402" [level=5] [ref=e1153]
+                          - generic [ref=e1154]:
+                            - heading "Picked on:" [level=4] [ref=e1155]
+                            - heading "01/23/2026" [level=5] [ref=e1156]
+                          - generic [ref=e1157]:
+                            - heading "Picked from:" [level=4] [ref=e1158]
+                            - heading "Chidlom" [level=5] [ref=e1159]
+                          - generic [ref=e1160]:
+                            - heading "Shipping Method:" [level=4] [ref=e1161]
+                            - heading "Standard Pickup" [level=5] [ref=e1162]
+                          - generic [ref=e1165]:
+                            - generic [ref=e1169]: Subdistrict :Lumpini
+                            - generic [ref=e1174]: "CRC tracking link :"
+                        - generic [ref=e1175]:
+                          - generic [ref=e1176]:
+                            - heading "Ship to Store" [level=4] [ref=e1178]
+                            - heading "2601202853@dummy.com" [level=5] [ref=e1179]
+                          - heading "CENTRAL CHIDLOM" [level=5] [ref=e1181]
+                          - heading "Store Pickup Central Chidlom (CDS 10102) 1027 Ploenchit Road" [level=5] [ref=e1183]
+                          - generic:
+                            - heading [level=5]
+                          - generic:
+                            - heading [level=5]
+                          - heading "Pathumwan, Bangkok 10330, TH" [level=5] [ref=e1185]
+                          - generic [ref=e1186]:
+                            - heading "Allocation Type:" [level=4] [ref=e1187]
+                            - heading "Pickup" [level=5] [ref=e1188]
+                          - generic [ref=e1190]:
+                            - generic [ref=e1191]: "Phone :"
+                            - generic [ref=e1192]: "027937777"
+                      - generic [ref=e1197]:
+                        - generic [ref=e1200]:
+                          - generic [ref=e1201]:
+                            - heading "GET FREE - MYSLF EAU DE PARFUM 1.2 mL" [level=4] [ref=e1203]
+                            - generic [ref=e1204]:
+                              - heading "Picked Qty:" [level=6] [ref=e1205]
+                              - paragraph [ref=e1206]: "1"
+                            - generic [ref=e1212]: UOM :PCS
+                          - generic [ref=e1213]:
+                            - heading "CDS10174760" [level=4] [ref=e1215]
+                            - generic [ref=e1216]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1217]
+                              - paragraph [ref=e1218]: "1"
+                        - generic [ref=e1221]:
+                          - generic [ref=e1222]:
+                            - heading "GET FREE - YSL Pureshot Stability Reboot B 30 mL." [level=4] [ref=e1224]
+                            - generic [ref=e1225]:
+                              - heading "Picked Qty:" [level=6] [ref=e1226]
+                              - paragraph [ref=e1227]: "1"
+                            - generic [ref=e1233]: UOM :PCS
+                          - generic [ref=e1234]:
+                            - heading "CDS16319509" [level=4] [ref=e1236]
+                            - generic [ref=e1237]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1238]
+                              - paragraph [ref=e1239]: "1"
+                        - generic [ref=e1242]:
+                          - generic [ref=e1243]:
+                            - heading "GET FREE - Libre EDP 1.2 mL" [level=4] [ref=e1245]
+                            - generic [ref=e1246]:
+                              - heading "Picked Qty:" [level=6] [ref=e1247]
+                              - paragraph [ref=e1248]: "1"
+                            - generic [ref=e1254]: UOM :PCS
+                          - generic [ref=e1255]:
+                            - heading "CDS23619029" [level=4] [ref=e1257]
+                            - generic [ref=e1258]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1259]
+                              - paragraph [ref=e1260]: "1"
+                        - generic [ref=e1263]:
+                          - generic [ref=e1264]:
+                            - heading "Women Fragrance Gift Set Libre 50 mL Holiday 25" [level=4] [ref=e1266]
+                            - generic [ref=e1267]:
+                              - heading "Picked Qty:" [level=6] [ref=e1268]
+                              - paragraph [ref=e1269]: "1"
+                            - generic [ref=e1275]: UOM :PCS
+                          - generic [ref=e1276]:
+                            - heading "CDS24737203" [level=4] [ref=e1278]
+                            - generic [ref=e1279]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1280]
+                              - paragraph [ref=e1281]: "1"
+                    - generic [ref=e1286]:
+                      - generic [ref=e1288]:
+                        - generic [ref=e1289]:
+                          - generic [ref=e1290]:
+                            - heading "Status:" [level=4] [ref=e1291]
+                            - heading "FULFILLED" [level=5] [ref=e1292]
+                          - generic [ref=e1293]:
+                            - heading "Tracking number:" [level=4] [ref=e1294]
+                            - heading "CNJ2601065054" [level=5] [ref=e1295]
+                          - generic [ref=e1297]:
+                            - heading "ETA:" [level=4] [ref=e1298]
+                            - heading "01/26/2026" [level=4] [ref=e1299]
+                          - generic [ref=e1300]:
+                            - heading "Shipped on:" [level=4] [ref=e1301]
+                            - heading "01/21/2026" [level=5] [ref=e1302]
+                          - generic [ref=e1303]:
+                            - heading "Rel No.:" [level=4] [ref=e1304]
+                            - heading "CDS2601202213401" [level=5] [ref=e1305]
+                          - generic [ref=e1306]:
+                            - heading "Shipped from:" [level=4] [ref=e1307]
+                            - heading "Central Online Warehouse" [level=5] [ref=e1308]
+                          - generic [ref=e1309]:
+                            - heading "Shipping Method:" [level=4] [ref=e1310]
+                            - heading "Standard Pickup" [level=5] [ref=e1311]
+                          - generic [ref=e1314]:
+                            - generic [ref=e1318]: Subdistrict :Lumpini
+                            - generic [ref=e1323]: "CRC tracking link :"
+                        - generic [ref=e1324]:
+                          - generic [ref=e1325]:
+                            - heading "Ship to Store" [level=4] [ref=e1327]
+                            - heading "2601202853@dummy.com" [level=5] [ref=e1328]
+                          - heading "CENTRAL CHIDLOM" [level=5] [ref=e1330]
+                          - heading "Store Pickup Central Chidlom (CDS 10102) 1027 Ploenchit Road" [level=5] [ref=e1332]
+                          - generic:
+                            - heading [level=5]
+                          - generic:
+                            - heading [level=5]
+                          - heading "Pathumwan, Bangkok 10330, TH" [level=5] [ref=e1334]
+                          - generic [ref=e1335]:
+                            - heading "Allocation Type:" [level=4] [ref=e1336]
+                            - heading "Merge" [level=5] [ref=e1337]
+                          - generic [ref=e1339]:
+                            - generic [ref=e1340]: "Phone :"
+                            - generic [ref=e1341]: "027937777"
+                      - generic [ref=e1346]:
+                        - generic [ref=e1349]:
+                          - generic [ref=e1350]:
+                            - heading "GET FREE - MYSLF EAU DE PARFUM 1.2 mL" [level=4] [ref=e1352]
+                            - generic [ref=e1353]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1354]
+                              - paragraph [ref=e1355]: "1"
+                            - generic [ref=e1361]: UOM :PCS
+                          - generic [ref=e1362]:
+                            - heading "CDS10174760" [level=4] [ref=e1364]
+                            - generic [ref=e1365]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1366]
+                              - paragraph [ref=e1367]: "1"
+                        - generic [ref=e1370]:
+                          - generic [ref=e1371]:
+                            - heading "GET FREE - YSL Pureshot Stability Reboot B 30 mL." [level=4] [ref=e1373]
+                            - generic [ref=e1374]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1375]
+                              - paragraph [ref=e1376]: "1"
+                            - generic [ref=e1382]: UOM :PCS
+                          - generic [ref=e1383]:
+                            - heading "CDS16319509" [level=4] [ref=e1385]
+                            - generic [ref=e1386]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1387]
+                              - paragraph [ref=e1388]: "1"
+                        - generic [ref=e1391]:
+                          - generic [ref=e1392]:
+                            - heading "GET FREE - Libre EDP 1.2 mL" [level=4] [ref=e1394]
+                            - generic [ref=e1395]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1396]
+                              - paragraph [ref=e1397]: "1"
+                            - generic [ref=e1403]: UOM :PCS
+                          - generic [ref=e1404]:
+                            - heading "CDS23619029" [level=4] [ref=e1406]
+                            - generic [ref=e1407]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1408]
+                              - paragraph [ref=e1409]: "1"
+                        - generic [ref=e1412]:
+                          - generic [ref=e1413]:
+                            - heading "Women Fragrance Gift Set Libre 50 mL Holiday 25" [level=4] [ref=e1415]
+                            - generic [ref=e1416]:
+                              - heading "Shipped Qty:" [level=6] [ref=e1417]
+                              - paragraph [ref=e1418]: "1"
+                            - generic [ref=e1424]: UOM :PCS
+                          - generic [ref=e1425]:
+                            - heading "CDS24737203" [level=4] [ref=e1427]
+                            - generic [ref=e1428]:
+                              - heading "Ordered Qty:" [level=6] [ref=e1429]
+                              - paragraph [ref=e1430]: "1"
+              - button "IN PROCESS SHIPMENTS (0)" [ref=e1434] [cursor=pointer]:
+                - heading "IN PROCESS SHIPMENTS (0)" [level=5] [ref=e1436]
+              - button "PLANNED SHIPMENTS (0)" [ref=e1440] [cursor=pointer]:
+                - heading "PLANNED SHIPMENTS (0)" [level=5] [ref=e1442]
+              - generic [ref=e1445]:
+                - button "PAYMENTS AND SETTLEMENTS (1)" [expanded] [ref=e1446] [cursor=pointer]:
+                  - heading "PAYMENTS AND SETTLEMENTS (1)" [level=5] [ref=e1448]
+                - region "PAYMENTS AND SETTLEMENTS (1)" [ref=e1450]:
+                  - generic [ref=e1459]:
+                    - generic [ref=e1461]:
+                      - generic [ref=e1462]:
+                        - generic [ref=e1463]:
+                          - heading "Invoice type:" [level=4] [ref=e1464]
+                          - heading "Shipment" [level=5] [ref=e1465]
+                        - generic [ref=e1467]:
+                          - heading "Invoice No.:" [level=4] [ref=e1468]
+                          - heading "17689146816096382236" [level=5] [ref=e1469]
+                        - generic [ref=e1470]:
+                          - heading "Invoice status:" [level=4] [ref=e1471]
+                          - heading "Closed" [level=5] [ref=e1472]
+                      - generic [ref=e1474]:
+                        - generic [ref=e1475]:
+                          - heading "Invoice date:" [level=4] [ref=e1476]
+                          - heading "01/20/2026" [level=5] [ref=e1477]
+                        - generic [ref=e1478]:
+                          - heading "Invoice amount:" [level=4] [ref=e1479]
+                          - heading "THB 5,200.00" [level=5] [ref=e1480]
+                    - generic [ref=e1485]:
+                      - generic [ref=e1487]:
+                        - generic [ref=e1489]:
+                          - heading "GET FREE - MYSLF EAU DE PARFUM 1.2 mL" [level=4] [ref=e1491]
+                          - generic [ref=e1492]:
+                            - heading "Qty:" [level=6] [ref=e1493]
+                            - paragraph [ref=e1494]: "1"
+                        - generic [ref=e1496]:
+                          - generic [ref=e1497]:
+                            - heading "CDS10174760" [level=4] [ref=e1499]
+                            - generic [ref=e1500]:
+                              - heading "Unit price:" [level=4] [ref=e1501]
+                              - heading "THB 0.00" [level=5] [ref=e1502]
+                          - generic [ref=e1503]:
+                            - generic [ref=e1504]:
+                              - heading "Subtotal:" [level=5] [ref=e1505]
+                              - heading "THB 0.00" [level=5] [ref=e1506]
+                            - generic [ref=e1507]:
+                              - heading "Discount:" [level=5] [ref=e1508]
+                              - heading "THB 0.00" [level=5] [ref=e1509]
+                            - generic [ref=e1510]:
+                              - heading "Charges:" [level=5] [ref=e1511]
+                              - heading "THB 0.00" [level=5] [ref=e1512]
+                            - generic [ref=e1513]:
+                              - heading "Taxes:" [level=5] [ref=e1514]
+                              - heading "THB 0.00" [level=5] [ref=e1515]
+                            - generic [ref=e1516]:
+                              - heading "Total:" [level=4] [ref=e1517]
+                              - heading "THB 0.00" [level=4] [ref=e1518]
+                      - generic [ref=e1520]:
+                        - generic [ref=e1522]:
+                          - heading "GET FREE - YSL Pureshot Stability Reboot B 30 mL." [level=4] [ref=e1524]
+                          - generic [ref=e1525]:
+                            - heading "Qty:" [level=6] [ref=e1526]
+                            - paragraph [ref=e1527]: "1"
+                        - generic [ref=e1529]:
+                          - generic [ref=e1530]:
+                            - heading "CDS16319509" [level=4] [ref=e1532]
+                            - generic [ref=e1533]:
+                              - heading "Unit price:" [level=4] [ref=e1534]
+                              - heading "THB 0.00" [level=5] [ref=e1535]
+                          - generic [ref=e1536]:
+                            - generic [ref=e1537]:
+                              - heading "Subtotal:" [level=5] [ref=e1538]
+                              - heading "THB 0.00" [level=5] [ref=e1539]
+                            - generic [ref=e1540]:
+                              - heading "Discount:" [level=5] [ref=e1541]
+                              - heading "THB 0.00" [level=5] [ref=e1542]
+                            - generic [ref=e1543]:
+                              - heading "Charges:" [level=5] [ref=e1544]
+                              - heading "THB 0.00" [level=5] [ref=e1545]
+                            - generic [ref=e1546]:
+                              - heading "Taxes:" [level=5] [ref=e1547]
+                              - heading "THB 0.00" [level=5] [ref=e1548]
+                            - generic [ref=e1549]:
+                              - heading "Total:" [level=4] [ref=e1550]
+                              - heading "THB 0.00" [level=4] [ref=e1551]
+                      - generic [ref=e1553]:
+                        - generic [ref=e1555]:
+                          - heading "GET FREE - Libre EDP 1.2 mL" [level=4] [ref=e1557]
+                          - generic [ref=e1558]:
+                            - heading "Qty:" [level=6] [ref=e1559]
+                            - paragraph [ref=e1560]: "1"
+                        - generic [ref=e1562]:
+                          - generic [ref=e1563]:
+                            - heading "CDS23619029" [level=4] [ref=e1565]
+                            - generic [ref=e1566]:
+                              - heading "Unit price:" [level=4] [ref=e1567]
+                              - heading "THB 0.00" [level=5] [ref=e1568]
+                          - generic [ref=e1569]:
+                            - generic [ref=e1570]:
+                              - heading "Subtotal:" [level=5] [ref=e1571]
+                              - heading "THB 0.00" [level=5] [ref=e1572]
+                            - generic [ref=e1573]:
+                              - heading "Discount:" [level=5] [ref=e1574]
+                              - heading "THB 0.00" [level=5] [ref=e1575]
+                            - generic [ref=e1576]:
+                              - heading "Charges:" [level=5] [ref=e1577]
+                              - heading "THB 0.00" [level=5] [ref=e1578]
+                            - generic [ref=e1579]:
+                              - heading "Taxes:" [level=5] [ref=e1580]
+                              - heading "THB 0.00" [level=5] [ref=e1581]
+                            - generic [ref=e1582]:
+                              - heading "Total:" [level=4] [ref=e1583]
+                              - heading "THB 0.00" [level=4] [ref=e1584]
+                      - generic [ref=e1586]:
+                        - generic [ref=e1588]:
+                          - heading "Women Fragrance Gift Set Libre 50 mL Holiday 25" [level=4] [ref=e1590]
+                          - generic [ref=e1591]:
+                            - heading "Qty:" [level=6] [ref=e1592]
+                            - paragraph [ref=e1593]: "1"
+                        - generic [ref=e1595]:
+                          - generic [ref=e1596]:
+                            - heading "CDS24737203" [level=4] [ref=e1598]
+                            - generic [ref=e1599]:
+                              - heading "Unit price:" [level=4] [ref=e1600]
+                              - heading "THB 5,200.00" [level=5] [ref=e1601]
+                          - generic [ref=e1602]:
+                            - generic [ref=e1603]:
+                              - heading "Subtotal:" [level=5] [ref=e1604]
+                              - heading "THB 5,200.00" [level=5] [ref=e1605]
+                            - generic [ref=e1606]:
+                              - heading "Discount:" [level=5] [ref=e1607]
+                              - heading "THB 0.00" [level=5] [ref=e1608]
+                            - generic [ref=e1609]:
+                              - heading "Charges:" [level=5] [ref=e1610]
+                              - heading "THB 0.00" [level=5] [ref=e1611]
+                            - generic [ref=e1612]:
+                              - heading "Taxes:" [level=5] [ref=e1613]
+                              - heading "THB 0.00" [level=5] [ref=e1614]
+                            - generic [ref=e1615]:
+                              - heading "Total:" [level=4] [ref=e1616]
+                              - heading "THB 5,200.00" [level=4] [ref=e1617]
+                            - generic [ref=e1618]:
+                              - heading "Informational Taxes:" [level=5] [ref=e1619]
+                              - heading "THB 340.19" [level=5] [ref=e1620]
+                    - generic [ref=e1622]:
+                      - generic [ref=e1631]:
+                        - heading "Bank Transfer" [level=4] [ref=e1633]
+                        - generic [ref=e1634]:
+                          - heading "Transaction date:" [level=4] [ref=e1635]
+                          - heading "01/20/2026" [level=5] [ref=e1636]
+                        - generic [ref=e1637]:
+                          - heading "Amount Charged:" [level=4] [ref=e1638]
+                          - heading "THB 5,200.00" [level=5] [ref=e1639]
+                      - generic [ref=e1642]:
+                        - generic [ref=e1643]:
+                          - heading "Item Subtotal:" [level=5] [ref=e1644]
+                          - heading [level=5] [ref=e1645]
+                          - heading "THB 5,200.00" [level=5] [ref=e1646]
+                        - generic [ref=e1647]:
+                          - heading "Total Discounts:" [level=5] [ref=e1648]
+                          - heading "-" [level=5] [ref=e1649]
+                          - heading "THB 0.00" [level=5] [ref=e1650]
+                        - generic [ref=e1651]:
+                          - heading "Total Charges:" [level=5] [ref=e1652]
+                          - heading "+" [level=5] [ref=e1653]
+                          - heading "THB 0.00" [level=5] [ref=e1654]
+                        - generic [ref=e1655]:
+                          - heading "Total Taxes:" [level=5] [ref=e1656]
+                          - heading "+" [level=5] [ref=e1657]
+                          - heading "THB 0.00" [level=5] [ref=e1658]
+                        - generic [ref=e1659]:
+                          - heading "Shipment Total:" [level=4] [ref=e1660]
+                          - heading "=" [level=4] [ref=e1661]
+                          - heading "THB 5,200.00" [level=4] [ref=e1662]
+                        - generic [ref=e1663]:
+                          - heading "Informational Taxes:" [level=5] [ref=e1664]
+                          - heading [level=5] [ref=e1665]
+                          - heading "THB 340.19" [level=5] [ref=e1666]

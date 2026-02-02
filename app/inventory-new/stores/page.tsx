@@ -34,6 +34,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Store,
   Package,
@@ -47,6 +57,7 @@ import {
   List,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   TrendingUp,
   Activity,
   Calendar as CalendarIcon,
@@ -60,7 +71,16 @@ import {
   ClipboardList,
   ArrowUp,
   ArrowDown,
+  CheckCircle,
+  XCircle,
+  Filter,
+  Globe,
+  ShoppingCart,
+  Truck,
+  Boxes,
+  Zap,
 } from "lucide-react"
+import { TransactionTypeLegend } from "@/components/inventory/transaction-type-legend"
 import { fetchStorePerformance } from "@/lib/inventory-service"
 import type { StorePerformance } from "@/types/inventory"
 import { InventoryEmptyState } from "@/components/inventory/inventory-empty-state"
@@ -78,13 +98,43 @@ import type { InventoryItem } from "@/types/inventory"
 // Minimum characters required for search to trigger
 const MIN_SEARCH_CHARS = 2
 
-// View Type options for By Store view filtering
+// View Type options for By Store view filtering - Enhanced with human-readable labels
 const STOCK_CARD_VIEW_TYPES = [
-  { value: "ECOM-TH-CFR-LOCD-STD", label: "ECOM-TH-CFR-LOCD-STD", description: "CFR - TOL" },
-  { value: "ECOM-TH-CFR-LOCD-MKP", label: "ECOM-TH-CFR-LOCD-MKP", description: "CFR - MKP" },
-  { value: "MKP-TH-CFR-LOCD-STD", label: "MKP-TH-CFR-LOCD-STD", description: "CFR - QC" },
-  { value: "ECOM-TH-DSS-NW-STD", label: "ECOM-TH-DSS-NW-STD", description: "DS - STD" },
-  { value: "ECOM-TH-DSS-LOCD-EXP", label: "ECOM-TH-DSS-LOCD-EXP", description: "DS - EXP" },
+  {
+    value: "ECOM-TH-CFR-LOCD-STD",
+    label: "E-Commerce Standard (CFR)",
+    shortLabel: "TOL",
+    description: "Central Food Retail - Local Distribution",
+    icon: Globe
+  },
+  {
+    value: "ECOM-TH-CFR-LOCD-MKP",
+    label: "Marketplace (CFR)",
+    shortLabel: "MKP",
+    description: "Central Food Retail - Marketplace",
+    icon: ShoppingCart
+  },
+  {
+    value: "MKP-TH-CFR-LOCD-STD",
+    label: "Quality Control (CFR)",
+    shortLabel: "QC",
+    description: "Central Food Retail - Quality Control",
+    icon: Boxes
+  },
+  {
+    value: "ECOM-TH-DSS-NW-STD",
+    label: "Direct Ship Standard",
+    shortLabel: "DS-STD",
+    description: "Direct Ship - Standard Delivery",
+    icon: Truck
+  },
+  {
+    value: "ECOM-TH-DSS-LOCD-EXP",
+    label: "Direct Ship Express",
+    shortLabel: "DS-EXP",
+    description: "Direct Ship - Express Delivery",
+    icon: Zap
+  },
 ]
 
 type FilterType = "all" | "critical" | "low"
@@ -303,6 +353,12 @@ export default function StockByStorePage() {
   const [sortField, setSortField] = useState<SortField>("criticalStockItems")
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
 
+  // Mobile filter sheet state
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
+  // Optional filters collapse state (auto-expand if user has set optional filters)
+  const [optionalFiltersOpen, setOptionalFiltersOpen] = useState(false)
+
   // Derived validation states for minimum character requirement (Store)
   const hasValidStoreIdSearch = storeIdSearch.trim().length >= MIN_SEARCH_CHARS
   const hasValidStoreNameSearch = storeNameSearch.trim().length >= MIN_SEARCH_CHARS
@@ -438,6 +494,12 @@ export default function StockByStorePage() {
     }
   }, [searchNotes, viewTab])
 
+  // Auto-expand optional filters when user has set values
+  useEffect(() => {
+    if (productTransactionType !== "all" || searchNotes.trim()) {
+      setOptionalFiltersOpen(true)
+    }
+  }, [productTransactionType, searchNotes])
 
   // Calculate summary statistics
   const summary = useMemo(() => {
@@ -560,6 +622,46 @@ export default function StockByStorePage() {
     setShowProductCard(false)
   }, [])
 
+  // Count completed mandatory filter steps for By Product view
+  const completedSteps = useMemo(() => {
+    let count = 0
+    if (hasValidDateRange) count++
+    if (hasValidByProductStoreCriteria) count++
+    if (hasValidProductCriteria) count++
+    return count
+  }, [hasValidDateRange, hasValidByProductStoreCriteria, hasValidProductCriteria])
+
+  // Character counter helper component
+  const CharacterCounter = ({ value, minChars, isValid }: { value: string; minChars: number; isValid: boolean }) => (
+    <div className={`text-xs mt-1 ${value.length === 0 ? "text-muted-foreground" : isValid ? "text-green-600" : "text-amber-600"}`} role="status" aria-live="polite">
+      {value.length}/{minChars} characters
+      {value.length > 0 && !isValid && <span className="ml-1">• Enter at least {minChars} characters</span>}
+    </div>
+  )
+
+  // Filter Step Indicator component
+  const FilterStepIndicator = ({ steps }: { steps: Array<{ label: string; completed: boolean }> }) => (
+    <div className="flex items-center gap-2" aria-label="Filter completion steps">
+      {steps.map((step, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium transition-colors ${
+            step.completed
+              ? "bg-green-500 text-white"
+              : "bg-muted text-muted-foreground border border-amber-400"
+          }`} aria-label={`Step ${index + 1}: ${step.label} - ${step.completed ? "complete" : "incomplete"}`}>
+            {step.completed ? <CheckCircle className="h-3.5 w-3.5" /> : index + 1}
+          </div>
+          <span className={`text-xs ${step.completed ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+            {step.label}
+          </span>
+          {index < steps.length - 1 && (
+            <div className={`w-8 h-0.5 ${step.completed ? "bg-green-500" : "bg-muted"}`} />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+
   // Clear all filters for By Store view
   const handleClearByStoreFilters = () => {
     clearViewType()
@@ -665,11 +767,23 @@ export default function StockByStorePage() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {/* Tab Toggle */}
+            {/* Enhanced Tab Toggle with Icons */}
             <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as ViewTab)} className="w-fit">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="by-product" className="px-6">By Product</TabsTrigger>
-                <TabsTrigger value="by-store" className="px-6">By Store</TabsTrigger>
+              <TabsList className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted">
+                <TabsTrigger
+                  value="by-product"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm text-base font-medium px-6 h-10"
+                >
+                  <Package className="h-4 w-4 mr-2" aria-hidden="true" />
+                  By Product
+                </TabsTrigger>
+                <TabsTrigger
+                  value="by-store"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm text-base font-medium px-6 h-10"
+                >
+                  <Store className="h-4 w-4 mr-2" aria-hidden="true" />
+                  By Store
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -697,7 +811,7 @@ export default function StockByStorePage() {
                   2. Select View Type: Orange border removed, data loads
                   3. Store search is optional and filters results when provided */}
 
-              {/* View Type Dropdown */}
+              {/* Enhanced View Type Dropdown with Icons */}
               <div className={`${
                 !hasViewTypeFilter ? "border border-orange-400 ring-1 ring-orange-400 rounded-md" : ""
               }`}>
@@ -711,19 +825,30 @@ export default function StockByStorePage() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[280px] h-10">
+                  <SelectTrigger className="w-[320px] h-10" aria-label="Select view type">
                     <SelectValue placeholder="Select View Type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All View Types</SelectItem>
-                    {STOCK_CARD_VIEW_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <span className="flex items-center gap-2">
-                          <span>{type.label}</span>
-                          <span className="text-muted-foreground text-xs">({type.description})</span>
-                        </span>
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="w-[320px]">
+                    <SelectItem value="all">
+                      <span className="flex items-center gap-2">
+                        <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                        <span>All View Types</span>
+                      </span>
+                    </SelectItem>
+                    {STOCK_CARD_VIEW_TYPES.map((type) => {
+                      const IconComponent = type.icon
+                      return (
+                        <SelectItem key={type.value} value={type.value}>
+                          <span className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4 text-primary" />
+                            <span className="flex flex-col">
+                              <span className="font-medium">{type.label}</span>
+                              <span className="text-xs text-muted-foreground font-mono">{type.value}</span>
+                            </span>
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -915,209 +1040,546 @@ export default function StockByStorePage() {
         {viewTab === "by-product" && (
           <TooltipProvider>
             <div className="space-y-6">
-              {/* Filters Row 1: Date Range and Store */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {/* Date Range Filter */}
-                <div className={`flex items-center gap-1.5 p-1.5 border border-border/40 rounded-md bg-muted/5 ${
-                  !hasValidDateRange ? "border-orange-400 ring-1 ring-orange-400" : ""
+              {/* Desktop Filters - Hidden on mobile */}
+              <div className="hidden md:block space-y-4">
+                {/* Mandatory Filters Card with Step Indicator */}
+                <Card className={`border-2 transition-colors ${
+                  hasAllMandatoryFiltersForProduct
+                    ? "border-green-500 bg-green-50/30"
+                    : "border-amber-400 bg-amber-50/30"
                 }`}>
-                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Date Range</span>
-
-                  {/* From Date Popover */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-[130px] h-10 justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.startDate
-                          ? format(dateRange.startDate, "MMM d, yyyy")
-                          : "From"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dateRange.startDate}
-                        onSelect={(date) =>
-                          setDateRange((prev) => ({ ...prev, startDate: date }))
-                        }
-                        initialFocus
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-lg">Required Filters</CardTitle>
+                        <Badge
+                          variant="outline"
+                          className={`${
+                            hasAllMandatoryFiltersForProduct
+                              ? "bg-green-100 text-green-700 border-green-300"
+                              : "bg-amber-100 text-amber-700 border-amber-300"
+                          }`}
+                        >
+                          {completedSteps} of 3 complete
+                        </Badge>
+                      </div>
+                      <FilterStepIndicator
+                        steps={[
+                          { label: "Date Range", completed: hasValidDateRange },
+                          { label: "Store", completed: hasValidByProductStoreCriteria },
+                          { label: "Product", completed: hasValidProductCriteria },
+                        ]}
                       />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Step 1: Date Range */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium ${
+                          hasValidDateRange ? "bg-green-500 text-white" : "bg-amber-100 text-amber-700 border border-amber-300"
+                        }`}>
+                          {hasValidDateRange ? <CheckCircle className="h-3 w-3" /> : "1"}
+                        </span>
+                        <span className="text-sm font-medium">Date Range</span>
+                        {hasValidDateRange && <span className="text-xs text-green-600">✓ Complete</span>}
+                      </div>
+                      <div className="flex items-center gap-2 ml-7">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`w-[140px] h-10 justify-start text-left font-normal ${
+                                !dateRange.startDate && !hasValidDateRange ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Select start date"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateRange.startDate
+                                ? format(dateRange.startDate, "MMM d, yyyy")
+                                : "From"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateRange.startDate}
+                              onSelect={(date) =>
+                                setDateRange((prev) => ({ ...prev, startDate: date }))
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <span className="text-muted-foreground">to</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`w-[140px] h-10 justify-start text-left font-normal ${
+                                !dateRange.endDate && !hasValidDateRange ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Select end date"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateRange.endDate
+                                ? format(dateRange.endDate, "MMM d, yyyy")
+                                : "To"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateRange.endDate}
+                              onSelect={(date) =>
+                                setDateRange((prev) => ({ ...prev, endDate: date }))
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
 
-                  <span className="text-muted-foreground">-</span>
+                    {/* Step 2: Store */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium ${
+                          hasValidByProductStoreCriteria ? "bg-green-500 text-white" : "bg-amber-100 text-amber-700 border border-amber-300"
+                        }`}>
+                          {hasValidByProductStoreCriteria ? <CheckCircle className="h-3 w-3" /> : "2"}
+                        </span>
+                        <span className="text-sm font-medium">Store</span>
+                        {hasValidByProductStoreCriteria && <span className="text-xs text-green-600">✓ Complete</span>}
+                      </div>
+                      <div className="flex flex-col gap-2 ml-7">
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1 max-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Store ID"
+                              value={byProductStoreIdSearch}
+                              onChange={(e) => setByProductStoreIdSearch(e.target.value)}
+                              className={`pl-9 h-10 ${
+                                byProductStoreIdSearch && !hasValidByProductStoreIdSearch ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Store ID search"
+                            />
+                          </div>
+                          <span className="text-muted-foreground text-sm">or</span>
+                          <div className="relative flex-1 max-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Store Name"
+                              value={byProductStoreNameSearch}
+                              onChange={(e) => setByProductStoreNameSearch(e.target.value)}
+                              className={`pl-9 h-10 ${
+                                byProductStoreNameSearch && !hasValidByProductStoreNameSearch ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Store name search"
+                            />
+                          </div>
+                        </div>
+                        {(byProductStoreIdSearch || byProductStoreNameSearch) && !hasValidByProductStoreCriteria && (
+                          <CharacterCounter
+                            value={byProductStoreIdSearch || byProductStoreNameSearch}
+                            minChars={MIN_SEARCH_CHARS}
+                            isValid={hasValidByProductStoreCriteria}
+                          />
+                        )}
+                      </div>
+                    </div>
 
-                  {/* To Date Popover */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-[130px] h-10 justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.endDate
-                          ? format(dateRange.endDate, "MMM d, yyyy")
-                          : "To"}
+                    {/* Step 3: Product */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium ${
+                          hasValidProductCriteria ? "bg-green-500 text-white" : "bg-amber-100 text-amber-700 border border-amber-300"
+                        }`}>
+                          {hasValidProductCriteria ? <CheckCircle className="h-3 w-3" /> : "3"}
+                        </span>
+                        <span className="text-sm font-medium">Product</span>
+                        {hasValidProductCriteria && <span className="text-xs text-green-600">✓ Complete</span>}
+                      </div>
+                      <div className="flex flex-col gap-2 ml-7">
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1 max-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Product ID"
+                              value={productIdSearch}
+                              onChange={(e) => setProductIdSearch(e.target.value)}
+                              className={`pl-9 h-10 ${
+                                productIdSearch && !hasValidProductIdSearch ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Product ID search"
+                            />
+                          </div>
+                          <span className="text-muted-foreground text-sm">or</span>
+                          <div className="relative flex-1 max-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Product Name"
+                              value={productNameSearch}
+                              onChange={(e) => setProductNameSearch(e.target.value)}
+                              className={`pl-9 h-10 ${
+                                productNameSearch && !hasValidProductNameSearch ? "border-amber-400" : ""
+                              }`}
+                              aria-label="Product name search"
+                            />
+                          </div>
+                        </div>
+                        {(productIdSearch || productNameSearch) && !hasValidProductCriteria && (
+                          <CharacterCounter
+                            value={productIdSearch || productNameSearch}
+                            minChars={MIN_SEARCH_CHARS}
+                            isValid={hasValidProductCriteria}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Optional Filters - Collapsible Section */}
+                <Collapsible open={optionalFiltersOpen} onOpenChange={setOptionalFiltersOpen}>
+                  <div className="flex items-center gap-4">
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                        <ChevronDown className={`h-4 w-4 transition-transform ${optionalFiltersOpen ? "rotate-180" : ""}`} />
+                        <span className="text-sm font-medium">Optional Filters</span>
+                        {(productTransactionType !== "all" || searchNotes) && (
+                          <Badge variant="secondary" className="text-xs">Active</Badge>
+                        )}
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dateRange.endDate}
-                        onSelect={(date) =>
-                          setDateRange((prev) => ({ ...prev, endDate: date }))
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Vertical Divider */}
-                <div className="h-8 w-px bg-border" />
-
-                {/* Store Search Group (mandatory for By Product view) */}
-                <div className={`flex items-center gap-1.5 p-1.5 border border-border/40 rounded-md bg-muted/5 ${
-                  !hasValidByProductStoreCriteria ? "border-orange-400 ring-1 ring-orange-400" : ""
-                }`}>
-                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Store</span>
-
-                  {/* Store ID Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Store ID"
-                      value={byProductStoreIdSearch}
-                      onChange={(e) => setByProductStoreIdSearch(e.target.value)}
-                      className="pl-9 min-w-[140px] h-10"
-                    />
+                    </CollapsibleTrigger>
+                    <div className="flex-1 h-px bg-border" />
                   </div>
+                  <CollapsibleContent className="pt-4">
+                    <Card className="border-border/50 bg-muted/10">
+                      <CardContent className="pt-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                          {/* Transaction Type Filter */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Transaction Type</label>
+                            <Select
+                              value={productTransactionType}
+                              onValueChange={(v) => setProductTransactionType(v as ProductTransactionType | "all")}
+                            >
+                              <SelectTrigger className="w-[180px] h-10" aria-label="Filter by transaction type">
+                                <SelectValue placeholder="All Types" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {TRANSACTION_TYPES.map((type) => (
+                                  <SelectItem key={type.value} value={type.value}>
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                  {/* Store Name Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Store Name"
-                      value={byProductStoreNameSearch}
-                      onChange={(e) => setByProductStoreNameSearch(e.target.value)}
-                      className="pl-9 min-w-[140px] h-10"
-                    />
-                  </div>
+                          {/* Notes Search */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">Search Notes</label>
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                placeholder="Search in notes..."
+                                value={searchNotes}
+                                onChange={(e) => setSearchNotes(e.target.value)}
+                                className="pl-9 w-[240px] h-10"
+                                aria-label="Search notes"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Action Buttons Row */}
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={productViewLoading || !hasAllMandatoryFiltersForProduct}
+                    className="h-10"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${productViewLoading ? "animate-spin" : ""}`} />
+                    Refresh
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearByProductFilters}
+                    disabled={!productIdSearch && !productNameSearch && !byProductStoreIdSearch && !byProductStoreNameSearch && !dateRange.startDate && !dateRange.endDate && productTransactionType === "all" && !searchNotes}
+                    className="h-10 hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Clear All
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    disabled={productTransactions.length === 0}
+                    className="h-10"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
                 </div>
               </div>
 
-              {/* Filters Row 2: Product Search, Transaction Type, Notes, and Action Buttons */}
-              <div className="flex flex-wrap lg:flex-nowrap items-center gap-1.5">
-                {/* Product Search Group */}
-                <div className={`flex items-center gap-1.5 p-1.5 border border-border/40 rounded-md bg-muted/5 ${
-                  !hasValidProductCriteria ? "border-orange-400 ring-1 ring-orange-400" : ""
-                }`}>
-                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Product</span>
+              {/* Mobile: Floating Filter Button */}
+              <Button
+                variant="outline"
+                size="lg"
+                className="fixed bottom-4 right-4 shadow-lg md:hidden z-50 h-14 px-6"
+                onClick={() => setMobileFiltersOpen(true)}
+              >
+                <Filter className="h-5 w-5 mr-2" />
+                Filters
+                {hasAllMandatoryFiltersForProduct && (
+                  <CheckCircle className="h-4 w-4 ml-2 text-green-500" />
+                )}
+                {!hasAllMandatoryFiltersForProduct && completedSteps > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">{completedSteps}/3</Badge>
+                )}
+              </Button>
 
-                  {/* Product ID Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Product ID"
-                      value={productIdSearch}
-                      onChange={(e) => setProductIdSearch(e.target.value)}
-                      className="pl-9 min-w-[140px] h-10"
-                    />
+              {/* Mobile Filter Sheet */}
+              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Filter Stock Card</SheetTitle>
+                    <SheetDescription>
+                      Complete all required filters to view transaction history
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="space-y-6 py-6">
+                    {/* Progress indicator */}
+                    <div className="flex items-center justify-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={`${
+                          hasAllMandatoryFiltersForProduct
+                            ? "bg-green-100 text-green-700 border-green-300"
+                            : "bg-amber-100 text-amber-700 border-amber-300"
+                        }`}
+                      >
+                        {completedSteps} of 3 required filters complete
+                      </Badge>
+                    </div>
+
+                    {/* Date Range */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-medium">
+                        {hasValidDateRange ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border-2 border-amber-400 flex items-center justify-center text-xs">1</span>
+                        )}
+                        Date Range <span className="text-amber-600">*</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="flex-1 h-12 justify-start">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateRange.startDate ? format(dateRange.startDate, "MMM d, yyyy") : "From"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateRange.startDate}
+                              onSelect={(date) => setDateRange((prev) => ({ ...prev, startDate: date }))}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <span className="text-muted-foreground">-</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="flex-1 h-12 justify-start">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateRange.endDate ? format(dateRange.endDate, "MMM d, yyyy") : "To"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateRange.endDate}
+                              onSelect={(date) => setDateRange((prev) => ({ ...prev, endDate: date }))}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    {/* Store */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-medium">
+                        {hasValidByProductStoreCriteria ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border-2 border-amber-400 flex items-center justify-center text-xs">2</span>
+                        )}
+                        Store <span className="text-amber-600">*</span>
+                      </label>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Store ID"
+                            value={byProductStoreIdSearch}
+                            onChange={(e) => setByProductStoreIdSearch(e.target.value)}
+                            className="pl-9 h-12"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Store Name"
+                            value={byProductStoreNameSearch}
+                            onChange={(e) => setByProductStoreNameSearch(e.target.value)}
+                            className="pl-9 h-12"
+                          />
+                        </div>
+                        {(byProductStoreIdSearch || byProductStoreNameSearch) && !hasValidByProductStoreCriteria && (
+                          <p className="text-xs text-amber-600">Enter at least 2 characters</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Product */}
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 text-sm font-medium">
+                        {hasValidProductCriteria ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <span className="w-4 h-4 rounded-full border-2 border-amber-400 flex items-center justify-center text-xs">3</span>
+                        )}
+                        Product <span className="text-amber-600">*</span>
+                      </label>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Product ID"
+                            value={productIdSearch}
+                            onChange={(e) => setProductIdSearch(e.target.value)}
+                            className="pl-9 h-12"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Product Name"
+                            value={productNameSearch}
+                            onChange={(e) => setProductNameSearch(e.target.value)}
+                            className="pl-9 h-12"
+                          />
+                        </div>
+                        {(productIdSearch || productNameSearch) && !hasValidProductCriteria && (
+                          <p className="text-xs text-amber-600">Enter at least 2 characters</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Optional Filters */}
+                    <div className="pt-4 border-t">
+                      <label className="text-sm font-medium text-muted-foreground">Optional Filters</label>
+                      <div className="mt-3 space-y-3">
+                        <Select
+                          value={productTransactionType}
+                          onValueChange={(v) => setProductTransactionType(v as ProductTransactionType | "all")}
+                        >
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="Transaction Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TRANSACTION_TYPES.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search notes..."
+                            value={searchNotes}
+                            onChange={(e) => setSearchNotes(e.target.value)}
+                            className="pl-9 h-12"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  <SheetFooter className="flex-row gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={handleClearByProductFilters}
+                      className="flex-1 h-12"
+                    >
+                      Clear All
+                    </Button>
+                    <Button
+                      onClick={() => setMobileFiltersOpen(false)}
+                      disabled={!hasAllMandatoryFiltersForProduct}
+                      className="flex-1 h-12"
+                    >
+                      Apply Filters
+                    </Button>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
 
-                  {/* Product Name Search */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Product Name"
-                      value={productNameSearch}
-                      onChange={(e) => setProductNameSearch(e.target.value)}
-                      className="pl-9 min-w-[140px] h-10"
-                    />
-                  </div>
-                </div>
-
-                {/* Transaction Type Filter */}
-                <Select
-                  value={productTransactionType}
-                  onValueChange={(v) => setProductTransactionType(v as ProductTransactionType | "all")}
-                >
-                  <SelectTrigger className="w-[140px] h-10">
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TRANSACTION_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Notes Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Notes"
-                    value={searchNotes}
-                    onChange={(e) => setSearchNotes(e.target.value)}
-                    className="pl-9 min-w-[200px] h-10"
-                  />
-                </div>
-
-                {/* Spacer */}
-                <div className="flex-1" />
-
-                {/* Action Buttons */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={productViewLoading || !hasAllMandatoryFiltersForProduct}
-                  className="h-10"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${productViewLoading ? "animate-spin" : ""}`} />
-                  Refresh
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearByProductFilters}
-                  disabled={!productIdSearch && !productNameSearch && !byProductStoreIdSearch && !byProductStoreNameSearch && !dateRange.startDate && !dateRange.endDate && productTransactionType === "all" && !searchNotes}
-                  className="h-10 hover:bg-gray-100 transition-colors"
-                >
-                  Clear All
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportCSV}
-                  disabled={productTransactions.length === 0}
-                  className="h-10"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-              </div>
-
-              {/* Empty State - No Product and Store Selected */}
+              {/* Enhanced Empty State with Checklist */}
               {!hasAllMandatoryFiltersForProduct && (
                 <Card className="border-dashed">
-                  <CardContent className="flex flex-col items-center justify-center py-16">
-                    <Package className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                    <p className="text-lg font-medium text-muted-foreground">
-                      Select filters to view stock card
-                    </p>
-                    <p className="text-sm text-muted-foreground/70 mt-2">
-                      Complete Date Range, Product, and Store filters to load data.
-                    </p>
+                  <CardContent className="py-12">
+                    <div className="flex flex-col items-center">
+                      <ClipboardList className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                      <p className="text-lg font-medium mb-4">Complete required filters to view stock card</p>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 ${hasValidDateRange ? "text-green-600" : "text-amber-600"}`}>
+                          {hasValidDateRange ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
+                          <span>Select date range</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${hasValidByProductStoreCriteria ? "text-green-600" : "text-amber-600"}`}>
+                          {hasValidByProductStoreCriteria ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
+                          <span>Enter store ID or name (min. 2 characters)</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${hasValidProductCriteria ? "text-green-600" : "text-amber-600"}`}>
+                          {hasValidProductCriteria ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <XCircle className="h-4 w-4" />
+                          )}
+                          <span>Enter product ID or name (min. 2 characters)</span>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -1144,11 +1606,24 @@ export default function StockByStorePage() {
                       </div>
                     </div>
                   </CardHeader>
+
+                  {/* Transaction Type Legend Bar */}
+                  <TransactionTypeLegend />
+
                   <CardContent className="p-0">
                     {productViewLoading ? (
-                      <div className="p-8 text-center">
-                        <RefreshCw className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground mt-2">Loading transactions...</p>
+                      /* Skeleton Loading State */
+                      <div className="p-4 space-y-3" role="status" aria-label="Loading transactions">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-5 w-[140px]" />
+                            <Skeleton className="h-6 w-[100px] rounded-full" />
+                            <Skeleton className="h-5 w-[60px]" />
+                            <Skeleton className="h-5 w-[80px]" />
+                            <Skeleton className="h-5 flex-1" />
+                          </div>
+                        ))}
+                        <p className="text-center text-muted-foreground text-sm mt-4">Loading transactions...</p>
                       </div>
                     ) : productTransactions.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16">

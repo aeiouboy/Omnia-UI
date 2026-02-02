@@ -1,8 +1,15 @@
 // Mock data service for development when external APIs are not configured
 // This provides realistic sample data for all dashboard components
+//
+// Manhattan OMNI Integration (ADW: 783bdb6f)
+// - Manhattan OMNI orders are generated from src/lib/manhattan-omni-mock-data.ts
+// - These orders use CDS prefix and map to RT-CC-STD, RT-HD-STD, etc. order types
+// - Gift-with-purchase items have giftWithPurchase field set to parent SKU reference
+// - Filter by channel="omni" or search for "CDS" prefix to find Manhattan OMNI orders
 
 import { AuditActionType, AuditType, ACTION_TYPE_TO_AUDIT_TYPE, type ManhattanAuditEvent } from "@/types/audit"
 import { DeliveryMethod, DeliveryMethodType } from "@/types/delivery"
+import { manhattanOmniMockOrders, getManhattanOmniMockOrders } from "./manhattan-omni-mock-data"
 
 // UOM Type Categories
 const WEIGHT_UOMS = ['KG', 'G', 'GRAM', 'LB'] as const
@@ -11668,12 +11675,19 @@ const scenarioOrder = {
 // Add to mock orders
 mockApiOrders.unshift(scenarioOrder);
 
-// Add MAO orders last so they appear at the top (row 1, 2, 3, 4, and 5)
+// Add MAO orders last so they appear at the top (row 1, 2, 3, 4, 5, and 6)
+mockApiOrders.unshift(manhattanOmniMockOrders[0]); // Row 6 - CDS260120221340 (Manhattan OMNI gift-with-purchase order)
 mockApiOrders.unshift(maoOrderCDS260130158593);    // Row 5 - Multi-payment delivered order (Credit Card + T1 Points)
 mockApiOrders.unshift(maoOrderCDS251229874674);    // Row 4 - Mixed fulfillment order
 mockApiOrders.unshift(maoOrderCDS260121226285);    // Row 3
 mockApiOrders.unshift(maoOrderW1156260115052036);  // Row 2
 mockApiOrders.unshift(maoOrderW1156251121946800);  // Row 1 (top)
+
+// Add remaining Manhattan OMNI orders (ADW: 783bdb6f)
+// Skip first order (CDS260120221340) as it's manually positioned above
+manhattanOmniMockOrders.slice(1).forEach(order => {
+  mockApiOrders.push(order)
+})
 
 // Export all mock data
 export const mockData = {
@@ -11691,5 +11705,8 @@ export const mockData = {
   generateAuditTrail: generateMockAuditTrail,
   generateManhattanAuditTrail: generateManhattanAuditTrail,
   generateFulfillmentTimeline: generateFulfillmentTimeline,
-  generateTrackingData: generateTrackingData
+  generateTrackingData: generateTrackingData,
+  // Manhattan OMNI mock data (ADW: 783bdb6f)
+  manhattanOmniOrders: manhattanOmniMockOrders,
+  getManhattanOmniOrders: getManhattanOmniMockOrders
 }
