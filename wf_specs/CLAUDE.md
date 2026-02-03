@@ -32,4 +32,11 @@
 | #5867 | 12:12 PM | ✅ | Fulfillment Tab Wireframe Enhanced with Existing UI Pattern Discovery | ~802 |
 | #5865 | 12:01 PM | ✅ | Fulfillment Tab Redesign Workflow Specification Document Created | ~1116 |
 | #5863 | 11:58 AM | 🔵 | Payment Tab UI Redesign Wireframe Specification | ~1124 |
+
+### Feb 2, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #6829 | 9:15 PM | 🟣 | Wireframe Specification Created - Gift Item Visual Grouping with Three Design Options | ~387 |
+| #6826 | 9:14 PM | 🔵 | Gift & GWP Items Tab Wireframe Specification - Three Implementation Versions | ~1005 |
 </claude-mem-context>
